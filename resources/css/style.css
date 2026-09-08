@@ -1,0 +1,750 @@
+:root {
+  --color-primary-dark: #0D631B;
+  --color-primary: #2E7D32;
+  --color-primary-light: #CBFFC2;
+  --color-primary-bg: rgba(46, 125, 50, 0.1);
+  --color-primary-badge: rgba(46, 125, 50, 0.2);
+  
+  --color-bg-light: #F4F7F5;
+  --color-white: #FFFFFF;
+  --color-border: rgba(203, 213, 225, 0.6);
+  --color-border-subtle: rgba(203, 213, 225, 0.35);
+  
+  --color-text-title: #071E27;
+  --color-text-body: #40493D;
+  --color-text-muted: rgba(64, 73, 61, 0.7);
+  --color-text-dim: rgba(64, 73, 61, 0.5);
+  
+  --color-blue: #005DB7;
+  --color-blue-bg: rgba(0, 93, 183, 0.1);
+  --color-blue-badge: rgba(100, 161, 255, 0.2);
+  --color-blue-track: #D5ECF8;
+  
+  --color-orange: #B45000;
+  --color-orange-bg: rgba(180, 80, 0, 0.1);
+  
+  --color-red: #BA1A1A;
+  --color-red-dark: #93000A;
+  --color-red-bg: rgba(186, 26, 26, 0.1);
+
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Dark Theme Overrides */
+.dark-theme {
+  --color-bg-light: #0B1911;
+  --color-white: #13271C;
+  --color-border: #1E3A2B;
+  --color-border-subtle: rgba(30, 58, 43, 0.5);
+  
+  --color-text-title: #F1F5F9;
+  --color-text-body: #CBD5E1;
+  --color-text-muted: #94A3B8;
+  --color-text-dim: #64748B;
+  
+  --color-blue-track: #133947;
+  --color-blue-bg: rgba(0, 93, 183, 0.25);
+  --color-orange-bg: rgba(180, 80, 0, 0.25);
+  --color-red-bg: rgba(186, 26, 26, 0.25);
+
+  background: #0B1911;
+  color: #F1F5F9;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+html, body {
+  font-family: var(--font-family);
+  background: var(--color-bg-light);
+  color: var(--color-text-title);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Utility classes */
+.card-base {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.icon-circle {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  max-width: 36px;
+  max-height: 36px;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text-title);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.btn-primary {
+  background: var(--color-primary-dark);
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary);
+}
+
+.btn-danger {
+  background: var(--color-red-dark);
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-danger:hover {
+  background: var(--color-red);
+}
+
+.btn-secondary {
+  background: var(--color-white);
+  color: var(--color-text-title);
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+}
+
+/* Dark Mode Deep Elements Customization */
+.dark-theme .desktop-sidebar,
+.dark-theme .desktop-header,
+.dark-theme .mobile-header,
+.dark-theme .mobile-phone-container,
+.dark-theme .mobile-bottom-nav,
+.dark-theme .profile-dropdown-menu,
+.dark-theme .lang-dropdown-menu,
+.dark-theme .notif-dropdown-menu,
+.dark-theme .modal-content-card,
+.dark-theme .mobile-profile-popup,
+.dark-theme .stat-card,
+.dark-theme .system-status-card,
+.dark-theme .activity-card,
+.dark-theme .detail-summary-card,
+.dark-theme .chart-box,
+.dark-theme .duration-progress-card,
+.dark-theme .network-overview-card,
+.dark-theme .mobile-gateway-card,
+.dark-theme .mobile-dev-card,
+.dark-theme .pairing-step-item,
+.dark-theme .mobile-card-mini,
+.dark-theme .mobile-card-white,
+.dark-theme .mobile-stat-card,
+.dark-theme .mobile-temp-card,
+.dark-theme .mobile-weight-card,
+.dark-theme .mobile-chart-card,
+.dark-theme .m-detail-card,
+.dark-theme .m-stat-box,
+.dark-theme .m-energy-card,
+.dark-theme .m-chart-card,
+.dark-theme .hardware-card,
+.dark-theme .guide-steps-card,
+.dark-theme .collab-info-box,
+.dark-theme .mobile-collab-card,
+.dark-theme .mobile-hw-tile,
+.dark-theme .accordion-card,
+.dark-theme .accordion-header,
+.dark-theme .form-card,
+.dark-theme .active-cycle-card,
+.dark-theme .chart-card,
+.dark-theme .history-table-wrapper,
+.dark-theme .detail-metric-card,
+.dark-theme .mobile-batch-card,
+.dark-theme .monitoring-control-bar,
+.dark-theme .batch-card,
+.dark-theme .batch-table-card,
+.dark-theme .filter-card,
+.dark-theme .empty-history-card,
+.dark-theme .empty-history-card-mobile,
+.dark-theme .settings-panel-card,
+.dark-theme .device-item-card,
+.dark-theme .device-meta-card,
+.dark-theme .summary-side-card,
+.dark-theme .system-overview-banner {
+  background: #0B242F !important;
+  color: #FFFFFF !important;
+  border-color: #1E4E61 !important;
+}
+
+.dark-theme .hw-meta-strip,
+.dark-theme .md-meta-row,
+.dark-theme .btn-refresh-all,
+.dark-theme .btn-ping-device,
+.dark-theme .btn-m-ping,
+.dark-theme .btn-m-toggle,
+.dark-theme .mg-ping-btn,
+.dark-theme .collapse-btn,
+.dark-theme .btn-toggle-conn {
+  background: #113847 !important;
+  border-color: #1E4E61 !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .mc-code {
+  background: #071E27 !important;
+  color: #CBFFC2 !important;
+}
+
+.dark-theme .pairing-card {
+  background: #092C23 !important;
+  border-color: #165B43 !important;
+}
+
+.dark-theme .desktop-content-area,
+.dark-theme .desktop-layout-frame,
+.dark-theme .mobile-layout-frame-outer,
+.dark-theme .mobile-app-body {
+  background: #071E27 !important;
+}
+
+.dark-theme .sidebar-creator-badge,
+.dark-theme .avatar-edit-row,
+.dark-theme .system-status-pill {
+  background: #113847 !important;
+  border-color: #1E4E61 !important;
+  color: #FFFFFF !important;
+}
+
+/* Borderless & Transparent Header Action Buttons in Dark Theme */
+.dark-theme .header-action-btn,
+.dark-theme .mobile-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .header-action-btn:hover,
+.dark-theme .mobile-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-theme .system-status-pill .status-sub {
+  color: #CBFFC2 !important;
+}
+
+.dark-theme .profile-trigger-btn:hover,
+.dark-theme .profile-trigger-btn.active,
+.dark-theme .profile-menu-btn:hover,
+.dark-theme .mp-item-btn:hover,
+.dark-theme .lang-option:hover {
+  background: #164657 !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .user-display-name,
+.dark-theme .ph-name,
+.dark-theme .menu-main-title,
+.dark-theme .page-title,
+.dark-theme .section-title,
+.dark-theme .hw-name,
+.dark-theme .step-title,
+.dark-theme .tile-name,
+.dark-theme .acc-title,
+.dark-theme .modal-title,
+.dark-theme .avatar-meta-title,
+.dark-theme .mp-user-info strong,
+.dark-theme .stat-number,
+.dark-theme .big-num,
+.dark-theme .system-title,
+.dark-theme .activity-heading,
+.dark-theme .timeline-title,
+.dark-theme .meta-time,
+.dark-theme .chart-title,
+.dark-theme .banner-title,
+.dark-theme .empty-title,
+.dark-theme .empty-title-sm,
+.dark-theme .setting-title,
+.dark-theme .batch-name,
+.dark-theme .records-count-meta strong,
+.dark-theme .chart-current-val,
+.dark-theme .summary-title {
+  color: #FFFFFF !important;
+}
+
+.dark-theme .user-role-badge,
+.dark-theme .ph-email,
+.dark-theme .menu-sub-title,
+.dark-theme .page-subtitle,
+.dark-theme .step-desc,
+.dark-theme .partner-desc,
+.dark-theme .brand-subtitle,
+.dark-theme .hw-type,
+.dark-theme .modal-subtitle,
+.dark-theme .avatar-meta-sub,
+.dark-theme .mp-user-info span,
+.dark-theme .stat-label,
+.dark-theme .mobile-stat-label,
+.dark-theme .stat-unit,
+.dark-theme .unit,
+.dark-theme .meta-label,
+.dark-theme .timeline-sub,
+.dark-theme .status-meta-text,
+.dark-theme .progress-percentage-label,
+.dark-theme .stream-rate-label,
+.dark-theme .banner-desc,
+.dark-theme .empty-desc,
+.dark-theme .empty-desc-sm,
+.dark-theme .records-count-meta,
+.dark-theme .ind-lbl,
+.dark-theme .cs-stat span,
+.dark-theme .setting-description,
+.dark-theme .batch-date,
+.dark-theme .batch-meta {
+  color: #94A3B8 !important;
+}
+
+.dark-theme .progress-track,
+.dark-theme .intensity-track {
+  background: #133947 !important;
+}
+
+.dark-theme .progress-fill {
+  background: #10B981 !important;
+}
+
+.dark-theme .icon-gray {
+  background: #113847 !important;
+}
+
+.dark-theme .icon-gray svg {
+  stroke: #94A3B8 !important;
+}
+
+.dark-theme .svg-area-chart-box {
+  background: #081B24 !important;
+  border-color: #1E4E61 !important;
+}
+
+.dark-theme .svg-area-chart-box line {
+  stroke: #1E4E61 !important;
+}
+
+.dark-theme .chart-stats-footer {
+  background: #113847 !important;
+  color: #E2E8F0 !important;
+}
+
+.dark-theme .chart-mode-tabs {
+  background: #113847 !important;
+}
+
+.dark-theme .mode-tab-btn {
+  color: #94A3B8 !important;
+}
+
+.dark-theme .mode-tab-btn.active {
+  background: #164657 !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .live-stream-badge {
+  background: #113847 !important;
+  color: #94A3B8 !important;
+}
+
+.dark-theme .live-stream-badge.streaming-active {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34D399 !important;
+}
+
+.dark-theme .system-active-badge {
+  background: #113847 !important;
+  border-color: #1E4E61 !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .system-active-badge svg {
+  stroke: #FFFFFF !important;
+}
+
+.dark-theme .pill-btn {
+  background: #113847 !important;
+  border-color: #1E4E61 !important;
+  color: #CBD5E1 !important;
+}
+
+.dark-theme .pill-btn.active {
+  background: #0D631B !important;
+  border-color: #0D631B !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .btn-export-secondary,
+.dark-theme .btn-secondary {
+  background: #113847 !important;
+  border-color: #1E4E61 !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .btn-export-secondary:hover,
+.dark-theme .btn-secondary:hover {
+  background: #164657 !important;
+}
+
+.dark-theme .history-table th {
+  background: #0E2E3C !important;
+  color: #94A3B8 !important;
+  border-color: #1E4E61 !important;
+}
+
+.dark-theme .history-table td {
+  border-color: #1E4E61 !important;
+  color: #E2E8F0 !important;
+}
+
+.dark-theme .history-table tr:hover td {
+  background: #113847 !important;
+}
+
+.dark-theme .banner-indicators {
+  background: rgba(17, 56, 71, 0.8) !important;
+  border-color: #1E4E61 !important;
+}
+
+.dark-theme .banner-status-icon {
+  background: #113847 !important;
+  }
+
+.dark-theme .banner-ready {
+  background: linear-gradient(135deg, #092C23 0%, #0B3A2C 100%) !important;
+  border-color: #165B43 !important;
+}
+
+.dark-theme .banner-warning {
+  background: linear-gradient(135deg, #3A1F1D 0%, #301B1A 100%) !important;
+  border-color: #742A2A !important;
+}
+
+.dark-theme .empty-icon-circle,
+.dark-theme .empty-icon-circle-sm {
+  background: #113847 !important;
+  color: #94A3B8 !important;
+}
+
+.dark-theme select,
+.dark-theme input[type="text"],
+.dark-theme input[type="search"],
+.dark-theme input[type="number"],
+.dark-theme input[type="password"],
+.dark-theme textarea {
+  background: #071E27 !important;
+  border-color: #1E4E61 !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .modal-input {
+  background: #071E27 !important;
+  border-color: #1E4E61 !important;
+  color: #FFFFFF !important;
+}
+
+.dark-theme .btn-cancel {
+  background: #164657 !important;
+  color: #CBD5E1 !important;
+}
+
+.dark-theme .menu-divider,
+.dark-theme .header-divider,
+.dark-theme .partner-sep-line,
+.dark-theme .mp-divider {
+  background: #1E4E61 !important;
+}
+
+/* ==========================================================================
+   FRAMER MOTION ANIMATION SYSTEM (SECTION CONTENT ONLY)
+   ========================================================================== */
+
+/* 1. Page/View Framer Motion Transitions */
+.framer-motion-view-enter-active {
+  transition: opacity 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.framer-motion-view-leave-active {
+  transition: opacity 0.22s cubic-bezier(0.4, 0, 1, 1),
+              transform 0.22s cubic-bezier(0.4, 0, 1, 1);
+  will-change: transform, opacity;
+}
+
+.framer-motion-view-enter-from {
+  opacity: 0;
+  transform: translateY(16px) scale(0.992);
+}
+
+.framer-motion-view-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.996);
+}
+
+/* 2. Framer Motion Keyframes */
+@keyframes framerSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+  60% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes framerFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes framerCardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.975);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 3. Staggered Entrance for Section Cards & Widgets */
+.desktop-subview-scroll .header-action-row,
+.desktop-subview-scroll .page-header-group,
+.desktop-subview-scroll .guide-header-row,
+.desktop-subview-scroll .settings-header-banner,
+.mobile-scroll-content .mobile-header-area {
+  animation: framerFadeIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.02s both;
+}
+
+.desktop-subview-scroll .stats-grid-4,
+.desktop-subview-scroll .overview-grid,
+.desktop-subview-scroll .device-summary-cards,
+.desktop-subview-scroll .filter-pills-row,
+.mobile-scroll-content .mobile-stats-grid,
+.mobile-scroll-content .mobile-stats-row-3,
+.mobile-scroll-content .m-quick-stats,
+.mobile-scroll-content .mobile-tab-chips {
+  animation: framerSlideUp 0.44s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+.desktop-subview-scroll .charts-grid-2,
+.desktop-subview-scroll .batch-list,
+.desktop-subview-scroll .history-charts-grid,
+.desktop-subview-scroll .drying-layout-grid,
+.desktop-subview-scroll .steps-accordion-list,
+.desktop-subview-scroll .settings-content-grid,
+.mobile-scroll-content .m-chart-card,
+.mobile-scroll-content .mobile-session-stack,
+.mobile-scroll-content .mobile-step-stack,
+.mobile-scroll-content .mobile-card {
+  animation: framerSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both;
+}
+
+.desktop-subview-scroll .network-overview-card,
+.desktop-subview-scroll .pairing-card,
+.desktop-subview-scroll .batch-table-card,
+.desktop-subview-scroll .device-meta-card {
+  animation: framerSlideUp 0.52s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+/* 4. Child Card Stagger inside Grids */
+.desktop-subview-scroll .stat-card:nth-child(1),
+.mobile-scroll-content .mobile-stat-tile:nth-child(1),
+.mobile-scroll-content .m-quick-stat:nth-child(1) {
+  animation: framerCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+.desktop-subview-scroll .stat-card:nth-child(2),
+.mobile-scroll-content .mobile-stat-tile:nth-child(2),
+.mobile-scroll-content .m-quick-stat:nth-child(2) {
+  animation: framerCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.13s both;
+}
+
+.desktop-subview-scroll .stat-card:nth-child(3),
+.mobile-scroll-content .mobile-stat-tile:nth-child(3),
+.mobile-scroll-content .m-quick-stat:nth-child(3) {
+  animation: framerCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.desktop-subview-scroll .stat-card:nth-child(4),
+.mobile-scroll-content .mobile-stat-tile:nth-child(4),
+.mobile-scroll-content .m-quick-stat:nth-child(4) {
+  animation: framerCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.23s both;
+}
+
+/* Stagger for batch cards & device cards */
+.desktop-subview-scroll .batch-card:nth-child(1),
+.desktop-subview-scroll .device-item-card:nth-child(1),
+.mobile-scroll-content .mobile-session-card:nth-child(1) {
+  animation: framerCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+.desktop-subview-scroll .batch-card:nth-child(2),
+.desktop-subview-scroll .device-item-card:nth-child(2),
+.mobile-scroll-content .mobile-session-card:nth-child(2) {
+  animation: framerCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.desktop-subview-scroll .batch-card:nth-child(3),
+.desktop-subview-scroll .device-item-card:nth-child(3),
+.mobile-scroll-content .mobile-session-card:nth-child(3) {
+  animation: framerCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
+}
+
+.desktop-subview-scroll .batch-card:nth-child(4),
+.desktop-subview-scroll .device-item-card:nth-child(4),
+.mobile-scroll-content .mobile-session-card:nth-child(4) {
+  animation: framerCardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both;
+}
+
+/* 5. Framer-Motion Spring Micro-Interactions on Section Content */
+.desktop-subview-scroll .stat-card,
+.desktop-subview-scroll .chart-box,
+.desktop-subview-scroll .batch-card,
+.desktop-subview-scroll .device-item-card,
+.desktop-subview-scroll .settings-panel-card,
+.desktop-subview-scroll .summary-side-card,
+.mobile-scroll-content .mobile-session-card,
+.mobile-scroll-content .mobile-stat-tile,
+.mobile-scroll-content .m-chart-card {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease;
+  will-change: transform;
+}
+
+.desktop-subview-scroll .stat-card:hover,
+.desktop-subview-scroll .chart-box:hover,
+.desktop-subview-scroll .batch-card:hover,
+.desktop-subview-scroll .device-item-card:hover {
+  transform: translateY(-4px) scale(1.008);
+  border-color: var(--color-primary);
+}
+
+.dark-theme .desktop-subview-scroll .stat-card:hover,
+.dark-theme .desktop-subview-scroll .chart-box:hover,
+.dark-theme .desktop-subview-scroll .batch-card:hover,
+.dark-theme .desktop-subview-scroll .device-item-card:hover {
+  border-color: var(--color-primary-light);
+}
+
+/* Springy active press for content buttons */
+.desktop-subview-scroll .btn-primary:active,
+.desktop-subview-scroll .btn-detail-outline:active,
+.desktop-subview-scroll .pill-btn:active,
+.desktop-subview-scroll .tab-switch-btn:active,
+.desktop-subview-scroll .add-dev-btn:active,
+.desktop-subview-scroll .btn-save-settings:active,
+.mobile-scroll-content .btn-m-detail:active,
+.mobile-scroll-content .m-pill:active,
+.mobile-scroll-content .m-ping-btn:active {
+  transform: scale(0.955);
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+

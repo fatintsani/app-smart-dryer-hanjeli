@@ -1,0 +1,184 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Mail\BatchCompletedMail;
+use App\Mail\CriticalAlertMail;
+use App\Mail\SendOtpResetPasswordMail;
+use App\Mail\WelcomeUserMail;
+use App\Models\Batch;
+use App\Models\SystemSetting;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+
+class SettingController extends Controller
+{
+    /**
+     * Get system & IoT settings.
+     */
+    public function index(): JsonResponse
+    {
+        $setting = SystemSetting::firstOrCreate([], [
+            'is_system_active' => true,
+            'iot_mode' => 'SIMULATION',
+            'environment_mode' => 'LOCAL',
+            'max_safe_temp' => 55.0,
+            'min_safe_temp' => 35.0,
+            'target_moisture_default' => 12.0,
+            'sampling_interval_seconds' => 5,
+            'wifi_ssid' => 'GreenHouse_Hanjeli_IoT',
+            'ip_address' => '192.168.1.105',
+            'mqtt_host' => 'broker.emqx.io',
+            'mqtt_port' => 1883,
+            'mqtt_topic' => 'greenhouse/hanjeli/dryer01/sensor',
+            'whatsapp_config' => [
+                'enabled' => true,
+                'targetNumber' => '+62 813-8899-2211',
+                'apiUrl' => 'https://api.fonnte.com/send',
+                'apiKey' => 'wA_s3cret_t0k3n_2023',
+            ],
+            'telegram_config' => [
+                'enabled' => false,
+                'botToken' => '6892182910:AAFn23_mock_token',
+                'chatId' => '-100192837465',
+            ],
+        ]);
+
+        return response()->json([
+            'isSystemActive' => (bool) ($setting->is_system_active ?? true),
+            'iotMode' => $setting->iot_mode ?? 'SIMULATION',
+            'environmentMode' => $setting->environment_mode ?? 'LOCAL',
+            'maxSafeTemp' => $setting->max_safe_temp,
+            'minSafeTemp' => $setting->min_safe_temp,
+            'targetMoistureDefault' => $setting->target_moisture_default,
+            'samplingIntervalSeconds' => $setting->sampling_interval_seconds,
+            'wifiSsid' => $setting->wifi_ssid,
+            'ipAddress' => $setting->ip_address,
+            'mqttHost' => $setting->mqtt_host,
+            'mqttPort' => $setting->mqtt_port,
+            'mqttTopic' => $setting->mqtt_topic,
+            'whatsapp' => $setting->whatsapp_config,
+            'telegram' => $setting->telegram_config,
+        ]);
+    }
+
+    /**
+     * Update system & IoT settings.
+     */
+    public function update(Request $request): JsonResponse
+    {
+        $setting = SystemSetting::firstOrCreate([], []);
+
+        $updates = [];
+        if ($request->has('isSystemActive')) $updates['is_system_active'] = filter_var($request->isSystemActive, FILTER_VALIDATE_BOOLEAN);
+        if ($request->has('iotMode')) $updates['iot_mode'] = strtoupper($request->iotMode);
+        if ($request->has('environmentMode')) $updates['environment_mode'] = strtoupper($request->environmentMode);
+        if ($request->has('maxSafeTemp')) $updates['max_safe_temp'] = (float) $request->maxSafeTemp;
+        if ($request->has('minSafeTemp')) $updates['min_safe_temp'] = (float) $request->minSafeTemp;
+        if ($request->has('targetMoistureDefault')) $updates['target_moisture_default'] = (float) $request->targetMoistureDefault;
+        if ($request->has('samplingIntervalSeconds')) $updates['sampling_interval_seconds'] = (int) $request->samplingIntervalSeconds;
+        if ($request->has('wifiSsid')) $updates['wifi_ssid'] = $request->wifiSsid;
+        if ($request->has('ipAddress')) $updates['ip_address'] = $request->ipAddress;
+        if ($request->has('mqttHost')) $updates['mqtt_host'] = $request->mqttHost;
+        if ($request->has('mqttPort')) $updates['mqtt_port'] = (int) $request->mqttPort;
+        if ($request->has('mqttTopic')) $updates['mqtt_topic'] = $request->mqttTopic;
+        if ($request->has('whatsapp')) $updates['whatsapp_config'] = $request->whatsapp;
+        if ($request->has('telegram')) $updates['telegram_config'] = $request->telegram;
+
+        $setting->update($updates);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pengaturan sistem berhasil disimpan ke database.',
+            'settings' => [
+                'isSystemActive' => (bool) ($setting->is_system_active ?? true),
+                'iotMode' => $setting->iot_mode ?? 'SIMULATION',
+                'environmentMode' => $setting->environment_mode ?? 'LOCAL',
+                'maxSafeTemp' => $setting->max_safe_temp,
+                'minSafeTemp' => $setting->min_safe_temp,
+                'targetMoistureDefault' => $setting->target_moisture_default,
+                'samplingIntervalSeconds' => $setting->sampling_interval_seconds,
+                'wifiSsid' => $setting->wifi_ssid,
+                'ipAddress' => $setting->ip_address,
+                'mqttHost' => $setting->mqtt_host,
+                'mqttPort' => $setting->mqtt_port,
+                'mqttTopic' => $setting->mqtt_topic,
+                'whatsapp' => $setting->whatsapp_config,
+                'telegram' => $setting->telegram_config,
+            ],
+        ]);
+    }
+
+    /**
+     * Send a test email using any of the system templates.
+     */
+    public function testEmail(Request $request): JsonResponse
+    {
+        $targetEmail = $request->input('email', 'operator@hanjeli.id');
+        $type = $request->input('type', 'alert'); // 'otp', 'alert', 'batch', 'welcome'
+
+        try {
+            switch ($type) {
+                case 'otp':
+                    Mail::to($targetEmail)->send(new SendOtpResetPasswordMail('Operator Greenhouse', '849201', 15));
+                    $message = "Email uji coba kode OTP berhasil dikirim ke {$targetEmail}.";
+                    break;
+
+                case 'batch':
+                    $batch = Batch::orderBy('created_at', 'desc')->first();
+                    if (!$batch) {
+                        $batch = new Batch([
+                            'batch_code' => 'HJ-TEST-001',
+                            'crop_variety' => 'Hanjeli Ketan Sukabumi (Super)',
+                            'initial_weight_kg' => 50.0,
+                            'final_weight_kg' => 42.5,
+                            'initial_moisture_percent' => 24.5,
+                            'final_moisture_percent' => 11.8,
+                            'total_duration_hours' => 8.5,
+                            'energy_kwh' => 12.8,
+                            'quality_grade' => 'Grade A (Ekspor)',
+                            'operator_name' => 'Operator Greenhouse',
+                        ]);
+                    }
+                    Mail::to($targetEmail)->send(new BatchCompletedMail($batch));
+                    $message = "Email laporan selesai pengeringan batch berhasil dikirim ke {$targetEmail}.";
+                    break;
+
+                case 'welcome':
+                    Mail::to($targetEmail)->send(new WelcomeUserMail('Operator Greenhouse', $targetEmail, 'OPERATOR'));
+                    $message = "Email sambutan akun baru berhasil dikirim ke {$targetEmail}.";
+                    break;
+
+                case 'alert':
+                default:
+                    Mail::to($targetEmail)->send(new CriticalAlertMail(
+                        alertTitle: 'Uji Coba Peringatan Suhu Panas Ruang Pengering',
+                        alertMessage: 'Ini adalah email uji coba template sistem notifikasi cerdas Smart Dryer Hanjeli.',
+                        level: 'CRITICAL',
+                        category: 'SENSOR',
+                        tempInternal: 56.4,
+                        humidityInternal: 78.0,
+                        recordedTime: Carbon::now()->translatedFormat('d F Y, H:i') . ' WIB'
+                    ));
+                    $message = "Email notifikasi alert sensor kritis berhasil dikirim ke {$targetEmail}.";
+                    break;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'sentTo' => $targetEmail,
+                'templateType' => $type,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim email: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+}
