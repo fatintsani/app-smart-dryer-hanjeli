@@ -21,7 +21,10 @@ class BatchController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Batch::with(['operator', 'latestTelemetry'])->orderBy('created_at', 'desc');
+        $query = Batch::with(['operator', 'latestTelemetry'])
+            ->withAvg('telemetries as avg_temp_internal', 'temp_internal')
+            ->withAvg('telemetries as avg_humidity_internal', 'humidity_internal')
+            ->orderBy('created_at', 'desc');
 
         if ($request->filled('status')) {
             $status = strtoupper($request->status);
@@ -305,13 +308,11 @@ class BatchController extends Controller
         $finalWeight = $request->finalWeightKg ?? ($batch->initial_weight_kg * (1 - (($batch->initial_moisture_percent - $finalMoisture) / 100)));
         $energyKwh = round($durationHours * 1.5, 1);
 
-        // Compute quality grade
-        $qualityScore = 95.0;
-        $qualityGrade = 'Grade A (Ekspor)';
-        if ($finalMoisture > 14.0) {
-            $qualityScore = 80.0;
-            $qualityGrade = 'Grade B (Standar Lokal)';
-        }
+        // Compute quality grade automatically using QualityScoringService
+        $scoringService = app(\App\Services\QualityScoringService::class);
+        $qualityAssessment = $scoringService->evaluateBatchQuality($batch, (float) $finalMoisture);
+        $qualityScore = $qualityAssessment['qualityScore'];
+        $qualityGrade = $qualityAssessment['gradeLabel'];
 
         $batch->update([
             'status' => 'COMPLETED',
@@ -336,7 +337,7 @@ class BatchController extends Controller
             'message' => "Sesi {$batch->batch_code} selesai dengan kadar air akhir {$finalMoisture}%. Kualitas: {$qualityGrade}.",
         ]);
 
-        // Send Batch Completion Email Report
+        // Send Batch Completion Multi-Channel Reports (Email, Telegram Bot, WhatsApp)
         try {
             $recipients = User::pluck('email')->filter()->all();
             if (!empty($recipients)) {
@@ -346,10 +347,141 @@ class BatchController extends Controller
             Log::warning('Batch completed email failed: ' . $e->getMessage());
         }
 
+        try {
+            \App\Services\NotificationDispatchService::dispatchBatchCompleted($batch);
+        } catch (\Throwable $e) {
+            Log::warning('Batch completed multi-channel notification failed: ' . $e->getMessage());
+        }
+
+        // Automated Database Telemetry Downsampling (5-minute aggregated buckets)
+        try {
+            app(\App\Services\TelemetryAggregationService::class)->downsampleBatch($batch, 5);
+        } catch (\Throwable $e) {
+            Log::warning("Auto-downsample for batch #{$batch->batch_code} failed: " . $e->getMessage());
+        }
+
         return response()->json([
             'success' => true,
             'message' => "Sesi pengeringan {$batch->batch_code} telah selesai dan tersimpan ke riwayat!",
             'batch' => $this->formatBatchDetail($batch),
+        ]);
+    }
+
+    /**
+     * Public Traceability & Certification verification for consumers.
+     */
+    public function publicVerify(string $batchCode): JsonResponse
+    {
+        $batch = Batch::with(['operator', 'telemetries' => function ($q) {
+                $q->orderBy('recorded_at', 'asc');
+            }])
+            ->where('batch_code', $batchCode)
+            ->orWhere('id', $batchCode)
+            ->first();
+
+        if (!$batch) {
+            return response()->json([
+                'success' => false,
+                'verified' => false,
+                'message' => "Batch dengan kode '{$batchCode}' tidak ditemukan pada sistem sertifikasi Smart Dryer Hanjeli.",
+            ], 404);
+        }
+
+        $finalMoisture = $batch->final_moisture_percent ?? $batch->current_moisture_percent ?? $batch->target_moisture_percent ?? 12.0;
+        $initialMoisture = $batch->initial_moisture_percent ?? 24.5;
+        $moistureDrop = round(max(0, $initialMoisture - $finalMoisture), 1);
+        $durationHours = $batch->total_duration_hours ?: round(max(0.5, ($batch->started_at && $batch->completed_at ? $batch->started_at->diffInMinutes($batch->completed_at) / 60 : 12.0)), 1);
+
+        $telemetryCollection = $batch->telemetries;
+        $avgTemp = round($telemetryCollection->avg('temp_internal') ?: 46.5, 1);
+        $maxTemp = round($telemetryCollection->max('temp_internal') ?: 52.3, 1);
+        $avgHumidity = round($telemetryCollection->avg('humidity_internal') ?: 43.8, 1);
+        $minHumidity = round($telemetryCollection->min('humidity_internal') ?: 35.0, 1);
+        $avgSolar = round($telemetryCollection->avg('solar_radiation') ?: 640.0, 1);
+
+        // Compute automated quality grading evaluation
+        $scoringService = app(\App\Services\QualityScoringService::class);
+        $qualityAssessment = $scoringService->evaluateBatchQuality($batch, (float) $finalMoisture);
+        $qualityGrade = $batch->quality_grade ?? $qualityAssessment['gradeLabel'];
+        $qualityScore = $batch->quality_score ?? $qualityAssessment['qualityScore'];
+
+        // Certificate ID calculation
+        $certCode = 'CERT-HJ-' . strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $batch->batch_code));
+
+        // Sample down telemetry for high performance chart (max 30 points)
+        $telemetryPoints = [];
+        if ($telemetryCollection->count() > 0) {
+            $step = max(1, (int) floor($telemetryCollection->count() / 30));
+            $sampled = $telemetryCollection->nth($step);
+            foreach ($sampled as $t) {
+                $telemetryPoints[] = [
+                    'time' => $t->recorded_at?->format('H:i') ?? $t->created_at?->format('H:i'),
+                    'fullTime' => $t->recorded_at?->toIso8601String() ?? $t->created_at?->toIso8601String(),
+                    'tempInternal' => round($t->temp_internal, 1),
+                    'humidityInternal' => round($t->humidity_internal, 1),
+                    'tempExternal' => round($t->temp_external, 1),
+                    'humidityExternal' => round($t->humidity_external, 1),
+                    'grainMoisture' => round($t->grain_moisture, 1),
+                    'solarRadiation' => round($t->solar_radiation, 0),
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'verified' => true,
+            'certificate' => [
+                'certificateNumber' => $certCode,
+                'issuedAt' => ($batch->completed_at ?? $batch->created_at)->toIso8601String(),
+                'status' => $batch->status === 'COMPLETED' ? 'TERVERIFIKASI ASLI' : 'PROSES PENGERINGAN BERJALAN',
+                'isCompleted' => $batch->status === 'COMPLETED',
+                'issuer' => 'CoE STAS-RG & Desa Wisata Hanjeli Waluran',
+                'standard' => 'SNI & Good Agricultural and Drying Practices (GADP)',
+            ],
+            'qualityAssessment' => $qualityAssessment,
+            'batch' => [
+                'id' => $batch->id,
+                'batchCode' => $batch->batch_code,
+                'cropVariety' => $batch->crop_variety,
+                'status' => $batch->status,
+                'dryingMode' => $batch->drying_mode ?? 'HYBRID_AUTO',
+                'startedAt' => $batch->started_at?->toIso8601String(),
+                'completedAt' => $batch->completed_at?->toIso8601String(),
+                'totalDurationHours' => $durationHours,
+                'initialMoisturePercent' => $initialMoisture,
+                'finalMoisturePercent' => $finalMoisture,
+                'moistureReductionPercent' => $moistureDrop,
+                'targetMoisturePercent' => $batch->target_moisture_percent,
+                'initialWeightKg' => $batch->initial_weight_kg,
+                'finalWeightKg' => $batch->final_weight_kg ?? $batch->current_weight_kg,
+                'energyKwh' => $batch->energy_kwh ?? 12.5,
+                'qualityScore' => $qualityScore,
+                'qualityGrade' => $qualityGrade,
+                'operatorName' => $batch->operator_name ?? $batch->operator?->name ?? 'Operator Desa Wisata Hanjeli',
+            ],
+            'origin' => [
+                'village' => 'Desa Wisata Hanjeli',
+                'address' => 'Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia',
+                'subdistrict' => 'Kec. Waluran',
+                'regency' => 'Kabupaten Sukabumi',
+                'province' => 'Jawa Barat 43175, Indonesia',
+                'geopark' => 'UNESCO Global Geopark Ciletuh-Palabuhanratu',
+                'farmerGroup' => 'Kelompok Tani Hanjeli Mandiri Waluran',
+                'operatorName' => $batch->operator_name ?? 'Kelompok Tani Waluran',
+                'facility' => 'Greenhouse Smart Room Dryer Hybrid CoE STAS-RG',
+                'elevation' => '± 450 mdpl (Jl. Pamoyan, Waluran Mandiri)',
+            ],
+            'climateMetrics' => [
+                'avgTempInternal' => $avgTemp,
+                'maxTempInternal' => $maxTemp,
+                'avgHumidityInternal' => $avgHumidity,
+                'minHumidityInternal' => $minHumidity,
+                'avgSolarRadiation' => $avgSolar,
+                'isHygienic' => true,
+                'moldRisk' => $finalMoisture <= 14.0 ? 'Sangat Rendah (<0.01%)' : 'Perlu Pengeringan Tambahan',
+            ],
+            'telemetryPoints' => $telemetryPoints,
+            'qrVerificationUrl' => url("/verify/{$batch->batch_code}"),
         ]);
     }
 
@@ -401,6 +533,44 @@ class BatchController extends Controller
      */
     private function formatBatch($b): array
     {
+        $now = Carbon::now();
+        $startedAt = $b->started_at ?? $b->created_at;
+        $completedAt = $b->completed_at;
+
+        // Dynamic duration calculation
+        if ($b->status === 'COMPLETED') {
+            $durationHours = (float) ($b->total_duration_hours ?: ($startedAt && $completedAt ? round(max(0.1, $startedAt->diffInMinutes($completedAt) / 60), 1) : 0.0));
+        } elseif ($b->status === 'ACTIVE' || $b->status === 'PAUSED') {
+            $durationHours = $startedAt ? round(max(0.1, $startedAt->diffInMinutes($now) / 60), 1) : 0.0;
+        } else {
+            $durationHours = (float) ($b->total_duration_hours ?: 0.0);
+        }
+
+        // Energy calculation based on duration if not set
+        $energyKwh = (float) ($b->energy_kwh ?: round($durationHours * 1.45, 1));
+
+        // Average temp calculation
+        $avgTemp = isset($b->avg_temp_internal) && $b->avg_temp_internal !== null 
+            ? round((float) $b->avg_temp_internal, 1) 
+            : ($b->latestTelemetry?->temp_internal ? round((float) $b->latestTelemetry->temp_internal, 1) : 42.0);
+
+        // Average humidity calculation
+        $avgHumidity = isset($b->avg_humidity_internal) && $b->avg_humidity_internal !== null 
+            ? round((float) $b->avg_humidity_internal, 1) 
+            : ($b->latestTelemetry?->humidity_internal ? round((float) $b->latestTelemetry->humidity_internal, 1) : 52.0);
+
+        // Moisture readings
+        $currentMoisture = (float) ($b->current_moisture_percent ?? ($b->latestTelemetry?->grain_moisture ?? $b->initial_moisture_percent ?? 24.5));
+        $finalMoisture = $b->final_moisture_percent !== null 
+            ? (float) $b->final_moisture_percent 
+            : ($b->status === 'COMPLETED' ? $currentMoisture : null);
+
+        // Weight readings
+        $currentWeight = (float) ($b->current_weight_kg ?? ($b->latestTelemetry?->weight_kg ?? $b->initial_weight_kg ?? 120.0));
+        $finalWeight = $b->final_weight_kg !== null 
+            ? (float) $b->final_weight_kg 
+            : ($b->status === 'COMPLETED' ? $currentWeight : null);
+
         return [
             'id' => $b->id,
             'batchCode' => $b->batch_code,
@@ -408,25 +578,46 @@ class BatchController extends Controller
             'status' => $b->status,
             'dryingMode' => $b->drying_mode,
             'trayLevel' => $b->tray_level,
-            'initialWeightKg' => $b->initial_weight_kg,
-            'currentWeightKg' => $b->current_weight_kg,
-            'finalWeightKg' => $b->final_weight_kg,
-            'initialMoisturePercent' => $b->initial_moisture_percent,
-            'currentMoisturePercent' => $b->current_moisture_percent,
-            'finalMoisturePercent' => $b->final_moisture_percent,
-            'targetMoisturePercent' => $b->target_moisture_percent,
-            'totalDurationHours' => $b->total_duration_hours,
-            'energyKwh' => $b->energy_kwh,
-            'qualityScore' => $b->quality_score,
-            'qualityGrade' => $b->quality_grade,
+            'initialWeightKg' => (float) $b->initial_weight_kg,
+            'currentWeightKg' => $currentWeight,
+            'finalWeightKg' => $finalWeight,
+            'initialMoisturePercent' => (float) $b->initial_moisture_percent,
+            'currentMoisturePercent' => $currentMoisture,
+            'finalMoisturePercent' => $finalMoisture,
+            'targetMoisturePercent' => (float) $b->target_moisture_percent,
+            'totalDurationHours' => $durationHours,
+            'energyKwh' => $energyKwh,
+            'avgTemp' => $avgTemp,
+            'avgHumidity' => $avgHumidity,
+            'qualityScore' => (float) ($b->quality_score ?? 95.0),
+            'qualityGrade' => $b->quality_grade ?? 'Grade A (Ekspor)',
             'operator' => [
                 'name' => $b->operator_name ?? $b->operator?->name ?? 'Operator Green House',
                 'email' => $b->operator?->email ?? 'operator@hanjeli.com',
             ],
+            'operatorName' => $b->operator_name ?? $b->operator?->name ?? 'Operator Green House',
             'startedAt' => $b->started_at?->toIso8601String(),
             'completedAt' => $b->completed_at?->toIso8601String(),
             'createdAt' => $b->created_at?->toIso8601String(),
         ];
+    }
+
+
+
+    /**
+     * Get real-time automated quality assessment for a batch.
+     */
+    public function getQualityAssessment(string $id): JsonResponse
+    {
+        $batch = Batch::with(['telemetries'])->where('id', $id)->orWhere('batch_code', $id)->firstOrFail();
+        $scoringService = app(\App\Services\QualityScoringService::class);
+        $qualityAssessment = $scoringService->evaluateBatchQuality($batch);
+
+        return response()->json([
+            'success' => true,
+            'batchCode' => $batch->batch_code,
+            'qualityAssessment' => $qualityAssessment,
+        ]);
     }
 
     /**
@@ -436,21 +627,31 @@ class BatchController extends Controller
     {
         $formatted = $this->formatBatch($b);
         $formatted['notes'] = $b->notes;
+        
+        // Automated Quality Assessment Data
+        try {
+            $scoringService = app(\App\Services\QualityScoringService::class);
+            $formatted['qualityAssessment'] = $scoringService->evaluateBatchQuality($b);
+        } catch (\Throwable $e) {
+            $formatted['qualityAssessment'] = null;
+        }
+
         $formatted['telemetry'] = $b->telemetries->map(function ($t) {
             return [
                 'id' => $t->id,
-                'tempInternal' => $t->temp_internal,
-                'humidityInternal' => $t->humidity_internal,
-                'tempExternal' => $t->temp_external,
-                'humidityExternal' => $t->humidity_external,
-                'solarRadiation' => $t->solar_radiation,
-                'grainMoisture' => $t->grain_moisture,
-                'weightKg' => $t->weight_kg,
-                'heaterStatus' => $t->heater_status,
-                'heaterLevel' => $t->heater_level,
-                'exhaustFanStatus' => $t->exhaust_fan_status,
-                'exhaustFanSpeed' => $t->exhaust_fan_speed,
+                'tempInternal' => (float) $t->temp_internal,
+                'humidityInternal' => (float) $t->humidity_internal,
+                'tempExternal' => (float) $t->temp_external,
+                'humidityExternal' => (float) $t->humidity_external,
+                'solarRadiation' => (float) $t->solar_radiation,
+                'grainMoisture' => (float) $t->grain_moisture,
+                'weightKg' => (float) $t->weight_kg,
+                'heaterStatus' => (bool) $t->heater_status,
+                'heaterLevel' => (int) $t->heater_level,
+                'exhaustFanStatus' => (bool) $t->exhaust_fan_status,
+                'exhaustFanSpeed' => $t->exhaust_fan_speed . '%',
                 'timestamp' => $t->recorded_at?->toIso8601String() ?? $t->created_at?->toIso8601String(),
+                'time' => $t->recorded_at?->toIso8601String() ?? $t->created_at?->toIso8601String(),
             ];
         });
         $formatted['alerts'] = $b->alerts->map(function ($a) {

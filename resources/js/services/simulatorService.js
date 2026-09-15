@@ -242,11 +242,26 @@ class HardwareSimulator {
   }
 
   start() {
+    const activeSourceMode = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_source_mode') || 'hardware') : 'hardware';
+    if (activeSourceMode !== 'simulation') {
+      this.stop();
+      this.addLog(`[ESP32] Mode saat ini adalah 'Mode Alat Fisik Live'. Simulasi dinonaktifkan.`);
+      return;
+    }
+
     if (this.isRunning.value) return;
     this.isRunning.value = true;
     this.addLog(`[ESP32] Hardware Simulation STARTED. Node ID: ESP32-GH-HANJELI-01`);
     this.sendPacket();
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
     this.timer = setInterval(() => {
+      const curMode = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_source_mode') || 'hardware') : 'hardware';
+      if (curMode !== 'simulation' || !this.isRunning.value) {
+        this.stop();
+        return;
+      }
       this.stepPhysics();
       this.sendPacket();
     }, this.tickIntervalMs.value);
@@ -258,10 +273,15 @@ class HardwareSimulator {
       clearInterval(this.timer);
       this.timer = null;
     }
-    this.addLog(`[ESP32] Hardware Simulation PAUSED.`);
+    this.addLog(`[ESP32] Hardware Simulation STOPPED / PAUSED.`);
   }
 
   toggle() {
+    const activeSourceMode = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_source_mode') || 'hardware') : 'hardware';
+    if (activeSourceMode !== 'simulation') {
+      this.stop();
+      return;
+    }
     if (this.isRunning.value) {
       this.stop();
     } else {
@@ -286,28 +306,29 @@ class HardwareSimulator {
 
     const noise = (amplitude) => (Math.random() - 0.5) * 2 * amplitude;
 
-    // 1. Solar Radiation drift with micro cloud noise
-    let targetSolar = SCENARIOS[this.scenario.value]?.base?.solarRadiation || 700;
+    // 1. Solar Radiation drift with multi-frequency solar waves
+    let targetSolar = SCENARIOS[this.scenario.value]?.base?.solarRadiation || 750;
     if (this.scenario.value === 'optimal') {
-      // Natural solar wave
-      const solarWave = Math.sin(this.simulatedSeconds.value * 0.05) * 80;
-      targetSolar = Math.max(500, Math.min(900, 750 + solarWave + noise(15)));
+      const solarWave1 = Math.sin(this.simulatedSeconds.value * 0.08) * 115;
+      const solarWave2 = Math.cos(this.simulatedSeconds.value * 0.19) * 45;
+      targetSolar = Math.max(450, Math.min(980, 760 + solarWave1 + solarWave2 + noise(20)));
     } else if (this.scenario.value === 'high_heat') {
-      targetSolar = Math.max(900, Math.min(1050, 960 + noise(20)));
+      targetSolar = Math.max(900, Math.min(1080, 970 + Math.sin(this.simulatedSeconds.value * 0.1) * 60 + noise(25)));
     } else if (this.scenario.value === 'rainy') {
-      targetSolar = Math.max(80, Math.min(220, 150 + noise(12)));
+      targetSolar = Math.max(80, Math.min(260, 160 + Math.sin(this.simulatedSeconds.value * 0.05) * 40 + noise(15)));
     }
     this.currentValues.solarRadiation = Math.round(targetSolar);
 
-    // 2. External Temperature drift based on solar
-    const baseExt = SCENARIOS[this.scenario.value]?.base?.tempExternal || 31.0;
-    const solarThermalOffset = (this.currentValues.solarRadiation - 600) * 0.005;
-    this.currentValues.tempExternal = +(baseExt + solarThermalOffset + noise(0.15)).toFixed(1);
+    // 2. External Temperature & Humidity drift
+    const baseExt = SCENARIOS[this.scenario.value]?.base?.tempExternal || 30.5;
+    const ambientBreeze = Math.sin(this.simulatedSeconds.value * 0.04) * 1.8 + noise(0.35);
+    this.currentValues.tempExternal = +(baseExt + ambientBreeze).toFixed(1);
+    this.currentValues.humidityExternal = +(Math.max(45, Math.min(88, 66.0 - (ambientBreeze * 2.6) + noise(1.8)))).toFixed(1);
 
     // 3. Actuator Auto-Regulation logic (Simulated Firmware Controller)
-    if (this.currentValues.tempInternal >= 48.0) {
+    if (this.currentValues.tempInternal >= 49.0) {
       this.simulatedActuators.exhaustFanStatus = true;
-      const speed = Math.min(100, Math.round(50 + (this.currentValues.tempInternal - 48.0) * 8));
+      const speed = Math.min(100, Math.round(55 + (this.currentValues.tempInternal - 49.0) * 8));
       this.simulatedActuators.exhaustFanSpeed = speed;
       this.simulatedActuators.blowerFanStatus = true;
       this.simulatedActuators.blowerFanSpeed = Math.min(100, speed + 10);
@@ -328,47 +349,55 @@ class HardwareSimulator {
       this.simulatedActuators.auxHeaterLevel = 0;
     }
 
-    // 4. Internal Temperature Thermodynamics
-    // Heating source: Solar greenhouse effect + Aux heater
-    const solarHeating = (this.currentValues.solarRadiation / 1000) * 0.08 * stepSeconds;
-    const heaterHeating = this.simulatedActuators.auxHeaterStatus ? (this.simulatedActuators.auxHeaterLevel / 100) * 0.25 * stepSeconds : 0;
-    // Cooling losses: Heat loss to ambient + Exhaust fan ventilation
-    const ambientLoss = (this.currentValues.tempInternal - this.currentValues.tempExternal) * 0.015 * stepSeconds;
-    const fanCooling = this.simulatedActuators.exhaustFanStatus ? (this.simulatedActuators.exhaustFanSpeed / 100) * 0.18 * stepSeconds : 0;
+    // 4. Internal Temperature Thermodynamics (Greenhouse Effect + Convection Waves)
+    const heaterContribution = this.simulatedActuators.auxHeaterStatus ? (this.simulatedActuators.auxHeaterLevel * 0.095) : 0;
+    const fanCooling = this.simulatedActuators.exhaustFanStatus ? (this.simulatedActuators.exhaustFanSpeed * 0.055) : 0;
+    const baseInternalTarget = this.currentValues.tempExternal + 10.5 + ((this.currentValues.solarRadiation - 500) * 0.016) + heaterContribution - fanCooling;
 
-    let nextTemp = this.currentValues.tempInternal + solarHeating + heaterHeating - ambientLoss - fanCooling + noise(0.12);
-    
-    // Scenario target anchoring
-    const targetScenarioTemp = SCENARIOS[this.scenario.value]?.base?.tempInternal || 43.5;
-    nextTemp += (targetScenarioTemp - nextTemp) * 0.08;
-    this.currentValues.tempInternal = Math.max(20, Math.min(65, +nextTemp.toFixed(1)));
+    // Organic convection waves to ensure live charts visibly pulse with rich waveforms
+    const convectionWave = Math.sin(this.simulatedSeconds.value * 0.12) * 1.7 + Math.cos(this.simulatedSeconds.value * 0.27) * 0.9;
+    const targetInternalTemp = baseInternalTarget + convectionWave + noise(0.45);
 
-    // 5. Internal Humidity (Psychrometric balance)
-    // Higher temp reduces RH, evaporation increases RH, fan purges humidity
-    const targetRH = Math.max(25, Math.min(95, 100 - (this.currentValues.tempInternal * 1.25) + (this.currentValues.grainMoisture * 0.8) + noise(0.4)));
-    const fanDehum = this.simulatedActuators.exhaustFanStatus ? 0.3 * stepSeconds : 0;
-    this.currentValues.humidityInternal = Math.max(15, Math.min(95, +(this.currentValues.humidityInternal + (targetRH - this.currentValues.humidityInternal) * 0.15 - fanDehum).toFixed(1)));
+    let nextTemp = this.currentValues.tempInternal + (targetInternalTemp - this.currentValues.tempInternal) * 0.28;
+    this.currentValues.tempInternal = Math.max(22, Math.min(65, +nextTemp.toFixed(1)));
 
-    // 6. Grain Drying Kinetics (Thin-Layer Page's Equation approximation)
+    // 5. Internal Humidity (Psychrometric dynamic wave 38% - 68% RH)
+    const baseInternalHum = 72.0 - ((this.currentValues.tempInternal - 30.0) * 1.75) - (this.simulatedActuators.exhaustFanStatus ? (this.simulatedActuators.exhaustFanSpeed * 0.18) : 0);
+    const humidityWave = -Math.sin(this.simulatedSeconds.value * 0.12) * 2.8 + Math.cos(this.simulatedSeconds.value * 0.22) * 1.4;
+    const targetInternalHum = baseInternalHum + humidityWave + noise(0.95);
+
+    let nextHum = this.currentValues.humidityInternal + (targetInternalHum - this.currentValues.humidityInternal) * 0.25;
+    this.currentValues.humidityInternal = Math.max(20, Math.min(95, +nextHum.toFixed(1)));
+
+    // 6. Grain Drying Kinetics (Thin-Layer Dehydration towards target 12.0%)
     if (this.currentValues.grainMoisture > 12.0) {
-      // Drying rate depends on chamber temperature & low humidity
-      const tempFactor = Math.max(0.1, (this.currentValues.tempInternal - 25) / 25);
-      const humFactor = Math.max(0.1, (100 - this.currentValues.humidityInternal) / 50);
-      const dryingRate = 0.012 * tempFactor * humFactor * stepSeconds;
+      const thermalFactor = Math.max(0.3, (this.currentValues.tempInternal - 28.0) / 20.0);
+      const microDryingSpeed = (0.045 * thermalFactor) * (1.0 + Math.sin(this.simulatedSeconds.value * 0.07) * 0.2) * stepSeconds;
       
-      const nextMoisture = Math.max(11.8, this.currentValues.grainMoisture - dryingRate);
+      const nextMoisture = Math.max(12.0, this.currentValues.grainMoisture - microDryingSpeed);
       this.currentValues.grainMoisture = +nextMoisture.toFixed(2);
 
       // Mass evaporation: Weight loss is proportional to water mass removed
-      const initialMoisture = 25.0;
-      const initialWeight = 135.0;
+      const initialMoisture = 24.5;
+      const initialWeight = 50.0;
       const currentMoisture = this.currentValues.grainMoisture;
       const calcWeight = initialWeight * ((100 - initialMoisture) / (100 - currentMoisture));
       this.currentValues.weightCurrentKg = +calcWeight.toFixed(2);
+    } else {
+      // Stabilized around target equilibrium
+      const emcOscillation = Math.sin(this.simulatedSeconds.value * 0.1) * 0.08 + noise(0.03);
+      this.currentValues.grainMoisture = +(12.0 + emcOscillation).toFixed(2);
+      this.currentValues.weightCurrentKg = +(42.5 + emcOscillation * 0.05).toFixed(2);
     }
   }
 
   async sendPacket() {
+    const activeSourceMode = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_source_mode') || 'hardware') : 'hardware';
+    if (activeSourceMode !== 'simulation') {
+      this.stop();
+      return;
+    }
+
     const payload = {
       batchId: this.activeDbBatch.value?.id || undefined,
       tempInternal: +(this.currentValues.tempInternal).toFixed(1),
@@ -378,6 +407,8 @@ class HardwareSimulator {
       grainMoisture: +(this.currentValues.grainMoisture).toFixed(1),
       solarRadiation: Math.round(this.currentValues.solarRadiation),
       weightCurrentKg: +(this.currentValues.weightCurrentKg).toFixed(1),
+      simulated: true,
+      source: 'simulation',
     };
 
     const timestamp = new Date();
@@ -401,10 +432,10 @@ class HardwareSimulator {
       await telemetryService.ingest(payload);
       this.packetsSent.value++;
       this.lastSentAt.value = timeLabel;
-      this.addLog(`[TX] ESP32 -> POST 200 OK | Temp: ${payload.tempInternal}°C | RH: ${payload.humidityInternal}% | Solar: ${payload.solarRadiation}W/m² | Moisture: ${payload.grainMoisture}%`);
+      this.addLog(`[TX] ESP32-SIM -> POST 200 OK | Temp: ${payload.tempInternal}°C | RH: ${payload.humidityInternal}% | Solar: ${payload.solarRadiation}W/m² | Moisture: ${payload.grainMoisture}%`);
     } catch (err) {
       // Broadcast locally through socket if backend is busy
-      socketService.emit('telemetry_live', { ...payload, hasData: true, timestamp });
+      socketService.emit('telemetry_live', { ...payload, hasData: true, timestamp, simulated: true, source: 'simulation' });
       socketService.emit('actuators_update', { ...this.simulatedActuators });
       this.packetsSent.value++;
       this.lastSentAt.value = timeLabel;

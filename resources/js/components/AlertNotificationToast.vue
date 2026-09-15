@@ -342,24 +342,67 @@ watch(() => props.modelValue, (newVal) => {
 
 /* Dark theme support */
 :global(.dark-theme) .alert-toast-container {
-  background: #0B242F;
-  border-color: #1E4E61;
+  background: #0B242F !important;
+  border-color: #1E4E61 !important;
 }
+:global(.dark-theme) .alert-toast-container.type-critical {
+  border-left: 5px solid #EF4444 !important;
+  background: linear-gradient(135deg, #0B242F 80%, rgba(239, 68, 68, 0.15) 100%) !important;
+}
+:global(.dark-theme) .alert-toast-container.type-critical .toast-icon-circle,
+:global(.dark-theme) .alert-toast-container.type-critical .toast-badge {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #F87171 !important;
+}
+
+:global(.dark-theme) .alert-toast-container.type-warning {
+  border-left: 5px solid #F59E0B !important;
+  background: linear-gradient(135deg, #0B242F 80%, rgba(245, 158, 11, 0.15) 100%) !important;
+}
+:global(.dark-theme) .alert-toast-container.type-warning .toast-icon-circle,
+:global(.dark-theme) .alert-toast-container.type-warning .toast-badge {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #FBBF24 !important;
+}
+
+:global(.dark-theme) .alert-toast-container.type-success {
+  border-left: 5px solid #10B981 !important;
+  background: linear-gradient(135deg, #0B242F 80%, rgba(16, 185, 129, 0.15) 100%) !important;
+}
+:global(.dark-theme) .alert-toast-container.type-success .toast-icon-circle,
+:global(.dark-theme) .alert-toast-container.type-success .toast-badge {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34D399 !important;
+}
+
+:global(.dark-theme) .alert-toast-container.type-info {
+  border-left: 5px solid #38BDF8 !important;
+  background: linear-gradient(135deg, #0B242F 80%, rgba(56, 189, 248, 0.15) 100%) !important;
+}
+:global(.dark-theme) .alert-toast-container.type-info .toast-icon-circle,
+:global(.dark-theme) .alert-toast-container.type-info .toast-badge {
+  background: rgba(56, 189, 248, 0.2) !important;
+  color: #38BDF8 !important;
+}
+
 :global(.dark-theme) .toast-title {
-  color: #FFFFFF;
+  color: #F8FAFC !important;
 }
 :global(.dark-theme) .toast-desc {
-  color: #CBFFC2;
+  color: #CBD5E1 !important;
 }
 :global(.dark-theme) .toast-time {
-  color: #94A3B8;
+  color: #94A3B8 !important;
 }
 :global(.dark-theme) .toast-action-btn {
-  background: #0D631B;
-  color: #FFFFFF;
+  background: #0D631B !important;
+  color: #FFFFFF !important;
+}
+:global(.dark-theme) .toast-close-btn {
+  color: #94A3B8 !important;
 }
 :global(.dark-theme) .toast-close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #FFFFFF !important;
 }
 </style>

@@ -23,14 +23,14 @@ class AlertController extends Controller
         }
 
         $alerts = $query->limit(50)->get()->map(function ($a) {
-            $type = match($a->level) {
+            $type = match ($a->level) {
                 'CRITICAL', 'EMERGENCY' => 'critical',
                 'WARNING' => 'warning',
                 'SUCCESS' => 'success',
                 default => 'info',
             };
 
-            $route = match($a->category) {
+            $route = match ($a->category) {
                 'SENSOR' => 'monitoring',
                 'BATCH' => $a->batch_id ? 'history' : 'dashboard',
                 'DEVICE' => 'guide',
@@ -39,16 +39,16 @@ class AlertController extends Controller
                 default => 'monitoring'
             };
 
-            $actionLabel = match($a->category) {
+            $actionLabel = match ($a->category) {
                 'SENSOR' => 'Lihat Monitoring',
                 'BATCH' => 'Lihat Riwayat',
                 'DEVICE' => 'Periksa Alat',
                 'ACTUATOR' => 'Kontrol Aktuator',
                 'SYSTEM' => 'Pengaturan',
-                default => 'Lihat Detail'
+                default => 'Detail'
             };
 
-            $actionLabelEn = match($a->category) {
+            $actionLabelEn = match ($a->category) {
                 'SENSOR' => 'Live Monitoring',
                 'BATCH' => 'View History',
                 'DEVICE' => 'Check Hardware',

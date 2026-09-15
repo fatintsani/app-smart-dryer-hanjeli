@@ -172,4 +172,51 @@ class SmartDryerApiTest extends TestCase
         $alertsRes = $this->getJson('/api/alerts');
         $alertsRes->assertStatus(200);
     }
+
+    public function test_public_batch_verification_endpoint(): void
+    {
+        $batch = Batch::first();
+        $this->assertNotNull($batch);
+
+        // 1. Verify via public API
+        $response = $this->getJson("/api/public/verify/{$batch->batch_code}");
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('verified', true)
+            ->assertJsonStructure([
+                'success',
+                'verified',
+                'certificate' => [
+                    'certificateNumber',
+                    'issuedAt',
+                    'status',
+                    'issuer',
+                    'standard',
+                ],
+                'batch' => [
+                    'batchCode',
+                    'cropVariety',
+                    'finalMoisturePercent',
+                    'qualityGrade',
+                    'qualityScore',
+                ],
+                'origin' => [
+                    'village',
+                    'geopark',
+                    'farmerGroup',
+                ],
+                'climateMetrics' => [
+                    'avgTempInternal',
+                    'avgHumidityInternal',
+                    'isHygienic',
+                ],
+                'telemetryPoints',
+                'qrVerificationUrl',
+            ]);
+
+        // 2. Test invalid batch code returns 404
+        $invalidRes = $this->getJson('/api/public/verify/INVALID-BATCH-999');
+        $invalidRes->assertStatus(404)
+            ->assertJsonPath('verified', false);
+    }
 }

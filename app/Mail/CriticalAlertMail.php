@@ -31,7 +31,7 @@ class CriticalAlertMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '⚠️ [' . strtoupper($this->level) . '] ' . $this->alertTitle . ' - Smart Dryer Hanjeli',
+            subject: '[' . strtoupper($this->level) . '] ' . $this->alertTitle . ' - Smart Dryer Hanjeli',
         );
     }
 

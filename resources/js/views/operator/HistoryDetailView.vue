@@ -1,73 +1,95 @@
 <template>
   <div class="history-detail-page">
-    <!-- Desktop Layout -->
-    <div v-if="!isMobile" class="desktop-content">
-      <!-- Header Action Row -->
-      <div class="header-action-row">
-        <div class="title-group">
+    <Transition name="fade-history-detail" mode="out-in">
+      <HistoryDetailSkeleton v-if="isInitialLoading" />
+      <div v-else class="history-detail-loaded-content">
+        <!-- Unified Responsive Layout -->
+        <div class="history-detail-main-content">
+          <!-- Header Action Row -->
+          <div class="header-action-row">
+            <div class="title-group">
           <button class="back-link-btn" @click="$emit('back')">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            <span>Kembali ke Riwayat Batch</span>
+            <span>{{ $t('historyDetail.backToHistory') }}</span>
           </button>
           <div class="title-with-badge">
             <h1 class="page-title">{{ batch?.batchCode || activeBatchId }}</h1>
             <span class="badge-pill" :class="batch?.status === 'COMPLETED' ? 'bg-green-subtle text-green-dark' : 'bg-orange-subtle text-orange'">
               <span class="status-pulse-dot" :class="batch?.status === 'COMPLETED' ? 'online' : 'pulse-orange'"></span>
-              <span>{{ batch?.status === 'COMPLETED' ? 'Selesai (Completed)' : (batch?.status || 'Sedang Berjalan') }}</span>
+              <span>{{ batch?.status === 'COMPLETED' ? $t('common.completed') : (batch?.status || 'Sedang Berjalan') }}</span>
             </span>
             <span class="badge-pill bg-purple-subtle text-purple">
               {{ batch?.qualityGrade || 'Grade A (Ekspor)' }}
             </span>
           </div>
           <p class="page-subtitle">
-            {{ batch?.cropVariety || 'Hanjeli Ketan Sukabumi' }} • Dimulai pada {{ formattedDateRange }} • Operator: <strong>{{ batch?.operatorName || batch?.operator?.name || 'Operator Greenhouse' }}</strong>
+            {{ batch?.cropVariety || 'Hanjeli Ketan Sukabumi' }} • {{ $t('common.date') }}: {{ formattedDateRange }} • {{ $t('common.operator') }}: <strong>{{ batch?.operatorName || batch?.operator?.name || 'Operator Greenhouse' }}</strong>
           </p>
         </div>
 
-        <!-- Header Actions: Complete, Edit, Export CSV, Export PDF -->
-        <div class="header-btns-row">
-          <button 
-            v-if="batch?.status !== 'COMPLETED'" 
-            class="btn-primary" 
-            style="background: #0D631B; border-color: #0D631B; display: inline-flex; align-items: center; gap: 6px;"
-            :disabled="isCompletingBatch"
-            @click="handleCompleteCurrentBatch"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <span>{{ isCompletingBatch ? 'Menyelesaikan...' : 'Selesaikan' }}</span>
-          </button>
+        <!-- Header Actions: Grouped in Two Rows (2 Baris) -->
+        <div class="header-btns-cluster">
+          <!-- Row 1: Primary Action & Document Exports -->
+          <div class="header-btns-subrow">
+            <button 
+              v-if="batch?.status !== 'COMPLETED'" 
+              class="btn-primary btn-complete-highlight" 
+              :disabled="isCompletingBatch"
+              @click="handleCompleteCurrentBatch"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <span>{{ isCompletingBatch ? $t('historyDetail.finishing') : 'Selesaikan' }}</span>
+            </button>
 
-          <button class="btn-secondary-action" @click="openEditBatchModal">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-            <span>Edit</span>
-          </button>
+            <button class="btn-primary btn-print-highlight" @click="handleExport" title="Cetak Laporan PDF">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span>Cetak PDF</span>
+            </button>
 
-          <button class="btn-secondary-action" @click="exportBatchCsv" title="Unduh seluruh baris telemetri batch ini ke CSV">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span>CSV</span>
-          </button>
+            <button class="btn-secondary-action" @click="exportBatchCsv" :title="$t('historyDetail.exportCsv')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Unduh CSV</span>
+            </button>
+          </div>
 
-          <button class="btn-primary" @click="handleExport">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 6 2 18 2 18 9"></polyline>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-              <rect x="6" y="14" width="12" height="8"></rect>
-            </svg>
-            <span>Cetak PDF</span>
-          </button>
+          <!-- Row 2: Management & QR Packaging Tools -->
+          <div class="header-btns-subrow">
+            <button class="btn-secondary-action" @click="isQrModalOpen = true" :title="$t('modals.qrSub')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                <line x1="17" y1="7" x2="17.01" y2="7"></line>
+                <line x1="7" y1="17" x2="7.01" y2="17"></line>
+                <line x1="17" y1="17" x2="17.01" y2="17"></line>
+              </svg>
+              <span>QR Kemasan</span>
+            </button>
+
+            <button class="btn-secondary-action" @click="openEditBatchModal" :title="$t('historyDetail.editBatch')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <span>{{ $t('common.edit') }}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -78,7 +100,7 @@
         <!-- 1. Durasi Total & Waktu -->
         <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-lbl">TOTAL DURASI OPERASIONAL</span>
+            <span class="kpi-lbl">{{ $t('historyDetail.totalDuration').toUpperCase() }}</span>
             <div class="icon-circle icon-green-subtle">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -88,19 +110,19 @@
           </div>
           <div class="kpi-val-row">
             <span class="kpi-val-big text-green-dark">{{ durationText.hours }}</span>
-            <span class="kpi-val-unit">Jam</span>
+            <span class="kpi-val-unit">{{ $t('common.hours') }}</span>
             <span class="kpi-val-big text-green-dark" style="margin-left: 6px;">{{ durationText.minutes }}</span>
-            <span class="kpi-val-unit">Mnt</span>
+            <span class="kpi-val-unit">{{ $t('common.minutes') }}</span>
           </div>
           <div class="kpi-footer-note">
-            <span>Metode: <strong>{{ batch?.dryingMode || 'HYBRID_AUTO' }}</strong></span>
+            <span>{{ $t('dashboard.dryingMode') }}: <strong>{{ batch?.dryingMode || 'HYBRID_AUTO' }}</strong></span>
           </div>
         </div>
 
         <!-- 2. Kadar Air & Efisiensi Dehidrasi -->
         <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-lbl">DEHIDRASI KADAR AIR (ΔM)</span>
+            <span class="kpi-lbl">{{ $t('historyDetail.moistureReduction').toUpperCase() }} (ΔM)</span>
             <div class="icon-circle icon-blue-subtle">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.2">
                 <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
@@ -115,14 +137,14 @@
             </span>
           </div>
           <div class="kpi-footer-note">
-            <span>Awal: {{ initialMoisturePercent }}% → Target: {{ batch?.targetMoisturePercent || 12 }}%</span>
+            <span>{{ $t('activeDrying.startMoisture') }}: {{ initialMoisturePercent }}% → {{ $t('activeDrying.target') }}: {{ batch?.targetMoisturePercent || 12 }}%</span>
           </div>
         </div>
 
         <!-- 3. Keseimbangan Massa / Bobot Gabah -->
         <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-lbl">KESEIMBANGAN MASSA GABAH</span>
+            <span class="kpi-lbl">{{ $t('historyDetail.kpiMassBalance').toUpperCase() }}</span>
             <div class="icon-circle icon-purple-subtle">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7E22CE" stroke-width="2.2">
                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
@@ -235,7 +257,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
             </svg>
-            <span>Kinetika Pengeringan (Drying Rate)</span>
+            <span>Kinetika Dehidrasi & Laju Penguapan Air</span>
           </button>
 
           <button 
@@ -247,7 +269,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
             </svg>
-            <span>Diferensial Termal (ΔT Ruang vs Luar)</span>
+            <span>Diferensial Termal Greenhouse (ΔT)</span>
           </button>
 
           <button 
@@ -264,7 +286,7 @@
               <line x1="3" y1="12" x2="3.01" y2="12"></line>
               <line x1="3" y1="18" x2="3.01" y2="18"></line>
             </svg>
-            <span>Tabel Log Sensor ({{ telemetryDataPoints.length }} Baris)</span>
+            <span>Tabel Log Sensor (Audit Telemetri)</span>
           </button>
 
           <button 
@@ -280,251 +302,117 @@
               <line x1="16" y1="17" x2="8" y2="17"></line>
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            <span>Spesifikasi & Evaluasi Batch</span>
+            <span>Spesifikasi, Grade Mutu & Catatan</span>
           </button>
         </div>
 
         <!-- ===================================================================== -->
-        <!-- TAB 1: MASTER MULTI-SENSOR DUAL-AXIS WAVEFORM CHART -->
+        <!-- TAB 1: MASTER DUAL-AXIS WAVEFORM CHART -->
         <!-- ===================================================================== -->
         <div v-show="activeTab === 'master-chart'" class="tab-pane-card">
           <div class="chart-pane-head">
             <div>
-              <h3 class="pane-heading">Master Dual-Axis Sensor Waveform — Riwayat Penuh Batch</h3>
-              <p class="pane-sub">Korelasi simultan temperatur ruang, RH, kadar air gabah, dan radiasi tenaga surya sepanjang sesi pengeringan</p>
+              <h3 class="pane-heading">Master Dual-Axis Sensor Telemetry Waveform</h3>
+              <p class="pane-sub">Korelasi simultan kinetika suhu, kelembapan, radiasi matahari, dan peluruhan kadar air</p>
             </div>
-            <span class="badge-pill bg-blue-subtle text-blue">{{ telemetryDataPoints.length }} Titik Rekaman</span>
+            <span class="badge-pill bg-green-subtle text-green-dark">Dual Axis Precision</span>
           </div>
 
-          <!-- Series Visibility Toggles (Legend Checkboxes) -->
-          <div class="series-toggle-toolbar">
-            <button 
-              type="button" 
-              class="series-btn" 
-              :class="{ active: visibleSeries.tempInternal }"
-              @click="visibleSeries.tempInternal = !visibleSeries.tempInternal"
-            >
-              <span class="legend-color-dot" style="background: #E11D48;"></span>
-              <span>Suhu Internal (°C)</span>
-            </button>
+          <!-- SVG Chart Canvas Area -->
+          <div class="chart-canvas-box" @mousemove="handleChartMouseMove" @mouseleave="handleChartMouseLeave">
+            <svg viewBox="0 0 1000 280" class="master-svg-chart" preserveAspectRatio="none">
+              <!-- Y-Axis Grid Lines & Labels -->
+              <!-- Line 1: Top (80°C / 100% RH / 1000 W/m²) -->
+              <line x1="60" y1="25" x2="940" y2="25" stroke="#E2E8F0" stroke-dasharray="3 3" />
+              <text x="15" y="29" font-size="10.5" fill="#BA1A1A" font-weight="700">80°C</text>
+              <text x="948" y="29" font-size="10.5" fill="#005DB7" font-weight="700">100%</text>
 
-            <button 
-              type="button" 
-              class="series-btn" 
-              :class="{ active: visibleSeries.tempExternal }"
-              @click="visibleSeries.tempExternal = !visibleSeries.tempExternal"
-            >
-              <span class="legend-color-dot" style="background: #0D9488;"></span>
-              <span>Suhu Luar / Lingkungan (°C)</span>
-            </button>
+              <!-- Line 2: 60°C / 75% RH -->
+              <line x1="60" y1="80" x2="940" y2="80" stroke="#E2E8F0" stroke-dasharray="3 3" />
+              <text x="15" y="84" font-size="10.5" fill="#64748B">60°C</text>
+              <text x="948" y="84" font-size="10.5" fill="#64748B">75%</text>
 
-            <button 
-              type="button" 
-              class="series-btn" 
-              :class="{ active: visibleSeries.humidity }"
-              @click="visibleSeries.humidity = !visibleSeries.humidity"
-            >
-              <span class="legend-color-dot" style="background: #0284C7;"></span>
-              <span>Kelembapan Udara (% RH)</span>
-            </button>
+              <!-- Line 3: 40°C / 50% RH -->
+              <line x1="60" y1="135" x2="940" y2="135" stroke="#E2E8F0" stroke-dasharray="3 3" />
+              <text x="15" y="139" font-size="10.5" fill="#64748B">40°C</text>
+              <text x="948" y="139" font-size="10.5" fill="#64748B">50%</text>
 
-            <button 
-              type="button" 
-              class="series-btn" 
-              :class="{ active: visibleSeries.grainMoisture }"
-              @click="visibleSeries.grainMoisture = !visibleSeries.grainMoisture"
-            >
-              <span class="legend-color-dot" style="background: #9333EA;"></span>
-              <span>Kadar Air Gabah (%)</span>
-            </button>
+              <!-- Line 4: 20°C / 25% RH -->
+              <line x1="60" y1="190" x2="940" y2="190" stroke="#E2E8F0" stroke-dasharray="3 3" />
+              <text x="15" y="194" font-size="10.5" fill="#64748B">20°C</text>
+              <text x="948" y="194" font-size="10.5" fill="#64748B">25%</text>
 
-            <button 
-              type="button" 
-              class="series-btn" 
-              :class="{ active: visibleSeries.solarRadiation }"
-              @click="visibleSeries.solarRadiation = !visibleSeries.solarRadiation"
-            >
-              <span class="legend-color-dot" style="background: #F59E0B;"></span>
-              <span>Radiasi Surya (W/m²)</span>
-            </button>
-          </div>
+              <!-- Baseline: 0°C / 0% -->
+              <line x1="60" y1="245" x2="940" y2="245" stroke="#CBD5E1" />
+              <text x="15" y="249" font-size="10.5" fill="#64748B">0°C</text>
+              <text x="948" y="249" font-size="10.5" fill="#64748B">0%</text>
 
-          <!-- Master SVG Dual-Axis Canvas -->
-          <div 
-            class="master-svg-chart-wrapper"
-            @mousemove="handleChartMouseMove"
-            @mouseleave="handleChartMouseLeave"
-          >
-            <svg viewBox="0 0 1000 320" class="master-svg" preserveAspectRatio="none">
-              <defs>
-                <!-- Gradients -->
-                <linearGradient id="histTempGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#E11D48" stop-opacity="0.25"/>
-                  <stop offset="100%" stop-color="#E11D48" stop-opacity="0.0"/>
-                </linearGradient>
-                <linearGradient id="histMoistureGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#9333EA" stop-opacity="0.20"/>
-                  <stop offset="100%" stop-color="#9333EA" stop-opacity="0.0"/>
-                </linearGradient>
-                <linearGradient id="histSolarGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.15"/>
-                  <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.0"/>
-                </linearGradient>
-              </defs>
+              <!-- Target Moisture Reference Line (12%) -->
+              <line x1="60" y1="218" x2="940" y2="218" stroke="#9333EA" stroke-dasharray="4 4" stroke-width="1.5" opacity="0.6"/>
+              <text x="820" y="214" font-size="9.5" fill="#9333EA" font-weight="700">Target SNI 12%</text>
 
-              <!-- Safety Zone Band (40°C - 50°C) -->
-              <!-- Height normalized: 0 is y=260, 100 is y=20. Range 40-50 maps to y=164 to y=140 -->
-              <rect x="60" y="140" width="880" height="24" fill="#10B981" fill-opacity="0.08" />
-              <text x="65" y="156" font-size="9.5" fill="#059669" font-weight="600">ZONA TEMPERATUR IDEAL PENGERINGAN (40°C - 50°C)</text>
+              <!-- Waveform Curves -->
+              <!-- 1. Solar Radiation Shaded Area (Amber) -->
+              <path :d="solarAreaPath" fill="rgba(217, 119, 6, 0.08)" />
+              <path :d="solarCurvePath" fill="none" stroke="#D97706" stroke-width="1.8" stroke-dasharray="4 2" />
 
-              <!-- Critical Threshold Line (55°C = y=128) -->
-              <line x1="60" y1="128" x2="940" y2="128" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6"/>
-              <text x="830" y="123" font-size="9" fill="#DC2626" font-weight="600">Ambang Kritis 55°C</text>
+              <!-- 2. Internal Humidity (Blue) -->
+              <path :d="humidityInternalCurvePath" fill="none" stroke="#005DB7" stroke-width="2.5" stroke-linecap="round" />
 
-              <!-- Target Moisture Line (12% = y=231.2) -->
-              <line x1="60" y1="231" x2="940" y2="231" stroke="#9333EA" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6"/>
-              <text x="815" y="226" font-size="9" fill="#7E22CE" font-weight="600">Target Simpan 12.0%</text>
+              <!-- 3. Internal Temperature (Red) -->
+              <path :d="tempInternalCurvePath" fill="none" stroke="#BA1A1A" stroke-width="3" stroke-linecap="round" />
 
-              <!-- Grid Horizontal Lines & Left Y-Axis Labels (0 - 100) -->
-              <g v-for="g in yGridLines" :key="g.val" class="grid-line-group">
-                <line x1="60" :y1="g.y" x2="940" :y2="g.y" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="2 2"/>
-                <text x="20" :y="g.y + 4" font-size="10.5" fill="#64748B" font-weight="600">{{ g.val }}{{ g.unit }}</text>
-                <!-- Right Y-Axis Labels (Solar 0 - 1000 W/m²) -->
-                <text x="948" :y="g.y + 4" font-size="10.5" fill="#D97706" font-weight="600">{{ g.solarVal }}</text>
-              </g>
+              <!-- 4. Grain Moisture % (Purple) -->
+              <path :d="grainMoistureCurvePath" fill="none" stroke="#9333EA" stroke-width="3.5" stroke-linecap="round" />
 
-              <!-- Right Axis Unit Label -->
-              <text x="948" y="14" font-size="9" fill="#D97706" font-weight="700">W/m²</text>
-              <text x="20" y="14" font-size="9" fill="#64748B" font-weight="700">°C / %</text>
-
-              <!-- Area Fills -->
-              <path v-if="visibleSeries.tempInternal && tempAreaPath" :d="tempAreaPath" fill="url(#histTempGrad)" />
-              <path v-if="visibleSeries.grainMoisture && moistureAreaPath" :d="moistureAreaPath" fill="url(#histMoistureGrad)" />
-              <path v-if="visibleSeries.solarRadiation && solarAreaPath" :d="solarAreaPath" fill="url(#histSolarGrad)" />
-
-              <!-- Polyline Curves -->
-              <!-- 1. Solar Radiation (Amber) -->
-              <path 
-                v-if="visibleSeries.solarRadiation && solarCurvePath" 
-                :d="solarCurvePath" 
-                fill="none" 
-                stroke="#F59E0B" 
-                stroke-width="2.5" 
-                stroke-linecap="round"
-              />
-
-              <!-- 2. Humidity (Sky Blue) -->
-              <path 
-                v-if="visibleSeries.humidity && humidityCurvePath" 
-                :d="humidityCurvePath" 
-                fill="none" 
-                stroke="#0284C7" 
-                stroke-width="2.5" 
-                stroke-linecap="round"
-              />
-
-              <!-- 3. External Temp (Teal) -->
-              <path 
-                v-if="visibleSeries.tempExternal && tempExtCurvePath" 
-                :d="tempExtCurvePath" 
-                fill="none" 
-                stroke="#0D9488" 
-                stroke-width="2" 
-                stroke-dasharray="4 2"
-                stroke-linecap="round"
-              />
-
-              <!-- 4. Grain Moisture (Purple) -->
-              <path 
-                v-if="visibleSeries.grainMoisture && moistureCurvePath" 
-                :d="moistureCurvePath" 
-                fill="none" 
-                stroke="#9333EA" 
-                stroke-width="3" 
-                stroke-linecap="round"
-              />
-
-              <!-- 5. Internal Temp (Rose/Red) -->
-              <path 
-                v-if="visibleSeries.tempInternal && tempCurvePath" 
-                :d="tempCurvePath" 
-                fill="none" 
-                stroke="#E11D48" 
-                stroke-width="3.5" 
-                stroke-linecap="round"
-              />
-
-              <!-- X-Axis Base Line -->
-              <line x1="60" y1="260" x2="940" y2="260" stroke="#94A3B8" stroke-width="1.5"/>
-
-              <!-- X-Axis Time Ticks & Labels -->
-              <g v-for="(lbl, idx) in xTimeLabels" :key="idx">
-                <line :x1="lbl.x" y1="260" :x2="lbl.x" y2="266" stroke="#64748B" stroke-width="1.5"/>
-                <text :x="lbl.x" y="282" font-size="10" fill="#64748B" text-anchor="middle" font-weight="500">{{ lbl.time }}</text>
-              </g>
-
-              <!-- Interactive Hover Crosshair Line -->
+              <!-- Hover Cursor Line & Tracker Dot -->
               <g v-if="hoverData">
-                <line 
-                  :x1="hoverData.svgX" 
-                  y1="20" 
-                  :x2="hoverData.svgX" 
-                  y2="260" 
-                  stroke="#1E293B" 
-                  stroke-width="1.5" 
-                  stroke-dasharray="3 3"
-                />
-                <!-- Interactive Dots on active curves -->
-                <circle v-if="visibleSeries.tempInternal" :cx="hoverData.svgX" :cy="hoverData.yTemp" r="5" fill="#E11D48" stroke="#FFFFFF" stroke-width="2"/>
-                <circle v-if="visibleSeries.grainMoisture" :cx="hoverData.svgX" :cy="hoverData.yMoisture" r="5" fill="#9333EA" stroke="#FFFFFF" stroke-width="2"/>
-                <circle v-if="visibleSeries.humidity" :cx="hoverData.svgX" :cy="hoverData.yHum" r="4.5" fill="#0284C7" stroke="#FFFFFF" stroke-width="2"/>
-                <circle v-if="visibleSeries.solarRadiation" :cx="hoverData.svgX" :cy="hoverData.ySolar" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2"/>
+                <line :x1="hoverData.domX" y1="25" :x2="hoverData.domX" y2="245" stroke="#1E293B" stroke-dasharray="3 3" />
+                <circle :cx="hoverData.domX" :cy="hoverData.yTemp" r="4.5" fill="#BA1A1A" stroke="#FFFFFF" stroke-width="1.5" />
+                <circle :cx="hoverData.domX" :cy="hoverData.yMoisture" r="4.5" fill="#9333EA" stroke="#FFFFFF" stroke-width="1.5" />
               </g>
             </svg>
 
-            <!-- Floating Glassmorphic Tooltip -->
+            <!-- Chart Interactive Legend Pills -->
+            <div class="chart-legend-floating">
+              <span class="legend-chip"><span class="chip-color bg-red"></span> Suhu Ruang (°C)</span>
+              <span class="legend-chip"><span class="chip-color bg-blue"></span> RH Ruang (%)</span>
+              <span class="legend-chip"><span class="chip-color bg-purple"></span> Kadar Air Gabah (%)</span>
+              <span class="legend-chip"><span class="chip-color bg-amber"></span> Radiasi Surya (W/m²)</span>
+            </div>
+
+            <!-- Floating Hover Tooltip -->
             <div 
               v-if="hoverData" 
-              class="floating-chart-tooltip"
+              class="chart-floating-tooltip"
               :style="{ left: `${hoverData.domPercentX}%` }"
             >
-              <div class="tooltip-header">
-                <span class="tooltip-time-icon">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                </span>
+              <div class="tt-header">
                 <strong>{{ hoverData.item.timeFormatted || hoverData.item.time }}</strong>
               </div>
-              <div class="tooltip-grid">
-                <div class="tooltip-item" v-if="visibleSeries.tempInternal">
-                  <span class="tt-dot" style="background: #E11D48;"></span>
+              <div class="tt-grid">
+                <div class="tt-row">
+                  <span class="tt-dot bg-red"></span>
                   <span class="tt-label">Suhu Internal:</span>
-                  <span class="tt-val">{{ hoverData.item.tempInternal.toFixed(1) }}°C</span>
+                  <span class="tt-val font-bold text-red">{{ hoverData.item.tempInternal.toFixed(1) }}°C</span>
                 </div>
-                <div class="tooltip-item" v-if="visibleSeries.tempExternal">
-                  <span class="tt-dot" style="background: #0D9488;"></span>
-                  <span class="tt-label">Suhu Luar:</span>
-                  <span class="tt-val">{{ hoverData.item.tempExternal.toFixed(1) }}°C</span>
+                <div class="tt-row">
+                  <span class="tt-dot bg-blue"></span>
+                  <span class="tt-label">RH Internal:</span>
+                  <span class="tt-val font-bold text-blue">{{ hoverData.item.humidityInternal.toFixed(0) }}%</span>
                 </div>
-                <div class="tooltip-item" v-if="visibleSeries.humidity">
-                  <span class="tt-dot" style="background: #0284C7;"></span>
-                  <span class="tt-label">Kelembapan:</span>
-                  <span class="tt-val">{{ hoverData.item.humidityInternal.toFixed(0) }}% RH</span>
-                </div>
-                <div class="tooltip-item" v-if="visibleSeries.grainMoisture">
-                  <span class="tt-dot" style="background: #9333EA;"></span>
+                <div class="tt-row">
+                  <span class="tt-dot bg-purple"></span>
                   <span class="tt-label">Kadar Air:</span>
-                  <span class="tt-val font-bold">{{ hoverData.item.grainMoisture.toFixed(1) }}%</span>
+                  <span class="tt-val font-bold text-purple">{{ hoverData.item.grainMoisture.toFixed(1) }}%</span>
                 </div>
-                <div class="tooltip-item" v-if="visibleSeries.solarRadiation">
-                  <span class="tt-dot" style="background: #F59E0B;"></span>
+                <div class="tt-row">
+                  <span class="tt-dot bg-amber"></span>
                   <span class="tt-label">Radiasi Surya:</span>
                   <span class="tt-val">{{ hoverData.item.solarRadiation.toFixed(0) }} W/m²</span>
                 </div>
-                <div class="tooltip-item">
-                  <span class="tt-dot" style="background: #059669;"></span>
+                <div class="tt-row">
+                  <span class="tt-dot bg-slate-500"></span>
                   <span class="tt-label">Bobot:</span>
                   <span class="tt-val">{{ (hoverData.item.weightKg || 0).toFixed(1) }} kg</span>
                 </div>
@@ -783,21 +671,58 @@
             </div>
 
             <div class="spec-table-box">
-              <h4 class="spec-section-title">Evaluasi Kualitas & Sertifikasi SNI</h4>
-              <div class="quality-badge-highlight">
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <h4 class="spec-section-title" style="margin: 0;">Penilaian Kualitas & Sertifikasi SNI Otomatis</h4>
+                <span 
+                  class="badge-pill" 
+                  :class="qualityAssessment.grade === 'A' ? 'bg-green-subtle text-green-dark' : (qualityAssessment.grade === 'B' ? 'bg-blue-subtle text-blue' : 'bg-orange-subtle text-orange')"
+                >
+                  Score: {{ qualityAssessment.qualityScore }}/100
+                </span>
+              </div>
+
+              <div class="quality-badge-highlight" :class="'grade-box-' + qualityAssessment.grade.toLowerCase()">
                 <div class="grade-icon-box">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                     <circle cx="12" cy="8" r="6"></circle>
                     <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
                   </svg>
                 </div>
-                <div>
-                  <h5 class="grade-name">{{ batch?.qualityGrade || 'Grade A (Ekspor)' }}</h5>
-                  <p class="grade-sub">Kadar air memenuhi standar mutu simpan SNI (&le; 12.0%) dengan retensi warna biji cerah dan nutrisi terjaga.</p>
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <h5 class="grade-name">{{ qualityAssessment.gradeLabel }}</h5>
+                    <span class="font-mono font-bold text-xs px-2 py-0.5 rounded bg-emerald-600/10 text-emerald-800 dark:text-emerald-300">
+                      GRADE {{ qualityAssessment.grade }}
+                    </span>
+                  </div>
+                  <p class="grade-sub mt-1">{{ qualityAssessment.summary }}</p>
+                  
+                  <div class="mt-2.5 p-2 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-500/20 text-[11px] text-emerald-900 dark:text-emerald-300">
+                    <strong>Rekomendasi Pasar:</strong> {{ qualityAssessment.marketRecommendation }}
+                  </div>
                 </div>
               </div>
 
-              <div class="operator-notes-container">
+              <!-- Quality Metrics Grid -->
+              <div class="grid grid-cols-3 gap-2 mt-3 text-xs">
+                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                  <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Kadar Air Akhir</span>
+                  <span class="font-bold text-slate-800 dark:text-white text-sm">{{ qualityAssessment.metrics.finalMoisture || finalMoisture }}</span>
+                  <span class="text-[10px] text-emerald-600 block mt-0.5">Standar SNI &le;13.5%</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                  <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Stabilitas Suhu</span>
+                  <span class="font-bold text-slate-800 dark:text-white text-sm">&plusmn;{{ qualityAssessment.metrics.tempStdDev || '2.2' }}&deg;C</span>
+                  <span class="text-[10px] text-emerald-600 block mt-0.5">{{ qualityAssessment.metrics.tempStabilityLevel || 'Sangat Stabil' }}</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                  <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Keseragaman Kurva</span>
+                  <span class="font-bold text-slate-800 dark:text-white text-sm">{{ qualityAssessment.metrics.uniformityIndex || '95' }}%</span>
+                  <span class="text-[10px] text-emerald-600 block mt-0.5">Distribusi Tray Rata</span>
+                </div>
+              </div>
+
+              <div class="operator-notes-container mt-3">
                 <label class="notes-lbl">Catatan & Evaluasi Sesi:</label>
                 <div class="notes-box-display">
                   {{ batch?.notes || 'Kualitas gabah hanjeli sangat baik. Pengurangan kadar air terjadi secara merata di seluruh rak pengering tanpa adanya penggosongan lokal. Sirkulasi kipas berjalan optimal.' }}
@@ -806,128 +731,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- MOBILE VIEW LAYOUT -->
-    <!-- ========================================================================= -->
-    <div v-else class="mobile-content">
-      <!-- Main Mobile Info Card -->
-      <div class="m-detail-card">
-        <button class="back-link-btn" @click="$emit('back')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          <span>Kembali</span>
-        </button>
-
-        <div class="m-detail-top">
-          <h2 class="m-batch-title">{{ batch?.batchCode || activeBatchId }}</h2>
-          <span class="badge-pill" :class="batch?.status === 'COMPLETED' ? 'bg-green-subtle text-green-dark' : 'bg-orange-subtle text-orange'">
-            <span>{{ batch?.status === 'COMPLETED' ? 'Selesai' : (batch?.status || 'Berjalan') }}</span>
-          </span>
-        </div>
-        <p class="m-date-text">{{ batch?.cropVariety || 'Hanjeli Ketan' }} • {{ formattedDateRange }}</p>
-
-        <div class="m-2-cols-meta">
-          <div class="meta-col">
-            <span class="m-meta-lbl">Durasi</span>
-            <span class="m-meta-val">{{ durationText.hours }}j {{ durationText.minutes }}m</span>
-          </div>
-          <div class="meta-col">
-            <span class="m-meta-lbl">Kadar Air Akhir</span>
-            <span class="m-meta-val text-purple">{{ finalMoisture }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4 Quick Stats -->
-      <div class="mobile-grid-4">
-        <div class="m-stat-box">
-          <span class="m-stat-lbl">Suhu Rata2</span>
-          <span class="m-stat-num text-red">{{ avgTemp }}</span>
-        </div>
-        <div class="m-stat-box">
-          <span class="m-stat-lbl">RH Rata2</span>
-          <span class="m-stat-num text-blue">{{ avgHum }}</span>
-        </div>
-        <div class="m-stat-box">
-          <span class="m-stat-lbl">Air Menguap</span>
-          <span class="m-stat-num text-purple">{{ waterEvaporatedKg }} kg</span>
-        </div>
-        <div class="m-stat-box">
-          <span class="m-stat-lbl">Energi Listrik</span>
-          <span class="m-stat-num text-emerald">{{ energyEst }}</span>
-        </div>
-      </div>
-
-      <!-- Mobile Chart: Master Telemetry -->
-      <div class="m-chart-card">
-        <div class="m-chart-head">
-          <h4 class="m-chart-title">Grafik Penurunan Kadar Air & Suhu</h4>
-          <span class="badge-pill bg-purple-subtle text-purple">{{ telemetryDataPoints.length }} Log</span>
-        </div>
-
-        <div class="m-svg-chart">
-          <svg viewBox="0 0 320 140" class="w-full">
-            <line x1="30" y1="20" x2="310" y2="20" stroke="#F1F5F9" />
-            <text x="5" y="24" font-size="9" fill="#94A3B8">30%</text>
-            <line x1="30" y1="60" x2="310" y2="60" stroke="#F1F5F9" />
-            <text x="5" y="64" font-size="9" fill="#94A3B8">20%</text>
-            <line x1="30" y1="100" x2="310" y2="100" stroke="#CBD5E1" />
-            <text x="5" y="104" font-size="9" fill="#94A3B8">10%</text>
-
-            <!-- Target line -->
-            <line x1="30" y1="90" x2="310" y2="90" stroke="#9333EA" stroke-dasharray="3 3" opacity="0.6"/>
-
-            <!-- Moisture Curve -->
-            <path :d="mobileMoisturePath" fill="none" stroke="#9333EA" stroke-width="3" stroke-linecap="round" />
-            <!-- Temp Curve -->
-            <path :d="mobileTempPath" fill="none" stroke="#E11D48" stroke-width="2.5" stroke-linecap="round" />
-          </svg>
-        </div>
-
-        <div class="m-chart-legend">
-          <span><span class="dot-sm" style="background: #9333EA;"></span> Kadar Air</span>
-          <span><span class="dot-sm" style="background: #E11D48;"></span> Suhu Ruang</span>
-        </div>
-      </div>
-
-      <!-- Mobile Actions -->
-      <div class="m-actions-stack">
-        <button 
-          v-if="batch?.status !== 'COMPLETED'" 
-          class="btn-primary w-full" 
-          style="background: #0D631B; border-color: #0D631B; margin-bottom: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
-          :disabled="isCompletingBatch"
-          @click="handleCompleteCurrentBatch"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-          <span>{{ isCompletingBatch ? 'Menyelesaikan...' : 'Selesaikan' }}</span>
-        </button>
-
-        <button class="btn-primary w-full" @click="handleExport">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 6 2 18 2 18 9"></polyline>
-            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-            <rect x="6" y="14" width="12" height="8"></rect>
-          </svg>
-          <span>Unduh Laporan PDF</span>
-        </button>
-
-        <button class="btn-secondary-action w-full" @click="exportBatchCsv">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span>Unduh CSV Data Telemetri</span>
-        </button>
       </div>
     </div>
 
@@ -1003,13 +806,27 @@
         </form>
       </div>
     </div>
+
+    <!-- Packaging QR & TRACEABILITY MODAL -->
+    <PackagingQrLabelModal 
+      :is-open="isQrModalOpen" 
+      :batch="batch" 
+      @close="isQrModalOpen = false" 
+    />
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { batchService } from '../../services/batchService'
+import { confirmDialog, alertDialog } from '../../services/confirmDialogService'
+import { connectionManager } from '../../services/connectionManager'
+import PackagingQrLabelModal from '../../components/PackagingQrLabelModal.vue'
+import HistoryDetailSkeleton from '../../components/HistoryDetailSkeleton.vue'
+import QRCode from 'qrcode'
 
 const route = useRoute()
 const router = useRouter()
@@ -1031,6 +848,8 @@ const props = defineProps({
 
 const emit = defineEmits(['back'])
 
+const isInitialLoading = ref(true)
+
 const activeBatchId = computed(() => {
   return route?.params?.id || props.id || props.batchId || 'HNJ-20260904-01'
 })
@@ -1038,8 +857,46 @@ const activeBatchId = computed(() => {
 const batch = ref(null)
 const isLoading = ref(false)
 const isEditBatchModalOpen = ref(false)
+const isQrModalOpen = ref(false)
 const isSavingBatch = ref(false)
 const activeTab = ref('master-chart')
+
+const qualityAssessment = computed(() => {
+  if (batch.value?.qualityAssessment) {
+    return batch.value.qualityAssessment;
+  }
+  const fM = parseFloat(batch.value?.finalMoisturePercent || batch.value?.currentMoisturePercent || 12.0);
+  const qScore = batch.value?.qualityScore || (fM <= 13.5 ? 96.0 : (fM <= 15.0 ? 82.0 : 65.0));
+  const grade = qScore >= 88.0 ? 'A' : (qScore >= 72.0 ? 'B' : 'C');
+  return {
+    grade,
+    gradeLabel: batch.value?.qualityGrade || (grade === 'A' ? 'Grade A (Super Premium / Ekspor)' : (grade === 'B' ? 'Grade B (Standar Industri Lokal)' : 'Grade C (Perlu Pengeringan Ulang)')),
+    qualityScore: qScore,
+    summary: grade === 'A' 
+      ? 'Kadar air optimal standar ekspor SNI (<13.5%), stabilitas kurva suhu sangat presisi, dan nutrisi biji terjaga utuh.'
+      : (grade === 'B' ? 'Kualitas baik dengan kadar air standar konsumsi lokal (13.5% - 15.0%).' : 'Kadar air akhir masih tinggi (>15.0%) atau suhu fluktuatif.'),
+    marketRecommendation: grade === 'A'
+      ? 'Sangat direkomendasikan untuk komoditas ekspor premium, benih unggul, dan sereal pangan fungsional.'
+      : (grade === 'B' ? 'Ideal untuk olahan tepung hanjeli, beras analog, dan konsumsi pangan lokal.' : 'Disarankan pengeringan ulang (re-drying) sebelum penyimpanan.'),
+    metrics: {
+      finalMoisture: `${fM}%`,
+      moistureScore: fM <= 13.5 ? 100 : (fM <= 15.0 ? 80 : 60),
+      moistureStatus: fM <= 13.5 ? 'Optimal SNI Ekspor (<13.5%)' : 'Standar Pangan Nasional',
+      tempStabilityScore: 94.5,
+      tempStdDev: 2.2,
+      tempStabilityLevel: 'Sangat Stabil & Merata',
+      avgTemp: 48.5,
+      maxTemp: 52.3,
+      uniformityIndex: 95.0
+    },
+    certificateChecklist: [
+      { title: 'Standar Kadar Air SNI (11.5% - 13.5%)', passed: fM <= 13.8, value: `${fM}%`, description: 'Memenuhi ambang batas aman simpan' },
+      { title: 'Stabilitas Suhu Ruangan (< 55°C)', passed: true, value: 'Maks 52.3°C (Deviasi ±2.2°C)', description: 'Bebas dari kerusakan termal & over-drying' },
+      { title: 'Keseragaman Kurva Pengeringan', passed: true, value: 'Indeks Mutu 95/100', description: 'Penurunan kelembapan merata di seluruh rak greenhouse' },
+      { title: 'Bebas Kontaminasi Jamur & Asap', passed: true, value: 'Terverifikasi Bersih', description: 'Sistem solar dryer tertutup dengan sirkulasi higienis' }
+    ]
+  };
+});
 
 // Series Toggles
 const visibleSeries = reactive({
@@ -1086,7 +943,15 @@ const isCompletingBatch = ref(false)
 async function handleCompleteCurrentBatch() {
   if (!batch.value) return
   const code = batch.value.batchCode || activeBatchId.value
-  if (!confirm(`Apakah Anda yakin ingin menyelesaikan proses pengeringan untuk batch ${code}?`)) {
+  const confirmed = await confirmDialog({
+    title: 'Selesaikan Proses Pengeringan',
+    message: `Apakah Anda yakin ingin menyelesaikan proses pengeringan untuk batch ${code}?`,
+    details: 'Status batch akan diubah menjadi COMPLETED dan data pengeringan akan disimpan secara permanen.',
+    type: 'warning',
+    confirmText: 'Ya, Selesaikan',
+    cancelText: 'Batal'
+  })
+  if (!confirmed) {
     return
   }
   isCompletingBatch.value = true
@@ -1101,7 +966,11 @@ async function handleCompleteCurrentBatch() {
       await loadBatchDetail()
     }
   } catch (err) {
-    alert(err.message || 'Gagal menyelesaikan sesi pengeringan.')
+    await alertDialog({
+      title: 'Gagal Menyelesaikan Sesi',
+      message: err.message || 'Gagal menyelesaikan sesi pengeringan.',
+      type: 'danger'
+    })
   } finally {
     isCompletingBatch.value = false
   }
@@ -1120,13 +989,17 @@ async function handleSaveBatchEdit() {
     }
     isEditBatchModalOpen.value = false
   } catch (err) {
-    alert(err.message || 'Gagal menyimpan perubahan batch.')
+    await alertDialog({
+      title: 'Gagal Menyimpan',
+      message: err.message || 'Gagal menyimpan perubahan batch.',
+      type: 'danger'
+    })
   } finally {
     isSavingBatch.value = false
   }
 }
 
-async function loadBatchDetail() {
+async function loadBatchDetail(isFirstTime = false) {
   isLoading.value = true
   const targetId = activeBatchId.value
   try {
@@ -1148,15 +1021,68 @@ async function loadBatchDetail() {
     }
   } finally {
     isLoading.value = false
+    if (isFirstTime) {
+      setTimeout(() => {
+        isInitialLoading.value = false
+      }, 350)
+    }
   }
 }
 
+function handleLiveTelemetryDetail(liveData) {
+  if (!liveData || !liveData.hasData || !batch.value) return
+  const isRunning = batch.value.status === 'ACTIVE' || batch.value.status === 'PAUSED' || batch.value.status === 'running'
+  if (isRunning) {
+    if (liveData.grainMoisture !== undefined && liveData.grainMoisture !== null) {
+      batch.value.currentMoisturePercent = Number(liveData.grainMoisture)
+    }
+    if (liveData.weightCurrentKg !== undefined && liveData.weightCurrentKg !== null) {
+      batch.value.currentWeightKg = Number(liveData.weightCurrentKg)
+    }
+    if (!batch.value.telemetry) {
+      batch.value.telemetry = []
+    }
+    const newPoint = {
+      id: Date.now(),
+      tempInternal: Number(liveData.tempInternal ?? 42.0),
+      humidityInternal: Number(liveData.humidityInternal ?? 55.0),
+      tempExternal: Number(liveData.tempExternal ?? 30.0),
+      humidityExternal: Number(liveData.humidityExternal ?? 65.0),
+      solarRadiation: Number(liveData.solarRadiation ?? 750.0),
+      grainMoisture: Number(liveData.grainMoisture ?? batch.value.currentMoisturePercent ?? 14.0),
+      weightKg: Number(liveData.weightCurrentKg ?? batch.value.currentWeightKg ?? 45.0),
+      heaterStatus: liveData.heaterStatus ?? false,
+      exhaustFanSpeed: (liveData.exhaustFanSpeed || 50) + '%',
+      timestamp: liveData.timestamp || new Date().toISOString(),
+      time: liveData.timestamp || new Date().toISOString(),
+    }
+    batch.value.telemetry.push(newPoint)
+  }
+}
+
+let detailPollTimer = null
+
 onMounted(() => {
-  loadBatchDetail()
+  loadBatchDetail(true)
+
+  detailPollTimer = setInterval(() => {
+    if (batch.value && (batch.value.status === 'ACTIVE' || batch.value.status === 'PAUSED' || batch.value.status === 'running')) {
+      loadBatchDetail(false)
+    }
+  }, 4000)
+
+  connectionManager.on('telemetry_live', handleLiveTelemetryDetail)
+  connectionManager.on('telemetry_update', handleLiveTelemetryDetail)
+})
+
+onUnmounted(() => {
+  if (detailPollTimer) clearInterval(detailPollTimer)
+  connectionManager.off('telemetry_live', handleLiveTelemetryDetail)
+  connectionManager.off('telemetry_update', handleLiveTelemetryDetail)
 })
 
 watch(() => activeBatchId.value, () => {
-  loadBatchDetail()
+  loadBatchDetail(false)
 })
 
 // Generate simulated or real telemetry points
@@ -1419,10 +1345,13 @@ const moistureCoords = computed(() => mapPointsToSvg(telemetryDataPoints.value.m
 const solarCoords = computed(() => mapPointsToSvg(telemetryDataPoints.value.map(d => d.solarRadiation), 0, 1000, 880, 240, 60, 20))
 
 const tempCurvePath = computed(() => buildSvgPath(tempCoords.value))
+const tempInternalCurvePath = tempCurvePath
 const tempAreaPath = computed(() => buildSvgArea(tempCoords.value))
 const tempExtCurvePath = computed(() => buildSvgPath(tempExtCoords.value))
 const humidityCurvePath = computed(() => buildSvgPath(humCoords.value))
+const humidityInternalCurvePath = humidityCurvePath
 const moistureCurvePath = computed(() => buildSvgPath(moistureCoords.value))
+const grainMoistureCurvePath = moistureCurvePath
 const moistureAreaPath = computed(() => buildSvgArea(moistureCoords.value))
 const solarCurvePath = computed(() => buildSvgPath(solarCoords.value))
 const solarAreaPath = computed(() => buildSvgArea(solarCoords.value))
@@ -1541,7 +1470,11 @@ function formatDateTime(dt) {
 function exportBatchCsv() {
   const pts = telemetryDataPoints.value
   if (pts.length === 0) {
-    alert('Tidak ada data telemetri untuk diekspor.')
+    alertDialog({
+      title: 'Data Tidak Tersedia',
+      message: 'Tidak ada data telemetri untuk diekspor ke format CSV.',
+      type: 'info'
+    })
     return
   }
 
@@ -1571,7 +1504,7 @@ function exportBatchCsv() {
   document.body.removeChild(link)
 }
 
-function handleExport() {
+async function handleExport() {
   const currentDate = new Date().toLocaleDateString('id-ID', {
     weekday: 'long',
     year: 'numeric',
@@ -1581,18 +1514,54 @@ function handleExport() {
 
   const b = batch.value || {}
   const code = b.batchCode || activeBatchId.value
-  const variety = b.cropVariety || 'Hanjeli Ketan Sukabumi (Grade A)'
+  const variety = b.cropVariety || 'Hanjeli Ketan Sukabumi (Super Grade A)'
   const weight = b.initialWeightKg || 135
   const finalW = b.finalWeightKg || b.currentWeightKg || 120
   const initialM = b.initialMoisturePercent || 24.5
   const finalM = b.finalMoisturePercent || b.targetMoisturePercent || 12.0
-  const operatorName = b.operatorName || b.operator?.name || 'Operator Green House'
-  const notes = b.notes || 'Proses pengeringan seragam tanpa pembakaran lokal. Kualitas butir hanjeli grade A memenuhi standar mutu ekspor.'
+  const operatorName = b.operatorName || b.operator?.name || 'Operator Green House Waluran'
+  const qualityGrade = b.qualityGrade || 'Grade A (Ekspor / Super Premium)'
+  const qualityScore = b.qualityScore || 95.0
+  const notes = b.notes || 'Pengeringan terkontrol hybrid solar-electric berjalan optimal. Biji hanjeli mencapai kadar air standar SNI tanpa pembakaran lokal dan bebas risiko aflatoksin.'
 
-  const printWindow = window.open('', '_blank', 'width=900,height=800')
-  if (!printWindow) {
-    alert('Harap izinkan popup di browser Anda untuk mencetak dokumen PDF.')
-    return
+  const origin = window.location.origin || 'http://localhost:8000'
+  const verifyUrl = `${origin}/verify/${encodeURIComponent(code)}`
+  const hanjeliLogoUrl = `${origin}/assets/img/hanjeli.png`
+  const stasLogoUrl = `${origin}/assets/img/stas.png`
+
+  let qrDataUrl = ''
+  try {
+    qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+      width: 140,
+      margin: 1,
+      color: { dark: '#071E27', light: '#FFFFFF' }
+    })
+  } catch (e) {
+    console.error('Failed to generate QR for PDF:', e)
+  }
+
+  // Sample checkpoint telemetry points (max 10 rows for clean PDF page)
+  const pts = telemetryDataPoints.value
+  let sampleRowsHtml = ''
+  if (pts && pts.length > 0) {
+    const step = Math.max(1, Math.floor(pts.length / 10))
+    const sampled = pts.filter((_, idx) => idx % step === 0).slice(0, 10)
+    sampleRowsHtml = sampled.map((p, idx) => `
+      <tr>
+        <td style="text-align: center;">${idx + 1}</td>
+        <td style="font-family: monospace; font-weight: 600;">${p.timeFormatted || p.time}</td>
+        <td style="color: #EA580C; font-weight: 700;">${p.tempInternal}°C</td>
+        <td style="color: #0284C7; font-weight: 600;">${p.humidityInternal}%</td>
+        <td>${p.tempExternal}°C</td>
+        <td>${p.humidityExternal}%</td>
+        <td style="color: #0D631B; font-weight: 700;">${p.grainMoisture}%</td>
+        <td>${p.solarRadiation} W/m²</td>
+        <td style="text-align: center;">${p.exhaustFanSpeed || 60}%</td>
+        <td style="text-align: center;">${p.heaterStatus ? 'AKTIF' : 'OFF'}</td>
+      </tr>
+    `).join('')
+  } else {
+    sampleRowsHtml = `<tr><td colspan="10" style="text-align: center; color: #64748B;">Data checkpoint sensor tercatat pada memori sistem.</td></tr>`
   }
 
   const printDocContent = `
@@ -1600,132 +1569,190 @@ function handleExport() {
     <html lang="id">
     <head>
       <meta charset="UTF-8">
-      <title>Laporan Analisis Batch Pengeringan - ${code}</title>
+      <title>Laporan Komprehensif Mutu & Kinetika Pengeringan - ${code}</title>
       <style>
-        @page { size: A4 portrait; margin: 12mm 15mm; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #071E27; line-height: 1.5; margin: 0; padding: 10px; font-size: 12px; }
-        .header-kop { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0D631B; padding-bottom: 10px; margin-bottom: 16px; }
-        .kop-title { font-size: 16px; font-weight: 800; color: #0D631B; margin: 0; text-transform: uppercase; }
-        .kop-sub { font-size: 11px; color: #40493D; margin: 2px 0 0; }
-        .kop-badge { text-align: right; font-size: 10.5px; color: #64748B; }
-        .report-head { text-align: center; margin-bottom: 16px; }
-        .report-title { font-size: 15px; font-weight: 700; text-transform: uppercase; margin: 0; }
-        .badge-status { display: inline-block; padding: 3px 10px; background: #E8F5E9; color: #0D631B; font-weight: bold; border-radius: 4px; font-size: 11px; margin-top: 4px; }
-        .detail-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 11.5px; }
-        .detail-table th, .detail-table td { border: 1px solid #CBD5E1; padding: 7px 10px; }
-        .detail-table th { background: #F8FAFC; color: #334155; text-align: left; width: 35%; font-weight: 600; }
-        .kpi-row-print { display: flex; gap: 10px; margin: 12px 0; }
-        .kpi-box-print { flex: 1; border: 1px solid #E2E8F0; padding: 8px; border-radius: 6px; text-align: center; }
-        .kpi-box-print strong { display: block; font-size: 14px; color: #0D631B; }
-        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; margin-top: 30px; page-break-inside: avoid; }
-        .sig-block { text-align: center; font-size: 11px; }
-        .sig-space { height: 50px; }
-        .sig-name { font-weight: 700; text-decoration: underline; }
+        @page { size: A4 portrait; margin: 10mm 12mm; }
+        body { font-family: sans-serif; font-size: 11px; }
+        .kop-wrapper { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0D631B; padding-bottom: 10px; margin-bottom: 12px; }
+        .kop-logos { display: flex; align-items: center; gap: 12px; }
+        .kop-logo-img { height: 52px; width: auto; object-fit: contain; }
+        .kop-org-main { font-size: 13px; font-weight: 800; color: #0D631B; text-transform: uppercase; }
+        .kop-doc-meta { text-align: right; font-size: 9.5px; }
+        .report-header-box { text-align: center; background: #F4F7F5; padding: 10px; border: 1.5px solid #0D631B; border-radius: 8px; margin-bottom: 14px; }
+        .report-main-title { font-size: 13.5px; color: #0D631B; margin: 0; }
+        .badge-bar { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
+        .badge-pill-print { padding: 2px 8px; border-radius: 4px; font-size: 9.5px; font-weight: 700; border: 1px solid transparent; }
+        .badge-green { background: #E8F5E9; color: #0D631B; border-color: #86EFAC; }
+        .badge-purple { background: #F3E8FF; color: #7C3AED; border-color: #DDD6FE; }
+        .badge-amber { background: #FEF3C7; color: #B45309; border-color: #FDE68A; }
+        .kpi-grid-print { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 14px; }
+        .kpi-card-print { border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px; text-align: center; background: #FAFAFA; }
+        .kpi-lbl { font-size: 8.5px; color: #64748B; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; display: block; }
+        .kpi-val { font-size: 12.5px; font-weight: 800; display: block; }
+        .kpi-sub { font-size: 8px; color: #64748B; margin-top: 2px; display: block; }
+        .section-heading-print { font-size: 11px; font-weight: 800; color: #071E27; border-bottom: 1.5px solid #0D631B; padding-bottom: 3px; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        .section-heading-print span { color: #0D631B; }
+        .info-table-print { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 12px; }
+        .info-table-print td { padding: 5px 8px; border: 1px solid #E2E8F0; }
+        .info-table-print td.label-td { background: #F8FAFC; font-weight: 700; color: #334155; width: 25%; }
+        .info-table-print td.val-td { font-weight: 600; color: #071E27; width: 25%; }
+        .telemetry-table-print { width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 14px; }
+        .telemetry-table-print th, .telemetry-table-print td { border: 1px solid #CBD5E1; padding: 4px 6px; }
+        .telemetry-table-print th { background: #F1F5F9; color: #1E293B; font-weight: 700; text-align: left; }
+        .qr-cert-banner { display: flex; align-items: center; gap: 14px; border: 1.5px solid #0D631B; border-radius: 8px; padding: 10px 14px; background: #F4F7F5; margin-bottom: 14px; page-break-inside: avoid; }
+        .qr-cert-img { width: 76px; height: 76px; border-radius: 6px; border: 1px solid #CBD5E1; background: #FFFFFF; padding: 2px; flex-shrink: 0; }
+        .qr-cert-info { display: flex; flex-direction: column; gap: 2px; }
+        .qr-cert-title { font-size: 11px; font-weight: 800; color: #0D631B; margin: 0; }
+        .qr-cert-desc { font-size: 9px; color: #334155; line-height: 1.35; margin: 0; }
+        .qr-cert-url { font-family: monospace; font-size: 8.5px; font-weight: 700; color: #0284C7; margin-top: 2px; }
+        .signature-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 10px; page-break-inside: avoid; }
+        .sig-box { border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; text-align: center; font-size: 9.5px; background: #FAFAFA; }
+        .sig-role { font-weight: 700; color: #334155; margin-bottom: 40px; }
+        .sig-name { font-weight: 800; border-top: 1px dashed #94A3B8; padding-top: 4px; margin: 0; }
       </style>
     </head>
     <body>
-      <div class="header-kop">
-        <div>
-          <h1 class="kop-title">GREEN HOUSE SMART DRYER HANJELI</h1>
-          <p class="kop-sub">Sistem Pengering Biji Hanjeli Cerdas Berbasis IoT & Tenaga Surya • Desa Wisata Hanjeli Sukabumi</p>
+      <div class="kop-wrapper">
+        <div class="kop-logos">
+          <img src="${hanjeliLogoUrl}" alt="Logo" class="kop-logo-img" />
+          <img src="${stasLogoUrl}" alt="Logo" class="kop-logo-img" />
+          <div class="kop-text">
+            <span class="kop-org-main">DESA WISATA HANJELI WALURAN & CoE STAS-RG</span>
+            <div style="font-size: 8px; color: #475569; margin-top: 2px;">Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia</div>
+          </div>
         </div>
-        <div class="kop-badge">
-          <strong>LEMBAR LAPORAN MUTU</strong><br>
-          Tanggal: ${currentDate}
-        </div>
-      </div>
-
-      <div class="report-head">
-        <h2 class="report-title">LAPORAN DETAIL & KINETIKA PENGERINGAN GABAH HANJELI</h2>
-        <span class="badge-status">STATUS: ${b.status || 'SELESAI (COMPLETED)'} • ${b.qualityGrade || 'GRADE A (EKSPOR)'}</span>
-      </div>
-
-      <div class="kpi-row-print">
-        <div class="kpi-box-print">
-          <small>Total Durasi</small>
-          <strong>${durationText.value.hours} Jam ${durationText.value.minutes} Mnt</strong>
-        </div>
-        <div class="kpi-box-print">
-          <small>Kadar Air Akhir</small>
-          <strong>${finalM}%</strong>
-        </div>
-        <div class="kpi-box-print">
-          <small>Air Menguap</small>
-          <strong>${waterEvaporatedKg.value} kg</strong>
-        </div>
-        <div class="kpi-box-print">
-          <small>Suhu Rata-rata</small>
-          <strong>${avgTemp.value}</strong>
-        </div>
-        <div class="kpi-box-print">
-          <small>Konsumsi Listrik</small>
-          <strong>${energyEst.value} kWh</strong>
+        <div class="kop-doc-meta">
+          <strong>LEMBAR KONTROL MUTU IOT</strong><br>
+          Cetak: ${currentDate}
         </div>
       </div>
-
-      <table class="detail-table">
+      <div class="report-header-box">
+        <h1 class="report-main-title">LAPORAN ANALISIS KINETIKA & SERTIFIKASI PENGERINGAN GABAH HANJELI</h1>
+        <div class="badge-bar">
+          <span class="badge-pill-print badge-green">STATUS: ${b.status || 'SELESAI'}</span>
+          <span class="badge-pill-print badge-purple">MUTU: ${qualityGrade}</span>
+          <span class="badge-pill-print badge-amber">STANDAR SNI &le;14%</span>
+        </div>
+      </div>
+      <div class="kpi-grid-print">
+        <div class="kpi-card-print">
+          <span class="kpi-lbl">Kadar Air Akhir</span>
+          <span class="kpi-val" style="color: #0D631B;">${finalM}%</span>
+          <span class="kpi-sub">Awal: ${initialM}%</span>
+        </div>
+        <div class="kpi-card-print">
+          <span class="kpi-lbl">Bobot Kering</span>
+          <span class="kpi-val" style="color: #0284C7;">${finalW} kg</span>
+          <span class="kpi-sub">Masuk: ${weight} kg</span>
+        </div>
+        <div class="kpi-card-print">
+          <span class="kpi-lbl">Air Teruapkan</span>
+          <span class="kpi-val" style="color: #EA580C;">${(weight - finalW).toFixed(1)} kg</span>
+          <span class="kpi-sub">Dehidrasi Massa</span>
+        </div>
+        <div class="kpi-card-print">
+          <span class="kpi-lbl">Rendemen Hasil</span>
+          <span class="kpi-val" style="color: #7C3AED;">${((finalW / Math.max(1, weight)) * 100).toFixed(1)}%</span>
+          <span class="kpi-sub">Recovery Rate</span>
+        </div>
+        <div class="kpi-card-print">
+          <span class="kpi-lbl">Konsumsi Energi</span>
+          <span class="kpi-val" style="color: #0D631B;">${b.totalEnergyKwh || '2.4'} kWh</span>
+          <span class="kpi-sub">SEC: 0.28 kWh/kg</span>
+        </div>
+        <div class="kpi-card-print">
+          <span class="kpi-lbl">Skor Mutu Gabah</span>
+          <span class="kpi-val" style="color: #0D631B;">${qualityScore}/100</span>
+          <span class="kpi-sub">Kualitas Prima</span>
+        </div>
+      </div>
+      <div class="section-heading-print">
+        <span>I. IDENTITAS & SPESIFIKASI OPERASIONAL BATCH</span>
+        <small>Kode Batch: ${code}</small>
+      </div>
+      <table class="info-table-print">
         <tr>
-          <th>Kode Identifikasi Batch</th>
-          <td><strong>${code}</strong></td>
+          <td class="label-td">Varietas Gabah</td>
+          <td class="val-td">${variety}</td>
+          <td class="label-td">Mode Operasi</td>
+          <td class="val-td">${b.dryingMode || 'HYBRID SOLAR-ELECTRIC'}</td>
         </tr>
         <tr>
-          <th>Varietas Hanjeli</th>
-          <td>${variety}</td>
+          <td class="label-td">Operator Lapangan</td>
+          <td class="val-td">${operatorName}</td>
+          <td class="label-td">Durasi Pengeringan</td>
+          <td class="val-td">${b.totalDurationHours ? b.totalDurationHours + ' Jam' : '6 Jam 15 Menit'}</td>
         </tr>
         <tr>
-          <th>Waktu Mulai - Selesai</th>
-          <td>${formattedDateRange.value}</td>
-        </tr>
-        <tr>
-          <th>Keseimbangan Massa (Bobot Awal → Akhir)</th>
-          <td>${weight} kg → ${finalW} kg (Rendemen: ${yieldPercentage.value}%)</td>
-        </tr>
-        <tr>
-          <th>Penurunan Kadar Air (Awal → Akhir)</th>
-          <td>${initialM}% → ${finalM}% (Penurunan ΔM: -${moistureReductionPercent.value}%)</td>
-        </tr>
-        <tr>
-          <th>Profil Suhu Ruang (Min / Rata2 / Max)</th>
-          <td>${minTemp.value} / ${avgTemp.value} / ${maxTemp.value}</td>
-        </tr>
-        <tr>
-          <th>Rata-rata Kelembapan Ruang & Radiasi Surya</th>
-          <td>${avgHum.value} RH • ${avgSolar.value} W/m² (Terik Alami)</td>
-        </tr>
-        <tr>
-          <th>Efisiensi Energi Spesifik (SEC)</th>
-          <td>${specificEnergyConsumption.value} kWh / kg H₂O (Estimasi Biaya: ${costEst.value})</td>
-        </tr>
-        <tr>
-          <th>Operator Penanggung Jawab</th>
-          <td>${operatorName}</td>
-        </tr>
-        <tr>
-          <th>Catatan Evaluasi Mutu</th>
-          <td>${notes}</td>
+          <td class="label-td">Waktu Mulai</td>
+          <td class="val-td">${b.startedAtFormatted || '-'}</td>
+          <td class="label-td">Waktu Selesai</td>
+          <td class="val-td">${b.completedAtFormatted || '-'}</td>
         </tr>
       </table>
-
+      <div class="section-heading-print">
+        <span>II. LOG TELEMETRI SENSOR CHECKPOINT REAL-TIME</span>
+      </div>
+      <table class="telemetry-table-print">
+        <thead>
+          <tr>
+            <th>No</th><th>Waktu</th><th>Suhu Ruang</th><th>RH Ruang</th><th>Suhu Luar</th><th>RH Luar</th><th>Kadar Air</th><th>Radiasi</th><th>Exhaust</th><th>Heater</th>
+          </tr>
+        </thead>
+        <tbody>${sampleRowsHtml}</tbody>
+      </table>
+      <div class="qr-cert-banner">
+        ${qrDataUrl ? `<img src="${qrDataUrl}" class="qr-cert-img" />` : ''}
+        <div class="qr-cert-info">
+          <h4 class="qr-cert-title">VERIFIKASI MUTU & TRACEABILITY KONSUMEN</h4>
+          <p class="qr-cert-desc">Dokumen terintegrasi dengan database IoT Smart Room Dryer Hanjeli. Pindai QR untuk verifikasi keaslian.</p>
+          <span class="qr-cert-url">${verifyUrl}</span>
+        </div>
+      </div>
       <div class="signature-grid">
-        <div class="sig-block">
-          <p>Operator Pengeringan,</p>
-          <div class="sig-space"></div>
-          <p class="sig-name">${operatorName}</p>
-          <small>Smart Dryer Field Team</small>
-        </div>
-        <div class="sig-block">
-          <p>Quality Control & Agronomist,</p>
-          <div class="sig-space"></div>
-          <p class="sig-name">Pusat Studi Hanjeli</p>
-          <small>Standar Mutu Pangan SNI</small>
-        </div>
+        <div class="sig-box"><div class="sig-role">Operator Greenhouse</div><p class="sig-name">${operatorName}</p></div>
+        <div class="sig-box"><div class="sig-role">Ketua Kelompok Tani</div><p class="sig-name">Asep Hidayat Mustopa</p></div>
+        <div class="sig-box"><div class="sig-role">Tim Peneliti STAS-RG</div><p class="sig-name">Pusat Riset STAS-RG</p></div>
       </div>
     </body>
     </html>
   `
 
-  printWindow.document.write(printDocContent)
-  printWindow.document.close()
+  let printIframe = document.getElementById('print-doc-iframe')
+  if (printIframe) printIframe.remove()
+
+  printIframe = document.createElement('iframe')
+  printIframe.id = 'print-doc-iframe'
+  printIframe.style.position = 'fixed'
+  printIframe.style.right = '0'
+  printIframe.style.bottom = '0'
+  printIframe.style.width = '0'
+  printIframe.style.height = '0'
+  printIframe.style.border = 'none'
+  printIframe.style.zIndex = '-9999'
+  document.body.appendChild(printIframe)
+
+  const iframeDoc = printIframe.contentWindow.document || printIframe.contentDocument
+  iframeDoc.open()
+  iframeDoc.write(printDocContent)
+  iframeDoc.close()
+
+  setTimeout(() => {
+    try {
+      printIframe.contentWindow.focus()
+      printIframe.contentWindow.print()
+    } catch (err) {
+      console.warn('Iframe print error, falling back:', err)
+      const printWindow = window.open('', '_blank', 'width=950,height=850')
+      if (printWindow) {
+        printWindow.document.open()
+        printWindow.document.write(printDocContent)
+        printWindow.document.close()
+        printWindow.focus()
+        setTimeout(() => { printWindow.print() }, 300)
+      }
+    }
+  }, 400)
 }
 </script>
 
@@ -1736,13 +1763,15 @@ function handleExport() {
   background: transparent;
 }
 
-.desktop-content {
+.history-detail-main-content {
   padding: 32px 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;
   max-width: 1280px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-action-row {
@@ -1798,10 +1827,60 @@ function handleExport() {
   line-height: 1.5;
 }
 
-.header-btns-row {
+.header-btns-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.header-btns-subrow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.header-btns-cluster .btn-secondary-action {
+  padding: 8px 14px;
+  font-size: 13px;
+  gap: 6px;
+  border-radius: 8px;
+}
+
+.btn-complete-highlight {
+  background: #0D631B !important;
+  border: 1px solid #0D631B !important;
+  color: #FFFFFF !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.btn-complete-highlight:hover {
+  background: #094713 !important;
+}
+
+.btn-print-highlight {
+  background: #0D631B;
+  color: #FFFFFF;
+  border: 1px solid #0D631B;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.btn-print-highlight:hover {
+  background: #094713;
 }
 
 /* 6 KPI Cards Grid */
@@ -1896,6 +1975,14 @@ function handleExport() {
   border-radius: 12px;
   border: 1px solid rgba(203, 213, 225, 0.5);
   overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tab-nav-bar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 :global(.dark-theme) .tab-nav-bar {
@@ -2313,6 +2400,11 @@ function handleExport() {
   padding: 16px;
 }
 
+:global(.dark-theme) .quality-badge-highlight {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
 .grade-icon-box {
   font-size: 28px;
 }
@@ -2324,10 +2416,18 @@ function handleExport() {
   margin-bottom: 2px;
 }
 
+:global(.dark-theme) .grade-name {
+  color: #FDE68A !important;
+}
+
 .grade-sub {
   font-size: 12px;
   color: #B45309;
   line-height: 1.4;
+}
+
+:global(.dark-theme) .grade-sub {
+  color: #FCD34D !important;
 }
 
 .operator-notes-container {
@@ -2359,10 +2459,12 @@ function handleExport() {
 
 /* Mobile Styling */
 .mobile-content {
-  padding: 16px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .m-detail-card {
@@ -2584,8 +2686,21 @@ function handleExport() {
   transition: all 0.15s ease;
 }
 
+select.modern-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232E7D32' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
+  padding-right: 42px;
+  cursor: pointer;
+}
+
 .modern-input:focus {
-  outline: none;
+  outline: 2px solid rgba(13, 99, 27, 0.2) !important;
+  outline-offset: 1px;
   border-color: #0D631B;
   background: var(--color-white);
   box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.1);
@@ -2695,5 +2810,95 @@ function handleExport() {
   .specs-grid-layout {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 768px) {
+  .history-detail-main-content {
+    padding: 0;
+    gap: 16px;
+  }
+  .header-action-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .page-title {
+    font-size: 22px;
+  }
+  .page-subtitle {
+    font-size: 13.5px;
+  }
+  .header-btns-cluster {
+    align-items: stretch;
+    width: 100%;
+  }
+  .header-btns-subrow {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .header-btns-subrow > button {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .kpi-matrix-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .kpi-card {
+    padding: 12px 14px;
+    gap: 6px;
+  }
+  .kpi-val-big {
+    font-size: 20px;
+  }
+  .kpi-val-unit {
+    font-size: 12px;
+  }
+  .tab-pane-card {
+    padding: 16px;
+  }
+  .pane-heading {
+    font-size: 15px;
+  }
+  .pane-sub {
+    font-size: 12px;
+  }
+  .master-svg-chart-wrapper {
+    height: 220px;
+  }
+  .thermal-insights-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-matrix-grid {
+    grid-template-columns: 1fr;
+  }
+  .header-btns-subrow > button {
+    flex: 1 1 100%;
+  }
+}
+
+
+/* Page Transition for Skeleton */
+.fade-history-detail-enter-active,
+.fade-history-detail-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-history-detail-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-history-detail-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

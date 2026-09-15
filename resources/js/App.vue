@@ -46,6 +46,7 @@
               @navigate="handleNavigate"
               @logout="handleLogout"
               @open-simulator="isSimulatorOpen = true"
+              @open-ai-copilot="isAiCopilotOpen = true"
             />
 
             <div class="desktop-subview-scroll">
@@ -92,6 +93,7 @@
                 @edit-profile="openEditProfile"
                 @settings="handleNavigate('settings')"
                 @open-simulator="isSimulatorOpen = true"
+                @open-ai-copilot="isAiCopilotOpen = true"
               />
 
               <!-- Subviews with Transition -->
@@ -158,6 +160,29 @@
 
     <!-- PWA Install Prompt Banner for Mobile & Desktop -->
     <PwaInstallPrompt />
+
+    <!-- Global Floating AI Copilot Trigger -->
+    <div class="floating-ai-copilot-trigger" v-if="!isStandalonePage">
+      <button 
+        type="button"
+        class="floating-copilot-btn"
+        @click="isAiCopilotOpen = true"
+        :title="currentLang === 'id' ? 'Tanya Hanjeli AI Copilot' : 'Ask Hanjeli AI Copilot'"
+      >
+        <div class="copilot-avatar-thumb">
+          <img src="/assets/img/ai_profile.jpg" alt="AI Profile" class="copilot-thumb-img" />
+          <span class="copilot-pulse-badge"></span>
+        </div>
+        <span class="copilot-btn-label">{{ currentLang === 'id' ? 'Tanya AI' : 'Ask AI' }}</span>
+      </button>
+    </div>
+
+    <!-- Global AI Copilot Contextual Assistant Drawer -->
+    <AiCopilotDrawer 
+      :is-open="isAiCopilotOpen" 
+      :is-mobile="!effectiveIsDesktop"
+      @close="isAiCopilotOpen = false"
+    />
   </div>
 </template>
 
@@ -173,17 +198,20 @@ import HardwareSimulatorModal from './components/HardwareSimulatorModal.vue'
 import AlertNotificationToast from './components/AlertNotificationToast.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
 import PwaInstallPrompt from './components/PwaInstallPrompt.vue'
+import AiCopilotDrawer from './components/AiCopilotDrawer.vue'
 
 import { authService } from './services/authService'
 import { socketService } from './services/socketService'
 import { settingsService } from './services/settingsService'
 import { isDark, toggleTheme } from './services/themeService'
 import { currentLang, setLanguage } from './i18n'
+import { initPwa } from './services/pwaService'
 
 const route = useRoute()
 const router = useRouter()
 
 const windowWidth = ref(window.innerWidth)
+const isAiCopilotOpen = ref(false)
 
 // Global Alert Notification Toast State
 const isAlertToastOpen = ref(false)
@@ -221,7 +249,7 @@ const currentUser = ref(authService.getCurrentUser() || {
   email: 'operator@hanjeli.com',
   phone: '+62 813-8899-2211',
   role: 'OPERATOR',
-  location: 'Desa Wisata Waluran, Sukabumi'
+  location: 'Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia'
 })
 
 const isEditProfileOpen = ref(false)
@@ -234,6 +262,9 @@ function onResize() {
 onMounted(() => {
   window.addEventListener('resize', onResize)
   
+  // Initialize PWA and Service Worker
+  initPwa()
+
   // Hydrate global system settings (active state, iot mode, environment)
   settingsService.getSettings()
 
@@ -440,12 +471,12 @@ function handleMobileBack() {
 }
 
 .dark-theme {
-  --color-bg: #0B1911;
-  --color-card-bg: #13271C;
-  --color-text-main: #F1F5F9;
+  --color-bg: #071E27;
+  --color-card-bg: #0B242F;
+  --color-text-main: #F8FAFC;
   --color-text-muted: #94A3B8;
-  --color-border: #1E3A2B;
-  --color-header-bg: #13271C;
+  --color-border: #1E4E61;
+  --color-header-bg: #0B242F;
 }
 
 html, body {
@@ -461,6 +492,7 @@ html, body {
 
 .app-root {
   height: 100vh;
+  height: 100dvh;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -469,40 +501,43 @@ html, body {
 
 .main-viewport-container {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
 }
 
 .standalone-viewport {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Desktop Frame */
 .desktop-layout-frame {
   display: flex;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
 }
 
 .desktop-main-wrapper {
   display: flex;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
 }
 
 .desktop-content-area {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   background: var(--color-bg);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -510,49 +545,90 @@ html, body {
 
 .desktop-subview-scroll {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Mobile Frame */
 .mobile-layout-frame-outer {
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   justify-content: center;
   background: #EBF3F9;
+  overflow: hidden;
+}
+
+.dark-theme .mobile-layout-frame-outer {
+  background: #041016;
 }
 
 .mobile-phone-container {
   width: 100%;
   max-width: 480px;
-  min-height: 100vh;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  height: 100%;
+  background: var(--color-bg-light, #F4F7F5);
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.dark-theme .mobile-phone-container {
+  background: #071E27;
+  border-color: #1E4E61;
 }
 
 .mobile-app-body {
   flex: 1;
+  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .mobile-main-wrapper {
   flex: 1;
+  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   position: relative;
-  padding-bottom: 64px;
+  overflow: hidden;
 }
 
 .mobile-scroll-content {
   flex: 1;
+  min-height: 0;
+  height: 100%;
   overflow-y: auto;
-  padding: 16px;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: 16px 16px 84px 16px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .mobile-layout-frame-outer {
+    background: var(--color-bg-light, #F4F7F5);
+  }
+
+  .dark-theme .mobile-layout-frame-outer {
+    background: #071E27;
+  }
+
+  .mobile-phone-container {
+    max-width: 100%;
+    border-left: none;
+    border-right: none;
+  }
 }
 
 /* Framer Motion Style Smooth Transitions */
@@ -569,5 +645,72 @@ html, body {
 .framer-motion-view-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+/* Floating AI Copilot Trigger Button */
+.floating-ai-copilot-trigger {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 900;
+}
+
+@media (max-width: 768px) {
+  .floating-ai-copilot-trigger {
+    bottom: 80px; /* Above bottom navigation */
+    right: 16px;
+  }
+}
+
+.floating-copilot-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 6px 8px;
+  background: var(--color-primary-dark, #0D631B);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.floating-copilot-btn:hover {
+  background: #084011;
+  transform: translateY(-2px);
+}
+
+.copilot-avatar-thumb {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.copilot-thumb-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #FFFFFF;
+  display: block;
+}
+
+.copilot-pulse-badge {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  border: 1.5px solid #0D631B;
+  box-shadow: 0 0 6px #34d399;
+  animation: pulseDot 2s infinite;
 }
 </style>

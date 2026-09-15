@@ -31,7 +31,7 @@
             </tr>
             <tr>
                 <td class="metric-label">Lokasi Fasilitas</td>
-                <td class="metric-value">Desa Wisata Hanjeli, Waluran, Sukabumi</td>
+                <td class="metric-value">Desa Wisata Hanjeli, Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia</td>
             </tr>
             <tr>
                 <td class="metric-label">Waktu Pendaftaran</td>
@@ -43,7 +43,12 @@
 
 @section('action')
     <a href="{{ url('/login') }}" class="btn-action">
-        Masuk ke Dashboard Sistem →
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:6px;">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+        Masuk ke Dashboard Sistem
     </a>
 @endsection
 

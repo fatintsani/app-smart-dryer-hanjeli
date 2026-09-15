@@ -14,10 +14,10 @@
       </div>
 
       <div class="error-content">
-        <span class="error-tag purple-tag">Akses Terbatas • 403 Forbidden</span>
-        <h1 class="error-title">Akses Tidak Diizinkan</h1>
+        <span class="error-tag purple-tag">{{ $t('errors.accessTag') }}</span>
+        <h1 class="error-title">{{ $t('errors.accessTitle') }}</h1>
         <p class="error-desc">
-          Anda tidak memiliki hak akses (role permissions) yang sesuai untuk membuka halaman ini. Silakan hubungi Administrator atau masuk dengan akun yang memiliki hak akses lebih tinggi.
+          {{ $t('errors.accessDesc') }}
         </p>
 
         <div class="action-buttons">
@@ -25,7 +25,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             </svg>
-            <span>Kembali ke Dashboard</span>
+            <span>{{ $t('errors.backToDashboard') }}</span>
           </router-link>
 
           <router-link to="/login" class="btn-secondary">
@@ -34,13 +34,13 @@
               <polyline points="10 17 15 12 10 7"></polyline>
               <line x1="15" y1="12" x2="3" y2="12"></line>
             </svg>
-            <span>Ganti Akun</span>
+            <span>{{ $t('errors.switchAccount') }}</span>
           </router-link>
         </div>
       </div>
 
       <div class="error-footer">
-        <span>Smart Room Dryer Hanjeli • Desa Wisata Hanjeli & STAS-RG</span>
+        <span>{{ $t('common.smartRoomDryer') }} • {{ $t('common.facilityName') }} & {{ $t('common.devCredit') }}</span>
       </div>
     </div>
   </div>

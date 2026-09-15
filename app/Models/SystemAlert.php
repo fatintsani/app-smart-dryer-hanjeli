@@ -29,4 +29,19 @@ class SystemAlert extends Model
     {
         return $this->belongsTo(Batch::class, 'batch_id');
     }
+
+    protected static function booted(): void
+    {
+        static::created(function (SystemAlert $alert) {
+            // 1. Broadcast WebSockets Event (Laravel Reverb)
+            try {
+                event(new \App\Events\AlertTriggered($alert));
+            } catch (\Throwable $e) {
+                // Silently continue if websockets uninitialized
+            }
+
+            // 2. Dispatch Multi-Channel Notifications (Email, Telegram Bot, WhatsApp Gateway)
+            \App\Services\NotificationDispatchService::dispatchSystemAlert($alert);
+        });
+    }
 }

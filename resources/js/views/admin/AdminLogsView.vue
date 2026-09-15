@@ -1,6 +1,9 @@
 <template>
   <div class="admin-page">
-    <div class="admin-content">
+    <Transition name="fade-admin-logs" mode="out-in">
+      <AdminSkeleton v-if="isInitialLoading" />
+      <div v-else class="admin-logs-loaded-content">
+        <div class="admin-content">
       <!-- Top Title & Action Bar -->
       <div class="header-action-row">
         <div class="title-group">
@@ -68,16 +71,20 @@
             <span class="log-msg-text">{{ log.message }}</span>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import AdminSkeleton from '../../components/AdminSkeleton.vue'
 import { alertService } from '../../services/alertService'
 import { socketService } from '../../services/socketService'
 
+const isInitialLoading = ref(true)
 const logFilter = ref('ALL')
 const systemAuditLogs = ref([])
 const isLoading = ref(false)
@@ -116,8 +123,14 @@ async function fetchAuditLogs() {
   }
 }
 
-onMounted(() => {
-  fetchAuditLogs()
+onMounted(async () => {
+  try {
+    await fetchAuditLogs()
+  } finally {
+    setTimeout(() => {
+      isInitialLoading.value = false
+    }, 350)
+  }
 
   socketService.on('alert_new', (newAlert) => {
     systemAuditLogs.value.unshift({
@@ -331,7 +344,32 @@ function exportLogsToCsv() {
 .text-danger { color: #DC2626; }
 
 @media (max-width: 900px) {
-  .admin-content { padding: 20px 16px; }
-  .header-action-row { flex-direction: column; align-items: flex-start; }
+  .header-action-row { flex-direction: column; align-items: stretch; gap: 12px; }
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    padding: 0;
+    gap: 16px;
+  }
+  .page-title {
+    font-size: 22px;
+  }
+  .page-subtitle {
+    font-size: 13.5px;
+  }
+}
+
+.fade-admin-logs-enter-active,
+.fade-admin-logs-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fade-admin-logs-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.fade-admin-logs-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

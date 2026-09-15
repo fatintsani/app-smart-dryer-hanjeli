@@ -31,6 +31,9 @@
           <a href="#panduan" :class="{ active: activeSection === 'panduan' }" @click.prevent="scrollTo('panduan')">
             {{ currentLang === 'id' ? 'Panduan' : 'Guide' }}
           </a>
+          <a href="/verify" :class="{ active: route?.path?.startsWith('/verify') }" @click.prevent="goToVerify">
+            {{ currentLang === 'id' ? 'Verifikasi' : 'Verification' }}
+          </a>
         </nav>
 
         <!-- Right Controls: Language, Theme, & Action Button -->
@@ -96,33 +99,33 @@
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
             <!-- Moon icon when light -->
-            <svg v-else class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg v-else class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="#111D23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
           </button>
 
-          <!-- 3. Action CTA Button (Desktop) -->
+          <!-- 3. Primary CTA Button -->
           <button class="btn-nav-login desktop-only" @click="goToApp">
-            <span>{{ isAuth ? (currentLang === 'id' ? 'Buka Dashboard' : 'Open Dashboard') : (currentLang === 'id' ? 'Masuk ke Aplikasi' : 'Login to App') }}</span>
+            <span>{{ isAuth ? (currentLang === 'id' ? 'Dashboard' : 'Dashboard') : (currentLang === 'id' ? 'Masuk' : 'Login') }}</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
             </svg>
           </button>
 
-          <!-- 4. Mobile Menu Hamburger Toggle Button -->
+          <!-- Mobile Hamburger Toggle -->
           <button 
-            class="header-action-btn mobile-menu-toggle-btn mobile-only" 
-            @click.stop="isMobileMenuOpen = !isMobileMenuOpen"
-            :aria-label="isMobileMenuOpen ? 'Tutup Menu' : 'Buka Menu'"
-            :class="{ 'is-active': isMobileMenuOpen }"
+            class="mobile-menu-btn mobile-only" 
+            @click="isMobileMenuOpen = !isMobileMenuOpen"
+            :aria-expanded="isMobileMenuOpen"
+            :title="isMobileMenuOpen ? 'Tutup Menu' : 'Buka Menu'"
           >
-            <svg v-if="!isMobileMenuOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="6" x2="21" y2="6"></line>
+            <svg v-if="!isMobileMenuOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
-            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
@@ -186,6 +189,18 @@
                   </svg>
                 </div>
                 <span>{{ currentLang === 'id' ? 'Panduan Operasional' : 'Operation Guide' }}</span>
+              </a>
+              <a 
+                href="/verify" 
+                @click.prevent="router.push('/verify'); isMobileMenuOpen = false"
+              >
+                <div class="link-icon-chip">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    <polyline points="9 12 11 14 15 10"></polyline>
+                  </svg>
+                </div>
+                <span>{{ currentLang === 'id' ? 'Verifikasi Mutu & QR' : 'Quality Verification & QR' }}</span>
               </a>
             </nav>
 
@@ -926,6 +941,7 @@
               <a href="#hardware" @click.prevent="scrollTo('hardware')">{{ currentLang === 'id' ? 'Hardware' : 'Hardware' }}</a>
               <a href="#fitur" @click.prevent="scrollTo('fitur')">{{ currentLang === 'id' ? 'Fitur' : 'Features' }}</a>
               <a href="#panduan" @click.prevent="scrollTo('panduan')">{{ currentLang === 'id' ? 'Panduan' : 'Guide' }}</a>
+              <a href="/verify" @click.prevent="goToVerify">{{ currentLang === 'id' ? 'Verifikasi Mutu' : 'Verification' }}</a>
               <button class="footer-nav-login-btn" @click="goToApp">{{ currentLang === 'id' ? 'MASUK' : 'LOGIN' }}</button>
             </nav>
           </div>
@@ -989,7 +1005,7 @@
                 </div>
                 <div class="footer-contact-info">
                   <span class="contact-label">LOCATION</span>
-                  <span class="contact-value">Desa Wisata Hanjeli, Sukabumi</span>
+                  <span class="contact-value">Desa Wisata Hanjeli, Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia</span>
                 </div>
               </div>
             </div>
@@ -1004,14 +1020,14 @@
             <div class="footer-map-card">
               <div class="footer-map-iframe-box">
                 <iframe 
-                  src="https://maps.google.com/maps?q=Desa%20Wisata%20Hanjeli,%20Waluran,%20Sukabumi&t=&z=14&ie=UTF8&iwloc=&output=embed" 
+                  src="https://maps.google.com/maps?q=Desa%20Wisata%20Hanjeli,%20Jl.%20Pamoyan,%20Waluran%20Mandiri,%20Kec.%20Waluran,%20Kabupaten%20Sukabumi,%20Jawa%20Barat%2043175&t=&z=14&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
                   height="125" 
                   style="border:0;" 
                   allowfullscreen="" 
                   loading="lazy" 
                   referrerpolicy="no-referrer-when-downgrade"
-                  title="Peta Lokasi Desa Wisata Hanjeli Sukabumi"
+                  title="Peta Lokasi Desa Wisata Hanjeli - Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia"
                 ></iframe>
               </div>
               <div class="footer-map-address" title="Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia">
@@ -1019,7 +1035,7 @@
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                   <circle cx="12" cy="10" r="3"></circle>
                 </svg>
-                <span>Jl. Pamoyan, Waluran Mandiri, Sukabumi 43175</span>
+                <span>Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia</span>
               </div>
             </div>
           </div>
@@ -1033,9 +1049,12 @@
               : 'Copyright © 2026 Smart Room Dryer — CoE STAS-RG Telkom University. All rights reserved.'
             }}
           </span>
-          <span class="footer-tagline">
-            {{ currentLang === 'id' ? 'Telemetri IoT • Pengeringan Hanjeli Real-Time' : 'IoT Telemetry • Real-Time Hanjeli Drying' }}
-          </span>
+          <div class="footer-meta-tags">
+            <span class="footer-v-tag">v1.0.0 Stable</span>
+            <span class="footer-tagline">
+              {{ currentLang === 'id' ? 'Telemetri IoT • Pengeringan Hanjeli Real-Time' : 'IoT Telemetry • Real-Time Hanjeli Drying' }}
+            </span>
+          </div>
         </div>
       </div>
     </footer>
@@ -1044,7 +1063,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { animate, inView, stagger } from 'motion'
 import FlagIcon from '../../components/FlagIcon.vue'
 import { authService } from '../../services/authService'
@@ -1054,6 +1073,7 @@ import { socketService } from '../../services/socketService'
 import { isDark, toggleTheme } from '../../services/themeService'
 import { currentLang, setLanguage } from '../../i18n'
 
+const route = useRoute()
 const router = useRouter()
 const activeSection = ref('tentang')
 const logoSrc = ref('/assets/img/hanjeli.png')
@@ -1279,8 +1299,20 @@ function goToApp() {
   }
 }
 
+function goToVerify() {
+  isMobileMenuOpen.value = false
+  router.push('/verify')
+}
+
 let isProgrammaticScrolling = false
 let scrollTimeout = null
+
+function getScrollableContainer() {
+  return document.querySelector('.standalone-viewport') || 
+         document.querySelector('.desktop-subview-scroll') || 
+         document.querySelector('.mobile-scroll-content') || 
+         document.documentElement
+}
 
 function scrollTo(sectionId) {
   activeSection.value = sectionId
@@ -1291,27 +1323,44 @@ function scrollTo(sectionId) {
     clearTimeout(scrollTimeout)
 
     const navHeight = navbarRef.value?.offsetHeight || 72
-    const elementPosition = el.getBoundingClientRect().top + window.scrollY
-    const offsetPosition = Math.max(0, elementPosition - navHeight + 2)
+    const scrollContainer = getScrollableContainer()
 
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: 'smooth'
-    })
+    if (scrollContainer && scrollContainer !== document.documentElement && scrollContainer !== window) {
+      const containerRect = scrollContainer.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+      const targetScrollTop = scrollContainer.scrollTop + (elRect.top - containerRect.top) - navHeight + 2
+
+      scrollContainer.scrollTo({
+        top: Math.max(0, targetScrollTop),
+        behavior: 'smooth'
+      })
+    } else {
+      const elementPosition = el.getBoundingClientRect().top + window.scrollY
+      const offsetPosition = Math.max(0, elementPosition - navHeight + 2)
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
+    }
 
     scrollTimeout = setTimeout(() => {
       isProgrammaticScrolling = false
       activeSection.value = sectionId
-    }, 750)
+    }, 850)
   }
 }
 
 function handleScroll() {
-  isScrolled.value = window.scrollY > 20
+  const scrollContainer = getScrollableContainer()
+  const currentScrollY = (scrollContainer && scrollContainer !== document.documentElement && scrollContainer !== window)
+    ? scrollContainer.scrollTop 
+    : window.scrollY
+
+  isScrolled.value = currentScrollY > 20
   if (isProgrammaticScrolling) return
 
   const sections = ['tentang', 'hardware', 'fitur', 'panduan']
-  const scrollPosition = window.scrollY + 160
+  const scrollPosition = currentScrollY + 180
 
   for (let i = sections.length - 1; i >= 0; i--) {
     const id = sections[i]
@@ -1382,6 +1431,10 @@ function initFramerMotion() {
 }
 
 onMounted(() => {
+  const scrollContainer = getScrollableContainer()
+  if (scrollContainer && scrollContainer !== window) {
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
+  }
   window.addEventListener('scroll', handleScroll, { passive: true })
   document.addEventListener('click', handleClickOutside)
   
@@ -1413,6 +1466,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  const scrollContainer = getScrollableContainer()
+  if (scrollContainer && scrollContainer !== window) {
+    scrollContainer.removeEventListener('scroll', handleScroll)
+  }
   window.removeEventListener('scroll', handleScroll)
   document.removeEventListener('click', handleClickOutside)
   if (pollInterval) clearInterval(pollInterval)
@@ -1477,21 +1534,16 @@ onUnmounted(() => {
 }
 
 .brand-icon-box {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: #E3F0F8;
-  border: 1px solid #CBD5E1;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   flex-shrink: 0;
+  background: transparent;
 }
 
 .brand-logo-img {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
@@ -1835,6 +1887,52 @@ onUnmounted(() => {
 .hero-left {
   display: flex;
   flex-direction: column;
+}
+
+.hero-release-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  background: #E8F5E9;
+  border: 1px solid #C8E6C9;
+  border-radius: 9999px;
+  width: fit-content;
+  margin-bottom: 18px;
+}
+
+.pill-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pillPulse 2s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes pillPulse {
+  to {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+}
+
+.pill-version {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #0D631B;
+  letter-spacing: 0.3px;
+}
+
+.pill-sep {
+  color: #81C784;
+  font-size: 10px;
+}
+
+.pill-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2E7D32;
+  letter-spacing: 0.2px;
 }
 
 .hero-tag-pill {
@@ -3073,6 +3171,23 @@ a.contact-value:hover {
   gap: 12px;
 }
 
+.footer-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-v-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: #0D631B;
+  background: #E8F5E9;
+  border: 1px solid #C8E6C9;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+}
+
 .footer-copy {
   color: #707A6C;
 }
@@ -3204,6 +3319,30 @@ a.contact-value:hover {
 .dark-landing .lang-option.active {
   background: #1E3A2B;
   color: #4ADE80;
+}
+
+
+.dark-landing .hero-release-pill {
+  background: #152C20;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .pill-version {
+  color: #4ADE80;
+}
+
+.dark-landing .pill-label {
+  color: #86EFAC;
+}
+
+.dark-landing .pill-sep {
+  color: #1E4E61;
+}
+
+.dark-landing .footer-v-tag {
+  color: #4ADE80;
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.3);
 }
 
 .dark-landing .hero-tag-pill {
@@ -3474,14 +3613,14 @@ a.contact-value:hover {
   }
 
   .brand-icon-box {
-    width: 36px;
-    height: 36px;
-    border-radius: 7px;
+    width: auto;
+    height: auto;
+    background: transparent;
   }
 
   .brand-logo-img {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
   }
 
   .brand-title {

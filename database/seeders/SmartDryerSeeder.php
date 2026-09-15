@@ -69,14 +69,22 @@ class SmartDryerSeeder extends Seeder
         $devices = [
             [
                 'id' => 1,
-                'name' => 'ESP32 Pengendali Utama',
-                'code' => 'ESP32-DEV-01',
-                'purpose' => 'Otak pengendali suhu, kipas, & transmisi data sistem',
-                'location' => 'Panel Kontrol Greenhouse',
+                'name' => 'Gateway Mikrokontroler ESP32 Utama',
+                'code' => 'ESP32-GH-HANJELI-01',
+                'device_token' => 'esp32_sec_7f9a2b1c8e3d4f5a6b7c8d9e0f1a2b3c',
+                'mac_address' => '24:6F:28:B4:7A:1C',
+                'ip_address' => '192.168.1.105',
+                'firmware_version' => 'v2.4.2',
+                'hardware_version' => 'ESP32-WROOM-32D Rev 1.0',
+                'target_firmware_version' => null,
+                'ota_status' => 'IDLE',
+                'ota_progress' => 0,
+                'purpose' => 'Pusat kendali sensor, aktuator, dan pengirim data telemetri ke server',
+                'location' => 'Panel Box Utama Greenhouse',
                 'category' => 'GATEWAY',
                 'icon' => 'microchip',
-                'user_signal' => 'Sangat Bagus (Stabil)',
-                'pin_gpio' => 'GPIO 2, 4, 16, 17, 21, 22',
+                'user_signal' => 'Sangat Bagus (-54 dBm)',
+                'pin_gpio' => 'Dual Core 240MHz (Wi-Fi + BLE 4.2)',
                 'operating_range' => '3.3V / -40°C ~ 85°C',
                 'accuracy' => '240 MHz Dual Core',
                 'status' => 'online',
@@ -87,6 +95,14 @@ class SmartDryerSeeder extends Seeder
                 'id' => 2,
                 'name' => 'Sensor Suhu & Kelembapan Ruang (DHT22)',
                 'code' => 'DHT22-INT-01',
+                'device_token' => 'esp32_sec_1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d',
+                'mac_address' => '24:6F:28:B4:7A:2D',
+                'ip_address' => '192.168.1.106',
+                'firmware_version' => 'v2.4.2',
+                'hardware_version' => 'ESP32-WROOM-32D Rev 1.0',
+                'target_firmware_version' => null,
+                'ota_status' => 'IDLE',
+                'ota_progress' => 0,
                 'purpose' => 'Memantau tingkat panas (°C) dan kelembapan (% RH) udara',
                 'location' => 'Rak Pengering Tengah (Zona 2)',
                 'category' => 'SENSOR',
@@ -103,6 +119,14 @@ class SmartDryerSeeder extends Seeder
                 'id' => 3,
                 'name' => 'Sensor Cahaya Matahari (Pyranometer)',
                 'code' => 'PYRA-SOL-01',
+                'device_token' => 'esp32_sec_3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f',
+                'mac_address' => '24:6F:28:B4:7A:3E',
+                'ip_address' => '192.168.1.107',
+                'firmware_version' => 'v2.4.2',
+                'hardware_version' => 'ESP32-WROOM-32D Rev 1.0',
+                'target_firmware_version' => null,
+                'ota_status' => 'IDLE',
+                'ota_progress' => 0,
                 'purpose' => 'Mendeteksi terik radiasi matahari untuk efisiensi daya pemanas',
                 'location' => 'Atap Kaca Greenhouse',
                 'category' => 'SENSOR',
@@ -119,6 +143,14 @@ class SmartDryerSeeder extends Seeder
                 'id' => 4,
                 'name' => 'Sakelar Pemanas & Kipas (Relai 4-Channel)',
                 'code' => 'RELAY-4CH-01',
+                'device_token' => 'esp32_sec_5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b',
+                'mac_address' => '24:6F:28:B4:7A:4F',
+                'ip_address' => '192.168.1.108',
+                'firmware_version' => 'v2.4.2',
+                'hardware_version' => 'ESP32-WROOM-32D Rev 1.0',
+                'target_firmware_version' => null,
+                'ota_status' => 'IDLE',
+                'ota_progress' => 0,
                 'purpose' => 'Menyalakan pemanas keramik & kipas sirkulasi otomatis',
                 'location' => 'Kotak Listrik Utama',
                 'category' => 'ACTUATOR',
@@ -135,6 +167,14 @@ class SmartDryerSeeder extends Seeder
                 'id' => 5,
                 'name' => 'Pemancar Wi-Fi Greenhouse',
                 'code' => 'AP-WIFI-01',
+                'device_token' => 'esp32_sec_7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d',
+                'mac_address' => '24:6F:28:B4:7A:5A',
+                'ip_address' => '192.168.1.1',
+                'firmware_version' => 'v2.4.2',
+                'hardware_version' => 'ESP32-WROOM-32D Rev 1.0',
+                'target_firmware_version' => null,
+                'ota_status' => 'IDLE',
+                'ota_progress' => 0,
                 'purpose' => 'Menyambungkan seluruh alat ke layar monitor operator',
                 'location' => 'Ruang Stasiun Greenhouse',
                 'category' => 'NETWORK',
@@ -152,6 +192,35 @@ class SmartDryerSeeder extends Seeder
         foreach ($devices as $d) {
             Device::updateOrCreate(['id' => $d['id']], $d);
         }
+
+        // Seed Firmware Releases
+        \App\Models\FirmwareRelease::updateOrCreate(
+            ['version' => 'v2.5.0'],
+            [
+                'release_title' => 'Firmware v2.5.0 (Optimized PID & Deep Sleep Telemetry)',
+                'changelog' => "1. Optimasi algoritma PID pada relay exhaust fan.\n2. Peningkatan ketahanan koneksi Wi-Fi auto-reconnect.\n3. Dukungan otentikasi X-Device-Token & payload kompresi.",
+                'file_path' => '/firmware/bin/hanjeli_esp32_v2.5.0.bin',
+                'file_size_bytes' => 1248560,
+                'checksum_sha256' => 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                'is_latest' => true,
+                'is_stable' => true,
+                'min_hardware_version' => 'ESP32-WROOM-32D Rev 1.0',
+            ]
+        );
+
+        \App\Models\FirmwareRelease::updateOrCreate(
+            ['version' => 'v2.4.2'],
+            [
+                'release_title' => 'Firmware v2.4.2 (Production Baseline)',
+                'changelog' => "1. Baseline rilis operasional Greenhouse Hanjeli.\n2. Ingestion sensor DHT22, Load Cell, Pyranometer, dan kontrol aktuator relai.",
+                'file_path' => '/firmware/bin/hanjeli_esp32_v2.4.2.bin',
+                'file_size_bytes' => 1198400,
+                'checksum_sha256' => '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+                'is_latest' => false,
+                'is_stable' => true,
+                'min_hardware_version' => 'ESP32-WROOM-32D Rev 1.0',
+            ]
+        );
 
         // 4. Seed Historical Batches
         // Batch 1 (5 days ago)

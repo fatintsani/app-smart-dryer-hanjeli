@@ -1,6 +1,9 @@
 <template>
   <div class="admin-page">
-    <div class="admin-content">
+    <Transition name="fade-admin-sim" mode="out-in">
+      <AdminSkeleton v-if="isInitialLoading" />
+      <div v-else class="admin-sim-loaded-content">
+        <div class="admin-content">
       <!-- Top Title & Action Bar -->
       <div class="header-action-row">
         <div class="title-group">
@@ -296,6 +299,48 @@
         </div>
       </div>
 
+      <!-- SECTION 2.5: AI SENSOR ANOMALY SIMULATION & INJECTION -->
+      <div class="content-card anomaly-simulator-card">
+        <div class="card-header-flex">
+          <div>
+            <div class="title-with-pill">
+              <h2 class="card-section-heading">Uji Skenario Anomali Sensor (AI Diagnostics)</h2>
+              <span class="ai-tester-pill">
+                <span class="ai-spark-dot"></span>
+                AI ALERT INJECTOR
+              </span>
+            </div>
+            <p class="card-section-sub">Suntikkan skenario gangguan sensor yang tidak wajar untuk menguji deteksi anomali otomatis dan dispatch notifikasi cerdas sistem.</p>
+          </div>
+        </div>
+
+        <div class="anomaly-scenarios-grid">
+          <div 
+            v-for="anom in anomalyScenarios" 
+            :key="anom.id" 
+            class="anomaly-preset-card"
+            :class="anom.colorClass"
+          >
+            <div class="anom-preset-header">
+              <span class="anom-badge">{{ anom.level }}</span>
+              <button 
+                type="button" 
+                class="btn-inject-anom" 
+                :disabled="isInjectingAnomaly"
+                @click="handleInjectAnomaly(anom.id)"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                <span>Suntikkan</span>
+              </button>
+            </div>
+            <strong class="anom-preset-name">{{ anom.name }}</strong>
+            <p class="anom-preset-desc">{{ anom.desc }}</p>
+          </div>
+        </div>
+      </div>
+
       <!-- SECTION 3: DATABASE SESSIONS & SEEDING INJECTOR -->
       <div class="content-card">
         <div class="card-header-flex">
@@ -380,15 +425,23 @@
           </div>
         </div>
       </div>
-    </div>
+      </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import AdminSkeleton from '../../components/AdminSkeleton.vue'
 import { settingsService, systemState } from '../../services/settingsService'
 import { simulatorService } from '../../services/simulatorService'
+import { anomalyService } from '../../services/anomalyService'
+import connectionManager from '../../services/connectionManager'
 import { confirmDialog } from '../../services/confirmDialogService'
+
+const isInitialLoading = ref(true)
+const isInjectingAnomaly = ref(false)
 
 const adminAlert = reactive({
   text: '',
@@ -404,6 +457,49 @@ function showAlert(text, type = 'success') {
 }
 
 const selectedScenario = ref('SUNNY')
+
+const anomalyScenarios = [
+  {
+    id: 'THERMAL_DROP_DOOR_OPEN',
+    name: 'Pintu Terbuka / Drop Suhu (Thermal Paradox)',
+    desc: 'Suhu ruang drop mendadak 12°C di bawah luar saat pemanas aktif. Mengindikasikan pintu greenhouse terbuka atau heater lepas.',
+    level: 'KRITIS',
+    colorClass: 'card-red'
+  },
+  {
+    id: 'MOISTURE_SPIKE',
+    name: 'Lonjakan Kadar Air / Kebocoran Air',
+    desc: 'Kadar air hanjeli melonjak tiba-tiba +8.5% di tengah proses pengeringan. Menunjukkan potensi kebocoran atap saat hujan.',
+    level: 'PERINGATAN',
+    colorClass: 'card-blue'
+  },
+  {
+    id: 'SENSOR_FREEZE',
+    name: 'Sensor Mengalami Flatline / Freeze',
+    desc: 'Sensor mengirimkan nilai statis konstan tanpa desimal sama sekali. Mengindikasikan probe sensor macet atau register beku.',
+    level: 'PERINGATAN',
+    colorClass: 'card-amber'
+  },
+  {
+    id: 'SENSOR_OUT_OF_BOUNDS',
+    name: 'Sensor Terlepas / Korsleting Kabel',
+    desc: 'Nilai ekstrem 95°C / RH 0% yang melampaui batas fisik. Terjadi jika kabel jumper I2C/analog putus atau probe sensor lepas.',
+    level: 'KRITIS',
+    colorClass: 'card-purple'
+  }
+]
+
+async function handleInjectAnomaly(scenarioId) {
+  isInjectingAnomaly.value = true
+  try {
+    const res = await anomalyService.simulateAnomaly(scenarioId)
+    showAlert(`Simulasi Anomali "${scenarioId}" berhasil disuntikkan! Sistem notifikasi cerdas telah dipicu.`, 'success')
+  } catch (err) {
+    showAlert(`Gagal injeksi anomali: ${err.message}`, 'error')
+  } finally {
+    isInjectingAnomaly.value = false
+  }
+}
 
 const scenarios = [
   { id: 'SUNNY', name: 'Cuaca Cerah (Optimal)', desc: 'Radiasi surya tinggi (750 W/m²), pengeringan normal cepat', iconClass: 'icon-sunny' },
@@ -426,6 +522,7 @@ function toggleSimulatorRunning() {
     simulatorService.stop()
     showAlert('Generator telemetri IoT simulasi dihentikan.')
   } else {
+    connectionManager.setSourceMode('simulation')
     simulatorService.start()
     showAlert('Generator telemetri IoT simulasi aktif & mengirim paket data secara periodik.')
   }
@@ -474,6 +571,13 @@ async function setIotSourceMode(newMode) {
   if (confirmed) {
     try {
       await settingsService.setIotMode(newMode)
+      if (newMode === 'SIMULATION') {
+        connectionManager.setSourceMode('simulation')
+        simulatorService.start()
+      } else {
+        simulatorService.stop()
+        connectionManager.setSourceMode('hardware')
+      }
       showAlert(`Mode IoT berhasil diubah ke: ${newMode === 'SIMULATION' ? 'Mode Simulasi IoT' : 'Mode Alat Fisik (ESP32)'}`)
     } catch (e) {
       showAlert(e.message || 'Gagal mengubah mode IoT.', 'error')
@@ -535,8 +639,14 @@ async function handleGenerateHistorySample() {
   }
 }
 
-onMounted(() => {
-  settingsService.getSettings()
+onMounted(async () => {
+  try {
+    await settingsService.getSettings()
+  } finally {
+    setTimeout(() => {
+      isInitialLoading.value = false
+    }, 350)
+  }
 })
 </script>
 
@@ -1111,8 +1221,213 @@ onMounted(() => {
 }
 
 @media (max-width: 900px) {
-  .admin-content { padding: 20px 16px; }
-  .header-action-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .header-action-row { flex-direction: column; align-items: stretch; gap: 14px; }
   .mode-control-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    padding: 0;
+    gap: 16px;
+  }
+  .page-title {
+    font-size: 22px;
+  }
+  .page-subtitle {
+    font-size: 13.5px;
+  }
+}
+
+.fade-admin-sim-enter-active,
+.fade-admin-sim-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fade-admin-sim-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.fade-admin-sim-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* ==========================================================================
+   Anomaly Simulation Presets Card Styles
+   ========================================================================== */
+.title-with-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ai-tester-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: rgba(147, 51, 234, 0.12);
+  color: #9333EA;
+  border: 1px solid rgba(147, 51, 234, 0.25);
+}
+
+:global(.dark-theme) .ai-tester-pill {
+  background: rgba(168, 85, 247, 0.2);
+  color: #C084FC;
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.ai-spark-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9333EA;
+  box-shadow: 0 0 6px #9333EA;
+}
+
+.anomaly-scenarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.anomaly-preset-card {
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  border-width: 1px;
+  border-style: solid;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.anomaly-preset-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.anomaly-preset-card.card-red {
+  background: linear-gradient(135deg, rgba(186, 26, 26, 0.06) 0%, rgba(186, 26, 26, 0.02) 100%);
+  border-color: rgba(186, 26, 26, 0.25);
+}
+
+.anomaly-preset-card.card-blue {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.06) 0%, rgba(2, 132, 199, 0.02) 100%);
+  border-color: rgba(2, 132, 199, 0.25);
+}
+
+.anomaly-preset-card.card-amber {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.06) 0%, rgba(217, 119, 6, 0.02) 100%);
+  border-color: rgba(217, 119, 6, 0.25);
+}
+
+.anomaly-preset-card.card-purple {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.06) 0%, rgba(147, 51, 234, 0.02) 100%);
+  border-color: rgba(147, 51, 234, 0.25);
+}
+
+:global(.dark-theme) .anomaly-preset-card.card-red {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+:global(.dark-theme) .anomaly-preset-card.card-blue {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+:global(.dark-theme) .anomaly-preset-card.card-amber {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+:global(.dark-theme) .anomaly-preset-card.card-purple {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.anom-preset-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.anom-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.card-red .anom-badge { background: rgba(186, 26, 26, 0.15); color: #BA1A1A; }
+.card-blue .anom-badge { background: rgba(2, 132, 199, 0.15); color: #0284C7; }
+.card-amber .anom-badge { background: rgba(217, 119, 6, 0.15); color: #D97706; }
+.card-purple .anom-badge { background: rgba(147, 51, 234, 0.15); color: #9333EA; }
+
+:global(.dark-theme) .card-red .anom-badge { background: rgba(239, 68, 68, 0.2); color: #F87171; }
+:global(.dark-theme) .card-blue .anom-badge { background: rgba(56, 189, 248, 0.2); color: #38BDF8; }
+:global(.dark-theme) .card-amber .anom-badge { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
+:global(.dark-theme) .card-purple .anom-badge { background: rgba(168, 85, 247, 0.2); color: #C084FC; }
+
+.btn-inject-anom {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #0F172A;
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-inject-anom:hover:not(:disabled) {
+  background: #1E293B;
+  transform: translateY(-1px);
+}
+
+.btn-inject-anom:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+:global(.dark-theme) .btn-inject-anom {
+  background: #334155;
+}
+
+:global(.dark-theme) .btn-inject-anom:hover:not(:disabled) {
+  background: #475569;
+}
+
+.anom-preset-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 4px;
+}
+
+:global(.dark-theme) .anom-preset-name {
+  color: #F8FAFC;
+}
+
+.anom-preset-desc {
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+:global(.dark-theme) .anom-preset-desc {
+  color: #94A3B8;
 }
 </style>

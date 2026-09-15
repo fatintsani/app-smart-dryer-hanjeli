@@ -49,6 +49,7 @@
               <HanjeliLogo :size="36" />
               <div class="brand-divider"></div>
               <StasLogo :size="28" />
+              <span class="auth-version-badge">v1.0</span>
             </div>
 
             <!-- Language Selector Desktop -->
@@ -390,7 +391,10 @@
             <div class="mobile-logo-divider"></div>
             <StasLogo :size="42" />
           </div>
-          <h1 class="mobile-brand-title">{{ $t('auth.brandTitle') }}</h1>
+          <div class="mobile-brand-title-wrap">
+            <h1 class="mobile-brand-title">{{ $t('auth.brandTitle') }}</h1>
+            <span class="auth-version-badge">v1.0</span>
+          </div>
           <p class="mobile-brand-sub">{{ $t('common.facilityName') }} • STAS</p>
 
           <!-- Mobile Language Selector -->
@@ -1079,6 +1083,25 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.auth-version-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #0D631B;
+  background: #E8F5E9;
+  border: 1px solid #C8E6C9;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+}
+
+.mobile-brand-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .brand-divider {

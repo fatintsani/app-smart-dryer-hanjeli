@@ -7,7 +7,9 @@ use App\Mail\BatchCompletedMail;
 use App\Mail\CriticalAlertMail;
 use App\Mail\SendOtpResetPasswordMail;
 use App\Mail\WelcomeUserMail;
+use App\Mail\SystemAlertNotificationMail;
 use App\Models\Batch;
+use App\Models\SystemAlert;
 use App\Models\SystemSetting;
 use App\Models\User;
 use Carbon\Carbon;
@@ -155,16 +157,21 @@ class SettingController extends Controller
 
                 case 'alert':
                 default:
-                    Mail::to($targetEmail)->send(new CriticalAlertMail(
-                        alertTitle: 'Uji Coba Peringatan Suhu Panas Ruang Pengering',
-                        alertMessage: 'Ini adalah email uji coba template sistem notifikasi cerdas Smart Dryer Hanjeli.',
-                        level: 'CRITICAL',
-                        category: 'SENSOR',
+                    $sampleAlert = [
+                        'title' => 'Uji Coba Notifikasi Sistem Cerdas',
+                        'message' => 'Ini adalah pesan uji coba template email universal untuk seluruh notifikasi, status siklus pengeringan, dan alert darurat Smart Dryer Hanjeli.',
+                        'level' => 'CRITICAL',
+                        'category' => 'SENSOR',
+                        'batchCode' => 'HJ-TEST-001',
+                        'recordedTime' => Carbon::now()->translatedFormat('d F Y, H:i') . ' WIB',
+                    ];
+                    Mail::to($targetEmail)->send(new SystemAlertNotificationMail(
+                        alert: $sampleAlert,
                         tempInternal: 56.4,
                         humidityInternal: 78.0,
-                        recordedTime: Carbon::now()->translatedFormat('d F Y, H:i') . ' WIB'
+                        grainMoisture: 14.2
                     ));
-                    $message = "Email notifikasi alert sensor kritis berhasil dikirim ke {$targetEmail}.";
+                    $message = "Email notifikasi alert sistem berhasil dikirim ke {$targetEmail}.";
                     break;
             }
 
@@ -178,6 +185,81 @@ class SettingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengirim email: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Send test message to Telegram Bot / Group.
+     */
+    public function testTelegram(Request $request): JsonResponse
+    {
+        $setting = SystemSetting::first();
+        $config = $setting?->telegram_config ?? [];
+
+        $botToken = $request->input('botToken', $config['botToken'] ?? '');
+        $chatId = $request->input('chatId', $config['chatId'] ?? '');
+
+        if (empty($botToken) || empty($chatId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bot Token dan Chat ID Telegram wajib diisi.',
+            ], 422);
+        }
+
+        $result = \App\Services\TelegramNotificationService::sendTestMessage($botToken, $chatId);
+
+        return response()->json($result, $result['success'] ? 200 : 400);
+    }
+
+    /**
+     * Send test message to WhatsApp Gateway.
+     */
+    public function testWhatsApp(Request $request): JsonResponse
+    {
+        $setting = SystemSetting::first();
+        $config = $setting?->whatsapp_config ?? [];
+
+        $targetNumber = $request->input('targetNumber', $config['targetNumber'] ?? '');
+        $apiUrl = $request->input('apiUrl', $config['apiUrl'] ?? 'https://api.fonnte.com/send');
+        $apiKey = $request->input('apiKey', $config['apiKey'] ?? '');
+        $provider = $request->input('provider', $config['provider'] ?? 'fonnte');
+
+        if (empty($targetNumber)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nomor WhatsApp tujuan wajib diisi.',
+            ], 422);
+        }
+
+        $testConfig = [
+            'targetNumber' => $targetNumber,
+            'apiUrl' => $apiUrl,
+            'apiKey' => $apiKey,
+            'provider' => $provider,
+        ];
+
+        $result = \App\Services\WhatsAppNotificationService::sendTestMessage($testConfig);
+
+        return response()->json($result, $result['success'] ? 200 : 400);
+    }
+
+    /**
+     * Trigger Daily Digest dispatch on demand.
+     */
+    public function sendDailyDigest(Request $request): JsonResponse
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('dryer:daily-digest');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ringkasan Harian (Daily Digest) berhasil dikompilasi dan disiarkan ke Telegram & WhatsApp.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyiarkan Daily Digest: ' . $e->getMessage(),
             ], 500);
         }
     }

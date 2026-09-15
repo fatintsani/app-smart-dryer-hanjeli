@@ -16,7 +16,8 @@ export const telemetryService = {
   async ingest(data) {
     return api.post('/telemetry/ingest', data, {
       headers: {
-        'x-api-key': 'esp32-greenhouse-hanjeli-secret-token',
+        'X-Device-Token': 'esp32_sec_7f9a2b1c8e3d4f5a6b7c8d9e0f1a2b3c',
+        'x-api-key': 'esp32_sec_7f9a2b1c8e3d4f5a6b7c8d9e0f1a2b3c',
       },
     });
   },

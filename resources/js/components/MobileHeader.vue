@@ -3,7 +3,10 @@
     <template v-if="!hasBack">
       <div class="header-left">
         <HanjeliLogo :size="34" />
-        <span class="brand-text">Smart Dryer</span>
+        <div class="mobile-brand-group">
+          <span class="brand-text">Smart Dryer</span>
+          <span class="mobile-version-tag">v1.0</span>
+        </div>
       </div>
       
       <div class="header-right">
@@ -122,14 +125,16 @@
             @click="isMenuOpen = !isMenuOpen"
             :class="{ active: isMenuOpen }"
           >
-            <span>{{ userInitials }}</span>
+            <img v-if="user?.avatarUrl || user?.avatar" :src="user.avatarUrl || user.avatar" alt="Avatar" class="mobile-avatar-img" />
+            <span v-else>{{ userInitials }}</span>
           </button>
 
           <!-- Mobile Profile Menu Sheet/Popup -->
           <div v-if="isMenuOpen" class="mobile-profile-popup">
             <div class="mp-header">
               <div class="mp-avatar">
-                <span>{{ userInitials }}</span>
+                <img v-if="user?.avatarUrl || user?.avatar" :src="user.avatarUrl || user.avatar" alt="Avatar" class="mobile-avatar-img" />
+                <span v-else>{{ userInitials }}</span>
               </div>
               <div class="mp-user-info">
                 <strong>{{ user.name }}</strong>
@@ -222,7 +227,7 @@ const props = defineProps({
       name: 'Dr. Ir. Fatin Tsani',
       email: 'admin@hanjeli.com',
       role: 'ADMIN',
-      location: 'Desa Wisata Waluran, Sukabumi'
+      location: 'Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia'
     })
   }
 })
@@ -235,7 +240,8 @@ const emit = defineEmits([
   'edit-profile',
   'settings',
   'navigate',
-  'open-simulator'
+  'open-simulator',
+  'open-ai-copilot'
 ])
 
 const isMenuOpen = ref(false)
@@ -262,7 +268,7 @@ function transformAlert(a) {
     time: timeStr,
     timeEn: timeEnStr,
     unread: !a.isRead && !a.is_read,
-    actionLabel: a.actionLabel || (type === 'critical' || type === 'warning' ? 'Lihat Monitoring' : 'Lihat Detail'),
+    actionLabel: a.actionLabel || (type === 'critical' || type === 'warning' ? 'Lihat Monitoring' : 'Detail'),
     actionLabelEn: a.actionLabelEn || (type === 'critical' || type === 'warning' ? 'Live Monitoring' : 'View Details'),
     route: a.route || (a.category === 'SENSOR' ? 'monitoring' : a.category === 'BATCH' ? 'history' : a.category === 'DEVICE' ? 'guide' : 'monitoring')
   }
@@ -409,10 +415,34 @@ onUnmounted(() => {
   gap: 10px;
 }
 
+.mobile-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .brand-text {
   font-size: 19px;
   font-weight: 700;
   color: #0D631B;
+}
+
+.mobile-version-tag {
+  font-size: 9px;
+  font-weight: 700;
+  color: #0D631B;
+  background: #E8F5E9;
+  border: 1px solid #C8E6C9;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+
+:global(.dark-theme) .mobile-version-tag {
+  color: #4ADE80;
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.3);
 }
 
 .header-right {
@@ -622,11 +652,22 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-    border: none;
+  border: none;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
 }
 
 .mobile-avatar-btn.active {
-  }
+  transform: scale(0.96);
+  box-shadow: 0 0 0 2px #0D631B;
+}
+
+.mobile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 .mobile-profile-popup {
   position: absolute;
@@ -636,7 +677,7 @@ onUnmounted(() => {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
   border-radius: 12px;
-    padding: 12px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -660,6 +701,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
 }
 

@@ -1,32 +1,33 @@
 import { reactive } from 'vue';
+import { t } from '../i18n';
 
 export const dialogState = reactive({
   isOpen: false,
-  title: 'Konfirmasi Tindakan',
-  message: 'Apakah Anda yakin ingin melanjutkan tindakan ini?',
+  title: '',
+  message: '',
   details: '',
   type: 'danger', // 'danger' | 'warning' | 'info' | 'success'
-  confirmText: 'Ya, Lanjutkan',
-  cancelText: 'Batal',
+  confirmText: '',
+  cancelText: '',
   showCancel: true,
   resolve: null,
 });
 
 export const confirmDialog = ({
-  title = 'Konfirmasi Tindakan',
-  message = 'Apakah Anda yakin ingin melanjutkan tindakan ini?',
+  title,
+  message,
   details = '',
   type = 'danger',
-  confirmText = 'Ya, Lanjutkan',
-  cancelText = 'Batal',
+  confirmText,
+  cancelText,
 } = {}) => {
   return new Promise((resolve) => {
-    dialogState.title = title;
-    dialogState.message = message;
+    dialogState.title = title || t('modals.confirmTitle', 'Konfirmasi Tindakan');
+    dialogState.message = message || t('modals.confirmDesc', 'Apakah Anda yakin ingin melanjutkan tindakan ini?');
     dialogState.details = details;
     dialogState.type = type;
-    dialogState.confirmText = confirmText;
-    dialogState.cancelText = cancelText;
+    dialogState.confirmText = confirmText || t('modals.yesConfirm', 'Ya, Lanjutkan');
+    dialogState.cancelText = cancelText || t('modals.noCancel', 'Batal');
     dialogState.showCancel = true;
     dialogState.resolve = resolve;
     dialogState.isOpen = true;
@@ -34,18 +35,18 @@ export const confirmDialog = ({
 };
 
 export const alertDialog = ({
-  title = 'Informasi Sistem',
+  title,
   message = '',
   details = '',
   type = 'info',
-  confirmText = 'Mengerti',
+  confirmText,
 } = {}) => {
   return new Promise((resolve) => {
-    dialogState.title = title;
+    dialogState.title = title || t('common.info', 'Informasi Sistem');
     dialogState.message = message;
     dialogState.details = details;
     dialogState.type = type;
-    dialogState.confirmText = confirmText;
+    dialogState.confirmText = confirmText || t('common.close', 'Tutup');
     dialogState.cancelText = '';
     dialogState.showCancel = false;
     dialogState.resolve = resolve;

@@ -1,9 +1,12 @@
 <template>
   <div class="admin-page">
-    <div class="admin-content">
-      <!-- Top Title & Action Bar -->
-      <div class="header-action-row">
-        <div class="title-group">
+    <Transition name="fade-admin-users" mode="out-in">
+      <AdminSkeleton v-if="isInitialLoading" />
+      <div v-else class="admin-users-loaded-content">
+        <div class="admin-content">
+          <!-- Top Title & Action Bar -->
+          <div class="header-action-row">
+            <div class="title-group">
           <h1 class="page-title">{{ $t('admin.tabUsers') }}</h1>
           <p class="page-subtitle">Kelola hak akses pengguna, administrator, dan operator sistem Smart Dryer Hanjeli.</p>
         </div>
@@ -76,7 +79,8 @@
                 <td>
                   <div class="user-cell">
                     <div class="user-avatar" :class="`avatar-${(u.role || 'OPERATOR').toLowerCase()}`">
-                      {{ (u.name || 'U').slice(0, 2).toUpperCase() }}
+                      <img v-if="u.avatarUrl || u.avatar" :src="u.avatarUrl || u.avatar" alt="Avatar" class="table-avatar-img" />
+                      <span v-else>{{ (u.name || 'U').slice(0, 2).toUpperCase() }}</span>
                     </div>
                     <div class="user-meta">
                       <strong class="user-name">{{ u.name }}</strong>
@@ -251,6 +255,8 @@
         </form>
       </div>
     </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -258,6 +264,9 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { authService } from '../../services/authService'
 import { confirmDialog } from '../../services/confirmDialogService'
+import AdminSkeleton from '../../components/AdminSkeleton.vue'
+
+const isInitialLoading = ref(true)
 
 const usersList = ref([])
 const userSearchQuery = ref('')
@@ -319,7 +328,7 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-async function fetchUsers() {
+async function fetchUsers(isFirstTime = false) {
   try {
     const res = await authService.getAllUsers()
     if (res && res.users && Array.isArray(res.users)) {
@@ -334,6 +343,12 @@ async function fetchUsers() {
   } catch (err) {
     console.warn('Failed to fetch users:', err.message)
     usersList.value = []
+  } finally {
+    if (isFirstTime) {
+      setTimeout(() => {
+        isInitialLoading.value = false
+      }, 350)
+    }
   }
 }
 
@@ -422,7 +437,7 @@ async function promptDeleteUser(userObj) {
 }
 
 onMounted(() => {
-  fetchUsers()
+  fetchUsers(true)
 })
 </script>
 
@@ -593,6 +608,14 @@ onMounted(() => {
   justify-content: center;
   font-weight: 700;
   font-size: 13px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.table-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .avatar-admin { background: #F3E8FF; color: #7E22CE; }
@@ -627,14 +650,27 @@ onMounted(() => {
 }
 
 .role-select {
-  padding: 6px 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%232E7D32' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px 14px;
+  padding: 6px 28px 6px 10px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
-  background: var(--color-bg);
+  background-color: var(--color-bg);
   color: var(--color-text-title);
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-select:focus {
+  outline: 2px solid rgba(13, 99, 27, 0.2) !important;
+  border-color: #0D631B;
 }
 
 .btn-icon-edit {
@@ -811,10 +847,25 @@ onMounted(() => {
   background: var(--color-bg);
   color: var(--color-text-title);
   outline: none;
+  transition: all 0.2s ease;
+}
+
+select.modern-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232E7D32' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
+  padding-right: 42px;
+  cursor: pointer;
 }
 
 .modern-input:focus {
   border-color: #0D631B;
+  outline: 2px solid rgba(13, 99, 27, 0.2) !important;
+  outline-offset: 1px;
 }
 
 .modal-foot {
@@ -825,7 +876,35 @@ onMounted(() => {
 }
 
 @media (max-width: 900px) {
-  .admin-content { padding: 20px 16px; }
-  .header-action-row { flex-direction: column; align-items: flex-start; }
+  .header-action-row { flex-direction: column; align-items: stretch; gap: 12px; }
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    padding: 0;
+    gap: 16px;
+  }
+  .page-title {
+    font-size: 22px;
+  }
+  .page-subtitle {
+    font-size: 13.5px;
+  }
+}
+
+/* Page Transition for Skeleton */
+.fade-admin-users-enter-active,
+.fade-admin-users-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-admin-users-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-admin-users-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

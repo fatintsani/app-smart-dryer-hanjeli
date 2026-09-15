@@ -8,13 +8,16 @@
     <title>{{ config('app.name', 'Smart Room Dryer Hanjeli') }}</title>
     
     <!-- PWA & Mobile Meta Tags -->
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#0D631B" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Smart Dryer" />
+    <meta name="application-name" content="Smart Room Dryer Hanjeli" />
     <meta name="description" content="Sistem IoT Cerdas Monitoring & Pengeringan Hanjeli - Desa Wisata Hanjeli Waluran & CoE STAS-RG" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
     
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

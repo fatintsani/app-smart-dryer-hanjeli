@@ -19,8 +19,9 @@ import HistoryDetailView from '../views/operator/HistoryDetailView.vue'
 import DevicesGuideView from '../views/operator/DevicesGuideView.vue'
 import SettingsView from '../views/operator/SettingsView.vue'
 
-// Public Landing Page
+// Public Views
 import LandingView from '../views/public/LandingView.vue'
+import PublicTraceabilityVerifyView from '../views/public/PublicTraceabilityVerifyView.vue'
 
 // Auth Views
 import LoginView from '../views/auth/LoginView.vue'
@@ -42,6 +43,19 @@ const routes = [
   {
     path: '/landing',
     redirect: '/',
+  },
+
+  // Public Farm-to-Table Certification & QR Code Traceability Verification
+  {
+    path: '/verify/:batchCode?',
+    name: 'PublicTraceabilityVerify',
+    component: PublicTraceabilityVerifyView,
+    props: true,
+    meta: { standalone: true, title: 'Verifikasi Mutu & Traceability Hanjeli' },
+  },
+  {
+    path: '/traceability/:batchCode?',
+    redirect: to => `/verify/${to.params.batchCode || ''}`,
   },
 
   // Auth Routes (Guest Only)

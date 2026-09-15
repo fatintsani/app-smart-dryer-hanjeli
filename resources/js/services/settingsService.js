@@ -1,9 +1,12 @@
 import { reactive } from 'vue';
 import api from './api';
+import connectionManager from './connectionManager';
+
+const initialIotMode = typeof localStorage !== 'undefined' && localStorage.getItem('hanjeli_source_mode') === 'simulation' ? 'SIMULATION' : 'HARDWARE';
 
 export const systemState = reactive({
   isSystemActive: true,
-  iotMode: 'SIMULATION', // 'SIMULATION' | 'HARDWARE'
+  iotMode: initialIotMode, // 'SIMULATION' | 'HARDWARE'
   environmentMode: 'LOCAL', // 'LOCAL' | 'PRODUCTION'
   maxSafeTemp: 55.0,
   minSafeTemp: 35.0,
@@ -48,6 +51,11 @@ export const settingsService = {
           whatsapp: res.whatsapp || systemState.whatsapp,
           telegram: res.telegram || systemState.telegram,
         });
+
+        // Always synchronize connectionManager with master backend database setting
+        if (res.iotMode) {
+          connectionManager.syncFromSettings(res.iotMode);
+        }
       }
       return res || systemState;
     } catch (err) {
@@ -61,8 +69,14 @@ export const settingsService = {
       const res = await api.put('/settings', data);
       if (res && res.settings) {
         Object.assign(systemState, res.settings);
+        if (res.settings.iotMode) {
+          connectionManager.syncFromSettings(res.settings.iotMode);
+        }
       } else {
         Object.assign(systemState, data);
+        if (data.iotMode) {
+          connectionManager.syncFromSettings(data.iotMode);
+        }
       }
       return res;
     } catch (err) {
@@ -85,5 +99,17 @@ export const settingsService = {
 
   async testEmail(data) {
     return api.post('/settings/test-email', data);
+  },
+
+  async testTelegram(data) {
+    return api.post('/settings/test-telegram', data);
+  },
+
+  async testWhatsApp(data) {
+    return api.post('/settings/test-whatsapp', data);
+  },
+
+  async sendDailyDigestNow() {
+    return api.post('/settings/daily-digest/send-now');
   },
 };

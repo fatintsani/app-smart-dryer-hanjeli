@@ -1,9 +1,12 @@
 <template>
   <div class="admin-page">
-    <div class="admin-content">
-      <!-- Top Title & Action Bar -->
-      <div class="header-action-row">
-        <div class="title-group">
+    <Transition name="fade-admin" mode="out-in">
+      <AdminSkeleton v-if="isInitialLoading" />
+      <div v-else class="admin-loaded-content">
+        <div class="admin-content">
+          <!-- Top Title & Action Bar -->
+          <div class="header-action-row">
+            <div class="title-group">
           <h1 class="page-title">{{ $t('admin.tabOverview') }}</h1>
           <p class="page-subtitle">{{ $t('admin.subtitle') }}</p>
         </div>
@@ -394,6 +397,8 @@
         </div>
       </div>
     </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -404,8 +409,11 @@ import { actuatorService } from '../../services/actuatorService'
 import { batchService } from '../../services/batchService'
 import { settingsService, systemState } from '../../services/settingsService'
 import { confirmDialog } from '../../services/confirmDialogService'
+import AdminSkeleton from '../../components/AdminSkeleton.vue'
 
 const emit = defineEmits(['open-simulator'])
+
+const isInitialLoading = ref(true)
 
 const usersList = ref([])
 const totalBatchesCount = ref(0)
@@ -597,10 +605,16 @@ async function updateActuatorSpeed() {
 }
 
 onMounted(() => {
-  fetchUsers()
-  fetchBatches()
-  fetchAuditLogs()
-  settingsService.getSettings()
+  Promise.allSettled([
+    fetchUsers(),
+    fetchBatches(),
+    fetchAuditLogs(),
+    settingsService.getSettings()
+  ]).finally(() => {
+    setTimeout(() => {
+      isInitialLoading.value = false
+    }, 350)
+  })
 })
 </script>
 
@@ -1304,9 +1318,38 @@ onMounted(() => {
 .text-orange { color: #B45000; }
 
 @media (max-width: 900px) {
-  .admin-content { padding: 20px 16px; }
-  .header-action-row { flex-direction: column; align-items: flex-start; }
+  .header-action-row { flex-direction: column; align-items: stretch; gap: 12px; }
   .system-status-card { flex-direction: column; align-items: flex-start; gap: 16px; }
   .system-status-right { align-items: flex-start; }
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    padding: 0;
+    gap: 16px;
+  }
+  .page-title {
+    font-size: 22px;
+    line-height: 1.3;
+  }
+  .page-subtitle {
+    font-size: 13.5px;
+  }
+}
+
+/* Page Transition for Skeleton */
+.fade-admin-enter-active,
+.fade-admin-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-admin-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-admin-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

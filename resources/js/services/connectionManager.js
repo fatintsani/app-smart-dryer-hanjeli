@@ -3,16 +3,18 @@
  * 
  * Manages:
  * 1. Data Source Mode:
- *    - 'hardware': Mode Alat Fisik Live ESP32 (Wi-Fi/MQTT or BLE)
+ *    - 'hardware': Mode Alat Fisik Live ESP32 (Wi-Fi/MQTT, BLE, or USB Serial)
  *    - 'simulation': Mode Simulasi IoT
- * 2. Dual Connectivity Transports:
+ * 2. Multi-Connectivity Transports:
  *    - 'wifi': Wi-Fi + MQTT Broker (HiveMQ / Mosquitto & Reverb WebSockets)
  *    - 'ble': Bluetooth Low Energy (Web Bluetooth API)
+ *    - 'usb': USB Serial Direct (Web Serial API / Kabel USB Laptop)
  */
 
 import { reactive } from 'vue';
 import socketService from './socketService';
 import bleService from './ble/bleService';
+import usbSerialService from './serial/usbSerialService';
 import { simulatorService } from './simulatorService';
 import api from './api';
 import { BLE_CONFIG, MQTT_CONFIG_DEFAULTS } from './ble/bleConstants';
@@ -27,7 +29,7 @@ class ConnectionManager {
     // Reactive State for UI binding
     this.state = reactive({
       sourceMode: typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_source_mode') || 'hardware') : 'hardware', // 'hardware' | 'simulation'
-      mode: typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_connection_mode') || 'wifi') : 'wifi',           // 'wifi' | 'ble'
+      mode: typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_connection_mode') || 'wifi') : 'wifi',           // 'wifi' | 'ble' | 'usb'
       deviceId: savedDeviceId,
       hotspotName: savedHotspot,
       isConnected: false,
@@ -41,6 +43,10 @@ class ConnectionManager {
         bleStatus: 'Disconnected',
         bleSupported: bleService.isSupported(),
         bleDeviceName: null,
+        usbStatus: 'Disconnected',
+        usbSupported: usbSerialService.isSupported(),
+        usbPortInfo: null,
+        usbBaudRate: 115200,
         signalQuality: 'Good',
       },
       lastDataTimestamp: null,
@@ -49,6 +55,11 @@ class ConnectionManager {
 
     this.initListeners();
     this.startWatchdog();
+
+    // Ensure simulator is immediately stopped if in hardware mode
+    if (this.state.sourceMode === 'hardware') {
+      simulatorService.stop();
+    }
   }
 
   /**
@@ -71,6 +82,14 @@ class ConnectionManager {
           }
         } else if (this.state.mode === 'ble') {
           if (!bleService.isConnected && this.state.isHardwareActive) {
+            this.state.isHardwareActive = false;
+            this.state.isConnected = false;
+            this.state.statusText = 'Disconnected';
+            this.emitBlankTelemetry();
+            this.emit('connection_change', this.getStatusSnapshot());
+          }
+        } else if (this.state.mode === 'usb') {
+          if (!usbSerialService.isConnected && this.state.isHardwareActive) {
             this.state.isHardwareActive = false;
             this.state.isConnected = false;
             this.state.statusText = 'Disconnected';
@@ -151,6 +170,11 @@ class ConnectionManager {
 
     socketService.on('telemetry_live', (data) => {
       if (this.state.sourceMode === 'hardware' && this.state.mode === 'wifi') {
+        // If simulated packet is received while in hardware mode, ignore it
+        if (data && (data.simulated || data.source === 'simulation' || data.isSimulated)) {
+          return;
+        }
+
         if (data && data.hasData && data.isLive !== false) {
           this.state.isHardwareActive = true;
           this.state.isConnected = true;
@@ -227,7 +251,7 @@ class ConnectionManager {
         this.emit('telemetry_update', normalized);
 
         // Sync to backend DB in background
-        this.syncBleTelemetryToBackend(normalized);
+        this.syncTelemetryToBackend(normalized);
       }
     });
 
@@ -239,6 +263,112 @@ class ConnectionManager {
         }
       }
     });
+
+    // 3. USB Serial (UsbSerialService) events
+    usbSerialService.on('connection_state', (data) => {
+      if (this.state.sourceMode === 'hardware' && this.state.mode === 'usb') {
+        if (data.state === 'CONNECTED') {
+          this.state.isConnected = true;
+          this.state.isConnecting = false;
+          this.state.isHardwareActive = true;
+          this.state.statusText = 'Connected';
+          this.state.transportDetails.usbStatus = 'Connected';
+          this.state.transportDetails.usbPortInfo = data.portInfo;
+          this.state.transportDetails.usbBaudRate = data.baudRate || 115200;
+          this.state.lastError = null;
+        } else if (data.state === 'CONNECTING') {
+          this.state.isConnecting = true;
+          this.state.isConnected = false;
+          this.state.isHardwareActive = false;
+          this.state.statusText = 'Connecting';
+          this.state.transportDetails.usbStatus = 'Connecting';
+        } else {
+          this.state.isConnected = false;
+          this.state.isConnecting = false;
+          this.state.isHardwareActive = false;
+          this.state.statusText = 'Disconnected';
+          this.state.transportDetails.usbStatus = 'Disconnected';
+          if (data.error) this.state.lastError = data.error;
+
+          this.emitBlankTelemetry();
+        }
+        this.emit('connection_change', this.getStatusSnapshot());
+      }
+    });
+
+    usbSerialService.on('sensor_data', (data) => {
+      if (this.state.sourceMode === 'hardware' && this.state.mode === 'usb') {
+        this.state.isHardwareActive = true;
+        this.state.isConnected = true;
+        this.state.lastDataTimestamp = new Date();
+        if (data.deviceId && data.deviceId !== this.state.deviceId) {
+          this.state.deviceId = data.deviceId;
+          try { localStorage.setItem('hanjeli_device_id', data.deviceId); } catch (e) {}
+        }
+        const normalized = this.normalizeData(data, 'usb');
+        this.emit('telemetry_live', normalized);
+        this.emit('telemetry_update', normalized);
+
+        // Sync to backend DB in background
+        this.syncTelemetryToBackend(normalized);
+      }
+    });
+
+    usbSerialService.on('device_heartbeat', (data) => {
+      if (this.state.sourceMode === 'hardware' && this.state.mode === 'usb') {
+        this.state.isHardwareActive = true;
+        this.state.isConnected = true;
+        this.state.lastDataTimestamp = new Date();
+        this.emit('connection_change', this.getStatusSnapshot());
+      }
+    });
+
+    usbSerialService.on('device_status', (data) => {
+      if (this.state.sourceMode === 'hardware' && this.state.mode === 'usb') {
+        this.emit('device_status', data);
+        if (data.actuators) {
+          this.emit('actuators_update', data.actuators);
+        }
+      }
+    });
+  }
+
+  /**
+   * Sync mode from master backend setting (database)
+   */
+  syncFromSettings(iotMode) {
+    if (!iotMode) return;
+    const targetSource = String(iotMode).toUpperCase() === 'SIMULATION' ? 'simulation' : 'hardware';
+
+    if (this.state.sourceMode !== targetSource) {
+      this.state.sourceMode = targetSource;
+      try { localStorage.setItem('hanjeli_source_mode', targetSource); } catch (e) {}
+
+      if (targetSource === 'simulation') {
+        this.state.isConnected = true;
+        this.state.isHardwareActive = true;
+        this.state.statusText = 'Simulation Active';
+        simulatorService.start();
+      } else {
+        simulatorService.stop();
+        if (this.state.mode === 'ble') {
+          this.state.isConnected = bleService.isConnected;
+          this.state.isHardwareActive = bleService.isConnected;
+          this.state.statusText = bleService.isConnected ? 'Connected' : 'Disconnected';
+        } else if (this.state.mode === 'usb') {
+          this.state.isConnected = usbSerialService.isConnected;
+          this.state.isHardwareActive = usbSerialService.isConnected;
+          this.state.statusText = usbSerialService.isConnected ? 'Connected' : 'Disconnected';
+        } else {
+          this.state.isConnected = socketService.isConnected;
+          this.state.isHardwareActive = false;
+          this.state.statusText = 'Standby / Menunggu ESP32';
+        }
+        this.emitBlankTelemetry();
+      }
+
+      this.emit('connection_change', this.getStatusSnapshot());
+    }
   }
 
   /**
@@ -246,6 +376,15 @@ class ConnectionManager {
    */
   setSourceMode(source) {
     if (this.state.sourceMode === source) return;
+
+    if (source === 'simulation') {
+      const role = typeof localStorage !== 'undefined' ? (localStorage.getItem('user_role') || (JSON.parse(localStorage.getItem('user') || '{}').role)) : null;
+      if (role && role !== 'ADMIN') {
+        console.warn('[ConnectionManager] Mode simulasi dibatasi hanya untuk Administrator.');
+        return;
+      }
+    }
+
     this.state.sourceMode = source;
     try { localStorage.setItem('hanjeli_source_mode', source); } catch (e) {}
 
@@ -259,27 +398,29 @@ class ConnectionManager {
       // Stop Simulator, Return to Physical Hardware
       simulatorService.stop();
       
-      // Determine if hardware is currently connected
+      // Reset hardware active until fresh real device signal is confirmed
       if (this.state.mode === 'ble') {
         this.state.isConnected = bleService.isConnected;
         this.state.isHardwareActive = bleService.isConnected;
         this.state.statusText = bleService.isConnected ? 'Connected' : 'Disconnected';
+      } else if (this.state.mode === 'usb') {
+        this.state.isConnected = usbSerialService.isConnected;
+        this.state.isHardwareActive = usbSerialService.isConnected;
+        this.state.statusText = usbSerialService.isConnected ? 'Connected' : 'Disconnected';
       } else {
         this.state.isConnected = socketService.isConnected;
-        this.state.isHardwareActive = socketService.isConnected;
-        this.state.statusText = socketService.isConnected ? 'Connected' : 'Disconnected';
+        this.state.isHardwareActive = false; // Must wait for genuine ESP32 packets
+        this.state.statusText = 'Standby / Menunggu ESP32';
       }
 
-      if (!this.state.isHardwareActive) {
-        this.emitBlankTelemetry();
-      }
+      this.emitBlankTelemetry();
     }
 
     this.emit('connection_change', this.getStatusSnapshot());
   }
 
   /**
-   * Set and switch the active Connection Mode ('wifi' | 'ble')
+   * Set and switch the active Connection Mode ('wifi' | 'ble' | 'usb')
    */
   async setConnectionMode(targetMode) {
     if (this.state.mode === targetMode) return;
@@ -298,6 +439,13 @@ class ConnectionManager {
       } else {
         this.state.statusText = bleService.isConnected ? 'Connected' : 'Bluetooth Ready';
       }
+    } else if (targetMode === 'usb') {
+      if (!usbSerialService.isSupported()) {
+        this.state.lastError = 'Browser ini tidak mendukung Web Serial API (Gunakan Chrome / Edge).';
+        this.state.statusText = 'USB Serial Not Supported';
+      } else {
+        this.state.statusText = usbSerialService.isConnected ? 'Connected' : 'USB Serial Ready';
+      }
     }
 
     this.emit('connection_change', this.getStatusSnapshot());
@@ -306,11 +454,14 @@ class ConnectionManager {
   /**
    * Initiate connection for current mode
    */
-  async connect() {
+  async connect(options = {}) {
     if (this.state.mode === 'wifi') {
       return socketService.connect();
     } else if (this.state.mode === 'ble') {
       return await bleService.requestDeviceAndConnect();
+    } else if (this.state.mode === 'usb') {
+      const baudRate = options?.baudRate || this.state.transportDetails.usbBaudRate || 115200;
+      return await usbSerialService.requestPortAndConnect(baudRate);
     }
   }
 
@@ -325,6 +476,9 @@ class ConnectionManager {
       this.state.statusText = 'Disconnected';
     } else if (this.state.mode === 'ble') {
       await bleService.disconnect();
+      this.state.isHardwareActive = false;
+    } else if (this.state.mode === 'usb') {
+      await usbSerialService.disconnect();
       this.state.isHardwareActive = false;
     }
     this.emitBlankTelemetry();
@@ -369,6 +523,15 @@ class ConnectionManager {
       });
     }
 
+    if (this.state.mode === 'usb' && usbSerialService.isConnected) {
+      // Direct USB Serial write
+      return await usbSerialService.sendCommand({
+        command: 'ACTUATOR_CONTROL',
+        timestamp: new Date().toISOString(),
+        data: commandData,
+      });
+    }
+
     // Default to Wi-Fi / API & MQTT publish
     const response = await api.patch('/actuators/control', commandData);
     return response;
@@ -385,9 +548,9 @@ class ConnectionManager {
   }
 
   /**
-   * Sync sensor data obtained via BLE to Laravel backend so historical logs and batches stay updated
+   * Sync sensor data obtained via BLE or USB Serial to Laravel backend so historical logs and batches stay updated
    */
-  async syncBleTelemetryToBackend(normalized) {
+  async syncTelemetryToBackend(normalized) {
     try {
       await api.post('/telemetry/ingest', {
         tempInternal: normalized.tempInternal,
@@ -403,19 +566,23 @@ class ConnectionManager {
     }
   }
 
+  syncBleTelemetryToBackend(normalized) {
+    return this.syncTelemetryToBackend(normalized);
+  }
+
   /**
    * Normalize telemetry data into a standard object
    */
   normalizeData(raw, source = 'wifi') {
     return {
       deviceId: raw.deviceId || raw.device_id || this.state.deviceId,
-      tempInternal: typeof raw.tempInternal === 'number' ? raw.tempInternal : parseFloat(raw.temp_internal ?? 0.0),
-      humidityInternal: typeof raw.humidityInternal === 'number' ? raw.humidityInternal : parseFloat(raw.humidity_internal ?? 0.0),
-      tempExternal: typeof raw.tempExternal === 'number' ? raw.tempExternal : parseFloat(raw.temp_external ?? 30.0),
-      humidityExternal: typeof raw.humidityExternal === 'number' ? raw.humidityExternal : parseFloat(raw.humidity_external ?? 65.0),
-      solarRadiation: typeof raw.solarRadiation === 'number' ? raw.solarRadiation : parseFloat(raw.solar_radiation ?? 700.0),
-      grainMoisture: typeof raw.grainMoisture === 'number' ? raw.grainMoisture : parseFloat(raw.grain_moisture ?? 14.0),
-      weightCurrentKg: typeof raw.weightCurrentKg === 'number' ? raw.weightCurrentKg : parseFloat(raw.weight_kg ?? raw.weightKg ?? 45.0),
+      tempInternal: typeof raw.tempInternal === 'number' ? raw.tempInternal : parseFloat(raw.temp_internal ?? raw.temperature ?? raw.temp ?? 0.0),
+      humidityInternal: typeof raw.humidityInternal === 'number' ? raw.humidityInternal : parseFloat(raw.humidity_internal ?? raw.humidity ?? raw.hum ?? 0.0),
+      tempExternal: typeof raw.tempExternal === 'number' ? raw.tempExternal : parseFloat(raw.temp_external ?? raw.tempExt ?? raw.temp_ext ?? 30.0),
+      humidityExternal: typeof raw.humidityExternal === 'number' ? raw.humidityExternal : parseFloat(raw.humidity_external ?? raw.humidityExt ?? raw.hum_ext ?? 65.0),
+      solarRadiation: typeof raw.solarRadiation === 'number' ? raw.solarRadiation : parseFloat(raw.solar_radiation ?? raw.solar ?? 700.0),
+      grainMoisture: typeof raw.grainMoisture === 'number' ? raw.grainMoisture : parseFloat(raw.grain_moisture ?? raw.moisture ?? 14.0),
+      weightCurrentKg: typeof raw.weightCurrentKg === 'number' ? raw.weightCurrentKg : parseFloat(raw.weight_kg ?? raw.weightCurrentKg ?? raw.weightKg ?? raw.weight ?? 45.0),
       hasData: true,
       timestamp: raw.timestamp || raw.recorded_at || new Date().toISOString(),
       source: source,

@@ -470,30 +470,67 @@ class ConfigCallbacks : public BLECharacteristicCallbacks {
 
 void updateSimulationPhysics() {
   simStepCounter++;
-  float noise = ((rand() % 20) - 10) / 50.0;
-  float solarOscillation = sin(simStepCounter * 0.05) * 150.0;
-  simSolarRadiation = 780.0 + solarOscillation + (noise * 15.0);
-  if (simSolarRadiation < 0) simSolarRadiation = 0;
 
-  simTempExternal = 30.5 + sin(simStepCounter * 0.03) * 2.5 + noise;
-  simHumidityExternal = 65.0 - sin(simStepCounter * 0.03) * 8.0 + (noise * 2.0);
+  // 1. Noise acak alami untuk fluktuasi mikroklimat (lebih dinamis di grafik)
+  float rawNoise = ((rand() % 41) - 20) / 20.0; // -1.0 s/d +1.0
+  float thermalNoise = rawNoise * 0.45;         // Fluktuasi termal ±0.45°C
+  float humidityNoise = rawNoise * 0.95;        // Fluktuasi kelembapan ±0.95%
 
-  float heaterContribution = auxHeaterStatus ? (auxHeaterLevel * 0.08) : 0.0;
-  float fanCooling = exhaustFanStatus ? (exhaustFanSpeed * 0.04) : 0.0;
-  float targetInternalTemp = simTempExternal + 10.0 + (simSolarRadiation * 0.012) + heaterContribution - fanCooling;
-  simTempInternal += (targetInternalTemp - simTempInternal) * 0.15 + (noise * 0.1);
+  // 2. Dinamika Radiasi Surya Matahari (Multi-Wave: 620 - 940 W/m²)
+  float solarWave1 = sin(simStepCounter * 0.08) * 115.0;
+  float solarWave2 = cos(simStepCounter * 0.19) * 45.0;
+  simSolarRadiation = 760.0 + solarWave1 + solarWave2 + (rawNoise * 20.0);
+  if (simSolarRadiation < 400.0) simSolarRadiation = 400.0;
+  if (simSolarRadiation > 1050.0) simSolarRadiation = 1050.0;
 
-  float targetInternalHum = 75.0 - (simTempInternal - 30.0) * 1.6 - (exhaustFanStatus ? (exhaustFanSpeed * 0.15) : 0.0);
+  // 3. Suhu & Kelembapan Eksternal (Lingkungan Desa Wisata Hanjeli: 29.0°C - 33.5°C)
+  float ambientBreeze = sin(simStepCounter * 0.04) * 1.8 + (rawNoise * 0.35);
+  simTempExternal = 30.5 + ambientBreeze;
+  simHumidityExternal = 66.0 - (ambientBreeze * 2.6) + (rawNoise * 1.8);
+  if (simHumidityExternal > 88.0) simHumidityExternal = 88.0;
+  if (simHumidityExternal < 45.0) simHumidityExternal = 45.0;
+
+  // 4. Termodinamika Ruang Greenhouse & Pengaruh Aktuator
+  float heaterContribution = auxHeaterStatus ? (auxHeaterLevel * 0.095) : 0.0;
+  float fanCooling = exhaustFanStatus ? (exhaustFanSpeed * 0.055) : 0.0;
+  float baseInternalTarget = simTempExternal + 10.5 + ((simSolarRadiation - 500.0) * 0.016) + heaterContribution - fanCooling;
+
+  // Gelombang konveksi udara panas ruang agar pergerakan grafik terlihat sangat dinamis
+  float convectionWave = sin(simStepCounter * 0.12) * 1.7 + cos(simStepCounter * 0.27) * 0.9;
+  float targetInternalTemp = baseInternalTarget + convectionWave + thermalNoise;
+
+  // Interpolasi termal responsif (bergerak aktif pada rentang 41°C - 54°C)
+  simTempInternal += (targetInternalTemp - simTempInternal) * 0.28;
+  if (simTempInternal < 28.0) simTempInternal = 28.0;
+  if (simTempInternal > 65.0) simTempInternal = 65.0;
+
+  // 5. Kelembapan Relatif Udara Internal (Psychrometric dynamic wave 38% - 68% RH)
+  float baseInternalHum = 72.0 - ((simTempInternal - 30.0) * 1.75) - (exhaustFanStatus ? (exhaustFanSpeed * 0.18) : 0.0);
+  float humidityWave = -sin(simStepCounter * 0.12) * 2.8 + cos(simStepCounter * 0.22) * 1.4;
+  float targetInternalHum = baseInternalHum + humidityWave + humidityNoise;
   if (targetInternalHum < 25.0) targetInternalHum = 25.0;
   if (targetInternalHum > 85.0) targetInternalHum = 85.0;
-  simHumidityInternal += (targetInternalHum - simHumidityInternal) * 0.15 + (noise * 0.2);
 
+  simHumidityInternal += (targetInternalHum - simHumidityInternal) * 0.25;
+
+  // 6. Kinetika Dehidrasi Gabah Hanjeli & Penurunan Berat (Menuju Target 12.0%)
   if (simGrainMoisture > 12.0) {
-    float dryingRate = (simTempInternal > 40.0 ? 0.02 : 0.008);
-    simGrainMoisture -= dryingRate;
-    simWeightCurrentKg -= (dryingRate * 0.05);
+    float thermalFactor = (simTempInternal - 28.0) / 20.0;
+    if (thermalFactor < 0.3) thermalFactor = 0.3;
+    
+    // Penurunan kadar air terlihat nyata di grafik setiap siklus (-0.03% s/d -0.07%)
+    float microDryingSpeed = (0.045 * thermalFactor) * (1.0 + sin(simStepCounter * 0.07) * 0.2);
+    simGrainMoisture -= microDryingSpeed;
+    simWeightCurrentKg -= (microDryingSpeed * 0.075);
+
+    if (simGrainMoisture < 12.0) {
+      simGrainMoisture = 12.0;
+    }
   } else {
-    simGrainMoisture = 12.0 + (noise * 0.05);
+    // Target tercapai (12%): Berfluktuasi halus di batas aman standar simpan SNI (11.8% - 12.1%)
+    float emcOscillation = sin(simStepCounter * 0.1) * 0.08 + (rawNoise * 0.03);
+    simGrainMoisture = 12.0 + emcOscillation;
+    simWeightCurrentKg = 42.5 + (emcOscillation * 0.05);
   }
 }
 

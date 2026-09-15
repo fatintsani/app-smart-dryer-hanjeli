@@ -1,522 +1,515 @@
 <template>
   <div class="dashboard-page">
-    <!-- Desktop Layout (Page 1) -->
-    <div v-if="!isMobile" class="desktop-content">
-      <!-- Top Title & Action Bar -->
-      <div class="header-action-row">
-        <div class="title-group">
-          <div class="title-with-badge">
-            <h1 class="page-title">{{ $t('dashboard.title') }}</h1>
+    <Transition name="fade-dashboard" mode="out-in">
+      <!-- High-Fidelity Shimmer Skeleton Loading State -->
+      <DashboardSkeleton v-if="isInitialLoading" :is-mobile="isMobile" key="skeleton" />
+
+      <!-- Loaded Dashboard Content -->
+      <div v-else class="dashboard-loaded-container" key="content">
+        <!-- Unified Full Dashboard Layout (Responsive Desktop, Tablet & Mobile) -->
+        <div class="dashboard-main-content">
+          <!-- Top Title & Action Bar -->
+          <div class="header-action-row">
+            <div class="title-group">
+              <div class="title-with-badge">
+                <h1 class="page-title">{{ $t('dashboard.title') }}</h1>
+              </div>
+              <p class="page-subtitle">{{ $t('dashboard.subtitle') }}</p>
+            </div>
+            <button class="btn-primary" @click="$emit('start-drying')" :disabled="!systemState.isSystemActive">
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor">
+                <path d="M1.5 1.5L10.5 7L1.5 12.5V1.5Z"/>
+              </svg>
+              <span>{{ $t('dashboard.startNewBatch') }}</span>
+            </button>
           </div>
-          <p class="page-subtitle">{{ $t('dashboard.subtitle') }}</p>
-        </div>
-        <button class="btn-primary" @click="$emit('start-drying')" :disabled="!systemState.isSystemActive">
-          <svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor">
-            <path d="M1.5 1.5L10.5 7L1.5 12.5V1.5Z"/>
-          </svg>
-          <span>{{ $t('dashboard.startNewBatch') }}</span>
-        </button>
-      </div>
 
-      <!-- System Maintenance / Inactive Banner -->
-      <div v-if="!systemState.isSystemActive" class="system-offline-banner">
-        <div class="offline-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-        </div>
-        <div class="offline-text">
-          <strong>Sistem Smart Dryer Sedang Dinonaktifkan (Standby / Maintenance)</strong>
-          <p>Administrator telah menonaktifkan operasional pengeringan untuk sementara. Hubungi administrator untuk mengaktifkan kembali sistem.</p>
-        </div>
-      </div>
-
-      <!-- Dual Connectivity Status & Control Card -->
-      <ConnectionStatusCard @open-wifi-setup="isWifiSetupOpen = true" />
-
-      <!-- 5 Stat Cards Grid -->
-      <div class="stats-grid-5">
-        <!-- 1. Suhu -->
-        <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-          <div class="stat-card-header">
-            <span class="stat-label">{{ $t('dashboard.tempInternal') }}</span>
-            <div class="icon-circle icon-orange">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+          <!-- System Maintenance / Inactive Banner -->
+          <div v-if="!systemState.isSystemActive" class="system-offline-banner">
+            <div class="offline-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
             </div>
-          </div>
-          <div class="stat-value-row">
-            <span class="stat-number text-red">{{ isDataActive ? telemetry.tempInternal.toFixed(1) : '--' }}</span>
-            <span class="stat-unit">°C</span>
-            <span v-if="isDataActive" class="delta-chip">ΔT: +{{ (telemetry.tempInternal - telemetry.tempExternal).toFixed(1) }}°</span>
-          </div>
-          <div class="stat-trend" :class="isDataActive ? 'trend-up-green' : 'text-muted'">
-            <svg v-if="isDataActive" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-            <span>{{ isDataActive ? `Eksternal: ${telemetry.tempExternal.toFixed(1)}°C` : 'Menunggu ESP32' }}</span>
-          </div>
-        </div>
-
-        <!-- 2. Kelembapan -->
-        <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-          <div class="stat-card-header">
-            <span class="stat-label">{{ $t('dashboard.humidityInternal') }}</span>
-            <div class="icon-circle icon-blue">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-value-row">
-            <span class="stat-number text-blue">{{ isDataActive ? telemetry.humidityInternal.toFixed(0) : '--' }}</span>
-            <span class="stat-unit">% RH</span>
-            <span v-if="isDataActive" class="delta-chip-blue">Target: &lt;50%</span>
-          </div>
-          <div class="stat-trend" :class="isDataActive ? 'trend-down-blue' : 'text-muted'">
-            <svg v-if="isDataActive" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.5">
-              <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
-              <polyline points="17 18 23 18 23 12"></polyline>
-            </svg>
-            <span>{{ isDataActive ? `Eksternal: ${telemetry.humidityExternal.toFixed(0)}%` : 'Menunggu ESP32' }}</span>
-          </div>
-        </div>
-
-        <!-- 3. Intensitas Radiasi Surya -->
-        <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-          <div class="stat-card-header">
-            <span class="stat-label">{{ $t('dashboard.solarRadiation') }}</span>
-            <div class="icon-circle icon-amber">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-value-row">
-            <span class="stat-number text-amber">{{ isDataActive ? telemetry.solarRadiation.toFixed(0) : '--' }}</span>
-            <span class="stat-unit">W/m²</span>
-            <span v-if="isDataActive" class="delta-chip-amber">
-              <svg v-if="telemetry.solarRadiation > 500" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:inline-block; vertical-align:middle; margin-right:3px;">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-              </svg>
-              <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:inline-block; vertical-align:middle; margin-right:3px;">
-                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
-              </svg>
-              <span>{{ telemetry.solarRadiation > 500 ? 'Terik Alami' : 'Redup' }}</span>
-            </span>
-          </div>
-          <div class="stat-trend">
-            <span class="badge-pill" :class="isDataActive ? 'bg-amber-subtle text-amber-dark' : 'bg-gray-subtle text-muted'">
-              <span>{{ isDataActive ? $t('dashboard.statusSafe') : 'Siaga' }}</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- 4. Kadar Air Gabah -->
-        <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-          <div class="stat-card-header">
-            <span class="stat-label">{{ $t('dashboard.grainMoisture') }}</span>
-            <div class="icon-circle icon-purple-subtle">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7E22CE" stroke-width="2.2">
-                <circle cx="12" cy="12" r="9"></circle>
-                <polyline points="12 7 12 12 15 15"></polyline>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-value-row">
-            <span class="stat-number text-purple">{{ activeBatch && isDataActive ? telemetry.grainMoisture.toFixed(1) : '--' }}</span>
-            <span class="stat-unit">%</span>
-          </div>
-          <div class="progress-bar-wrapper">
-            <div class="progress-track">
-              <div class="progress-fill" :style="{ width: (isDataActive ? dryingProgressPercent : 0) + '%' }"></div>
-            </div>
-            <span class="progress-percentage-label">
-              {{ isDataActive ? (activeBatch ? `Target: ${activeBatch.targetMoisturePercent || 12.0}% (${dryingProgressPercent}%)` : 'Tidak Ada Batch Aktif (0%)') : 'Menunggu Koneksi ESP32' }}
-            </span>
-          </div>
-        </div>
-
-        <!-- 5. Kipas & Aktuator -->
-        <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-          <div class="stat-card-header">
-            <span class="stat-label">{{ $t('dashboard.auxHeater') }}</span>
-            <div class="icon-circle icon-green-subtle">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-value-row">
-            <span class="stat-number text-green-dark">
-              {{ actuators.exhaustFanStatus ? actuators.exhaustFanSpeed + '%' : 'OFF' }}
-            </span>
-            <span class="stat-unit">Fan</span>
-            <span class="status-chip" :class="actuators.auxHeaterStatus ? 'chip-on' : 'chip-off'">
-              Heater {{ actuators.auxHeaterStatus ? 'ON' : 'OFF' }}
-            </span>
-          </div>
-          <div class="stat-footer-badge">
-            <span class="status-meta-text">{{ $t('dashboard.actuatorStatus') }}:</span>
-            <span class="badge-pill" :class="actuators.exhaustFanStatus ? 'bg-green-subtle text-green-dark' : 'bg-gray-subtle text-muted'">
-              {{ actuators.controlMode === 'AUTOMATIC' ? 'Otomatis' : 'Manual' }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- MASTER REAL-TIME DUAL-AXIS WAVEFORM CHART -->
-      <!-- ========================================================================= -->
-      <div class="master-chart-card">
-        <div class="master-chart-header">
-          <div class="header-title-box">
-            <div class="chart-badge-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-            </div>
-            <div>
-              <h2 class="master-chart-heading">Grafik Aliran Telemetri Real-Time (Dual-Axis Waveform)</h2>
-              <p class="master-chart-sub">Korelasi simultan Suhu Ruang, Suhu Luar, Kelembapan Udara, Kadar Air, dan Radiasi Surya</p>
+            <div class="offline-text">
+              <strong>{{ $t('dashboard.systemInactiveTitle') }}</strong>
+              <p>{{ $t('dashboard.systemInactiveDesc') }}</p>
             </div>
           </div>
 
-          <div class="time-window-selector">
-            <span class="live-points-indicator">
-              <span class="live-blink-dot"></span> {{ liveHistoryPoints.length }} Titik Data Live
-            </span>
-          </div>
-        </div>
+          <!-- Dual Connectivity Status & Control Card -->
+          <ConnectionStatusCard @open-wifi-setup="isWifiSetupOpen = true" />
 
-        <!-- Series Toggles -->
-        <div class="series-toggle-toolbar">
-          <button 
-            type="button" 
-            class="series-btn" 
-            :class="{ active: visibleSeries.tempInternal }"
-            @click="visibleSeries.tempInternal = !visibleSeries.tempInternal"
-          >
-            <span class="legend-color-dot" style="background: #E11D48;"></span>
-            <span>Suhu Internal (°C)</span>
-          </button>
-
-          <button 
-            type="button" 
-            class="series-btn" 
-            :class="{ active: visibleSeries.tempExternal }"
-            @click="visibleSeries.tempExternal = !visibleSeries.tempExternal"
-          >
-            <span class="legend-color-dot" style="background: #0D9488;"></span>
-            <span>Suhu Luar (°C)</span>
-          </button>
-
-          <button 
-            type="button" 
-            class="series-btn" 
-            :class="{ active: visibleSeries.humidity }"
-            @click="visibleSeries.humidity = !visibleSeries.humidity"
-          >
-            <span class="legend-color-dot" style="background: #0284C7;"></span>
-            <span>Kelembapan (% RH)</span>
-          </button>
-
-          <button 
-            type="button" 
-            class="series-btn" 
-            :class="{ active: visibleSeries.grainMoisture }"
-            @click="visibleSeries.grainMoisture = !visibleSeries.grainMoisture"
-          >
-            <span class="legend-color-dot" style="background: #9333EA;"></span>
-            <span>Kadar Air (%)</span>
-          </button>
-
-          <button 
-            type="button" 
-            class="series-btn" 
-            :class="{ active: visibleSeries.solarRadiation }"
-            @click="visibleSeries.solarRadiation = !visibleSeries.solarRadiation"
-          >
-            <span class="legend-color-dot" style="background: #F59E0B;"></span>
-            <span>Radiasi (W/m²)</span>
-          </button>
-        </div>
-
-        <!-- Master SVG Canvas -->
-        <div 
-          class="master-svg-chart-wrapper"
-          @mousemove="handleChartMouseMove"
-          @mouseleave="handleChartMouseLeave"
-        >
-          <svg viewBox="0 0 1000 300" class="master-svg" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="dashTempGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#E11D48" stop-opacity="0.22"/>
-                <stop offset="100%" stop-color="#E11D48" stop-opacity="0.0"/>
-              </linearGradient>
-              <linearGradient id="dashMoistureGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#9333EA" stop-opacity="0.20"/>
-                <stop offset="100%" stop-color="#9333EA" stop-opacity="0.0"/>
-              </linearGradient>
-              <linearGradient id="dashSolarGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.15"/>
-                <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.0"/>
-              </linearGradient>
-            </defs>
-
-            <!-- Safety Zone Band (40°C - 50°C) -->
-            <rect x="60" y="130" width="880" height="24" fill="#10B981" fill-opacity="0.08" />
-            <text x="65" y="145" font-size="9.5" fill="#059669" font-weight="600">ZONA TEMPERATUR IDEAL (40°C - 50°C)</text>
-
-            <!-- Critical Threshold (55°C) -->
-            <line x1="60" y1="118" x2="940" y2="118" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6"/>
-            <text x="830" y="113" font-size="9" fill="#DC2626" font-weight="600">Ambang Kritis 55°C</text>
-
-            <!-- Target Moisture (12.0%) -->
-            <line x1="60" y1="221" x2="940" y2="221" stroke="#9333EA" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6"/>
-            <text x="820" y="216" font-size="9" fill="#7E22CE" font-weight="600">Target Simpan 12.0%</text>
-
-            <!-- Grid Lines -->
-            <g v-for="g in yGridLines" :key="g.val">
-              <line x1="60" :y1="g.y" x2="940" :y2="g.y" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="2 2"/>
-              <text x="20" :y="g.y + 4" font-size="10.5" fill="#64748B" font-weight="600">{{ g.val }}</text>
-              <text x="948" :y="g.y + 4" font-size="10.5" fill="#D97706" font-weight="600">{{ g.solarVal }}</text>
-            </g>
-
-            <text x="948" y="14" font-size="9" fill="#D97706" font-weight="700">W/m²</text>
-            <text x="20" y="14" font-size="9" fill="#64748B" font-weight="700">°C / %</text>
-
-            <!-- Area Fills -->
-            <path v-if="visibleSeries.tempInternal && tempAreaPath" :d="tempAreaPath" fill="url(#dashTempGrad)" />
-            <path v-if="visibleSeries.grainMoisture && moistureAreaPath" :d="moistureAreaPath" fill="url(#dashMoistureGrad)" />
-            <path v-if="visibleSeries.solarRadiation && solarAreaPath" :d="solarAreaPath" fill="url(#dashSolarGrad)" />
-
-            <!-- Curves -->
-            <path v-if="visibleSeries.solarRadiation && solarCurvePath" :d="solarCurvePath" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-            <path v-if="visibleSeries.humidity && humidityCurvePath" :d="humidityCurvePath" fill="none" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round"/>
-            <path v-if="visibleSeries.tempExternal && tempExtCurvePath" :d="tempExtCurvePath" fill="none" stroke="#0D9488" stroke-width="2" stroke-dasharray="4 2" stroke-linecap="round"/>
-            <path v-if="visibleSeries.grainMoisture && moistureCurvePath" :d="moistureCurvePath" fill="none" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
-            <path v-if="visibleSeries.tempInternal && tempCurvePath" :d="tempCurvePath" fill="none" stroke="#E11D48" stroke-width="3.5" stroke-linecap="round"/>
-
-            <!-- X-Axis Line -->
-            <line x1="60" y1="250" x2="940" y2="250" stroke="#94A3B8" stroke-width="1.5"/>
-
-            <!-- X-Axis Labels -->
-            <g v-for="(lbl, idx) in xTimeLabels" :key="idx">
-              <line :x1="lbl.x" y1="250" :x2="lbl.x" y2="256" stroke="#64748B" stroke-width="1.5"/>
-              <text :x="lbl.x" y="272" font-size="10" fill="#64748B" text-anchor="middle" font-weight="500">{{ lbl.time }}</text>
-            </g>
-
-            <!-- Crosshair -->
-            <g v-if="hoverData">
-              <line :x1="hoverData.svgX" y1="20" :x2="hoverData.svgX" y2="250" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="3 3"/>
-              <circle v-if="visibleSeries.tempInternal" :cx="hoverData.svgX" :cy="hoverData.yTemp" r="5" fill="#E11D48" stroke="#FFFFFF" stroke-width="2"/>
-              <circle v-if="visibleSeries.grainMoisture" :cx="hoverData.svgX" :cy="hoverData.yMoisture" r="5" fill="#9333EA" stroke="#FFFFFF" stroke-width="2"/>
-              <circle v-if="visibleSeries.humidity" :cx="hoverData.svgX" :cy="hoverData.yHum" r="4.5" fill="#0284C7" stroke="#FFFFFF" stroke-width="2"/>
-              <circle v-if="visibleSeries.solarRadiation" :cx="hoverData.svgX" :cy="hoverData.ySolar" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2"/>
-            </g>
-          </svg>
-
-          <!-- Floating Tooltip -->
+          <!-- Sensor Anomaly Alert Banner (AI Diagnostics) -->
           <div 
-            v-if="hoverData" 
-            class="floating-chart-tooltip"
-            :style="{ left: `${hoverData.domPercentX}%` }"
+            v-if="anomalyHealth && (anomalyHealth.anomalyCount > 0 || anomalyHealth.status === 'CRITICAL')" 
+            class="sensor-anomaly-banner"
+            :class="anomalyHealth.status === 'CRITICAL' ? 'banner-critical' : 'banner-warning'"
           >
-            <div class="tooltip-header">
-              <span class="tooltip-time-icon">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
+            <div class="anomaly-banner-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="anomaly-banner-content">
+              <div class="anomaly-banner-title">
+                <strong>{{ anomalyHealth.anomalyCount }} {{ $t('dashboard.anomaliesDetected') }}</strong>
+                <span class="anomaly-score-tag">{{ $t('dashboard.sensorIntegrity') }}: {{ anomalyHealth.healthScore }}%</span>
+              </div>
+              <p class="anomaly-banner-desc">
+                {{ anomalyHealth.anomalies?.[0]?.description || $t('dashboard.sensorDeviationDefault') }}
+                <span v-if="anomalyHealth.anomalies?.[0]?.suggestedAction" class="anomaly-solution-hint">
+                  • {{ $t('dashboard.suggestedActionLabel') }}: {{ anomalyHealth.anomalies[0].suggestedAction }}
+                </span>
+              </p>
+            </div>
+            <router-link to="/operator/monitoring" class="btn-check-telemetry">
+              <span>{{ $t('dashboard.checkTelemetry') }}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </router-link>
+          </div>
+
+          <!-- 5 Stat Cards Grid -->
+          <div class="stats-grid-5">
+            <!-- 1. Suhu -->
+            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
+              <div class="stat-card-header">
+                <span class="stat-label">{{ $t('dashboard.tempInternal') }}</span>
+                <div class="icon-circle icon-orange">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value-row">
+                <span class="stat-number text-red">{{ isDataActive ? telemetry.tempInternal.toFixed(1) : '--' }}</span>
+                <span class="stat-unit">°C</span>
+                <span v-if="isDataActive" class="delta-chip">ΔT: +{{ (telemetry.tempInternal - telemetry.tempExternal).toFixed(1) }}°</span>
+              </div>
+              <div class="stat-trend" :class="isDataActive ? 'trend-up-green' : 'text-muted'">
+                <svg v-if="isDataActive" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
                 </svg>
-              </span>
-              <strong>{{ hoverData.item.timeFormatted || hoverData.item.time }}</strong>
-            </div>
-            <div class="tooltip-grid">
-              <div class="tooltip-item" v-if="visibleSeries.tempInternal">
-                <span class="tt-dot" style="background: #E11D48;"></span>
-                <span class="tt-label">Suhu Ruang:</span>
-                <span class="tt-val">{{ hoverData.item.tempInternal.toFixed(1) }}°C</span>
-              </div>
-              <div class="tooltip-item" v-if="visibleSeries.tempExternal">
-                <span class="tt-dot" style="background: #0D9488;"></span>
-                <span class="tt-label">Suhu Luar:</span>
-                <span class="tt-val">{{ hoverData.item.tempExternal.toFixed(1) }}°C</span>
-              </div>
-              <div class="tooltip-item" v-if="visibleSeries.humidity">
-                <span class="tt-dot" style="background: #0284C7;"></span>
-                <span class="tt-label">Kelembapan:</span>
-                <span class="tt-val">{{ hoverData.item.humidityInternal.toFixed(0) }}% RH</span>
-              </div>
-              <div class="tooltip-item" v-if="visibleSeries.grainMoisture">
-                <span class="tt-dot" style="background: #9333EA;"></span>
-                <span class="tt-label">Kadar Air:</span>
-                <span class="tt-val font-bold">{{ hoverData.item.grainMoisture.toFixed(1) }}%</span>
-              </div>
-              <div class="tooltip-item" v-if="visibleSeries.solarRadiation">
-                <span class="tt-dot" style="background: #F59E0B;"></span>
-                <span class="tt-label">Radiasi:</span>
-                <span class="tt-val">{{ hoverData.item.solarRadiation.toFixed(0) }} W/m²</span>
+                <span>{{ isDataActive ? `${$t('dashboard.externalLabel')}: ${telemetry.tempExternal.toFixed(1)}°C` : $t('dashboard.waitingEsp32') }}</span>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- 4 Quick Analytics Strip -->
-        <div class="chart-quick-analytics-strip">
-          <div class="strip-item">
-            <span class="strip-lbl">Suhu Tertinggi Tercatat</span>
-            <span class="strip-val text-red">{{ maxRecordedTemp }}°C</span>
-          </div>
-          <div class="strip-item">
-            <span class="strip-lbl">Suhu Rata-rata</span>
-            <span class="strip-val text-orange">{{ avgRecordedTemp }}°C</span>
-          </div>
-          <div class="strip-item">
-            <span class="strip-lbl">Puncak Diferensial (ΔT)</span>
-            <span class="strip-val text-green-dark">+{{ maxRecordedDeltaT }}°C</span>
-          </div>
-          <div class="strip-item">
-            <span class="strip-lbl">Radiasi Puncak</span>
-            <span class="strip-val text-amber">{{ maxRecordedSolar }} W/m²</span>
-          </div>
-        </div>
-      </div>
+            <!-- 2. Kelembapan -->
+            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
+              <div class="stat-card-header">
+                <span class="stat-label">{{ $t('dashboard.humidityInternal') }}</span>
+                <div class="icon-circle icon-blue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value-row">
+                <span class="stat-number text-blue">{{ isDataActive ? telemetry.humidityInternal.toFixed(0) : '--' }}</span>
+                <span class="stat-unit">% RH</span>
+                <span v-if="isDataActive" class="delta-chip-blue">{{ $t('dashboard.targetLabel') }}: &lt;50%</span>
+              </div>
+              <div class="stat-trend" :class="isDataActive ? 'trend-down-blue' : 'text-muted'">
+                <svg v-if="isDataActive" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.5">
+                  <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                  <polyline points="17 18 23 18 23 12"></polyline>
+                </svg>
+                <span>{{ isDataActive ? `${$t('dashboard.externalLabel')}: ${telemetry.humidityExternal.toFixed(0)}%` : $t('dashboard.waitingEsp32') }}</span>
+              </div>
+            </div>
 
-      <!-- Status Sistem Card -->
-      <div class="system-status-card">
-        <div class="system-status-left">
-          <div class="icon-circle-lg" :class="activeBatch ? 'icon-green-light' : 'icon-gray-light'">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" :stroke="activeBatch ? '#0D631B' : '#707A6C'" stroke-width="2.2">
-              <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-              <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-              <line x1="12" y1="20" x2="12.01" y2="20"></line>
-            </svg>
-          </div>
-          <div class="system-info">
-            <h2 class="system-title">{{ activeBatch ? $t('common.systemActive') : 'Sistem Siaga' }}</h2>
-            <div class="badge-group">
-              <span class="badge-pill" :class="isConnected ? 'bg-green-subtle text-green-dark' : 'bg-gray-subtle text-muted'">
-                <span class="dot-green" :style="{ background: isConnected ? '#0D631B' : '#707A6C' }"></span> {{ isConnected ? $t('common.online') : 'Offline' }}
-              </span>
-              <span class="badge-pill bg-blue-subtle text-blue">
-                {{ actuators.controlMode === 'AUTOMATIC' ? $t('dashboard.autoMode') : 'Manual Mode' }}
-              </span>
-              <span v-if="activeBatch" class="badge-pill bg-orange-subtle text-orange">
-                {{ activeBatch.batchCode }} ({{ activeBatch.cropVariety }})
-              </span>
-              <span v-else class="badge-pill bg-gray-subtle text-muted">
-                Belum Ada Batch Aktif
-              </span>
+            <!-- 3. Intensitas Radiasi Surya -->
+            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
+              <div class="stat-card-header">
+                <span class="stat-label">{{ $t('dashboard.solarRadiation') }}</span>
+                <div class="icon-circle icon-amber">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value-row">
+                <span class="stat-number text-amber">{{ isDataActive ? telemetry.solarRadiation.toFixed(0) : '--' }}</span>
+                <span class="stat-unit">W/m²</span>
+                <span v-if="isDataActive" class="delta-chip-amber">
+                  <svg v-if="telemetry.solarRadiation > 500" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:inline-block; vertical-align:middle; margin-right:3px;">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  </svg>
+                  <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:inline-block; vertical-align:middle; margin-right:3px;">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                  </svg>
+                  <span>{{ telemetry.solarRadiation > 500 ? $t('dashboard.sunnyNatural') : $t('dashboard.dimCloudy') }}</span>
+                </span>
+              </div>
+              <div class="stat-trend">
+                <span class="badge-pill" :class="isDataActive ? 'bg-amber-subtle text-amber-dark' : 'bg-gray-subtle text-muted'">
+                  <span>{{ isDataActive ? $t('dashboard.statusSafe') : $t('dashboard.standbyUpper') }}</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- 4. Kadar Air Gabah -->
+            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
+              <div class="stat-card-header">
+                <span class="stat-label">{{ $t('dashboard.grainMoisture') }}</span>
+                <div class="icon-circle icon-purple-subtle">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7E22CE" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <polyline points="12 7 12 12 15 15"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value-row">
+                <span class="stat-number text-purple">{{ activeBatch && isDataActive ? telemetry.grainMoisture.toFixed(1) : '--' }}</span>
+                <span class="stat-unit">%</span>
+              </div>
+              <div class="progress-bar-wrapper">
+                <div class="progress-track">
+                  <div class="progress-fill" :style="{ width: (isDataActive ? dryingProgressPercent : 0) + '%' }"></div>
+                </div>
+                <div class="dash-eta-label-row">
+                  <span class="progress-percentage-label">
+                    {{ isDataActive ? (activeBatch ? `${$t('dashboard.targetLabel')}: ${activeBatch.targetMoisturePercent || 12.0}% (${dryingProgressPercent}%)` : $t('dashboard.noActiveBatchProgress')) : $t('dashboard.waitingEsp32Connection') }}
+                  </span>
+                  <span v-if="activeBatch && isDataActive" class="dash-ai-eta-pill" :title="`${$t('dashboard.estimatedCompletion')}: ${predictionData?.estimatedCompletionTimeOnly || '--:--'}`">
+                    <span class="ai-spark-dot"></span>
+                    ETA: {{ predictionData?.estimatedCompletionTimeOnly || $t('dashboard.etaHoursDefault') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Kipas & Aktuator -->
+            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
+              <div class="stat-card-header">
+                <span class="stat-label">{{ $t('dashboard.auxHeater') }}</span>
+                <div class="icon-circle icon-green-subtle">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value-row">
+                <span class="stat-number text-green-dark">
+                  {{ actuators.exhaustFanStatus ? actuators.exhaustFanSpeed + '%' : 'OFF' }}
+                </span>
+                <span class="stat-unit">Fan</span>
+                <span class="status-chip" :class="actuators.auxHeaterStatus ? 'chip-on' : 'chip-off'">
+                  {{ actuators.auxHeaterStatus ? $t('dashboard.heaterOn') : $t('dashboard.heaterOff') }}
+                </span>
+              </div>
+              <div class="stat-footer-badge">
+                <span class="status-meta-text">{{ $t('dashboard.actuatorStatus') }}:</span>
+                <span class="badge-pill" :class="actuators.exhaustFanStatus ? 'bg-green-subtle text-green-dark' : 'bg-gray-subtle text-muted'">
+                  {{ actuators.controlMode === 'AUTOMATIC' ? $t('dashboard.automatic') : $t('dashboard.manual') }}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="system-status-right">
-          <span class="meta-label">IoT Ingestion & MySQL</span>
-          <span class="meta-time">Operator: {{ activeBatch?.operatorName || activeBatch?.operator?.name || 'Operator Greenhouse' }}</span>
-        </div>
-      </div>
 
-      <!-- Aktivitas Terkini Card -->
-      <div class="activity-card">
-        <h2 class="activity-heading">{{ $t('dashboard.recentAlerts') }}</h2>
-        
-        <div class="timeline-container">
-          <div v-for="(alert, idx) in recentAlerts" :key="alert.id || idx" class="timeline-item">
-            <div class="timeline-marker">
-              <div class="marker-circle" :class="alert.type === 'DANGER' ? 'marker-red' : alert.type === 'WARNING' ? 'marker-orange' : 'marker-green'">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                  <circle cx="12" cy="12" r="10"/>
+          <!-- ========================================================================= -->
+          <!-- MASTER REAL-TIME DUAL-AXIS WAVEFORM CHART -->
+          <!-- ========================================================================= -->
+          <div class="master-chart-card">
+            <div class="master-chart-header">
+              <div class="header-title-box">
+                <div class="chart-badge-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="master-chart-heading">{{ $t('dashboard.chartHeading') }}</h2>
+                  <p class="master-chart-sub">{{ $t('dashboard.chartSub') }}</p>
+                </div>
+              </div>
+
+              <div class="time-window-selector">
+                <span class="live-points-indicator">
+                  <span class="live-blink-dot"></span> {{ liveHistoryPoints.length }} {{ $t('dashboard.liveDataPoints') }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Series Toggles -->
+            <div class="series-toggle-toolbar">
+              <button 
+                type="button" 
+                class="series-btn" 
+                :class="{ active: visibleSeries.tempInternal }"
+                @click="visibleSeries.tempInternal = !visibleSeries.tempInternal"
+              >
+                <span class="legend-color-dot" style="background: #E11D48;"></span>
+                <span>{{ $t('dashboard.seriesTempInternal') }}</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="series-btn" 
+                :class="{ active: visibleSeries.tempExternal }"
+                @click="visibleSeries.tempExternal = !visibleSeries.tempExternal"
+              >
+                <span class="legend-color-dot" style="background: #0D9488;"></span>
+                <span>{{ $t('dashboard.seriesTempExternal') }}</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="series-btn" 
+                :class="{ active: visibleSeries.humidity }"
+                @click="visibleSeries.humidity = !visibleSeries.humidity"
+              >
+                <span class="legend-color-dot" style="background: #0284C7;"></span>
+                <span>{{ $t('dashboard.seriesHumidity') }}</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="series-btn" 
+                :class="{ active: visibleSeries.grainMoisture }"
+                @click="visibleSeries.grainMoisture = !visibleSeries.grainMoisture"
+              >
+                <span class="legend-color-dot" style="background: #9333EA;"></span>
+                <span>{{ $t('dashboard.seriesGrainMoisture') }}</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="series-btn" 
+                :class="{ active: visibleSeries.solarRadiation }"
+                @click="visibleSeries.solarRadiation = !visibleSeries.solarRadiation"
+              >
+                <span class="legend-color-dot" style="background: #F59E0B;"></span>
+                <span>{{ $t('dashboard.seriesSolarRadiation') }}</span>
+              </button>
+            </div>
+
+            <!-- Master SVG Canvas -->
+            <div 
+              class="master-svg-chart-wrapper"
+              @mousemove="handleChartMouseMove"
+              @mouseleave="handleChartMouseLeave"
+            >
+              <svg viewBox="0 0 1000 300" class="master-svg" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="dashTempGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#E11D48" stop-opacity="0.22"/>
+                    <stop offset="100%" stop-color="#E11D48" stop-opacity="0.0"/>
+                  </linearGradient>
+                  <linearGradient id="dashMoistureGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#9333EA" stop-opacity="0.20"/>
+                    <stop offset="100%" stop-color="#9333EA" stop-opacity="0.0"/>
+                  </linearGradient>
+                  <linearGradient id="dashSolarGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.15"/>
+                    <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.0"/>
+                  </linearGradient>
+                </defs>
+
+                <!-- Safety Zone Band (40°C - 50°C) -->
+                <rect x="60" y="130" width="880" height="24" fill="#10B981" fill-opacity="0.08" />
+                <text x="65" y="145" font-size="9.5" fill="#059669" font-weight="600">{{ $t('dashboard.idealTempZone') }}</text>
+
+                <!-- Critical Threshold (55°C) -->
+                <line x1="60" y1="118" x2="940" y2="118" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6"/>
+                <text x="830" y="113" font-size="9" fill="#DC2626" font-weight="600">{{ $t('dashboard.criticalThreshold') }}</text>
+
+                <!-- Target Moisture (12.0%) -->
+                <line x1="60" y1="221" x2="940" y2="221" stroke="#9333EA" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6"/>
+                <text x="820" y="216" font-size="9" fill="#7E22CE" font-weight="600">{{ $t('dashboard.storageTarget') }}</text>
+
+                <!-- Grid Lines -->
+                <g v-for="g in yGridLines" :key="g.val">
+                  <line x1="60" :y1="g.y" x2="940" :y2="g.y" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="2 2"/>
+                  <text x="20" :y="g.y + 4" font-size="10.5" fill="#64748B" font-weight="600">{{ g.val }}</text>
+                  <text x="948" :y="g.y + 4" font-size="10.5" fill="#D97706" font-weight="600">{{ g.solarVal }}</text>
+                </g>
+
+                <text x="948" y="14" font-size="9" fill="#D97706" font-weight="700">W/m²</text>
+                <text x="20" y="14" font-size="9" fill="#64748B" font-weight="700">°C / %</text>
+
+                <!-- Area Fills -->
+                <path v-if="visibleSeries.tempInternal && tempAreaPath" :d="tempAreaPath" fill="url(#dashTempGrad)" />
+                <path v-if="visibleSeries.grainMoisture && moistureAreaPath" :d="moistureAreaPath" fill="url(#dashMoistureGrad)" />
+                <path v-if="visibleSeries.solarRadiation && solarAreaPath" :d="solarAreaPath" fill="url(#dashSolarGrad)" />
+
+                <!-- Curves -->
+                <path v-if="visibleSeries.solarRadiation && solarCurvePath" :d="solarCurvePath" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
+                <path v-if="visibleSeries.humidity && humidityCurvePath" :d="humidityCurvePath" fill="none" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round"/>
+                <path v-if="visibleSeries.tempExternal && tempExtCurvePath" :d="tempExtCurvePath" fill="none" stroke="#0D9488" stroke-width="2" stroke-dasharray="4 2" stroke-linecap="round"/>
+                <path v-if="visibleSeries.grainMoisture && moistureCurvePath" :d="moistureCurvePath" fill="none" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
+                <path v-if="visibleSeries.tempInternal && tempCurvePath" :d="tempCurvePath" fill="none" stroke="#E11D48" stroke-width="3.5" stroke-linecap="round"/>
+
+                <!-- X-Axis Line -->
+                <line x1="60" y1="250" x2="940" y2="250" stroke="#94A3B8" stroke-width="1.5"/>
+
+                <!-- X-Axis Labels -->
+                <g v-for="(lbl, idx) in xTimeLabels" :key="idx">
+                  <line :x1="lbl.x" y1="250" :x2="lbl.x" y2="256" stroke="#64748B" stroke-width="1.5"/>
+                  <text :x="lbl.x" y="272" font-size="10" fill="#64748B" text-anchor="middle" font-weight="500">{{ lbl.time }}</text>
+                </g>
+
+                <!-- Crosshair -->
+                <g v-if="hoverData">
+                  <line :x1="hoverData.svgX" y1="20" :x2="hoverData.svgX" y2="250" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="3 3"/>
+                  <circle v-if="visibleSeries.tempInternal" :cx="hoverData.svgX" :cy="hoverData.yTemp" r="5" fill="#E11D48" stroke="#FFFFFF" stroke-width="2"/>
+                  <circle v-if="visibleSeries.grainMoisture" :cx="hoverData.svgX" :cy="hoverData.yMoisture" r="5" fill="#9333EA" stroke="#FFFFFF" stroke-width="2"/>
+                  <circle v-if="visibleSeries.humidity" :cx="hoverData.svgX" :cy="hoverData.yHum" r="4.5" fill="#0284C7" stroke="#FFFFFF" stroke-width="2"/>
+                  <circle v-if="visibleSeries.solarRadiation" :cx="hoverData.svgX" :cy="hoverData.ySolar" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2"/>
+                </g>
+              </svg>
+
+              <!-- Floating Tooltip -->
+              <div 
+                v-if="hoverData" 
+                class="floating-chart-tooltip"
+                :style="{ left: `${hoverData.domPercentX}%` }"
+              >
+                <div class="tooltip-header">
+                  <span class="tooltip-time-icon">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                  </span>
+                  <strong>{{ hoverData.item.timeFormatted || hoverData.item.time }}</strong>
+                </div>
+                <div class="tooltip-grid">
+                  <div class="tooltip-item" v-if="visibleSeries.tempInternal">
+                    <span class="tt-dot" style="background: #E11D48;"></span>
+                    <span class="tt-label">{{ $t('dashboard.tooltipTempInternal') }}:</span>
+                    <span class="tt-val">{{ hoverData.item.tempInternal.toFixed(1) }}°C</span>
+                  </div>
+                  <div class="tooltip-item" v-if="visibleSeries.tempExternal">
+                    <span class="tt-dot" style="background: #0D9488;"></span>
+                    <span class="tt-label">{{ $t('dashboard.tooltipTempExternal') }}:</span>
+                    <span class="tt-val">{{ hoverData.item.tempExternal.toFixed(1) }}°C</span>
+                  </div>
+                  <div class="tooltip-item" v-if="visibleSeries.humidity">
+                    <span class="tt-dot" style="background: #0284C7;"></span>
+                    <span class="tt-label">{{ $t('dashboard.tooltipHumidity') }}:</span>
+                    <span class="tt-val">{{ hoverData.item.humidityInternal.toFixed(0) }}% RH</span>
+                  </div>
+                  <div class="tooltip-item" v-if="visibleSeries.grainMoisture">
+                    <span class="tt-dot" style="background: #9333EA;"></span>
+                    <span class="tt-label">{{ $t('dashboard.tooltipGrainMoisture') }}:</span>
+                    <span class="tt-val font-bold">{{ hoverData.item.grainMoisture.toFixed(1) }}%</span>
+                  </div>
+                  <div class="tooltip-item" v-if="visibleSeries.solarRadiation">
+                    <span class="tt-dot" style="background: #F59E0B;"></span>
+                    <span class="tt-label">{{ $t('dashboard.tooltipSolarRadiation') }}:</span>
+                    <span class="tt-val">{{ hoverData.item.solarRadiation.toFixed(0) }} W/m²</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4 Quick Analytics Strip -->
+            <div class="chart-quick-analytics-strip">
+              <div class="strip-item">
+                <span class="strip-lbl">{{ $t('dashboard.highestRecordedTemp') }}</span>
+                <span class="strip-val text-red">{{ maxRecordedTemp }}°C</span>
+              </div>
+              <div class="strip-item">
+                <span class="strip-lbl">{{ $t('dashboard.avgRecordedTemp') }}</span>
+                <span class="strip-val text-orange">{{ avgRecordedTemp }}°C</span>
+              </div>
+              <div class="strip-item">
+                <span class="strip-lbl">{{ $t('dashboard.peakDifferential') }}</span>
+                <span class="strip-val text-green-dark">+{{ maxRecordedDeltaT }}°C</span>
+              </div>
+              <div class="strip-item">
+                <span class="strip-lbl">{{ $t('dashboard.peakSolar') }}</span>
+                <span class="strip-val text-amber">{{ maxRecordedSolar }} W/m²</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Sistem Card -->
+          <div class="system-status-card">
+            <div class="system-status-left">
+              <div class="icon-circle-lg" :class="activeBatch ? 'icon-green-light' : 'icon-gray-light'">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" :stroke="activeBatch ? '#0D631B' : '#707A6C'" stroke-width="2.2">
+                  <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                  <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                  <line x1="12" y1="20" x2="12.01" y2="20"></line>
                 </svg>
               </div>
-              <div v-if="idx < recentAlerts.length - 1" class="marker-line"></div>
-            </div>
-            <div class="timeline-content">
-              <div class="timeline-title-row">
-                <h3 class="timeline-title">{{ alert.title }}</h3>
+              <div class="system-info">
+                <h2 class="system-title">{{ activeBatch ? $t('common.systemActive') : $t('dashboard.systemStandby') }}</h2>
+                <div class="badge-group">
+                  <span class="badge-pill" :class="isConnected ? 'bg-green-subtle text-green-dark' : 'bg-gray-subtle text-muted'">
+                    <span class="dot-green" :style="{ background: isConnected ? '#0D631B' : '#707A6C' }"></span> {{ isConnected ? $t('common.online') : $t('common.offline') }}
+                  </span>
+                  <span class="badge-pill bg-blue-subtle text-blue">
+                    {{ actuators.controlMode === 'AUTOMATIC' ? $t('dashboard.autoMode') : $t('dashboard.manualMode') }}
+                  </span>
+                  <span v-if="activeBatch" class="badge-pill bg-orange-subtle text-orange">
+                    {{ activeBatch.batchCode }} ({{ activeBatch.cropVariety }})
+                  </span>
+                  <span v-if="activeBatch" class="badge-pill bg-purple-subtle text-purple">
+                    ETA AI: {{ predictionData?.estimatedCompletionTimeOnly || '--:-- WIB' }} (~{{ predictionData?.formattedRemaining || $t('dashboard.etaHoursDefault') }})
+                  </span>
+                  <span v-else class="badge-pill bg-gray-subtle text-muted">
+                    {{ $t('dashboard.noActiveBatchStatus') }}
+                  </span>
+                </div>
               </div>
-              <p class="timeline-sub">{{ alert.message }}</p>
-              <span class="timeline-time">{{ formatAlertTime(alert.createdAt) }}</span>
+            </div>
+            <div class="system-status-right">
+              <span class="meta-label">IoT Ingestion & MySQL</span>
+              <span class="meta-time">{{ $t('common.operator') }}: {{ activeBatch?.operatorName || activeBatch?.operator?.name || $t('dashboard.defaultOperator') }}</span>
             </div>
           </div>
-          <div v-if="recentAlerts.length === 0" class="timeline-empty">
-            <p style="color: #707A6C; font-size: 13px;">Belum ada riwayat peringatan atau aktivitas.</p>
+
+          <!-- Aktivitas Terkini Card -->
+          <div class="activity-card">
+            <h2 class="activity-heading">{{ $t('dashboard.recentAlerts') }}</h2>
+            
+            <div class="timeline-container">
+              <div v-for="(alert, idx) in recentAlerts" :key="alert.id || idx" class="timeline-item">
+                <div class="timeline-marker">
+                  <div class="marker-circle" :class="alert.type === 'DANGER' ? 'marker-red' : alert.type === 'WARNING' ? 'marker-orange' : 'marker-green'">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                  </div>
+                  <div v-if="idx < recentAlerts.length - 1" class="marker-line"></div>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-title-row">
+                    <h3 class="timeline-title">{{ alert.title }}</h3>
+                  </div>
+                  <p class="timeline-sub">{{ alert.message }}</p>
+                  <span class="timeline-time">{{ formatAlertTime(alert.createdAt) }}</span>
+                </div>
+              </div>
+              <div v-if="recentAlerts.length === 0" class="timeline-empty">
+                <p style="color: #707A6C; font-size: 13px;">{{ $t('dashboard.noRecentAlerts') }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Mobile Layout (Page 2) -->
-    <div v-else class="mobile-content">
-      <!-- Top Title Area -->
-      <div class="mobile-room-status-header">
-        <div class="title-sub">
-          <h1 class="mobile-title">{{ $t('dashboard.title') }}</h1>
-          <p class="mobile-sub">{{ $t('dashboard.subtitle') }}</p>
-        </div>
-        <div class="badge-pill ready-badge">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="3">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <span>{{ isConnected ? $t('common.online') : 'Offline' }}</span>
-        </div>
-      </div>
-
-      <!-- Mobile Dual Connectivity Status Card -->
-      <ConnectionStatusCard @open-wifi-setup="isWifiSetupOpen = true" />
-
-      <!-- Mobile Stat Cards -->
-      <div class="mobile-cards-stack">
-        <div class="mobile-stat-card border-top-orange" :class="{ 'stat-card-standby': !isDataActive }">
-          <div class="icon-circle icon-orange">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45000" stroke-width="2.2">
-              <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
-            </svg>
-          </div>
-          <span class="mobile-stat-label">{{ $t('dashboard.tempInternal') }}</span>
-          <div class="mobile-stat-val">
-            <span class="big-num font-title">{{ isDataActive ? telemetry.tempInternal.toFixed(1) + '°C' : '--' }}</span>
-          </div>
-          <span class="mobile-stat-sub text-muted">{{ isDataActive ? `Eksternal: ${telemetry.tempExternal.toFixed(1)}°C` : 'Menunggu ESP32' }}</span>
-        </div>
-
-        <div class="mobile-stat-card border-top-blue" :class="{ 'stat-card-standby': !isDataActive }">
-          <div class="icon-circle icon-blue">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.2">
-              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-            </svg>
-          </div>
-          <span class="mobile-stat-label">{{ $t('dashboard.humidityInternal') }}</span>
-          <div class="mobile-stat-val">
-            <span class="big-num font-title">{{ isDataActive ? telemetry.humidityInternal.toFixed(0) + '%' : '--' }}</span>
-          </div>
-          <span class="mobile-stat-sub text-muted">{{ isDataActive ? `Eksternal: ${telemetry.humidityExternal.toFixed(0)}%` : 'Menunggu ESP32' }}</span>
-        </div>
-      </div>
-
-      <!-- Action Button -->
-      <button class="mobile-start-dry-btn" @click="$emit('start-drying')">
-        <svg width="14" height="14" viewBox="0 0 12 14" fill="currentColor">
-          <path d="M1.5 1.5L10.5 7L1.5 12.5V1.5Z"/>
-        </svg>
-        <span>{{ $t('dashboard.startNewBatch') }}</span>
-      </button>
-    </div>
+    </Transition>
 
     <!-- Wi-Fi & MQTT Setup Modal via Bluetooth BLE -->
     <DeviceSetupBleModal :is-open="isWifiSetupOpen" @close="isWifiSetupOpen = false" />
@@ -525,13 +518,21 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { t } from '../../i18n'
 import { telemetryService } from '../../services/telemetryService'
 import { dashboardService } from '../../services/dashboardService'
+import { batchService } from '../../services/batchService'
 import { alertService } from '../../services/alertService'
+import { anomalyService } from '../../services/anomalyService'
 import { systemState } from '../../services/settingsService'
 import connectionManager from '../../services/connectionManager'
 import ConnectionStatusCard from '../../components/ConnectionStatusCard.vue'
 import DeviceSetupBleModal from '../../components/DeviceSetupBleModal.vue'
+import DashboardSkeleton from '../../components/DashboardSkeleton.vue'
+
+const isInitialLoading = ref(true)
+const predictionData = ref(null)
+const anomalyHealth = ref(null)
 
 defineProps({
   isMobile: {
@@ -768,16 +769,16 @@ function handleChartMouseLeave() {
 }
 
 function formatAlertTime(dateStr) {
-  if (!dateStr) return 'Baru saja'
+  if (!dateStr) return t('common.justNow')
   try {
     const d = new Date(dateStr)
-    return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   } catch {
-    return 'Baru saja'
+    return t('common.justNow')
   }
 }
 
-async function loadInitialData() {
+async function loadInitialData(isFirstTime = false) {
   try {
     const statsRes = await dashboardService.getStats()
     if (statsRes) {
@@ -821,15 +822,40 @@ async function loadInitialData() {
   } catch (err) {
     console.warn('Could not fetch alerts:', err.message)
   }
+
+  try {
+    const predRes = await batchService.getActiveDryingPrediction()
+    if (predRes && predRes.success) {
+      predictionData.value = predRes
+    }
+  } catch (err) {
+    // silent prediction fallback
+  }
+
+  try {
+    const anomRes = await anomalyService.getHealthStatus()
+    if (anomRes && anomRes.success) {
+      anomalyHealth.value = anomRes.data
+    }
+  } catch (err) {
+    // silent anomaly health fallback
+  } finally {
+    if (isFirstTime) {
+      // Elegant minimal duration for smooth skeleton reveal
+      setTimeout(() => {
+        isInitialLoading.value = false
+      }, 400)
+    }
+  }
 }
 
 let dashboardPollTimer = null
 
 onMounted(() => {
   seedInitialHistory()
-  loadInitialData()
+  loadInitialData(true)
 
-  dashboardPollTimer = setInterval(loadInitialData, 5000)
+  dashboardPollTimer = setInterval(() => loadInitialData(false), 5000)
 
   connectionManager.on('telemetry_live', (data) => {
     if (data && data.hasData) {
@@ -876,13 +902,15 @@ onUnmounted(() => {
   min-height: 100%;
 }
 
-.desktop-content {
+.dashboard-main-content {
   padding: 32px 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;
   max-width: 1280px;
   margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .header-action-row {
@@ -966,8 +994,10 @@ onUnmounted(() => {
 /* 5 Stat Cards Grid */
 .stats-grid-5 {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .stat-card {
@@ -980,6 +1010,9 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 :global(.dark-theme) .stat-card {
@@ -1435,77 +1468,113 @@ onUnmounted(() => {
   color: var(--color-text-muted);
 }
 
-/* Mobile Styling */
-.mobile-content {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* Mobile Responsive Rules for Dashboard */
+@media (max-width: 768px) {
+  .dashboard-main-content {
+    padding: 0;
+    gap: 16px;
+  }
+
+  .header-action-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .master-chart-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .master-chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .master-chart-heading {
+    font-size: 16px;
+  }
+
+  .series-toggle-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .series-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .chart-quick-analytics-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .system-status-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .system-status-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .system-status-right {
+    width: 100%;
+    border-top: 1px solid rgba(203, 213, 225, 0.4);
+    padding-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  :global(.dark-theme) .system-status-right {
+    border-top-color: #1E4E61;
+  }
+
+  .activity-card {
+    padding: 16px;
+  }
+
+  .sensor-anomaly-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .btn-check-telemetry {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
-.mobile-room-status-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.mobile-title {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--color-text-title);
-}
-
-.mobile-sub {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.mobile-cards-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.mobile-stat-card {
-  background: var(--color-white);
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  border-radius: 14px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mobile-stat-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-}
-
-.big-num {
-  font-size: 24px;
-  font-weight: 800;
-}
-
-.mobile-stat-sub {
-  font-size: 12px;
-}
-
-.mobile-start-dry-btn {
-  width: 100%;
-  background: #0D631B;
-  color: #FFFFFF;
-  border: none;
-  padding: 14px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
+@media (max-width: 580px) {
+  .stats-grid-5 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 /* Global utility */
@@ -1577,18 +1646,213 @@ onUnmounted(() => {
   transition: all 0.15s ease;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
   .stats-grid-5 {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 860px) {
   .stats-grid-5 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .chart-quick-analytics-strip {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Dashboard Skeleton / Loaded Fade Transition */
+.fade-dashboard-enter-active,
+/* Dashboard AI ETA Pill Styling */
+.dash-eta-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.dash-ai-eta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #F3E8FF;
+  color: #7E22CE;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  border: 1px solid #E9D5FF;
+  white-space: nowrap;
+}
+
+.ai-spark-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #9333EA;
+  box-shadow: 0 0 6px #9333EA;
+  animation: pulse-dot 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+/* ==========================================================================
+   Sensor Anomaly Alert Banner
+   ========================================================================== */
+.sensor-anomaly-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  border-width: 1px;
+  border-style: solid;
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sensor-anomaly-banner.banner-warning {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.04) 100%);
+  border-color: rgba(217, 119, 6, 0.35);
+}
+
+.sensor-anomaly-banner.banner-critical {
+  background: linear-gradient(135deg, rgba(186, 26, 26, 0.12) 0%, rgba(186, 26, 26, 0.04) 100%);
+  border-color: rgba(186, 26, 26, 0.4);
+}
+
+:global(.dark-theme) .sensor-anomaly-banner.banner-warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(15, 23, 42, 0.7) 100%);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+:global(.dark-theme) .sensor-anomaly-banner.banner-critical {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(15, 23, 42, 0.7) 100%);
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+.anomaly-banner-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.banner-warning .anomaly-banner-icon {
+  background: rgba(217, 119, 6, 0.18);
+  color: #D97706;
+}
+
+.banner-critical .anomaly-banner-icon {
+  background: rgba(186, 26, 26, 0.18);
+  color: #BA1A1A;
+}
+
+:global(.dark-theme) .banner-warning .anomaly-banner-icon {
+  background: rgba(245, 158, 11, 0.25);
+  color: #FBBF24;
+}
+
+:global(.dark-theme) .banner-critical .anomaly-banner-icon {
+  background: rgba(239, 68, 68, 0.25);
+  color: #F87171;
+}
+
+.anomaly-banner-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.anomaly-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.anomaly-banner-title strong {
+  font-size: 13.5px;
+  color: #0F172A;
+}
+
+:global(.dark-theme) .anomaly-banner-title strong {
+  color: #F8FAFC;
+}
+
+.anomaly-score-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #475569;
+}
+
+:global(.dark-theme) .anomaly-score-tag {
+  background: rgba(255, 255, 255, 0.1);
+  color: #CBD5E1;
+}
+
+.anomaly-banner-desc {
+  font-size: 12px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.4;
+}
+
+:global(.dark-theme) .anomaly-banner-desc {
+  color: #94A3B8;
+}
+
+.anomaly-solution-hint {
+  color: #0D631B;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+:global(.dark-theme) .anomaly-solution-hint {
+  color: #34D399;
+}
+
+.btn-check-telemetry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: #0F172A;
+  color: #FFFFFF;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-check-telemetry:hover {
+  background: #1E293B;
+  transform: translateY(-1px);
+}
+
+:global(.dark-theme) .btn-check-telemetry {
+  background: #334155;
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .btn-check-telemetry:hover {
+  background: #475569;
 }
 </style>

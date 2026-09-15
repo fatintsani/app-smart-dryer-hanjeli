@@ -18,15 +18,15 @@
 
       <!-- Text Content -->
       <div class="error-content">
-        <span class="error-tag">Halaman Tidak Ditemukan • 404 Not Found</span>
-        <h1 class="error-title">Oops! Halaman Tidak Ditemukan</h1>
+        <span class="error-tag">{{ $t('errors.notFoundTag') }}</span>
+        <h1 class="error-title">{{ $t('errors.notFoundTitle') }}</h1>
         <p class="error-desc">
-          Tautan yang Anda tuju mungkin salah ketik, telah dipindahkan, atau tidak tersedia di sistem Smart Room Dryer Hanjeli.
+          {{ $t('errors.notFoundDesc') }}
         </p>
 
         <!-- Quick Suggestions -->
         <div class="suggested-routes">
-          <span class="suggest-label">Halaman yang sering diakses:</span>
+          <span class="suggest-label">{{ $t('errors.suggestedRoutes') }}</span>
           <div class="suggest-chips">
             <router-link to="/dashboard" class="suggest-chip">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -35,14 +35,14 @@
                 <rect width="7" height="9" x="14" y="12" rx="1"></rect>
                 <rect width="7" height="5" x="3" y="16" rx="1"></rect>
               </svg>
-              <span>Dashboard</span>
+              <span>{{ $t('nav.dashboard') }}</span>
             </router-link>
 
             <router-link to="/monitoring" class="suggest-chip">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
-              <span>Live Monitoring</span>
+              <span>{{ $t('nav.monitoring') }}</span>
             </router-link>
 
             <router-link to="/history" class="suggest-chip">
@@ -51,7 +51,7 @@
                 <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"></path>
                 <path d="M12 7v5l4 2"></path>
               </svg>
-              <span>Riwayat Batch</span>
+              <span>{{ $t('nav.history') }}</span>
             </router-link>
           </div>
         </div>
@@ -63,7 +63,7 @@
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
               <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
-            <span>Kembali ke Beranda</span>
+            <span>{{ $t('errors.backToDashboard') }}</span>
           </router-link>
 
           <button type="button" @click="goBack" class="btn-secondary">
@@ -71,14 +71,14 @@
               <path d="M19 12H5"></path>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            <span>Halaman Sebelumnya</span>
+            <span>{{ $t('common.back') }}</span>
           </button>
         </div>
       </div>
 
       <!-- Footer Brand Info -->
       <div class="error-footer">
-        <span>Smart Room Dryer Hanjeli • Desa Wisata Hanjeli & STAS-RG</span>
+        <span>{{ $t('common.smartRoomDryer') }} • {{ $t('common.facilityName') }} & {{ $t('common.devCredit') }}</span>
       </div>
     </div>
   </div>

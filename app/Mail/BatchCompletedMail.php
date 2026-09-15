@@ -29,7 +29,7 @@ class BatchCompletedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '🌾 Sesi Pengeringan Selesai: Batch #' . $this->batch->batch_code . ' (' . $this->batch->crop_variety . ')',
+            subject: 'Sesi Pengeringan Selesai: Batch #' . $this->batch->batch_code . ' (' . $this->batch->crop_variety . ')',
         );
     }
 

@@ -134,27 +134,126 @@ class TelemetryController extends Controller
      */
     public function ingest(Request $request, \App\Services\MqttService $mqttService): JsonResponse
     {
-        $validated = $request->validate([
-            'batchId' => 'nullable',
-            'tempInternal' => 'required|numeric',
-            'humidityInternal' => 'required|numeric',
-            'tempExternal' => 'nullable|numeric',
-            'humidityExternal' => 'nullable|numeric',
-            'solarRadiation' => 'nullable|numeric',
-            'grainMoisture' => 'nullable|numeric',
-            'weightKg' => 'nullable|numeric',
-            'heaterStatus' => 'nullable|boolean',
-            'heaterLevel' => 'nullable|integer',
-            'exhaustFanStatus' => 'nullable|boolean',
-            'exhaustFanSpeed' => 'nullable|integer',
-        ]);
+        // 1. Authenticate Hardware Device via X-Device-Token header or Bearer Token
+        $token = $request->header('X-Device-Token') 
+            ?? $request->bearerToken() 
+            ?? $request->header('Authorization') 
+            ?? $request->input('device_token');
 
-        $telemetry = $mqttService->processTelemetryPayload($validated);
+        if ($token && str_starts_with($token, 'Bearer ')) {
+            $token = substr($token, 7);
+        }
+
+        // Master bypass tokens for local simulation engine
+        $validDevice = null;
+        if ($token) {
+            $validDevice = \App\Models\Device::where('device_token', $token)->where('is_active', true)->first();
+        }
+
+        $isLocalSimToken = $token === 'esp32_sec_7f9a2b1c8e3d4f5a6b7c8d9e0f1a2b3c' || $token === 'esp32-sim-token-master';
+
+        if (!$validDevice && !$isLocalSimToken) {
+            return response()->json([
+                'success' => false,
+                'error' => 'UNAUTHORIZED_DEVICE',
+                'message' => 'Akses ditolak: X-Device-Token tidak valid atau tidak disertakan pada header permintaan. Silakan konfigurasikan token perangkat resmi melalui menu Admin Perangkat.',
+            ], 401);
+        }
+
+        // Normalize incoming payload for both camelCase and snake_case ESP32 payloads
+        $tempInternal = $request->input('tempInternal', $request->input('temp_internal', $request->input('temperature')));
+        $humidityInternal = $request->input('humidityInternal', $request->input('humidity_internal', $request->input('rh_internal', $request->input('rhInternal', $request->input('humidity')))));
+        $tempExternal = $request->input('tempExternal', $request->input('temp_external', $request->input('external_temp')));
+        $humidityExternal = $request->input('humidityExternal', $request->input('humidity_external', $request->input('rh_external', $request->input('rhExternal', $request->input('external_humidity')))));
+        $solarRadiation = $request->input('solarRadiation', $request->input('solar_radiation', $request->input('solar_intensity')));
+        $grainMoisture = $request->input('grainMoisture', $request->input('grain_moisture', $request->input('moisture_grain')));
+        $weightKg = $request->input('weightKg', $request->input('weight_kg', $request->input('weight')));
+
+        if ($tempInternal === null || $humidityInternal === null) {
+            return response()->json([
+                'success' => false,
+                'error' => 'VALIDATION_ERROR',
+                'message' => 'Suhu internal (tempInternal / temp_internal) dan Kelembapan internal (humidityInternal / humidity_internal) wajib disertakan.',
+            ], 422);
+        }
+
+        $payload = [
+            'batchId' => $request->input('batchId', $request->input('batch_id')),
+            'tempInternal' => (float) $tempInternal,
+            'humidityInternal' => (float) $humidityInternal,
+            'tempExternal' => $tempExternal !== null ? (float) $tempExternal : null,
+            'humidityExternal' => $humidityExternal !== null ? (float) $humidityExternal : null,
+            'solarRadiation' => $solarRadiation !== null ? (float) $solarRadiation : null,
+            'grainMoisture' => $grainMoisture !== null ? (float) $grainMoisture : null,
+            'weightKg' => $weightKg !== null ? (float) $weightKg : null,
+            'heaterStatus' => $request->boolean('heaterStatus', $request->boolean('heater_status')),
+            'heaterLevel' => (int) $request->input('heaterLevel', $request->input('heater_level', 0)),
+            'exhaustFanStatus' => $request->boolean('exhaustFanStatus', $request->boolean('exhaust_fan_status')),
+            'exhaustFanSpeed' => (int) $request->input('exhaustFanSpeed', $request->input('exhaust_fan_speed', 0)),
+        ];
+
+        if ($validDevice) {
+            $validDevice->update([
+                'last_heartbeat' => Carbon::now()->locale('id')->diffForHumans(),
+                'status' => 'online',
+            ]);
+        }
+
+        $telemetry = $mqttService->processTelemetryPayload($payload);
 
         return response()->json([
             'success' => true,
             'id' => $telemetry->id,
+            'deviceId' => $validDevice?->code ?? 'ESP32-GH-HANJELI-01',
             'recordedAt' => $telemetry->recorded_at->toIso8601String(),
         ], 201);
+    }
+
+    /**
+     * Trigger manual telemetry downsampling / database compression.
+     */
+    public function downsample(Request $request, \App\Services\TelemetryAggregationService $service): JsonResponse
+    {
+        $batchId = $request->input('batchId', $request->input('batch_id'));
+        $intervalMinutes = max(1, (int) $request->input('intervalMinutes', $request->input('interval', 5)));
+        $force = (bool) $request->input('force', false);
+
+        if ($batchId) {
+            $batch = Batch::where('id', $batchId)->orWhere('batch_code', $batchId)->first();
+            if (!$batch) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Batch '{$batchId}' tidak ditemukan.",
+                ], 404);
+            }
+
+            $result = $service->downsampleBatch($batch, $intervalMinutes, $force);
+            return response()->json([
+                'success' => true,
+                'message' => $result['status'] === 'SUCCESS' 
+                    ? "Berhasil mengompresi data telemetri batch #{$batch->batch_code} (hemat {$result['savedRows']} baris / {$result['reductionPercentage']}%)." 
+                    : $result['reason'],
+                'result' => $result,
+            ]);
+        }
+
+        $summary = $service->downsampleAllCompletedBatches($intervalMinutes, $force);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Proses downsampling selesai untuk {$summary['totalBatchesProcessed']} batch (hemat {$summary['totalSavedRows']} baris / {$summary['overallReductionPercentage']}%).",
+            'summary' => $summary,
+        ]);
+    }
+
+    /**
+     * Get database telemetry storage usage and compression statistics.
+     */
+    public function storageStats(\App\Services\TelemetryAggregationService $service): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'stats' => $service->getStorageStats(),
+        ]);
     }
 }

@@ -45,4 +45,24 @@ export const batchService = {
   async seedSample(cropVariety = 'Hanjeli Ketan Sukabumi (Grade A)') {
     return api.post('/batches/seed-sample', { cropVariety });
   },
+
+  async getVerification(batchCode) {
+    return api.get(`/public/verify/${encodeURIComponent(batchCode)}`);
+  },
+
+  async getActiveDryingPrediction() {
+    return api.get('/drying/predictive-eta');
+  },
+
+  async getDryingPrediction(batchId) {
+    return api.get(`/batches/${batchId}/drying-prediction`);
+  },
+
+  async getWeatherForecast() {
+    return api.get('/drying/weather-forecast');
+  },
+
+  async getQualityAssessment(batchId) {
+    return api.get(`/batches/${batchId}/quality-assessment`);
+  },
 };

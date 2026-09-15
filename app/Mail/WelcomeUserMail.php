@@ -27,7 +27,7 @@ class WelcomeUserMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '🌱 Selamat Datang di Smart Room Dryer Hanjeli - ' . $this->name,
+            subject: 'Selamat Datang di Smart Room Dryer Hanjeli - ' . $this->name,
         );
     }
 

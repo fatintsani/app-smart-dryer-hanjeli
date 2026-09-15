@@ -1,13 +1,16 @@
 <template>
   <div class="devices-guide-page">
-    <div class="guide-container">
-      <!-- Header Area -->
-      <div class="page-header-row">
-        <div class="page-header-group">
-          <div class="page-title-wrap">
-            <div>
-              <h1 class="page-title">Katalog Sensor & Panduan Perangkat</h1>
-              <p class="page-subtitle">Informasi spesifikasi sensor, modul aktuator, dan panduan operasional Greenhouse Smart Dryer Hanjeli.</p>
+    <Transition name="fade-guide" mode="out-in">
+      <GuideSkeleton v-if="isInitialLoading" />
+      <div v-else class="guide-loaded-content">
+        <div class="guide-container">
+          <!-- Header Area -->
+          <div class="page-header-row">
+            <div class="page-header-group">
+              <div class="page-title-wrap">
+                <div>
+                  <h1 class="page-title">{{ $t('guide.title') }}</h1>
+              <p class="page-subtitle">{{ $t('guide.subtitle') }}</p>
             </div>
           </div>
         </div>
@@ -29,17 +32,17 @@
           </div>
           <div>
             <div class="banner-title">
-              {{ isSystemActive ? 'Seluruh Sensor Terhubung via ESP32 Gateway' : 'ESP32 Menunggu Sambungan (Wi-Fi / BLE)' }}
+              {{ isSystemActive ? $t('guide.allSensorsReady') : $t('guide.espWaiting') }}
             </div>
             <p class="banner-desc">
-              {{ isSystemActive ? 'Semua modul sensor terintegrasi dengan mikrokontroler utama ESP32 dan menyalurkan data telemetri secara real-time.' : 'Hubungkan ESP32 ke jaringan Wi-Fi/MQTT atau Bluetooth untuk mengalirkan data sensor secara otomatis.' }}
+              {{ isSystemActive ? $t('guide.allSensorsDesc') : $t('guide.espWaitingDesc') }}
             </p>
           </div>
         </div>
 
         <div class="banner-indicators">
           <div class="indicator-item">
-            <span class="ind-lbl">Mikrokontroler Utama</span>
+            <span class="ind-lbl">{{ $t('guide.mainMcu') }}</span>
             <span class="ind-val text-green-dark">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="4" y="4" width="16" height="16" rx="2"></rect>
@@ -50,7 +53,7 @@
           </div>
           <div class="indicator-sep"></div>
           <div class="indicator-item">
-            <span class="ind-lbl">Kanal Komunikasi</span>
+            <span class="ind-lbl">{{ $t('guide.commChannel') }}</span>
             <span class="ind-val text-green-dark">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
@@ -62,9 +65,9 @@
           </div>
           <div class="indicator-sep"></div>
           <div class="indicator-item">
-            <span class="ind-lbl">Total Modul Terintegrasi</span>
+            <span class="ind-lbl">{{ $t('guide.totalModules') }}</span>
             <span class="ind-val text-green-dark">
-              {{ hardwareCatalog.length }} Modul Sensor & Aktuator
+              {{ $t('guide.modulesUnit', { count: hardwareCatalog.length }) }}
             </span>
           </div>
         </div>
@@ -82,7 +85,7 @@
             <line x1="8" y1="21" x2="16" y2="21"></line>
             <line x1="12" y1="17" x2="12" y2="21"></line>
           </svg>
-          <span>Katalog Sensor ({{ hardwareCatalog.length }})</span>
+          <span>{{ $t('guide.tabCatalog') }} ({{ hardwareCatalog.length }})</span>
         </button>
 
         <button 
@@ -97,7 +100,7 @@
             <line x1="16" y1="17" x2="8" y2="17"></line>
             <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
-          <span>SOP Pengeringan Hanjeli</span>
+          <span>{{ $t('guide.tabSop') }}</span>
         </button>
 
         <button 
@@ -110,7 +113,7 @@
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
-          <span>Panduan Kendala & Pemeliharaan</span>
+          <span>{{ $t('guide.tabFaq') }}</span>
         </button>
 
         <button 
@@ -122,7 +125,7 @@
             <polyline points="16 18 22 12 16 6"></polyline>
             <polyline points="8 6 2 12 8 18"></polyline>
           </svg>
-          <span>Program Arduino / ESP32 (2)</span>
+          <span>{{ $t('guide.tabArduino') }} ({{ arduinoPrograms.length }})</span>
         </button>
       </div>
 
@@ -191,7 +194,7 @@
 
               <div class="sensor-status-tag" :class="isSystemActive ? 'tag-online' : 'tag-standby'">
                 <span class="status-pulse-dot" :class="isSystemActive ? 'online' : 'standby'"></span>
-                <span>{{ isSystemActive ? 'Aktif' : 'Siaga' }}</span>
+                <span>{{ isSystemActive ? $t('guide.statusActive') : $t('guide.statusStandby') }}</span>
               </div>
             </div>
 
@@ -220,18 +223,18 @@
           <div class="collab-item">
             <HanjeliLogo :size="44" />
             <div class="collab-text">
-              <span class="collab-role">Pemilik Sistem & Lokasi</span>
-              <strong class="collab-name">Desa Wisata Hanjeli</strong>
-              <p class="collab-desc">Waluran, Geopark Ciletuh Sukabumi - Pusat budidaya & inovasi hanjeli nusantara.</p>
+              <span class="collab-role">{{ $t('guide.collabOwnerRole') }}</span>
+              <strong class="collab-name">{{ $t('guide.collabOwnerName') }}</strong>
+              <p class="collab-desc">{{ $t('guide.collabOwnerDesc') }}</p>
             </div>
           </div>
           <div class="collab-divider"></div>
           <div class="collab-item">
             <StasLogo :size="44" />
             <div class="collab-text">
-              <span class="collab-role">Pengembang Alat & Sistem IoT</span>
-              <strong class="collab-name">Center of Excellence STAS</strong>
-              <p class="collab-desc">Perancang arsitektur smart dryer greenhouse, mikrokontroler ESP32, dan dashboard analitik.</p>
+              <span class="collab-role">{{ $t('guide.collabDevRole') }}</span>
+              <strong class="collab-name">{{ $t('guide.collabDevName') }}</strong>
+              <p class="collab-desc">{{ $t('guide.collabDevDesc') }}</p>
             </div>
           </div>
         </div>
@@ -250,8 +253,8 @@
               </svg>
             </div>
             <div>
-              <h2 class="sop-hero-title">Standar Operasional Prosedur (SOP) Pengeringan Hanjeli</h2>
-              <p class="sop-hero-subtitle">Ikuti tahapan berikut untuk menghasilkan gabah hanjeli kering berkualitas tinggi dengan kadar air standar aman 12%.</p>
+              <h2 class="sop-hero-title">{{ $t('guide.sopHeroTitle') }}</h2>
+              <p class="sop-hero-subtitle">{{ $t('guide.sopHeroSubtitle') }}</p>
             </div>
           </div>
 
@@ -260,17 +263,17 @@
             <div class="sop-step-card">
               <div class="sop-step-header">
                 <div class="sop-step-num">1</div>
-                <h3 class="sop-step-title">Persiapan & Penimbangan Awal</h3>
+                <h3 class="sop-step-title">{{ $t('guide.sopStep1Title') }}</h3>
               </div>
               <div class="sop-step-body">
-                <p>Bersihkan gabah hanjeli basah hasil panen dari kotoran daun atau tangkai. Timbang total muatan awal gabah sebelum disebar merata di atas nampan rak pengering.</p>
+                <p>{{ $t('guide.sopStep1Desc') }}</p>
                 <div class="sop-tip-box">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                   </svg>
-                  <span>Tebal hamparan hanjeli di rak maksimal 2-3 cm agar sirkulasi panas merata.</span>
+                  <span>{{ $t('guide.sopStep1Tip') }}</span>
                 </div>
               </div>
             </div>
@@ -279,17 +282,17 @@
             <div class="sop-step-card">
               <div class="sop-step-header">
                 <div class="sop-step-num">2</div>
-                <h3 class="sop-step-title">Nyalakan Sistem & Hubungkan ESP32</h3>
+                <h3 class="sop-step-title">{{ $t('guide.sopStep2Title') }}</h3>
               </div>
               <div class="sop-step-body">
-                <p>Pastikan adaptor daya greenhouse terhubung. ESP32 akan otomatis menyala dan menghubungkan sensor ke jaringan Wi-Fi/MQTT atau Bluetooth BLE.</p>
+                <p>{{ $t('guide.sopStep2Desc') }}</p>
                 <div class="sop-tip-box">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                   </svg>
-                  <span>Cek status di dashboard atas. Jika berwarna hijau (Connected), sistem siap beroperasi.</span>
+                  <span>{{ $t('guide.sopStep2Tip') }}</span>
                 </div>
               </div>
             </div>
@@ -298,17 +301,17 @@
             <div class="sop-step-card">
               <div class="sop-step-header">
                 <div class="sop-step-num">3</div>
-                <h3 class="sop-step-title">Mulai Batch & Otomasi Pengeringan</h3>
+                <h3 class="sop-step-title">{{ $t('guide.sopStep3Title') }}</h3>
               </div>
               <div class="sop-step-body">
-                <p>Buka menu <strong>"Mulai Pengeringan"</strong>, buat batch baru dengan berat awal dan target kadar air 12%. Sistem otomatis mengontrol kipas pembuangan dan pemanas tambahan.</p>
+                <p>{{ $t('guide.sopStep3Desc') }}</p>
                 <div class="sop-tip-box">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                   </svg>
-                  <span>Pemanas keramik hanya akan aktif otomatis saat intensitas sinar matahari rendah atau cuaca hujan.</span>
+                  <span>{{ $t('guide.sopStep3Tip') }}</span>
                 </div>
               </div>
             </div>
@@ -317,17 +320,17 @@
             <div class="sop-step-card">
               <div class="sop-step-header">
                 <div class="sop-step-num">4</div>
-                <h3 class="sop-step-title">Pantau & Panen Gabah Kering</h3>
+                <h3 class="sop-step-title">{{ $t('guide.sopStep4Title') }}</h3>
               </div>
               <div class="sop-step-body">
-                <p>Pantau kurva penurunan kadar air dan berat di menu <strong>"Monitoring"</strong>. Saat mencapai target 12%, sistem akan memunculkan alarm notifikasi bahwa gabah siap dikemas.</p>
+                <p>{{ $t('guide.sopStep4Desc') }}</p>
                 <div class="sop-tip-box">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                   </svg>
-                  <span>Simpan biji hanjeli kering ke dalam karung kedap udara atau wadah silo tertutup.</span>
+                  <span>{{ $t('guide.sopStep4Tip') }}</span>
                 </div>
               </div>
             </div>
@@ -343,11 +346,11 @@
               </svg>
             </div>
             <div>
-              <h4 class="safety-title">Aturan Keselamatan & Kebersihan Operator</h4>
+              <h4 class="safety-title">{{ $t('guide.sopSafetyTitle') }}</h4>
               <ul class="safety-list">
-                <li><strong>Hindari Menyentuh Pemanas Langsung:</strong> Jangan menyentuh elemen pemanas keramik saat atau sesaat setelah proses pengeringan berjalan.</li>
-                <li><strong>Jaga Pintu Greenhouse Tertutup:</strong> Pastikan pintu tertutup rapat selama proses agar udara panas tidak terbuang keluar tanpa kendali.</li>
-                <li><strong>Pembersihan Rak Rutin:</strong> Bersihkan remah-remah hanjeli di permukaan rak setiap kali siklus selesai agar sensor dan sirkulasi udara selalu bersih.</li>
+                <li><strong>{{ $t('guide.sopSafetyItem1Bold') }}</strong> {{ $t('guide.sopSafetyItem1Text') }}</li>
+                <li><strong>{{ $t('guide.sopSafetyItem2Bold') }}</strong> {{ $t('guide.sopSafetyItem2Text') }}</li>
+                <li><strong>{{ $t('guide.sopSafetyItem3Bold') }}</strong> {{ $t('guide.sopSafetyItem3Text') }}</li>
               </ul>
             </div>
           </div>
@@ -366,8 +369,8 @@
               </svg>
             </div>
             <div>
-              <h2 class="faq-hero-title">Panduan Kendala & Pemeliharaan Sensor</h2>
-              <p class="faq-hero-subtitle">Solusi praktis dan perawatan perangkat keras greenhouse bagi operator.</p>
+              <h2 class="faq-hero-title">{{ $t('guide.faqHeroTitle') }}</h2>
+              <p class="faq-hero-subtitle">{{ $t('guide.faqHeroSubtitle') }}</p>
             </div>
           </div>
 
@@ -375,17 +378,17 @@
             <!-- FAQ 1 -->
             <div class="faq-card" :class="{ open: openFaq === 1 }">
               <button class="faq-header" @click="openFaq = openFaq === 1 ? null : 1">
-                <span class="faq-question">Bagaimana jika data sensor tidak masuk ke website dashboard?</span>
+                <span class="faq-question">{{ $t('guide.faq1Question') }}</span>
                 <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
               <div v-if="openFaq === 1" class="faq-body">
                 <ol class="faq-steps">
-                  <li>Pastikan ESP32 telah dinyalakan dan lampu LED indikator pada modul berkedip/menyala.</li>
-                  <li>Jika menggunakan <strong>Wi-Fi</strong>, pastikan Hotspot/Wi-Fi greenhouse aktif dan perintah <code>php artisan greenhouse:mqtt-worker</code> sedang berjalan di terminal server.</li>
-                  <li>Jika menggunakan <strong>Bluetooth BLE</strong>, klik tombol <strong>"Sambungkan Bluetooth"</strong> di pojok kanan atas layar dan pilih <code>SmartDryer-Hanjeli-001</code>.</li>
-                  <li>Data sensor akan otomatis mengalir begitu ESP32 terhubung.</li>
+                  <li>{{ $t('guide.faq1Step1') }}</li>
+                  <li v-html="$t('guide.faq1Step2')"></li>
+                  <li v-html="$t('guide.faq1Step3')"></li>
+                  <li>{{ $t('guide.faq1Step4') }}</li>
                 </ol>
               </div>
             </div>
@@ -393,26 +396,26 @@
             <!-- FAQ 2 -->
             <div class="faq-card" :class="{ open: openFaq === 2 }">
               <button class="faq-header" @click="openFaq = openFaq === 2 ? null : 2">
-                <span class="faq-question">Berapa suhu optimal untuk pengeringan biji hanjeli?</span>
+                <span class="faq-question">{{ $t('guide.faq2Question') }}</span>
                 <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
               <div v-if="openFaq === 2" class="faq-body">
-                <p>Suhu pengeringan terbaik untuk hanjeli berada di kisaran <strong>40°C hingga 50°C</strong>. Suhu di atas 55°C akan memicu peringatan otomatis di sistem agar biji hanjeli tidak rusak atau pecah.</p>
+                <p v-html="$t('guide.faq2Answer')"></p>
               </div>
             </div>
 
             <!-- FAQ 3 -->
             <div class="faq-card" :class="{ open: openFaq === 3 }">
               <button class="faq-header" @click="openFaq = openFaq === 3 ? null : 3">
-                <span class="faq-question">Bagaimana cara membersihkan sensor suhu & kelembapan (DHT22)?</span>
+                <span class="faq-question">{{ $t('guide.faq3Question') }}</span>
                 <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
               <div v-if="openFaq === 3" class="faq-body">
-                <p>Gunakan kuas halus kering atau peniup udara (air blower mini) untuk membersihkan debu atau serpihan gabah dari celah kisi sensor DHT22. Jangan menggunakan air atau cairan pembersih langsung pada badan sensor.</p>
+                <p>{{ $t('guide.faq3Answer') }}</p>
               </div>
             </div>
           </div>
@@ -425,8 +428,8 @@
               </svg>
             </div>
             <div class="contact-info">
-              <h4 class="contact-title">Dukungan Teknis & Pendampingan</h4>
-              <p class="contact-sub">Pusat Inovasi Desa Wisata Hanjeli & Center of Excellence STAS siap mendampingi operasional greenhouse.</p>
+              <h4 class="contact-title">{{ $t('guide.contactTitle') }}</h4>
+              <p class="contact-sub">{{ $t('guide.contactSub') }}</p>
             </div>
           </div>
         </div>
@@ -445,10 +448,8 @@
                 </svg>
               </div>
               <div class="arduino-intro-text">
-                <h3 class="arduino-intro-title">Source Code & Firmware ESP32 Greenhouse</h3>
-                <p class="arduino-intro-sub">
-                  Tersedia 2 program mikrokontroler ESP32: <strong>Firmware Alat Fisik Nyata</strong> (DHT22, Load Cell, Pyranometer & Relays) dan <strong>Firmware Simulator Mandiri</strong>. Anda dapat langsung menyalin kode program atau mengunduh file <code>.ino</code> untuk diunggah via Arduino IDE.
-                </p>
+                <h3 class="arduino-intro-title">{{ $t('guide.arduinoIntroTitle') }}</h3>
+                <p class="arduino-intro-sub" v-html="$t('guide.arduinoIntroSub')"></p>
               </div>
             </div>
           </div>
@@ -456,7 +457,7 @@
           <!-- Program Selector Cards -->
           <div class="program-selector-grid">
             <div 
-              v-for="prog in ARDUINO_PROGRAMS" 
+              v-for="prog in arduinoPrograms" 
               :key="prog.id"
               class="program-card"
               :class="{ active: selectedProgramId === prog.id }"
@@ -479,7 +480,7 @@
                   <svg v-if="selectedProgramId === prog.id" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  {{ selectedProgramId === prog.id ? 'Program Dipilih' : 'Pilih Program Ini' }}
+                  {{ selectedProgramId === prog.id ? $t('guide.selectedProgram') : $t('guide.selectThisProgram') }}
                 </span>
               </div>
             </div>
@@ -491,15 +492,15 @@
             <div class="program-meta-card">
               <div class="program-meta-grid">
                 <div class="meta-item">
-                  <span class="meta-label">Target Board:</span>
+                  <span class="meta-label">{{ $t('guide.targetBoard') }}</span>
                   <span class="meta-val font-semibold">{{ selectedProgram.target }}</span>
                 </div>
                 <div class="meta-item">
-                  <span class="meta-label">Serial Baudrate:</span>
+                  <span class="meta-label">{{ $t('guide.serialBaudrate') }}</span>
                   <span class="meta-val font-mono">{{ selectedProgram.baudrate }} bps</span>
                 </div>
                 <div class="meta-item-full">
-                  <span class="meta-label">Library Dibutuhkan:</span>
+                  <span class="meta-label">{{ $t('guide.requiredLibraries') }}</span>
                   <div class="meta-lib-tags">
                     <span v-for="lib in selectedProgram.libraries" :key="lib" class="lib-tag">
                       {{ lib }}
@@ -522,7 +523,7 @@
                   <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  <span>{{ isCopied ? 'Tersalin ke Clipboard!' : 'Salin Program' }}</span>
+                  <span>{{ isCopied ? $t('guide.copiedToClipboard') : $t('guide.copyProgram') }}</span>
                 </button>
 
                 <button class="action-btn-download" @click="downloadInoFile(selectedProgram)">
@@ -531,7 +532,7 @@
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                   </svg>
-                  <span>Unduh File .ino</span>
+                  <span>{{ $t('guide.downloadIno') }}</span>
                 </button>
               </div>
             </div>
@@ -548,9 +549,11 @@
                   <span class="code-file-title">{{ selectedProgram.filename }}</span>
                 </div>
                 <div class="code-header-right">
-                  <span class="code-lines-count">{{ selectedProgram.code.split('\n').length }} baris</span>
+                  <span class="code-lines-count">{{ $t('guide.linesCount', { count: selectedProgram.code.split('\n').length }) }}</span>
                   <button class="code-header-copy-btn" @click="copyProgramCode(selectedProgram.code)">
-                    {{ isCopied ? '✓ Tersalin!' : 'Salin Kode' }}
+                    <svg v-if="isCopied" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>{{ isCopied ? $t('guide.copied') : $t('guide.copyCode') }}</span>
                   </button>
                 </div>
               </div>
@@ -568,32 +571,24 @@
                   <line x1="12" y1="16" x2="12" y2="12"></line>
                   <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
-                Panduan Cepat Upload Program ke ESP32 via Arduino IDE
+                {{ $t('guide.flashGuideTitle') }}
               </h4>
               <div class="steps-grid">
                 <div class="step-card">
                   <div class="step-num">1</div>
-                  <div class="step-desc">
-                    <strong>Pasang Board ESP32:</strong> Buka Arduino IDE &rarr; <em>File &gt; Preferences</em> &rarr; Masukkan URL Board Manager: <code>https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json</code> lalu pasang via <em>Boards Manager</em>.
-                  </div>
+                  <div class="step-desc" v-html="$t('guide.flashStep1Text')"></div>
                 </div>
                 <div class="step-card">
                   <div class="step-num">2</div>
-                  <div class="step-desc">
-                    <strong>Pasang Library:</strong> Buka <em>Tools &gt; Manage Libraries</em>, cari dan install <code>PubSubClient</code> (oleh Nick O'Leary) &amp; <code>ArduinoJson</code> (oleh Benoit Blanchon).
-                  </div>
+                  <div class="step-desc" v-html="$t('guide.flashStep2Text')"></div>
                 </div>
                 <div class="step-card">
                   <div class="step-num">3</div>
-                  <div class="step-desc">
-                    <strong>Pilih Board &amp; Port:</strong> Di menu <em>Tools &gt; Board</em>, pilih <code>DOIT ESP32 DEVKIT V1</code> (atau ESP32 Dev Module), lalu pilih <em>Port COM</em> USB ESP32 Anda.
-                  </div>
+                  <div class="step-desc" v-html="$t('guide.flashStep3Text')"></div>
                 </div>
                 <div class="step-card">
                   <div class="step-num">4</div>
-                  <div class="step-desc">
-                    <strong>Upload Firmware:</strong> Buka file <code>.ino</code> atau salin kode di atas ke lembar kerja baru Arduino IDE, lalu klik tombol <strong>Upload (Panah Kanan)</strong>.
-                  </div>
+                  <div class="step-desc" v-html="$t('guide.flashStep4Text')"></div>
                 </div>
               </div>
             </div>
@@ -601,24 +596,64 @@
         </div>
       </div>
     </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import HanjeliLogo from '../../components/HanjeliLogo.vue';
 import StasLogo from '../../components/StasLogo.vue';
 import connectionManager from '../../services/connectionManager';
-import { ARDUINO_PROGRAMS } from '../../data/arduinoCode';
+import { ESP32_DUAL_MODE_CODE, ESP32_SIMULATOR_CODE } from '../../data/arduinoCode';
+import GuideSkeleton from '../../components/GuideSkeleton.vue';
+import { useI18n } from '../../i18n';
 
+const { t, currentLang } = useI18n();
+
+const isInitialLoading = ref(true);
 const activeTab = ref('devices');
 const openFaq = ref(1);
+
+onMounted(() => {
+  setTimeout(() => {
+    isInitialLoading.value = false;
+  }, 350);
+});
 
 const selectedProgramId = ref('dual-mode');
 const isCopied = ref(false);
 
+const arduinoPrograms = computed(() => [
+  {
+    id: 'dual-mode',
+    title: t('guide.progDualTitle'),
+    filename: 'esp32_smart_dryer_dual_mode.ino',
+    badge: t('guide.progDualBadge'),
+    badgeClass: 'badge-prod',
+    desc: t('guide.progDualDesc'),
+    target: t('guide.progDualTarget'),
+    libraries: ['PubSubClient (Nick O\'Leary)', 'ArduinoJson (Benoit Blanchon v6/v7)', 'WiFi.h', 'BLEDevice.h', 'Preferences.h'],
+    baudrate: 115200,
+    code: ESP32_DUAL_MODE_CODE,
+  },
+  {
+    id: 'simulator',
+    title: t('guide.progSimTitle'),
+    filename: 'esp32_smart_dryer_simulator.ino',
+    badge: t('guide.progSimBadge'),
+    badgeClass: 'badge-sim',
+    desc: t('guide.progSimDesc'),
+    target: t('guide.progSimTarget'),
+    libraries: ['PubSubClient (Nick O\'Leary)', 'ArduinoJson (v6/v7)', 'BLEDevice.h', 'WiFi.h', 'Preferences.h'],
+    baudrate: 115200,
+    code: ESP32_SIMULATOR_CODE,
+  }
+]);
+
 const selectedProgram = computed(() => {
-  return ARDUINO_PROGRAMS.find(p => p.id === selectedProgramId.value) || ARDUINO_PROGRAMS[0];
+  return arduinoPrograms.value.find(p => p.id === selectedProgramId.value) || arduinoPrograms.value[0];
 });
 
 async function copyProgramCode(code) {
@@ -675,56 +710,56 @@ const currentTelemetry = computed(() => {
 const hardwareCatalog = computed(() => [
   {
     id: 'mcu-esp32',
-    name: 'ESP32 Gateway & Kontroler Utama',
-    category: 'Gateway Sentral',
-    purpose: 'Menghubungkan seluruh sensor ke dasbor dan mengatur otomatisasi sistem.',
-    location: 'Panel Kontrol Box Utama',
-    unitBadge: 'IoT Gateway',
+    name: t('guide.hwMcuName'),
+    category: t('guide.hwMcuCategory'),
+    purpose: t('guide.hwMcuPurpose'),
+    location: t('guide.hwMcuLocation'),
+    unitBadge: t('guide.hwMcuBadge'),
     iconType: 'mcu',
   },
   {
     id: 'sensor-dht22-int',
-    name: 'Sensor Suhu & Kelembapan Ruang',
-    category: 'Sensor Internal',
-    purpose: 'Mencatat temperatur panas (°C) dan kelembapan udara (% RH) ruang pengering.',
-    location: 'Rak Pengering Tengah',
-    unitBadge: '°C & % RH',
+    name: t('guide.hwTempIntName'),
+    category: t('guide.hwTempIntCategory'),
+    purpose: t('guide.hwTempIntPurpose'),
+    location: t('guide.hwTempIntLocation'),
+    unitBadge: t('guide.hwTempIntBadge'),
     iconType: 'temp',
   },
   {
     id: 'sensor-dht22-ext',
-    name: 'Sensor Cuaca Lingkungan Luar',
-    category: 'Sensor Eksternal',
-    purpose: 'Mengukur suhu dan kelembapan cuaca luar greenhouse untuk pembanding efisiensi.',
-    location: 'Dinding Luar Stasiun',
-    unitBadge: '°C & % RH',
+    name: t('guide.hwTempExtName'),
+    category: t('guide.hwTempExtCategory'),
+    purpose: t('guide.hwTempExtPurpose'),
+    location: t('guide.hwTempExtLocation'),
+    unitBadge: t('guide.hwTempExtBadge'),
     iconType: 'temp',
   },
   {
     id: 'sensor-solar',
-    name: 'Sensor Radiasi Sinar Matahari',
-    category: 'Sensor Radiasi',
-    purpose: 'Mendeteksi intensitas panas matahari untuk efisiensi pemanas keramik.',
-    location: 'Atap Kaca Greenhouse',
-    unitBadge: 'W/m²',
+    name: t('guide.hwSolarName'),
+    category: t('guide.hwSolarCategory'),
+    purpose: t('guide.hwSolarPurpose'),
+    location: t('guide.hwSolarLocation'),
+    unitBadge: t('guide.hwSolarBadge'),
     iconType: 'sun',
   },
   {
     id: 'sensor-moisture-weight',
-    name: 'Sensor Bobot & Kadar Air Gabah',
-    category: 'Sensor Penimbangan',
-    purpose: 'Memantau penyusutan kadar air biji hanjeli secara kontinu hingga target 12%.',
-    location: 'Baki Timbang Uji Rak',
-    unitBadge: 'Kg & % Kadar Air',
+    name: t('guide.hwMoistureName'),
+    category: t('guide.hwMoistureCategory'),
+    purpose: t('guide.hwMoisturePurpose'),
+    location: t('guide.hwMoistureLocation'),
+    unitBadge: t('guide.hwMoistureBadge'),
     iconType: 'weight',
   },
   {
     id: 'actuator-relays',
-    name: 'Aktuator Kipas, Blower & Pemanas',
-    category: 'Modul Aktuator',
-    purpose: 'Menggerakkan sirkulasi udara, pembuangan uap lembap, dan pemanas tambahan.',
-    location: 'Kotak Daya Listrik',
-    unitBadge: 'Otomatis / Manual',
+    name: t('guide.hwRelayName'),
+    category: t('guide.hwRelayCategory'),
+    purpose: t('guide.hwRelayPurpose'),
+    location: t('guide.hwRelayLocation'),
+    unitBadge: t('guide.hwRelayBadge'),
     iconType: 'relay',
   },
 ]);
@@ -1219,8 +1254,8 @@ function getIconBoxClass(iconType) {
 
 /* Collaboration Banner */
 .collab-strip-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(191, 202, 186, 0.4);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 18px 24px;
   display: flex;
@@ -1252,7 +1287,7 @@ function getIconBoxClass(iconType) {
 .collab-role {
   font-size: 10px;
   font-weight: 700;
-  color: #64748B;
+  color: var(--color-text-dim, #64748B);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1260,7 +1295,7 @@ function getIconBoxClass(iconType) {
 .collab-name {
   font-size: 13.5px;
   font-weight: 800;
-  color: #071E27;
+  color: var(--color-text-title);
 }
 
 :global(.dark-theme) .collab-name {
@@ -1269,7 +1304,7 @@ function getIconBoxClass(iconType) {
 
 .collab-desc {
   font-size: 11.5px;
-  color: #64748B;
+  color: var(--color-text-muted);
   margin: 0;
   line-height: 1.35;
 }
@@ -1281,7 +1316,7 @@ function getIconBoxClass(iconType) {
 .collab-divider {
   width: 1px;
   height: 48px;
-  background: rgba(191, 202, 186, 0.4);
+  background: var(--color-border-subtle, rgba(191, 202, 186, 0.4));
 }
 
 :global(.dark-theme) .collab-divider {
@@ -1296,8 +1331,8 @@ function getIconBoxClass(iconType) {
 }
 
 .sop-hero-card, .faq-hero-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(191, 202, 186, 0.4);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 20px 24px;
   display: flex;
@@ -1307,8 +1342,8 @@ function getIconBoxClass(iconType) {
 
 :global(.dark-theme) .sop-hero-card,
 :global(.dark-theme) .faq-hero-card {
-  background: #0B242F;
-  border-color: rgba(30, 78, 97, 0.6);
+  background: #0B242F !important;
+  border-color: rgba(30, 78, 97, 0.6) !important;
 }
 
 .sop-hero-icon, .faq-hero-icon {
@@ -1322,31 +1357,47 @@ function getIconBoxClass(iconType) {
   flex-shrink: 0;
 }
 
+:global(.dark-theme) .sop-hero-icon {
+  background: rgba(46, 125, 50, 0.25);
+}
+
+:global(.dark-theme) .sop-hero-icon svg {
+  stroke: #4ADE80;
+}
+
 .faq-hero-icon {
   background: rgba(0, 93, 183, 0.1);
+}
+
+:global(.dark-theme) .faq-hero-icon {
+  background: rgba(0, 93, 183, 0.25);
+}
+
+:global(.dark-theme) .faq-hero-icon svg {
+  stroke: #60A5FA;
 }
 
 .sop-hero-title, .faq-hero-title {
   font-size: 16px;
   font-weight: 800;
-  color: #071E27;
+  color: var(--color-text-title);
   margin: 0;
 }
 
 :global(.dark-theme) .sop-hero-title,
 :global(.dark-theme) .faq-hero-title {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .sop-hero-subtitle, .faq-hero-subtitle {
   font-size: 12.5px;
-  color: #64748B;
+  color: var(--color-text-muted);
   margin: 3px 0 0 0;
 }
 
 :global(.dark-theme) .sop-hero-subtitle,
 :global(.dark-theme) .faq-hero-subtitle {
-  color: #94A3B8;
+  color: #94A3B8 !important;
 }
 
 .sop-steps-grid {
@@ -1356,8 +1407,8 @@ function getIconBoxClass(iconType) {
 }
 
 .sop-step-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(191, 202, 186, 0.4);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 16px;
   display: flex;
@@ -1366,8 +1417,8 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .sop-step-card {
-  background: #0B242F;
-  border-color: rgba(30, 78, 97, 0.6);
+  background: #0B242F !important;
+  border-color: rgba(30, 78, 97, 0.6) !important;
 }
 
 .sop-step-header {
@@ -1390,20 +1441,25 @@ function getIconBoxClass(iconType) {
   flex-shrink: 0;
 }
 
+:global(.dark-theme) .sop-step-num {
+  background: #2E7D32;
+  color: #FFFFFF;
+}
+
 .sop-step-title {
   font-size: 13.5px;
   font-weight: 700;
-  color: #071E27;
+  color: var(--color-text-title);
   margin: 0;
 }
 
 :global(.dark-theme) .sop-step-title {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .sop-step-body {
   font-size: 12px;
-  color: #64748B;
+  color: var(--color-text-body);
   line-height: 1.45;
   display: flex;
   flex-direction: column;
@@ -1411,7 +1467,7 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .sop-step-body {
-  color: #94A3B8;
+  color: #CBD5E1 !important;
 }
 
 .sop-tip-box {
@@ -1427,9 +1483,13 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .sop-tip-box {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.25);
-  color: #86EFAC;
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+  color: #86EFAC !important;
+}
+
+:global(.dark-theme) .sop-tip-box svg {
+  stroke: #86EFAC !important;
 }
 
 .sop-safety-card {
@@ -1443,8 +1503,8 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .sop-safety-card {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
 }
 
 .safety-icon-box {
@@ -1460,7 +1520,7 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .safety-title {
-  color: #FCA5A5;
+  color: #FCA5A5 !important;
 }
 
 .safety-list {
@@ -1472,7 +1532,7 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .safety-list {
-  color: #FECACA;
+  color: #FECACA !important;
 }
 
 /* FAQ */
@@ -1483,15 +1543,15 @@ function getIconBoxClass(iconType) {
 }
 
 .faq-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(191, 202, 186, 0.4);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
 }
 
 :global(.dark-theme) .faq-card {
-  background: #0B242F;
-  border-color: rgba(30, 78, 97, 0.6);
+  background: #0B242F !important;
+  border-color: rgba(30, 78, 97, 0.6) !important;
 }
 
 .faq-header {
@@ -1509,15 +1569,15 @@ function getIconBoxClass(iconType) {
 .faq-question {
   font-size: 13px;
   font-weight: 700;
-  color: #071E27;
+  color: var(--color-text-title);
 }
 
 :global(.dark-theme) .faq-question {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .faq-chevron {
-  color: #94A3B8;
+  color: var(--color-text-muted);
   transition: transform 0.2s ease;
 }
 
@@ -1528,12 +1588,12 @@ function getIconBoxClass(iconType) {
 .faq-body {
   padding: 0 18px 16px 18px;
   font-size: 12px;
-  color: #64748B;
+  color: var(--color-text-body);
   line-height: 1.5;
 }
 
 :global(.dark-theme) .faq-body {
-  color: #94A3B8;
+  color: #CBD5E1 !important;
 }
 
 .faq-steps {
@@ -1552,8 +1612,8 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .faq-contact-card {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
 }
 
 .contact-title {
@@ -1564,7 +1624,7 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .contact-title {
-  color: #86EFAC;
+  color: #86EFAC !important;
 }
 
 .contact-sub {
@@ -1574,7 +1634,11 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .contact-sub {
-  color: #6EE7B7;
+  color: #6EE7B7 !important;
+}
+
+:global(.dark-theme) .faq-contact-card .contact-icon svg {
+  stroke: #86EFAC;
 }
 
 @keyframes pulse {
@@ -1599,8 +1663,8 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .arduino-intro-banner {
-  background: linear-gradient(135deg, rgba(13, 99, 27, 0.15) 0%, rgba(6, 78, 59, 0.25) 100%);
-  border-color: rgba(74, 222, 128, 0.25);
+  background: linear-gradient(135deg, rgba(13, 99, 27, 0.15) 0%, rgba(6, 78, 59, 0.25) 100%) !important;
+  border-color: rgba(74, 222, 128, 0.25) !important;
 }
 
 .arduino-intro-content {
@@ -1613,7 +1677,7 @@ function getIconBoxClass(iconType) {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #FFFFFF;
+  background: var(--color-white);
   border: 1px solid #BBF7D0;
   display: flex;
   align-items: center;
@@ -1623,8 +1687,12 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .arduino-logo-badge {
-  background: #0B242F;
-  border-color: rgba(74, 222, 128, 0.3);
+  background: #0B242F !important;
+  border-color: rgba(74, 222, 128, 0.3) !important;
+}
+
+:global(.dark-theme) .arduino-logo-badge svg {
+  stroke: #4ADE80;
 }
 
 .arduino-intro-title {
@@ -1635,7 +1703,7 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .arduino-intro-title {
-  color: #86EFAC;
+  color: #86EFAC !important;
 }
 
 .arduino-intro-sub {
@@ -1646,7 +1714,7 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .arduino-intro-sub {
-  color: #6EE7B7;
+  color: #6EE7B7 !important;
 }
 
 .arduino-intro-sub code {
@@ -1657,6 +1725,11 @@ function getIconBoxClass(iconType) {
   font-weight: 600;
 }
 
+:global(.dark-theme) .arduino-intro-sub code {
+  background: rgba(74, 222, 128, 0.15);
+  color: #86EFAC;
+}
+
 /* Program Selector Grid */
 .program-selector-grid {
   display: grid;
@@ -1665,8 +1738,8 @@ function getIconBoxClass(iconType) {
 }
 
 .program-card {
-  background: #FFFFFF;
-  border: 2px solid rgba(191, 202, 186, 0.5);
+  background: var(--color-white);
+  border: 2px solid var(--color-border);
   border-radius: 16px;
   padding: 18px 20px;
   cursor: pointer;
@@ -1678,8 +1751,8 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .program-card {
-  background: #0B242F;
-  border-color: rgba(30, 78, 97, 0.6);
+  background: #0B242F !important;
+  border-color: rgba(30, 78, 97, 0.6) !important;
 }
 
 .program-card:hover {
@@ -1689,7 +1762,7 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .program-card:hover {
-  border-color: #4ADE80;
+  border-color: #4ADE80 !important;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
@@ -1700,8 +1773,8 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .program-card.active {
-  border-color: #4ADE80;
-  background: rgba(13, 99, 27, 0.15);
+  border-color: #4ADE80 !important;
+  background: rgba(13, 99, 27, 0.25) !important;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
@@ -1753,7 +1826,7 @@ function getIconBoxClass(iconType) {
   font-size: 12px;
   font-family: monospace;
   font-weight: 600;
-  color: #64748B;
+  color: var(--color-text-muted);
 }
 
 :global(.dark-theme) .program-filename {
@@ -1763,25 +1836,25 @@ function getIconBoxClass(iconType) {
 .program-card-title {
   font-size: 15px;
   font-weight: 700;
-  color: #071E27;
+  color: var(--color-text-title);
   margin: 0;
   line-height: 1.35;
 }
 
 :global(.dark-theme) .program-card-title {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .program-card-desc {
   font-size: 12.5px;
-  color: #64748B;
+  color: var(--color-text-muted);
   margin: 0;
   line-height: 1.5;
   flex: 1;
 }
 
 :global(.dark-theme) .program-card-desc {
-  color: #94A3B8;
+  color: #CBD5E1 !important;
 }
 
 .program-card-footer {
@@ -1789,7 +1862,7 @@ function getIconBoxClass(iconType) {
   align-items: center;
   justify-content: flex-end;
   padding-top: 6px;
-  border-top: 1px dashed rgba(203, 213, 225, 0.6);
+  border-top: 1px dashed var(--color-border);
 }
 
 :global(.dark-theme) .program-card-footer {
@@ -1818,8 +1891,8 @@ function getIconBoxClass(iconType) {
 
 /* Program Meta Card */
 .program-meta-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(191, 202, 186, 0.5);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 18px 22px;
   display: flex;
@@ -1830,8 +1903,8 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .program-meta-card {
-  background: #0B242F;
-  border-color: rgba(30, 78, 97, 0.6);
+  background: #0B242F !important;
+  border-color: rgba(30, 78, 97, 0.6) !important;
 }
 
 .program-meta-grid {
@@ -1858,7 +1931,7 @@ function getIconBoxClass(iconType) {
 }
 
 .meta-label {
-  color: #64748B;
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 500;
 }
@@ -1868,12 +1941,12 @@ function getIconBoxClass(iconType) {
 }
 
 .meta-val {
-  color: #071E27;
+  color: var(--color-text-title);
   font-size: 12.5px;
 }
 
 :global(.dark-theme) .meta-val {
-  color: #F1F5F9;
+  color: #F1F5F9 !important;
 }
 
 .meta-lib-tags {
@@ -1883,14 +1956,14 @@ function getIconBoxClass(iconType) {
 }
 
 .lib-tag {
-  background: #F1F5F9;
-  color: #334155;
+  background: var(--color-bg-light);
+  color: var(--color-text-body);
   font-size: 11px;
   font-family: monospace;
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 6px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--color-border);
 }
 
 :global(.dark-theme) .lib-tag {
@@ -1935,9 +2008,9 @@ function getIconBoxClass(iconType) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #F8FAFC;
-  color: #0F172A;
-  border: 1px solid #CBD5E1;
+  background: var(--color-bg-light);
+  color: var(--color-text-title);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 10px 18px;
   font-size: 13px;
@@ -2055,21 +2128,21 @@ function getIconBoxClass(iconType) {
 
 /* Flashing Guide Card */
 .flashing-guide-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(191, 202, 186, 0.5);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 20px 24px;
 }
 
 :global(.dark-theme) .flashing-guide-card {
-  background: #0B242F;
-  border-color: rgba(30, 78, 97, 0.6);
+  background: #0B242F !important;
+  border-color: rgba(30, 78, 97, 0.6) !important;
 }
 
 .guide-steps-title {
   font-size: 14px;
   font-weight: 700;
-  color: #071E27;
+  color: var(--color-text-title);
   margin: 0 0 16px 0;
   display: flex;
   align-items: center;
@@ -2077,7 +2150,7 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .guide-steps-title {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .steps-grid {
@@ -2087,8 +2160,8 @@ function getIconBoxClass(iconType) {
 }
 
 .step-card {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 14px;
   display: flex;
@@ -2097,8 +2170,8 @@ function getIconBoxClass(iconType) {
 }
 
 :global(.dark-theme) .step-card {
-  background: #112F3D;
-  border-color: rgba(30, 78, 97, 0.8);
+  background: #112F3D !important;
+  border-color: rgba(30, 78, 97, 0.8) !important;
 }
 
 .step-num {
@@ -2122,12 +2195,12 @@ function getIconBoxClass(iconType) {
 
 .step-desc {
   font-size: 12px;
-  color: #475569;
+  color: var(--color-text-body);
   line-height: 1.5;
 }
 
 :global(.dark-theme) .step-desc {
-  color: #CBD5E1;
+  color: #CBD5E1 !important;
 }
 
 .step-desc code {
@@ -2141,5 +2214,34 @@ function getIconBoxClass(iconType) {
 :global(.dark-theme) .step-desc code {
   background: rgba(255, 255, 255, 0.1);
   color: #93C5FD;
+}
+
+.step-desc code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+:global(.dark-theme) .step-desc code {
+  background: rgba(255, 255, 255, 0.1);
+  color: #93C5FD;
+}
+
+/* Page Transition for Skeleton */
+.fade-guide-enter-active,
+.fade-guide-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-guide-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-guide-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

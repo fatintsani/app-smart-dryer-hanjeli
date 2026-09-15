@@ -13,13 +13,13 @@
               </div>
               <div class="header-titles">
                 <div class="header-title-row">
-                  <h3 class="modal-title">Setup Wi-Fi & MQTT ESP32</h3>
+                  <h3 class="modal-title">{{ $t('modals.bleTitle') }}</h3>
                   <span class="tech-pill">BLE Provisioning</span>
                 </div>
-                <p class="modal-subtitle">Konfigurasi jaringan ESP32 langsung melalui Web Bluetooth tanpa kabel serial</p>
+                <p class="modal-subtitle">{{ $t('modals.bleSub') }}</p>
               </div>
             </div>
-            <button type="button" class="btn-close-modal" @click="close" title="Tutup">
+            <button type="button" class="btn-close-modal" @click="close" :title="$t('common.close')">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -39,9 +39,9 @@
                 </div>
                 <div class="status-text-block">
                   <div class="status-title-row">
-                    <h4 class="status-heading">ESP32 Belum Terhubung</h4>
+                    <h4 class="status-heading">{{ $t('modals.bleNotConnected') }}</h4>
                   </div>
-                  <p class="status-desc">Hubungkan browser ke Bluetooth ESP32 untuk mulai mengirim pengaturan jaringan.</p>
+                  <p class="status-desc">{{ currentLang === 'id' ? 'Hubungkan browser ke Bluetooth ESP32 untuk mulai mengirim pengaturan jaringan.' : 'Connect browser to ESP32 Bluetooth to start transmitting network parameters.' }}</p>
                 </div>
               </div>
               <button 
@@ -54,7 +54,7 @@
                   <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline>
                 </svg>
                 <span v-if="isConnecting" class="spinner-sm"></span>
-                <span>{{ isConnecting ? 'Mencari ESP32...' : 'Sambungkan Bluetooth' }}</span>
+                <span>{{ isConnecting ? $t('modals.bleScanning') : $t('modals.bleConnect') }}</span>
               </button>
             </div>
 
@@ -67,19 +67,19 @@
                 </div>
                 <div class="status-text-block">
                   <div class="status-title-row">
-                    <h4 class="status-heading">Terhubung ke <strong>{{ currentDeviceId }}</strong></h4>
+                    <h4 class="status-heading">{{ currentLang === 'id' ? 'Terhubung ke' : 'Connected to' }} <strong>{{ currentDeviceId }}</strong></h4>
                     <span class="pulse-tag-emerald">GATT Active</span>
                   </div>
-                  <p class="status-desc">Saluran Bluetooth BLE aktif. Anda dapat mengirim SSID & Password ke ESP32.</p>
+                  <p class="status-desc">{{ currentLang === 'id' ? 'Saluran Bluetooth BLE aktif. Anda dapat mengirim SSID & Password ke ESP32.' : 'Bluetooth BLE channel is active. You can transmit SSID & Password to ESP32.' }}</p>
                 </div>
               </div>
               <button 
                 type="button" 
                 class="btn-action-disconnect"
                 @click="handleDisconnectBle"
-                title="Putus koneksi Bluetooth"
+                :title="$t('modals.bleDisconnect')"
               >
-                Putus
+                {{ $t('modals.bleDisconnect') }}
               </button>
             </div>
 
@@ -312,7 +312,7 @@ const handleConnectBle = async () => {
     const result = await connectionManager.connect();
     if (result && result.success) {
       feedbackSuccess.value = true;
-      feedbackMessage.value = '✓ Berhasil terhubung ke Bluetooth ESP32!';
+      feedbackMessage.value = 'Berhasil terhubung ke Bluetooth ESP32!';
       return true;
     }
     return false;
@@ -361,7 +361,7 @@ const submitConfig = async () => {
     });
 
     feedbackSuccess.value = true;
-    feedbackMessage.value = '✓ Kredensial Wi-Fi & MQTT berhasil disimpan ke NVS ESP32! ESP32 akan segera terhubung ke Wi-Fi.';
+    feedbackMessage.value = 'Kredensial Wi-Fi & MQTT berhasil disimpan ke NVS ESP32! ESP32 akan segera terhubung ke Wi-Fi.';
     
     // Mask password after successful submission
     form.password = '';

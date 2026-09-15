@@ -15,10 +15,10 @@
       </div>
 
       <div class="error-content">
-        <span class="error-tag amber-tag">Gangguan Sistem • 500 Internal Error</span>
-        <h1 class="error-title">Terjadi Gangguan pada Server</h1>
+        <span class="error-tag amber-tag">{{ $t('errors.serverTag') }}</span>
+        <h1 class="error-title">{{ $t('errors.serverTitle') }}</h1>
         <p class="error-desc">
-          Server atau database sedang mengalami kendala sementara atau sedang dalam proses pemeliharaan. Silakan coba muat ulang halaman.
+          {{ $t('errors.serverDesc') }}
         </p>
 
         <!-- Diagnostic tips -->
@@ -29,11 +29,11 @@
               <line x1="12" y1="16" x2="12" y2="12"></line>
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
-            <strong>Petunjuk Pemulihan:</strong>
+            <strong>{{ $t('common.info') }}:</strong>
           </div>
           <ul class="diag-list">
-            <li>Pastikan server backend Laravel berjalan di <code>http://localhost:8000</code></li>
-            <li>Pastikan database MySQL terhubung pada port <code>3306</code></li>
+            <li>Laravel API backend: <code>http://localhost:8000</code></li>
+            <li>MySQL Database: <code>port 3306</code></li>
           </ul>
         </div>
 
@@ -45,20 +45,20 @@
               <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
               <path d="M8 16H3v5"></path>
             </svg>
-            <span>Muat Ulang Halaman</span>
+            <span>{{ $t('errors.reload') }}</span>
           </button>
 
           <router-link to="/dashboard" class="btn-secondary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             </svg>
-            <span>Ke Dashboard</span>
+            <span>{{ $t('errors.backToDashboard') }}</span>
           </router-link>
         </div>
       </div>
 
       <div class="error-footer">
-        <span>Smart Room Dryer Hanjeli • Desa Wisata Hanjeli & STAS-RG</span>
+        <span>{{ $t('common.smartRoomDryer') }} • {{ $t('common.facilityName') }} & {{ $t('common.devCredit') }}</span>
       </div>
     </div>
   </div>

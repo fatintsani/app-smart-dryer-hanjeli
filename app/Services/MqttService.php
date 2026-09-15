@@ -152,25 +152,6 @@ class MqttService
                     'message' => $msg,
                     'is_read' => false,
                 ]);
-
-                event(new AlertTriggered($alert));
-
-                try {
-                    $recipients = User::pluck('email')->filter()->all();
-                    if (!empty($recipients)) {
-                        Mail::to($recipients)->send(new CriticalAlertMail(
-                            alertTitle: $title,
-                            alertMessage: $msg,
-                            level: 'CRITICAL',
-                            category: 'SENSOR',
-                            tempInternal: $telemetry->temp_internal,
-                            humidityInternal: $telemetry->humidity_internal,
-                            recordedTime: Carbon::now()->translatedFormat('d F Y, H:i') . ' WIB'
-                        ));
-                    }
-                } catch (\Throwable $e) {
-                    Log::warning('Critical alert email failed: ' . $e->getMessage());
-                }
             }
         } elseif ($telemetry->temp_internal < $minSafeTemp && $batchId) {
             $recentColdAlert = SystemAlert::where('category', 'SENSOR')
@@ -210,7 +191,16 @@ class MqttService
             }
         }
 
-        // 5. Broadcast Telemetry Event to WebSockets (Laravel Reverb)
+        // 5. Intelligent Multi-Pattern Sensor Anomaly Detection
+        try {
+            $actuators = ActuatorState::first();
+            $anomalyService = app(\App\Services\SensorAnomalyDetectionService::class);
+            $anomalyService->inspectTelemetry($telemetry, $actuators);
+        } catch (\Throwable $e) {
+            Log::warning('Anomaly detection inspection error: ' . $e->getMessage());
+        }
+
+        // 6. Broadcast Telemetry Event to WebSockets (Laravel Reverb)
         try {
             $actuators = ActuatorState::first();
             $actuatorData = $actuators ? [
