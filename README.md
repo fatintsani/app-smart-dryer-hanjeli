@@ -386,19 +386,17 @@ Firmware ESP32 lengkap tersedia di folder [`docs/esp32_smart_dryer_dual_mode/`](
 ### Tabel Konfigurasi Pinout ESP32:
 | Perangkat / Sensor | Tipe Sinyal | Pin ESP32 | Keterangan |
 | :--- | :--- | :--- | :--- |
-| **Sensor DHT22 (Internal)** | Digital Data | `GPIO 4` | Pembacaan Suhu & Kelembaban Ruang |
-| **Sensor SHT31 / I2C** | I2C (SDA / SCL) | `GPIO 21 (SDA)` / `GPIO 22 (SCL)` | Sensor alternatif presisi tinggi |
-| **Sensor Kadar Air Biji** | Analog ADC | `GPIO 34 (ADC1_CH6)` | Pembacaan nilai analog moisture probe |
-| **Sensor Radiasi Matahari**| Analog ADC | `GPIO 35 (ADC1_CH7)` | Pembacaan intensitas radiasi matahari |
-| **Relay 1 — Exhaust Fan** | Digital Output | `GPIO 16` | Aktuasi kipas pembuang udara lembap |
-| **Relay 2 — Intake Fan**  | Digital Output | `GPIO 17` | Aktuasi kipas pemasok udara segar |
-| **Relay 3 — Circ Fan**    | Digital Output | `GPIO 18` | Aktuasi kipas sirkulasi internal |
-| **Relay 4 — Aux Heater**  | Digital Output | `GPIO 19` | Aktuasi pemanas cadangan |
+| **Sensor DHT22 (Internal)** | Digital Data (One-Wire) | `GPIO 25` | Pembacaan Suhu (°C) & Kelembaban (% RH) Ruang |
+| **Sensor Cahaya BH1750** | I2C (SDA / SCL) | `GPIO 21 (SDA)` / `GPIO 22 (SCL)` | Intensitas Cahaya / Radiasi Surya (0 - 65535 Lux) |
+| **Sensor Hujan (Rain Drop)**| Analog ADC | `GPIO 34 (ADC1_CH6)` | Deteksi Presipitasi Hujan (Threshold ADC < 2000) |
+| **Relay CH1 — Pemanas PTC 1**| Digital Output | `GPIO 26` | Kontrol Pemanas Keramik PTC Saluran 1 |
+| **Relay CH2 — Pemanas PTC 2**| Digital Output | `GPIO 27` | Kontrol Pemanas Keramik PTC Saluran 2 |
+| **Layar LCD 20x4 I2C** | I2C (Address `0x27`) | `GPIO 21 (SDA)` / `GPIO 22 (SCL)` | Display Diagnostik & Monitoring Lokal 20 Karakter x 4 Baris |
 
-### Spesifikasi BLE (Web Bluetooth Provisioning):
-- **Service UUID**: `4fafc201-1fb5-459e-8fcc-c5c9c331914b`
-- **WiFi Config Characteristic**: `beb5483e-36e1-4688-b7f5-ea07361b26a8`
-- **Calibration Characteristic**: `cba1d466-344c-4be3-ab3f-189f80dd7518`
+### Logika Kontrol Pemanas PTC & Safety Cutoff:
+- **Pemanas Otomatis ON**: Ketika Suhu Ruang $< 55.0^\circ\text{C}$.
+- **Pemanas Otomatis OFF**: Ketika Suhu Ruang $> 60.0^\circ\text{C}$.
+- **Safety Shut-Off**: Jika pembacaan sensor DHT22 gagal 3 kali berturut-turut, pemanas langsung dimatikan demi keamanan sistem.
 
 ---
 

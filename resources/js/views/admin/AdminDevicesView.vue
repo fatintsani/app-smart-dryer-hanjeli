@@ -537,11 +537,11 @@
                 <span class="dot-green" :class="{ 'dot-offline': !telemetry.hasData }"></span>
                 <div>
                   <strong>DHT22 Internal (Suhu & Kelembapan Ruang)</strong>
-                  <p class="sensor-sub-desc">Pin: GPIO 21 • Rentang: -40~80°C / 0-100% RH</p>
+                  <p class="sensor-sub-desc">Pin: GPIO 25 (One-Wire) • Rentang: -40~80°C / 0-100% RH</p>
                 </div>
               </div>
               <span class="sensor-val text-green-dark font-bold">
-                {{ telemetry.hasData ? `${Number(telemetry.tempInternal).toFixed(1)}°C / ${Number(telemetry.humidityInternal).toFixed(0)}% RH` : 'Siaga / Menunggu ESP32' }} (Akurasi: ±0.3°C)
+                {{ telemetry.hasData ? `${Number(telemetry.tempInternal).toFixed(1)}°C / ${Number(telemetry.humidityInternal).toFixed(0)}% RH` : 'Siaga / Menunggu ESP32' }} (Akurasi: ±0.5°C)
               </span>
             </div>
 
@@ -549,25 +549,12 @@
               <div class="sensor-info">
                 <span class="dot-green" :class="{ 'dot-offline': !telemetry.hasData }"></span>
                 <div>
-                  <strong>Load Cell 200kg + Amplifier HX711</strong>
-                  <p class="sensor-sub-desc">Pin: GPIO 18 (SCK), GPIO 19 (DT) • Pengukuran Bobot Realtime</p>
-                </div>
-              </div>
-              <span class="sensor-val text-blue font-bold">
-                {{ telemetry.hasData ? `${Number(telemetry.weightCurrentKg).toFixed(1)} kg` : 'Siaga' }} (Nol Kalibrasi: OK)
-              </span>
-            </div>
-
-            <div class="sensor-matrix-item">
-              <div class="sensor-info">
-                <span class="dot-green" :class="{ 'dot-offline': !telemetry.hasData }"></span>
-                <div>
-                  <strong>Pyranometer Radiasi Surya</strong>
-                  <p class="sensor-sub-desc">Pin: GPIO 34 (ADC 12-Bit) • Deteksi Terik Radiasi Matahari</p>
+                  <strong>Sensor Cahaya & Radiasi Surya (BH1750)</strong>
+                  <p class="sensor-sub-desc">Pin: I2C (SDA GPIO 21, SCL GPIO 22) • Pengukuran Lux Lingkungan</p>
                 </div>
               </div>
               <span class="sensor-val text-orange font-bold">
-                {{ telemetry.hasData ? `${Number(telemetry.solarRadiation).toFixed(0)} W/m²` : 'Siaga' }} (Sensitivitas Tinggi)
+                {{ telemetry.hasData ? `${Number(telemetry.solarRadiation).toFixed(0)} Lux` : 'Siaga' }} (Resolusi 1 Lux)
               </span>
             </div>
 
@@ -575,12 +562,38 @@
               <div class="sensor-info">
                 <span class="dot-green" :class="{ 'dot-offline': !telemetry.hasData }"></span>
                 <div>
-                  <strong>Capacitive Grain Moisture Meter</strong>
-                  <p class="sensor-sub-desc">Pin: GPIO 35 (ADC 12-Bit) • Estimasi Kadar Air Biji Gabah</p>
+                  <strong>Sensor Deteksi Hujan & Presipitasi</strong>
+                  <p class="sensor-sub-desc">Pin: GPIO 34 (ADC 12-Bit) • Threshold: &lt; 2000 ADC (Hujan)</p>
+                </div>
+              </div>
+              <span class="sensor-val text-blue font-bold">
+                {{ telemetry.hasData ? (telemetry.isRaining ? 'Terdeteksi Hujan (YA)' : 'Kering (TIDAK)') : 'Siaga' }}
+              </span>
+            </div>
+
+            <div class="sensor-matrix-item">
+              <div class="sensor-info">
+                <span class="dot-green" :class="{ 'dot-offline': !telemetry.hasData }"></span>
+                <div>
+                  <strong>Relai Pemanas Ganda PTC 1 & 2</strong>
+                  <p class="sensor-sub-desc">Pin: CH1 GPIO 26, CH2 GPIO 27 • Kontrol Histeresis (55°C - 60°C)</p>
                 </div>
               </div>
               <span class="sensor-val text-purple font-bold">
-                {{ telemetry.hasData ? `${Number(telemetry.grainMoisture).toFixed(1)}%` : 'Siaga' }} (Standar SNI ≤ 12%)
+                {{ telemetry.hasData ? (telemetry.auxHeaterStatus ? 'Pemanas AKTIF (ON)' : 'Pemanas STANDBY (OFF)') : 'Siaga' }}
+              </span>
+            </div>
+
+            <div class="sensor-matrix-item">
+              <div class="sensor-info">
+                <span class="dot-green" :class="{ 'dot-offline': !telemetry.hasData }"></span>
+                <div>
+                  <strong>Layar LCD 20x4 I2C (0x27)</strong>
+                  <p class="sensor-sub-desc">Pin: I2C (SDA GPIO 21, SCL GPIO 22) • Monitoring & Diagnostik Lokal</p>
+                </div>
+              </div>
+              <span class="sensor-val text-green-dark font-bold">
+                {{ telemetry.hasData ? 'Menampilkan Halaman 1 & 2' : 'Standby I2C' }}
               </span>
             </div>
           </div>

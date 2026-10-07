@@ -606,7 +606,7 @@ import { ref, computed, onMounted } from 'vue';
 import HanjeliLogo from '../../components/HanjeliLogo.vue';
 import StasLogo from '../../components/StasLogo.vue';
 import connectionManager from '../../services/connectionManager';
-import { ESP32_DUAL_MODE_CODE, ESP32_SIMULATOR_CODE } from '../../data/arduinoCode';
+import { ESP32_PHYSICAL_STANDALONE_CODE, ESP32_DUAL_MODE_CODE, ESP32_SIMULATOR_CODE } from '../../data/arduinoCode';
 import GuideSkeleton from '../../components/GuideSkeleton.vue';
 import { useI18n } from '../../i18n';
 
@@ -622,19 +622,31 @@ onMounted(() => {
   }, 350);
 });
 
-const selectedProgramId = ref('dual-mode');
+const selectedProgramId = ref('physical-standalone');
 const isCopied = ref(false);
 
 const arduinoPrograms = computed(() => [
   {
+    id: 'physical-standalone',
+    title: t('guide.progPhysicalTitle'),
+    filename: 'esp32_smart_dryer_physical_fixed.ino',
+    badge: t('guide.progPhysicalBadge'),
+    badgeClass: 'badge-prod',
+    desc: t('guide.progPhysicalDesc'),
+    target: t('guide.progPhysicalTarget'),
+    libraries: ['DHT sensor library (Adafruit)', 'BH1750 (Christopher Laws)', 'LiquidCrystal_I2C', 'Wire.h'],
+    baudrate: 115200,
+    code: ESP32_PHYSICAL_STANDALONE_CODE,
+  },
+  {
     id: 'dual-mode',
     title: t('guide.progDualTitle'),
-    filename: 'esp32_smart_dryer_dual_mode.ino',
+    filename: 'esp32_smart_dryer_dual_iot.ino',
     badge: t('guide.progDualBadge'),
     badgeClass: 'badge-prod',
     desc: t('guide.progDualDesc'),
     target: t('guide.progDualTarget'),
-    libraries: ['PubSubClient (Nick O\'Leary)', 'ArduinoJson (Benoit Blanchon v6/v7)', 'WiFi.h', 'BLEDevice.h', 'Preferences.h'],
+    libraries: ['DHT sensor library', 'BH1750', 'LiquidCrystal_I2C', 'PubSubClient', 'ArduinoJson (v6/v7)', 'WiFi.h', 'BLEDevice.h', 'Preferences.h'],
     baudrate: 115200,
     code: ESP32_DUAL_MODE_CODE,
   },

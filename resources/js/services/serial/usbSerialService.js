@@ -14,6 +14,7 @@ class UsbSerialService {
     this.portInfo = null;
     this.listeners = new Map();
     this.lineBuffer = '';
+    this.liveReadingBuffer = {};
     this.readLoopActive = false;
 
     // Auto listen to device disconnect from OS
@@ -253,10 +254,41 @@ class UsbSerialService {
         }
       }
 
-      // 4. Any serial signal indicates hardware heartbeat
+      // 4. Fallback: Parse multi-line human-readable logs from ESP32 printToSerial()
+      if (trimmed.includes('Suhu (DHT22)') || (trimmed.startsWith('Suhu') && trimmed.includes(':'))) {
+        const m = trimmed.match(/:\s*([-0-9.]+)/);
+        if (m) this.liveReadingBuffer.tempInternal = parseFloat(m[1]);
+      } else if (trimmed.includes('Kelembapan') && trimmed.includes(':')) {
+        const m = trimmed.match(/:\s*([-0-9.]+)/);
+        if (m) this.liveReadingBuffer.humidityInternal = parseFloat(m[1]);
+      } else if (trimmed.includes('Cahaya') && trimmed.includes(':')) {
+        const m = trimmed.match(/:\s*([-0-9.]+)/);
+        if (m) this.liveReadingBuffer.solarRadiation = parseFloat(m[1]);
+      } else if (trimmed.includes('Rain Raw ADC') || trimmed.includes('Status Hujan')) {
+        const mVal = trimmed.match(/Rain Raw ADC\s*:\s*(\d+)/i);
+        if (mVal) this.liveReadingBuffer.rainVal = parseInt(mVal[1], 10);
+        this.liveReadingBuffer.isRaining = trimmed.toUpperCase().includes('YA') || trimmed.toUpperCase().includes('YES');
+      } else if (trimmed.includes('Status Heater') && trimmed.includes(':')) {
+        const isHeaterOn = trimmed.toUpperCase().includes('ON');
+        this.liveReadingBuffer.heaterStatus = isHeaterOn;
+        this.liveReadingBuffer.auxHeaterStatus = isHeaterOn;
+      }
+
+      // Check for block boundary separator
+      if (trimmed.includes('====') || trimmed.includes('----')) {
+        if (this.liveReadingBuffer.tempInternal !== undefined || this.liveReadingBuffer.humidityInternal !== undefined) {
+          this.handleParsedPacket({ ...this.liveReadingBuffer, deviceId: 'ESP32-HANJELI' });
+          this.liveReadingBuffer = {};
+          continue;
+        }
+      }
+
+      // 5. Any serial signal indicates hardware heartbeat
       if (
         trimmed.includes('ESP32') || 
         trimmed.includes('SMART ROOM DRYER') || 
+        trimmed.includes('DHT22') ||
+        trimmed.includes('BH1750') ||
         trimmed.includes('BLE') || 
         trimmed.includes('WiFi') || 
         trimmed.includes('MQTT') ||

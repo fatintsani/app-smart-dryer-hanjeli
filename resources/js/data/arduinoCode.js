@@ -1,36 +1,307 @@
 /**
  * Arduino / ESP32 Firmware Source Codes — Smart Room Dryer Desa Wisata Hanjeli
+ * 
+ * Hardware Pinout Sesuai Alat Fisik:
+ * - DHT22 (Suhu & RH Ruang) : GPIO 25
+ * - Relai Pemanas PTC 1     : GPIO 26
+ * - Relai Pemanas PTC 2     : GPIO 27
+ * - Sensor Hujan (ADC)      : GPIO 34
+ * - I2C (BH1750 & LCD 20x4) : SDA GPIO 21, SCL GPIO 22
+ * - LCD I2C Address         : 0x27 (20 Kolom x 4 Baris)
  */
+
+export const ESP32_PHYSICAL_STANDALONE_CODE = `/*
+ * ==============================================================================
+ * SMART ROOM DRYER — DESA WISATA HANJELI
+ * FIRMWARE RESMI PERANGKAT FISIK (STANDALONE + USB SERIAL TELEMETRY)
+ * ==============================================================================
+ * 
+ * Pinout Hardware:
+ *   - DHT22 (Suhu & Kelembapan)  : GPIO 25
+ *   - Relay CH1 (Pemanas PTC 1)  : GPIO 26
+ *   - Relay CH2 (Pemanas PTC 2)  : GPIO 27
+ *   - Sensor Hujan (Analog ADC)  : GPIO 34
+ *   - I2C Bus (SDA / SCL)        : GPIO 21 / GPIO 22
+ *   - Sensor Cahaya (BH1750)     : I2C (0x23 / Auto)
+ *   - LCD Display 20x4           : I2C (0x27)
+ * 
+ * Logika Operasional & Keselamatan:
+ *   - Suhu < 55.0 °C  -> Pemanas PTC 1 & 2 Otomatis ON
+ *   - Suhu > 60.0 °C  -> Pemanas PTC 1 & 2 Otomatis OFF
+ *   - Sensor DHT22 Error >= 3x berturut-turut -> SHUT-OFF Pemanas (Safety)
+ *   - LCD 20x4 Switch Halaman Otomatis (Monitoring & Diagnostik Sistem)
+ *   - Output Serial: Log Human-Readable & Stream JSON Telemetri untuk Web Serial
+ * ==============================================================================
+ */
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+#include <BH1750.h>
+
+// ==========================================
+// 1. PINOUT ESP32 & THRESHOLD KONTROL
+// ==========================================
+#define DHTPIN        25      // Pin DATA DHT22
+#define DHTTYPE       DHT22
+#define RELAY_CH1     26      // Control Relay PTC 1
+#define RELAY_CH2     27      // Control Relay PTC 2
+#define RAIN_PIN      34      // Input ADC Sensor Hujan
+
+#define RAIN_THRESH   2000    // Threshold ADC Hujan (< 2000 = Hujan)
+#define MAX_DHT_ERRORS 3      // Batas error berturut-turut sebelum SHUT-OFF!
+
+// ==========================================
+// 2. OBJEK & VARIABEL GLOBAL
+// ==========================================
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+DHT dht(DHTPIN, DHTTYPE);
+BH1750 lightMeter;
+
+bool bh1750Ready = false;
+
+// Variabel Data Sensor
+float temp = 0.0;
+float hum  = 0.0;
+float lux  = 0.0;
+int rainVal = 4095;
+bool isRaining = false;
+
+// Variabel Kontrol & Keamanan (Safety)
+bool heaterState = false; 
+bool dhtOK = false;
+byte dhtErrorCount = 0;
+
+// Non-blocking timer
+unsigned long prevSensorMillis = 0;
+const long sensorInterval = 1500; 
+
+unsigned long prevDisplayMillis = 0;
+const long pageInterval = 4000;  
+byte currentPage = 0;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println(F("\\n[BOOT] Starting System Smart Room Dryer Hanjeli..."));
+
+  // Config Pin Relay
+  pinMode(RELAY_CH1, OUTPUT);
+  pinMode(RELAY_CH2, OUTPUT);
+  digitalWrite(RELAY_CH1, LOW); 
+  digitalWrite(RELAY_CH2, LOW);
+  pinMode(RAIN_PIN, INPUT);
+
+  Wire.begin(21, 22);
+  Wire.setClock(100000);
+
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(" SMART ROOM DRYER   ");
+  lcd.setCursor(0, 1);
+  lcd.print(" Booting System...  ");
+
+  dht.begin();
+
+  if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
+    bh1750Ready = true;
+    Serial.println(F("[OK] BH1750 Detected"));
+  } else {
+    bh1750Ready = false;
+    Serial.println(F("[WARN] BH1750 Not Responding!"));
+  }
+
+  delay(1000);
+  lcd.clear();
+}
+
+void loop() {
+  unsigned long currentMillis = millis();
+
+  // Task 1: Pembacaan Sensor & Kontrol Pemanas
+  if (currentMillis - prevSensorMillis >= sensorInterval) {
+    prevSensorMillis = currentMillis;
+
+    // --- BACA SENSOR DHT22 ---
+    float t = dht.readTemperature();
+    float h = dht.readHumidity();
+
+    if (!isnan(t) && !isnan(h)) {
+      temp = t;
+      hum  = h;
+      dhtOK = true;
+      dhtErrorCount = 0;
+    } else {
+      dhtErrorCount++;
+      Serial.print(F("[ERR] DHT22 Read Error! Fail count: "));
+      Serial.println(dhtErrorCount);
+
+      if (dhtErrorCount >= MAX_DHT_ERRORS) {
+        dhtOK = false;
+      }
+    }
+
+    // --- BACA SENSOR BH1750 ---
+    if (bh1750Ready) {
+      float l = lightMeter.readLightLevel();
+      if (l >= 0) lux = l;
+    }
+
+    // --- BACA SENSOR HUJAN ---
+    rainVal = analogRead(RAIN_PIN);
+    isRaining = (rainVal < RAIN_THRESH);
+
+    // =========================================================
+    // LOGIKA KONTROL HEATER (DI BAWAH 55 ON / DI ATAS 60 OFF)
+    // =========================================================
+    if (!dhtOK) {
+      heaterState = false; // Matikan heater jika sensor fault
+    } 
+    else {
+      if (temp < 55.0) {
+        heaterState = true;
+      } 
+      else if (temp > 60.0) {
+        heaterState = false;
+      }
+    }
+
+    // Terapkan status ke pin Relay
+    digitalWrite(RELAY_CH1, heaterState ? HIGH : LOW);
+    digitalWrite(RELAY_CH2, heaterState ? HIGH : LOW);
+
+    printToSerial();
+  }
+
+  // Task 2: Switch Halaman LCD
+  if (currentMillis - prevDisplayMillis >= pageInterval) {
+    prevDisplayMillis = currentMillis;
+    currentPage = !currentPage;
+    lcd.clear();
+  }
+
+  // Task 3: Render Tampilan LCD 20x4
+  updateLCD();
+}
+
+void printToSerial() {
+  Serial.println(F("=========================================="));
+  if (!dhtOK) {
+    Serial.println(F("STATUS SENSOR : [CRITICAL ERROR] DHT22 FAULT!"));
+  } else {
+    Serial.print(F("Suhu (DHT22)   : ")); Serial.print(temp, 1); Serial.println(F(" °C"));
+    Serial.print(F("Kelembapan     : ")); Serial.print(hum, 1);  Serial.println(F(" %"));
+  }
+  Serial.print(F("Cahaya (BH1750): ")); Serial.print(lux, 1);  Serial.println(F(" Lux"));
+  Serial.print(F("Rain Raw ADC   : ")); Serial.print(rainVal); 
+  Serial.print(F(" | Status Hujan: ")); Serial.println(isRaining ? F("YA") : F("TIDAK"));
+  Serial.print(F("Status Heater  : ")); 
+  if (!dhtOK) {
+    Serial.println(F("OFF [SAFETY SHUTDOWN]"));
+  } else {
+    Serial.println(heaterState ? F("ON (Heating...)") : F("OFF (Standby)"));
+  }
+  Serial.println(F("==========================================\\n"));
+
+  // Stream Web Serial JSON Telemetry Packet (Terhubung Langsung ke Web Dashboard)
+  Serial.print(F("{\\"deviceId\\":\\"ESP32-HANJELI\\",\\"tempInternal\\":"));
+  Serial.print(dhtOK ? temp : 0.0, 1);
+  Serial.print(F(",\\"humidityInternal\\":"));
+  Serial.print(dhtOK ? hum : 0.0, 1);
+  Serial.print(F(",\\"solarRadiation\\":"));
+  Serial.print(lux, 1);
+  Serial.print(F(",\\"rainVal\\":"));
+  Serial.print(rainVal);
+  Serial.print(F(",\\"isRaining\\":"));
+  Serial.print(isRaining ? F("true") : F("false"));
+  Serial.print(F(",\\"heaterStatus\\":"));
+  Serial.print(heaterState ? F("true") : F("false"));
+  Serial.print(F(",\\"auxHeaterStatus\\":"));
+  Serial.print(heaterState ? F("true") : F("false"));
+  Serial.print(F(",\\"dhtOK\\":"));
+  Serial.print(dhtOK ? F("true") : F("false"));
+  Serial.println(F("}"));
+}
+
+void updateLCD() {
+  if (currentPage == 0) {
+    // PAGE 1: MONITORING UTAMA
+    lcd.setCursor(0, 0);
+    lcd.print(" SMART ROOM DRYER   ");
+
+    lcd.setCursor(0, 1);
+    if (dhtOK) {
+      lcd.print("T:"); lcd.print(temp, 1); lcd.print((char)223); lcd.print("C  ");
+      lcd.setCursor(10, 1);
+      lcd.print("H:"); lcd.print(hum, 1); lcd.print("%   ");
+    } else {
+      lcd.print("T:ERR!    H:ERR!    ");
+    }
+
+    lcd.setCursor(0, 2);
+    lcd.print("L:"); 
+    if (lux < 10000) lcd.print(" ");
+    lcd.print((int)lux); lcd.print("Lx ");
+    
+    lcd.setCursor(10, 2);
+    lcd.print("Rain:"); lcd.print(isRaining ? "YES" : "NO ");
+
+    lcd.setCursor(0, 3);
+    lcd.print("H1:"); lcd.print(heaterState ? "ON " : "OFF");
+    lcd.setCursor(10, 3);
+    lcd.print("H2:"); lcd.print(heaterState ? "ON " : "OFF");
+
+  } else {
+    // PAGE 2: STATUS TEKNIS & DIAGNOSTIK
+    lcd.setCursor(0, 0);
+    lcd.print("[SYSTEM DIAGNOSTIC] ");
+
+    lcd.setCursor(0, 1);
+    lcd.print("DHT status : "); 
+    lcd.print(dhtOK ? "OK  " : "FAULT!");
+
+    lcd.setCursor(0, 2);
+    lcd.print("BH1750 status: "); 
+    lcd.print(bh1750Ready ? "OK  " : "ERR ");
+
+    lcd.setCursor(0, 3);
+    lcd.print("Rain Raw ADC : "); 
+    lcd.print(rainVal); lcd.print("   ");
+  }
+}
+`;
 
 export const ESP32_DUAL_MODE_CODE = `/*
  * ==============================================================================
  * SMART ROOM DRYER — DESA WISATA HANJELI
- * ESP32 DUAL CONNECTIVITY FIRMWARE
- * Wi-Fi + MQTT & Bluetooth Low Energy BLE
+ * ESP32 DUAL CONNECTIVITY FIRMWARE (PRODUKSI & IOT CLOUD/BLE/USB)
+ * Wi-Fi + MQTT, Web Bluetooth BLE & Web Serial Direct
  * ==============================================================================
- *
- * Hardware Target:
- *   ESP32 DevKit V1 (30-pin / 38-pin)
- *
- * Communication:
- *   1. Wi-Fi + MQTT
- *   2. Bluetooth Low Energy (BLE)
- *
- * Storage:
- *   Preferences / NVS
- *
- * Libraries:
- *   - WiFi.h                  -> Built-in ESP32
- *   - PubSubClient            -> Nick O'Leary
- *   - ArduinoJson             -> Benoit Blanchon
- *   - Preferences.h           -> Built-in ESP32
- *   - BLEDevice.h             -> Built-in ESP32
- *   - BLEServer.h             -> Built-in ESP32
- *   - BLEUtils.h              -> Built-in ESP32
- *   - BLE2902.h               -> Built-in ESP32
+ * 
+ * Pinout Sesuai Alat Fisik:
+ *   - DHT22 (Suhu & Kelembapan)  : GPIO 25
+ *   - Relay CH1 (Pemanas PTC 1)  : GPIO 26
+ *   - Relay CH2 (Pemanas PTC 2)  : GPIO 27
+ *   - Sensor Hujan (Analog ADC)  : GPIO 34
+ *   - I2C (BH1750 & LCD 20x4)    : SDA GPIO 21 / SCL GPIO 22
+ *   - LCD I2C Address            : 0x27
+ * 
+ * Libraries Diperlukan:
+ *   - DHT sensor library (Adafruit)
+ *   - BH1750 (Christopher Laws)
+ *   - LiquidCrystal_I2C
+ *   - PubSubClient (Nick O'Leary)
+ *   - ArduinoJson (v6/v7)
+ *   - WiFi.h & Preferences.h (Built-in ESP32)
+ *   - BLEDevice.h & BLEServer.h (Built-in ESP32)
  * ==============================================================================
  */
 
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+#include <BH1750.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
@@ -41,18 +312,20 @@ export const ESP32_DUAL_MODE_CODE = `/*
 #include <BLE2902.h>
 
 // ==============================================================================
-// PIN DEFINITIONS
+// 1. PIN DEFINITIONS & SAFETY THRESHOLDS
 // ==============================================================================
-#define RELAY_EXHAUST_FAN_PIN   18
-#define RELAY_INTAKE_FAN_PIN    19
-#define RELAY_CIRC_FAN_PIN      21
-#define RELAY_HEATER_PIN        22
-#define STATUS_LED_PIN           2
-#define SENSOR_MOISTURE_ADC_PIN 34
-#define SENSOR_WEIGHT_ADC_PIN   35
+#define DHTPIN        25      // Pin DATA DHT22
+#define DHTTYPE       DHT22
+#define RELAY_CH1     26      // Control Relay PTC 1
+#define RELAY_CH2     27      // Control Relay PTC 2
+#define RAIN_PIN      34      // Input ADC Sensor Hujan
+#define STATUS_LED_PIN 2      // Onboard LED status
+
+#define RAIN_THRESH   2000    // Threshold ADC Hujan (< 2000 = Hujan)
+#define MAX_DHT_ERRORS 3      // Batas error berturut-turut sebelum SHUT-OFF
 
 // ==============================================================================
-// BLE SERVICE & CHARACTERISTIC UUID (128-BIT HANJELI STANDARD)
+// 2. BLE UUIDS (128-BIT HANJELI STANDARD)
 // ==============================================================================
 #define SERVICE_UUID      "19b10000-e8f2-537e-4f6c-d104768a1214"
 #define CHAR_SENSOR_UUID  "19b10001-e8f2-537e-4f6c-d104768a1214"
@@ -61,8 +334,13 @@ export const ESP32_DUAL_MODE_CODE = `/*
 #define CHAR_CONFIG_UUID  "19b10004-e8f2-537e-4f6c-d104768a1214"
 
 // ==============================================================================
-// GLOBAL OBJECTS & STATE
+// 3. GLOBAL OBJECTS & STATE
 // ==============================================================================
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+DHT dht(DHTPIN, DHTTYPE);
+BH1750 lightMeter;
+bool bh1750Ready = false;
+
 Preferences preferences;
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -74,37 +352,39 @@ BLECharacteristic* pControlChar = NULL;
 BLECharacteristic* pConfigChar = NULL;
 bool bleClientConnected = false;
 
-String wifi_ssid     = "OPPO Reno";
-String wifi_password = "admin";
-String mqtt_broker   = "broker.hivemq.com";
+String wifi_ssid     = "GreenHouse_Hanjeli";
+String wifi_password = "hanjelismartdryer";
+String mqtt_broker   = "broker.emqx.io";
 int    mqtt_port     = 1883;
-String device_id     = "OPPO Reno";
+String device_id     = "ESP32-HANJELI-01";
 
-bool exhaustFanState = true;
-int  exhaustFanSpeed = 70;
-bool intakeFanState = true;
-bool circFanState = true;
-bool auxHeaterState = false;
-int  auxHeaterLevel = 0;
+// Sensor Values
+float temp = 0.0;
+float hum  = 0.0;
+float lux  = 0.0;
+int rainVal = 4095;
+bool isRaining = false;
+
+// Control States
+bool heaterState = false;
+bool dhtOK = false;
+byte dhtErrorCount = 0;
 bool isManualOverride = false;
 String overrideMode = "AUTO";
 
-float tempInternal     = 42.5;
-float humidityInternal = 52.0;
-float tempExternal     = 31.2;
-float humidityExternal = 66.0;
-float solarRadiation   = 760.0;
-float grainMoisture    = 13.8;
-float weightCurrentKg  = 44.5;
-
-unsigned long lastTelemetryMillis = 0;
-const unsigned long TELEMETRY_INTERVAL = 3000;
+unsigned long prevSensorMillis = 0;
+const long sensorInterval = 1500;
+unsigned long prevDisplayMillis = 0;
+const long pageInterval = 4000;
+byte currentPage = 0;
 
 void applyActuators();
 void readSensors();
-void mqttCallback(char* topic, byte* message, unsigned int length);
-void reconnectMqtt();
+void printToSerial();
+void updateLCD();
 void broadcastTelemetry();
+void reconnectMqtt();
+void mqttCallback(char* topic, byte* message, unsigned int length);
 
 // ==============================================================================
 // BLE CALLBACKS
@@ -113,12 +393,12 @@ class MyServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer* pServer) {
     bleClientConnected = true;
     digitalWrite(STATUS_LED_PIN, HIGH);
-    Serial.println("[BLE] Web Bluetooth Central connected!");
+    Serial.println("[BLE] Dashboard Web Bluetooth Terhubung!");
   }
   void onDisconnect(BLEServer* pServer) {
     bleClientConnected = false;
     digitalWrite(STATUS_LED_PIN, LOW);
-    Serial.println("[BLE] Disconnected. Restarting advertising...");
+    Serial.println("[BLE] Dashboard Terputus. Mulai advertising kembali...");
     pServer->startAdvertising();
   }
 };
@@ -128,22 +408,17 @@ class ControlCallbacks : public BLECharacteristicCallbacks {
     String rxValue = pCharacteristic->getValue();
     if (rxValue.length() == 0) return;
 
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(512);
     DeserializationError error = deserializeJson(doc, rxValue);
     if (error) return;
 
-    JsonObject data = doc["data"].as<JsonObject>();
-    if (data.containsKey("exhaustFanStatus")) exhaustFanState = data["exhaustFanStatus"];
-    if (data.containsKey("exhaustFanSpeed"))  exhaustFanSpeed  = data["exhaustFanSpeed"];
-    if (data.containsKey("intakeFanStatus"))   intakeFanState   = data["intakeFanStatus"];
-    if (data.containsKey("circFanStatus"))     circFanState     = data["circFanStatus"];
-    if (data.containsKey("auxHeaterStatus"))   auxHeaterState   = data["auxHeaterStatus"];
-    if (data.containsKey("auxHeaterLevel"))    auxHeaterLevel    = data["auxHeaterLevel"];
-    if (data.containsKey("isOverrideActive"))  isManualOverride = data["isOverrideActive"];
-    if (data.containsKey("overrideMode"))      overrideMode     = data["overrideMode"].as<String>();
+    JsonObject data = doc["data"].isNull() ? doc.as<JsonObject>() : doc["data"].as<JsonObject>();
+    if (data.containsKey("auxHeaterStatus")) heaterState = data["auxHeaterStatus"];
+    if (data.containsKey("isOverrideActive")) isManualOverride = data["isOverrideActive"];
+    if (data.containsKey("overrideMode"))     overrideMode = data["overrideMode"].as<String>();
 
     applyActuators();
-    Serial.println("[BLE] Actuator state updated.");
+    broadcastTelemetry();
   }
 };
 
@@ -152,7 +427,7 @@ class ConfigCallbacks : public BLECharacteristicCallbacks {
     String rxValue = pCharacteristic->getValue();
     if (rxValue.length() == 0) return;
 
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(512);
     DeserializationError error = deserializeJson(doc, rxValue);
     if (error) return;
 
@@ -160,123 +435,234 @@ class ConfigCallbacks : public BLECharacteristicCallbacks {
       if (doc.containsKey("ssid"))        wifi_ssid     = doc["ssid"].as<String>();
       if (doc.containsKey("password"))    wifi_password = doc["password"].as<String>();
       if (doc.containsKey("mqtt_broker")) mqtt_broker   = doc["mqtt_broker"].as<String>();
-      if (doc.containsKey("mqtt_port"))   mqtt_port     = doc["mqtt_port"];
       if (doc.containsKey("device_id"))   device_id     = doc["device_id"].as<String>();
 
       preferences.begin("srd_config", false);
       preferences.putString("ssid", wifi_ssid);
       preferences.putString("password", wifi_password);
       preferences.putString("broker", mqtt_broker);
-      preferences.putInt("port", mqtt_port);
       preferences.putString("dev_id", device_id);
       preferences.end();
 
       WiFi.disconnect(true);
-      delay(500);
-      WiFi.mode(WIFI_STA);
+      delay(300);
       WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
     }
   }
 };
 
 void applyActuators() {
-  digitalWrite(RELAY_EXHAUST_FAN_PIN, exhaustFanState ? HIGH : LOW);
-  digitalWrite(RELAY_INTAKE_FAN_PIN, intakeFanState ? HIGH : LOW);
-  digitalWrite(RELAY_CIRC_FAN_PIN, circFanState ? HIGH : LOW);
-  digitalWrite(RELAY_HEATER_PIN, auxHeaterState ? HIGH : LOW);
+  if (!dhtOK && !isManualOverride) {
+    heaterState = false; // Safety shutoff
+  }
+  digitalWrite(RELAY_CH1, heaterState ? HIGH : LOW);
+  digitalWrite(RELAY_CH2, heaterState ? HIGH : LOW);
 }
 
 void readSensors() {
-  // Integrasikan pembacaan sensor fisik DHT22, DS18B20, Solar Pyranometer, Load Cell di sini
-  tempInternal += random(-3, 4) / 10.0;
-  humidityInternal += random(-5, 6) / 10.0;
-  if (tempInternal < 35.0) tempInternal = 35.0;
-  if (tempInternal > 58.0) tempInternal = 58.0;
-}
+  // 1. DHT22
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
 
-void mqttCallback(char* topic, byte* message, unsigned int length) {
-  String payload = "";
-  for (unsigned int i = 0; i < length; i++) payload += (char)message[i];
+  if (!isnan(t) && !isnan(h)) {
+    temp = t;
+    hum  = h;
+    dhtOK = true;
+    dhtErrorCount = 0;
+  } else {
+    dhtErrorCount++;
+    if (dhtErrorCount >= MAX_DHT_ERRORS) {
+      dhtOK = false;
+    }
+  }
 
-  DynamicJsonDocument doc(1024);
-  DeserializationError error = deserializeJson(doc, payload);
-  if (error) return;
+  // 2. BH1750
+  if (bh1750Ready) {
+    float l = lightMeter.readLightLevel();
+    if (l >= 0) lux = l;
+  }
 
-  JsonObject data = doc["data"].as<JsonObject>();
-  if (data.containsKey("exhaustFanStatus")) exhaustFanState = data["exhaustFanStatus"];
-  if (data.containsKey("exhaustFanSpeed"))  exhaustFanSpeed  = data["exhaustFanSpeed"];
-  if (data.containsKey("intakeFanStatus"))   intakeFanState   = data["intakeFanStatus"];
-  if (data.containsKey("circFanStatus"))     circFanState     = data["circFanStatus"];
-  if (data.containsKey("auxHeaterStatus"))   auxHeaterState   = data["auxHeaterStatus"];
-  if (data.containsKey("auxHeaterLevel"))    auxHeaterLevel    = data["auxHeaterLevel"];
-  if (data.containsKey("isOverrideActive"))  isManualOverride = data["isOverrideActive"];
-  if (data.containsKey("overrideMode"))      overrideMode     = data["overrideMode"].as<String>();
+  // 3. Sensor Hujan
+  rainVal = analogRead(RAIN_PIN);
+  isRaining = (rainVal < RAIN_THRESH);
 
-  applyActuators();
-}
-
-void reconnectMqtt() {
-  if (WiFi.status() != WL_CONNECTED || mqttClient.connected()) return;
-
-  String clientId = "ESP32_SRD_" + device_id + "_" + String(random(0xffff), HEX);
-  if (mqttClient.connect(clientId.c_str())) {
-    String cmdTopic1 = "smartroomdryer/device/" + device_id + "/command";
-    String cmdTopic2 = "hanjeli/greenhouse/control";
-    mqttClient.subscribe(cmdTopic1.c_str());
-    mqttClient.subscribe(cmdTopic2.c_str());
-    Serial.println("[MQTT] Connected & Subscribed!");
+  // 4. Kontrol Otomatis Pemanas (Bila tidak dalam mode manual)
+  if (!isManualOverride) {
+    if (!dhtOK) {
+      heaterState = false;
+    } else {
+      if (temp < 55.0) {
+        heaterState = true;
+      } else if (temp > 60.0) {
+        heaterState = false;
+      }
+    }
+    applyActuators();
   }
 }
 
 void broadcastTelemetry() {
-  readSensors();
-
-  DynamicJsonDocument doc(1024);
+  DynamicJsonDocument doc(512);
   doc["deviceId"]         = device_id;
-  doc["tempInternal"]     = round(tempInternal * 10) / 10.0;
-  doc["humidityInternal"] = round(humidityInternal * 10) / 10.0;
-  doc["tempExternal"]     = round(tempExternal * 10) / 10.0;
-  doc["humidityExternal"] = round(humidityExternal * 10) / 10.0;
-  doc["solarRadiation"]   = solarRadiation;
-  doc["grainMoisture"]    = round(grainMoisture * 10) / 10.0;
-  doc["weightCurrentKg"]  = round(weightCurrentKg * 10) / 10.0;
-  doc["exhaustFanStatus"] = exhaustFanState;
-  doc["exhaustFanSpeed"]  = exhaustFanSpeed;
-  doc["intakeFanStatus"]  = intakeFanState;
-  doc["circFanStatus"]    = circFanState;
-  doc["heaterStatus"]     = auxHeaterState;
-  doc["heaterLevel"]      = auxHeaterLevel;
+  doc["tempInternal"]     = dhtOK ? (round(temp * 10.0) / 10.0) : 0.0;
+  doc["humidityInternal"] = dhtOK ? (round(hum * 10.0) / 10.0) : 0.0;
+  doc["solarRadiation"]   = round(lux);
+  doc["lux"]              = round(lux);
+  doc["rainVal"]          = rainVal;
+  doc["isRaining"]        = isRaining;
+  doc["heaterStatus"]     = heaterState;
+  doc["auxHeaterStatus"]  = heaterState;
+  doc["dhtOK"]            = dhtOK;
   doc["isOverrideActive"] = isManualOverride;
   doc["overrideMode"]     = overrideMode;
+  doc["hasData"]          = true;
 
   String jsonBuffer;
   serializeJson(doc, jsonBuffer);
 
+  // Kirim via MQTT
   if (mqttClient.connected()) {
     mqttClient.publish("hanjeli/greenhouse/telemetry", jsonBuffer.c_str());
     mqttClient.publish("greenhouse/telemetry", jsonBuffer.c_str());
   }
 
+  // Kirim via Web Bluetooth BLE
   if (bleClientConnected && pSensorChar != NULL) {
     pSensorChar->setValue((uint8_t*)jsonBuffer.c_str(), jsonBuffer.length());
     pSensorChar->notify();
   }
 }
 
+void mqttCallback(char* topic, byte* message, unsigned int length) {
+  String payload = "";
+  for (unsigned int i = 0; i < length; i++) payload += (char)message[i];
+
+  DynamicJsonDocument doc(512);
+  if (deserializeJson(doc, payload) == DeserializationError::Ok) {
+    JsonObject data = doc["data"].isNull() ? doc.as<JsonObject>() : doc["data"].as<JsonObject>();
+    if (data.containsKey("auxHeaterStatus")) heaterState = data["auxHeaterStatus"];
+    if (data.containsKey("isOverrideActive")) isManualOverride = data["isOverrideActive"];
+    if (data.containsKey("overrideMode"))     overrideMode = data["overrideMode"].as<String>();
+    applyActuators();
+    broadcastTelemetry();
+  }
+}
+
+void reconnectMqtt() {
+  if (WiFi.status() != WL_CONNECTED || mqttClient.connected()) return;
+  String clientId = "ESP32_SRD_" + device_id + "_" + String(random(0xffff), HEX);
+  if (mqttClient.connect(clientId.c_str())) {
+    mqttClient.subscribe("hanjeli/greenhouse/control");
+    mqttClient.subscribe("greenhouse/control");
+    Serial.println("[MQTT] Terkoneksi & Berlangganan!");
+  }
+}
+
+void printToSerial() {
+  Serial.println(F("=========================================="));
+  if (!dhtOK) {
+    Serial.println(F("STATUS SENSOR : [CRITICAL ERROR] DHT22 FAULT!"));
+  } else {
+    Serial.print(F("Suhu (DHT22)   : ")); Serial.print(temp, 1); Serial.println(F(" °C"));
+    Serial.print(F("Kelembapan     : ")); Serial.print(hum, 1);  Serial.println(F(" %"));
+  }
+  Serial.print(F("Cahaya (BH1750): ")); Serial.print(lux, 1);  Serial.println(F(" Lux"));
+  Serial.print(F("Rain Raw ADC   : ")); Serial.print(rainVal); 
+  Serial.print(F(" | Status Hujan: ")); Serial.println(isRaining ? F("YA") : F("TIDAK"));
+  Serial.print(F("Status Heater  : ")); 
+  if (!dhtOK) {
+    Serial.println(F("OFF [SAFETY SHUTDOWN]"));
+  } else {
+    Serial.println(heaterState ? F("ON (Heating...)") : F("OFF (Standby)"));
+  }
+  Serial.println(F("==========================================\\n"));
+
+  // Stream Web Serial JSON Packet
+  Serial.print(F("{\\"deviceId\\":\\"")); Serial.print(device_id);
+  Serial.print(F("\\",\\"tempInternal\\":")); Serial.print(dhtOK ? temp : 0.0, 1);
+  Serial.print(F(",\\"humidityInternal\\":")); Serial.print(dhtOK ? hum : 0.0, 1);
+  Serial.print(F(",\\"solarRadiation\\":")); Serial.print(lux, 1);
+  Serial.print(F(",\\"rainVal\\":")); Serial.print(rainVal);
+  Serial.print(F(",\\"isRaining\\":")); Serial.print(isRaining ? F("true") : F("false"));
+  Serial.print(F(",\\"heaterStatus\\":")); Serial.print(heaterState ? F("true") : F("false"));
+  Serial.print(F(",\\"auxHeaterStatus\\":")); Serial.print(heaterState ? F("true") : F("false"));
+  Serial.print(F(",\\"dhtOK\\":")); Serial.print(dhtOK ? F("true") : F("false"));
+  Serial.println(F("}"));
+}
+
+void updateLCD() {
+  if (currentPage == 0) {
+    lcd.setCursor(0, 0);
+    lcd.print(" SMART ROOM DRYER   ");
+
+    lcd.setCursor(0, 1);
+    if (dhtOK) {
+      lcd.print("T:"); lcd.print(temp, 1); lcd.print((char)223); lcd.print("C  ");
+      lcd.setCursor(10, 1);
+      lcd.print("H:"); lcd.print(hum, 1); lcd.print("%   ");
+    } else {
+      lcd.print("T:ERR!    H:ERR!    ");
+    }
+
+    lcd.setCursor(0, 2);
+    lcd.print("L:"); 
+    if (lux < 10000) lcd.print(" ");
+    lcd.print((int)lux); lcd.print("Lx ");
+    
+    lcd.setCursor(10, 2);
+    lcd.print("Rain:"); lcd.print(isRaining ? "YES" : "NO ");
+
+    lcd.setCursor(0, 3);
+    lcd.print("H1:"); lcd.print(heaterState ? "ON " : "OFF");
+    lcd.setCursor(10, 3);
+    lcd.print("H2:"); lcd.print(heaterState ? "ON " : "OFF");
+  } else {
+    lcd.setCursor(0, 0);
+    lcd.print("[SYSTEM DIAGNOSTIC] ");
+
+    lcd.setCursor(0, 1);
+    lcd.print("DHT status : "); 
+    lcd.print(dhtOK ? "OK  " : "FAULT!");
+
+    lcd.setCursor(0, 2);
+    lcd.print("BH1750 status: "); 
+    lcd.print(bh1750Ready ? "OK  " : "ERR ");
+
+    lcd.setCursor(0, 3);
+    lcd.print("Rain Raw ADC : "); 
+    lcd.print(rainVal); lcd.print("   ");
+  }
+}
+
 void setup() {
   Serial.begin(115200);
-  pinMode(RELAY_EXHAUST_FAN_PIN, OUTPUT);
-  pinMode(RELAY_INTAKE_FAN_PIN, OUTPUT);
-  pinMode(RELAY_CIRC_FAN_PIN, OUTPUT);
-  pinMode(RELAY_HEATER_PIN, OUTPUT);
+  pinMode(RELAY_CH1, OUTPUT);
+  pinMode(RELAY_CH2, OUTPUT);
   pinMode(STATUS_LED_PIN, OUTPUT);
-  applyActuators();
+  pinMode(RAIN_PIN, INPUT);
+  digitalWrite(RELAY_CH1, LOW);
+  digitalWrite(RELAY_CH2, LOW);
+
+  Wire.begin(21, 22);
+  Wire.setClock(100000);
+
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(" SMART ROOM DRYER   ");
+  lcd.setCursor(0, 1);
+  lcd.print(" Booting Dual IoT.. ");
+
+  dht.begin();
+  if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
+    bh1750Ready = true;
+  }
 
   preferences.begin("srd_config", true);
   wifi_ssid     = preferences.getString("ssid", wifi_ssid);
   wifi_password = preferences.getString("password", wifi_password);
   mqtt_broker   = preferences.getString("broker", mqtt_broker);
-  mqtt_port     = preferences.getInt("port", mqtt_port);
   device_id     = preferences.getString("dev_id", device_id);
   preferences.end();
 
@@ -305,7 +691,10 @@ void setup() {
 
   mqttClient.setServer(mqtt_broker.c_str(), mqtt_port);
   mqttClient.setCallback(mqttCallback);
-  mqttClient.setBufferSize(2048);
+  mqttClient.setBufferSize(1024);
+
+  delay(1000);
+  lcd.clear();
 }
 
 void loop() {
@@ -317,10 +706,25 @@ void loop() {
     digitalWrite(STATUS_LED_PIN, (millis() / 500) % 2);
   }
 
-  if (millis() - lastTelemetryMillis >= TELEMETRY_INTERVAL) {
-    lastTelemetryMillis = millis();
+  unsigned long currentMillis = millis();
+
+  // Task 1: Pembacaan Sensor & Kontrol
+  if (currentMillis - prevSensorMillis >= sensorInterval) {
+    prevSensorMillis = currentMillis;
+    readSensors();
+    printToSerial();
     broadcastTelemetry();
   }
+
+  // Task 2: Switch LCD
+  if (currentMillis - prevDisplayMillis >= pageInterval) {
+    prevDisplayMillis = currentMillis;
+    currentPage = !currentPage;
+    lcd.clear();
+  }
+
+  // Task 3: Update LCD
+  updateLCD();
   delay(10);
 }
 `;
@@ -332,14 +736,11 @@ export const ESP32_SIMULATOR_CODE = `/*
  * ==============================================================================
  * 
  * Deskripsi:
- * Firmware ini dirancang khusus untuk pengujian sistem TANPA SENSOR FISIK.
- * ESP32 akan menghasilkan data telemetri realistis secara matematis di dalam
- * mikrokontroler dan memancarkannya secara real-time melalui:
- *   1. Bluetooth Low Energy (Web Bluetooth API di Google Chrome / MS Edge)
- *   2. Wi-Fi + MQTT Broker (HiveMQ / EMQX / Local Broker)
+ * Firmware simulator untuk pengujian sistem TANPA SENSOR FISIK.
+ * Menghasilkan data realistis (Suhu 55-60°C target, Kelembapan, Lux, Hujan)
+ * dan memancarkannya via Bluetooth Low Energy (BLE), Wi-Fi MQTT & Web Serial.
  * 
- * Target Hardware: ESP32 DevKit V1 (30-pin / 38-pin) - Cukup tancap kabel USB!
- * Libraries: PubSubClient, ArduinoJson (v6/v7), BLEDevice, WiFi, Preferences
+ * Target Hardware: ESP32 DevKit V1 (Cukup tancap kabel USB ke laptop)
  * ==============================================================================
  */
 
@@ -373,191 +774,71 @@ BLECharacteristic* pConfigChar = NULL;
 
 bool bleClientConnected = false;
 
-String wifi_ssid     = "OPPO Reno";
-String wifi_password = "admin";
-String mqtt_broker   = "broker.hivemq.com";
+String wifi_ssid     = "GreenHouse_Hanjeli";
+String wifi_password = "hanjelismartdryer";
+String mqtt_broker   = "broker.emqx.io";
 int    mqtt_port     = 1883;
-String device_id     = "OPPO Reno";
+String device_id     = "ESP32-SIM-HANJELI";
 
-bool exhaustFanStatus = false;
-int  exhaustFanSpeed  = 0;
-bool blowerFanStatus  = false;
-int  blowerFanSpeed   = 0;
-bool auxHeaterStatus  = false;
-int  auxHeaterLevel   = 0;
+bool heaterStatus     = false;
 String controlMode    = "AUTOMATIC";
 
-float simTempInternal     = 42.5;
-float simTempExternal     = 31.0;
-float simHumidityInternal = 55.0;
-float simHumidityExternal = 68.0;
-float simSolarRadiation   = 750.0;
-float simGrainMoisture    = 14.5;
-float simWeightCurrentKg  = 48.0;
+float simTempInternal     = 54.5;
+float simHumidityInternal = 48.0;
+float simLux              = 780.0;
+int   simRainRaw          = 3800;
+bool  simIsRaining        = false;
 
 unsigned long lastTelemetryMillis = 0;
-const unsigned long TELEMETRY_INTERVAL = 2500;
+const unsigned long TELEMETRY_INTERVAL = 2000;
 unsigned long simStepCounter = 0;
-
-void updateSimulationPhysics();
-void broadcastTelemetry();
-void reconnectMqtt();
-void mqttCallback(char* topic, byte* payload, unsigned int length);
-
-class ServerCallbacks : public BLEServerCallbacks {
-  void onConnect(BLEServer* pServer) {
-    bleClientConnected = true;
-    digitalWrite(ONBOARD_LED_PIN, HIGH);
-    Serial.println("\\n[BLE] >>> Web Bluetooth Dashboard Terhubung! <<<");
-  }
-  void onDisconnect(BLEServer* pServer) {
-    bleClientConnected = false;
-    digitalWrite(ONBOARD_LED_PIN, LOW);
-    Serial.println("\\n[BLE] <<< Web Bluetooth Dashboard Terputus. <<<");
-    pServer->startAdvertising();
-  }
-};
-
-class ControlCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic* pCharacteristic) {
-    String rxValue = pCharacteristic->getValue();
-    if (rxValue.length() == 0) return;
-
-    StaticJsonDocument<512> doc;
-    DeserializationError error = deserializeJson(doc, rxValue);
-    if (error) return;
-
-    JsonObject data = doc["data"].isNull() ? doc.as<JsonObject>() : doc["data"].as<JsonObject>();
-    if (data.containsKey("exhaustFanStatus")) exhaustFanStatus = data["exhaustFanStatus"];
-    if (data.containsKey("exhaustFanSpeed"))  exhaustFanSpeed  = data["exhaustFanSpeed"];
-    if (data.containsKey("blowerFanStatus"))  blowerFanStatus  = data["blowerFanStatus"];
-    if (data.containsKey("blowerFanSpeed"))   blowerFanSpeed   = data["blowerFanSpeed"];
-    if (data.containsKey("auxHeaterStatus"))  auxHeaterStatus  = data["auxHeaterStatus"];
-    if (data.containsKey("auxHeaterLevel"))   auxHeaterLevel   = data["auxHeaterLevel"];
-    if (data.containsKey("controlMode"))      controlMode      = data["controlMode"].as<String>();
-
-    broadcastTelemetry();
-  }
-};
-
-class ConfigCallbacks : public BLECharacteristicCallbacks {
-  void onWrite(BLECharacteristic* pCharacteristic) {
-    String rxValue = pCharacteristic->getValue();
-    if (rxValue.length() == 0) return;
-
-    StaticJsonDocument<512> doc;
-    DeserializationError error = deserializeJson(doc, rxValue);
-    if (!error) {
-      String newSsid   = doc["ssid"] | "";
-      String newPass   = doc["password"] | "";
-      String newBroker = doc["broker"] | mqtt_broker;
-
-      if (newSsid.length() > 0) {
-        preferences.begin("dryer_config", false);
-        preferences.putString("ssid", newSsid);
-        preferences.putString("password", newPass);
-        preferences.putString("broker", newBroker);
-        preferences.end();
-        wifi_ssid = newSsid;
-        wifi_password = newPass;
-        wifi_broker = newBroker;
-        WiFi.disconnect();
-        WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
-      }
-    }
-  }
-};
 
 void updateSimulationPhysics() {
   simStepCounter++;
 
-  // 1. Noise acak alami untuk fluktuasi mikroklimat (lebih dinamis di grafik)
-  float rawNoise = ((rand() % 41) - 20) / 20.0; // -1.0 s/d +1.0
-  float thermalNoise = rawNoise * 0.45;         // Fluktuasi termal ±0.45°C
-  float humidityNoise = rawNoise * 0.95;        // Fluktuasi kelembapan ±0.95%
-
-  // 2. Dinamika Radiasi Surya Matahari (Multi-Wave: 620 - 940 W/m²)
-  float solarWave1 = sin(simStepCounter * 0.08) * 115.0;
-  float solarWave2 = cos(simStepCounter * 0.19) * 45.0;
-  simSolarRadiation = 760.0 + solarWave1 + solarWave2 + (rawNoise * 20.0);
-  if (simSolarRadiation < 400.0) simSolarRadiation = 400.0;
-  if (simSolarRadiation > 1050.0) simSolarRadiation = 1050.0;
-
-  // 3. Suhu & Kelembapan Eksternal (Lingkungan Desa Wisata Hanjeli: 29.0°C - 33.5°C)
-  float ambientBreeze = sin(simStepCounter * 0.04) * 1.8 + (rawNoise * 0.35);
-  simTempExternal = 30.5 + ambientBreeze;
-  simHumidityExternal = 66.0 - (ambientBreeze * 2.6) + (rawNoise * 1.8);
-  if (simHumidityExternal > 88.0) simHumidityExternal = 88.0;
-  if (simHumidityExternal < 45.0) simHumidityExternal = 45.0;
-
-  // 4. Termodinamika Ruang Greenhouse & Pengaruh Aktuator
-  float heaterContribution = auxHeaterStatus ? (auxHeaterLevel * 0.095) : 0.0;
-  float fanCooling = exhaustFanStatus ? (exhaustFanSpeed * 0.055) : 0.0;
-  float baseInternalTarget = simTempExternal + 10.5 + ((simSolarRadiation - 500.0) * 0.016) + heaterContribution - fanCooling;
-
-  // Gelombang konveksi udara panas ruang agar pergerakan grafik terlihat sangat dinamis
-  float convectionWave = sin(simStepCounter * 0.12) * 1.7 + cos(simStepCounter * 0.27) * 0.9;
-  float targetInternalTemp = baseInternalTarget + convectionWave + thermalNoise;
-
-  // Interpolasi termal responsif (bergerak aktif pada rentang 41°C - 54°C)
-  simTempInternal += (targetInternalTemp - simTempInternal) * 0.28;
-  if (simTempInternal < 28.0) simTempInternal = 28.0;
-  if (simTempInternal > 65.0) simTempInternal = 65.0;
-
-  // 5. Kelembapan Relatif Udara Internal (Psychrometric dynamic wave 38% - 68% RH)
-  float baseInternalHum = 72.0 - ((simTempInternal - 30.0) * 1.75) - (exhaustFanStatus ? (exhaustFanSpeed * 0.18) : 0.0);
-  float humidityWave = -sin(simStepCounter * 0.12) * 2.8 + cos(simStepCounter * 0.22) * 1.4;
-  float targetInternalHum = baseInternalHum + humidityWave + humidityNoise;
-  if (targetInternalHum < 25.0) targetInternalHum = 25.0;
-  if (targetInternalHum > 85.0) targetInternalHum = 85.0;
-
-  simHumidityInternal += (targetInternalHum - simHumidityInternal) * 0.25;
-
-  // 6. Kinetika Dehidrasi Gabah Hanjeli & Penurunan Berat (Menuju Target 12.0%)
-  if (simGrainMoisture > 12.0) {
-    float thermalFactor = (simTempInternal - 28.0) / 20.0;
-    if (thermalFactor < 0.3) thermalFactor = 0.3;
-    
-    // Penurunan kadar air terlihat nyata di grafik setiap siklus (-0.03% s/d -0.07%)
-    float microDryingSpeed = (0.045 * thermalFactor) * (1.0 + sin(simStepCounter * 0.07) * 0.2);
-    simGrainMoisture -= microDryingSpeed;
-    simWeightCurrentKg -= (microDryingSpeed * 0.075);
-
-    if (simGrainMoisture < 12.0) {
-      simGrainMoisture = 12.0;
-    }
-  } else {
-    // Target tercapai (12%): Berfluktuasi halus di batas aman standar simpan SNI (11.8% - 12.1%)
-    float emcOscillation = sin(simStepCounter * 0.1) * 0.08 + (rawNoise * 0.03);
-    simGrainMoisture = 12.0 + emcOscillation;
-    simWeightCurrentKg = 42.5 + (emcOscillation * 0.05);
+  // Simulasi fluktuasi termal di sekitar 55°C - 58°C
+  float thermalNoise = (((rand() % 21) - 10) / 20.0);
+  
+  if (simTempInternal < 55.0) {
+    heaterStatus = true;
+  } else if (simTempInternal > 60.0) {
+    heaterStatus = false;
   }
+
+  if (heaterStatus) {
+    simTempInternal += 0.35 + (thermalNoise * 0.1);
+  } else {
+    simTempInternal -= 0.25 - (thermalNoise * 0.1);
+  }
+
+  if (simTempInternal < 45.0) simTempInternal = 45.0;
+  if (simTempInternal > 62.0) simTempInternal = 62.0;
+
+  simHumidityInternal = 65.0 - ((simTempInternal - 35.0) * 0.8) + thermalNoise;
+  if (simHumidityInternal < 25.0) simHumidityInternal = 25.0;
+
+  simLux = 750.0 + (sin(simStepCounter * 0.1) * 120.0);
 }
 
 void broadcastTelemetry() {
   StaticJsonDocument<512> doc;
   doc["deviceId"]            = device_id;
   doc["tempInternal"]        = round(simTempInternal * 10.0) / 10.0;
-  doc["tempExternal"]        = round(simTempExternal * 10.0) / 10.0;
   doc["humidityInternal"]    = round(simHumidityInternal * 10.0) / 10.0;
-  doc["humidityExternal"]    = round(simHumidityExternal * 10.0) / 10.0;
-  doc["solarRadiation"]      = round(simSolarRadiation);
-  doc["grainMoisture"]       = round(simGrainMoisture * 10.0) / 10.0;
-  doc["weightCurrentKg"]     = round(simWeightCurrentKg * 10.0) / 10.0;
+  doc["solarRadiation"]      = round(simLux);
+  doc["lux"]                 = round(simLux);
+  doc["rainVal"]             = simRainRaw;
+  doc["isRaining"]           = simIsRaining;
+  doc["heaterStatus"]        = heaterStatus;
+  doc["auxHeaterStatus"]     = heaterStatus;
+  doc["dhtOK"]               = true;
   doc["hasData"]             = true;
-  doc["timestamp"]           = millis();
-
-  JsonObject act = doc.createNestedObject("actuators");
-  act["exhaustFanStatus"]    = exhaustFanStatus;
-  act["exhaustFanSpeed"]     = exhaustFanSpeed;
-  act["blowerFanStatus"]     = blowerFanStatus;
-  act["blowerFanSpeed"]      = blowerFanSpeed;
-  act["auxHeaterStatus"]     = auxHeaterStatus;
-  act["auxHeaterLevel"]      = auxHeaterLevel;
-  act["controlMode"]         = controlMode;
 
   String jsonOutput;
   serializeJson(doc, jsonOutput);
+
+  // Serial Stream
+  Serial.println(jsonOutput);
 
   if (bleClientConnected && pSensorChar != NULL) {
     pSensorChar->setValue(jsonOutput.c_str());
@@ -566,53 +847,24 @@ void broadcastTelemetry() {
 
   if (mqttClient.connected()) {
     mqttClient.publish("hanjeli/greenhouse/telemetry", jsonOutput.c_str());
-    mqttClient.publish("greenhouse/telemetry", jsonOutput.c_str());
   }
 }
 
-void mqttCallback(char* topic, byte* payload, unsigned int length) {
-  String message = "";
-  for (unsigned int i = 0; i < length; i++) message += (char)payload[i];
-  StaticJsonDocument<512> doc;
-  DeserializationError err = deserializeJson(doc, message);
-  if (!err) {
-    if (doc.containsKey("exhaustFanStatus")) exhaustFanStatus = doc["exhaustFanStatus"];
-    if (doc.containsKey("exhaustFanSpeed"))  exhaustFanSpeed  = doc["exhaustFanSpeed"];
-    if (doc.containsKey("blowerFanStatus"))  blowerFanStatus  = doc["blowerFanStatus"];
-    if (doc.containsKey("auxHeaterStatus"))  auxHeaterStatus  = doc["auxHeaterStatus"];
-    if (doc.containsKey("auxHeaterLevel"))   auxHeaterLevel   = doc["auxHeaterLevel"];
-    if (doc.containsKey("controlMode"))      controlMode      = doc["controlMode"].as<String>();
-    broadcastTelemetry();
+class ServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer* pServer) {
+    bleClientConnected = true;
+    digitalWrite(ONBOARD_LED_PIN, HIGH);
   }
-}
-
-void reconnectMqtt() {
-  if (WiFi.status() != WL_CONNECTED) return;
-  static unsigned long lastMqttAttempt = 0;
-  if (millis() - lastMqttAttempt < 4000) return;
-  lastMqttAttempt = millis();
-
-  String clientId = "SmartDryer-" + String(random(10000, 99999));
-  if (mqttClient.connect(clientId.c_str())) {
-    mqttClient.subscribe("greenhouse/control");
-    mqttClient.subscribe("greenhouse/actuators");
-    mqttClient.subscribe("hanjeli/greenhouse/control");
-    mqttClient.subscribe("hanjeli/greenhouse/actuators");
+  void onDisconnect(BLEServer* pServer) {
+    bleClientConnected = false;
+    digitalWrite(ONBOARD_LED_PIN, LOW);
+    pServer->startAdvertising();
   }
-}
+};
 
 void setup() {
   Serial.begin(115200);
   pinMode(ONBOARD_LED_PIN, OUTPUT);
-  digitalWrite(ONBOARD_LED_PIN, LOW);
-
-  preferences.begin("dryer_config", true);
-  wifi_ssid     = preferences.getString("ssid", wifi_ssid);
-  wifi_password = preferences.getString("password", wifi_password);
-  mqtt_broker   = preferences.getString("broker", mqtt_broker);
-  mqtt_port     = preferences.getInt("port", mqtt_port);
-  device_id     = preferences.getString("device_id", device_id);
-  preferences.end();
 
   BLEDevice::init("SmartDryer-Hanjeli");
   pServer = BLEDevice::createServer();
@@ -623,41 +875,19 @@ void setup() {
   pSensorChar->addDescriptor(new BLE2902());
   pStatusChar = pService->createCharacteristic(CHAR_STATUS_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
   pStatusChar->addDescriptor(new BLE2902());
-  pControlChar = pService->createCharacteristic(CHAR_CONTROL_UUID, BLECharacteristic::PROPERTY_WRITE);
-  pControlChar->setCallbacks(new ControlCallbacks());
-  pConfigChar = pService->createCharacteristic(CHAR_CONFIG_UUID, BLECharacteristic::PROPERTY_WRITE);
-  pConfigChar->setCallbacks(new ConfigCallbacks());
   pService->start();
 
   BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->setScanResponse(true);
   BLEDevice::startAdvertising();
-
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
-
-  mqttClient.setServer(mqtt_broker.c_str(), mqtt_port);
-  mqttClient.setBufferSize(1024);
-  mqttClient.setKeepAlive(60);
-  mqttClient.setCallback(mqttCallback);
 }
 
 void loop() {
-  if (WiFi.status() == WL_CONNECTED) {
-    if (!mqttClient.connected()) reconnectMqtt();
-    mqttClient.loop();
-  }
-
   unsigned long currentMillis = millis();
   if (currentMillis - lastTelemetryMillis >= TELEMETRY_INTERVAL) {
     lastTelemetryMillis = currentMillis;
     updateSimulationPhysics();
     broadcastTelemetry();
-  }
-
-  if (!bleClientConnected && WiFi.status() != WL_CONNECTED) {
-    digitalWrite(ONBOARD_LED_PIN, (millis() % 2000 < 100) ? HIGH : LOW);
   }
   delay(20);
 }
@@ -665,26 +895,38 @@ void loop() {
 
 export const ARDUINO_PROGRAMS = [
   {
-    id: 'dual-mode',
-    title: 'Firmware Alat Fisik Live (Dual Mode Wi-Fi & BLE)',
-    filename: 'esp32_smart_dryer_dual_mode.ino',
-    badge: 'Produksi / Hardware Nyata',
+    id: 'physical-standalone',
+    title: 'Firmware Resmi Alat Fisik (DHT22, BH1750, Rain Sensor, Dual PTC & LCD 20x4)',
+    filename: 'esp32_smart_dryer_physical_fixed.ino',
+    badge: 'Produksi / Hardware Fix Langsung',
     badgeClass: 'badge-prod',
-    desc: 'Program utama mikrokontroler ESP32 untuk pembacaan sensor fisik DHT22, Load Cell, Pyranometer serta kontrol saklar Relay kipas exhaust, intake, sirkulasi, dan elemen pemanas.',
+    desc: 'Program resmi mikrokontroler ESP32 langsung untuk hardware greenhouse fisik: Sensor DHT22 (Pin 25), BH1750 I2C (Pin 21/22), Sensor Hujan (Pin 34), Dual Relay PTC Heaters (Pin 26 & 27), LCD 20x4 I2C (0x27) dengan kontrol cerdas 55°C - 60°C serta proteksi safety shut-off.',
+    target: 'ESP32 DevKit V1 (DHT22 Pin 25, Relay 26/27, Rain 34, I2C 21/22)',
+    libraries: ['DHT sensor library (Adafruit)', 'BH1750 (Christopher Laws)', 'LiquidCrystal_I2C', 'Wire.h'],
+    baudrate: 115200,
+    code: ESP32_PHYSICAL_STANDALONE_CODE,
+  },
+  {
+    id: 'dual-mode',
+    title: 'Firmware Alat Fisik Dual IoT (Wi-Fi MQTT + Web Bluetooth BLE + Web Serial)',
+    filename: 'esp32_smart_dryer_dual_iot.ino',
+    badge: 'Hardware Nyata + Sinkronisasi Cloud/Web',
+    badgeClass: 'badge-prod',
+    desc: 'Program ESP32 untuk hardware fisik yang sama dengan tambahan konektivitas ganda: Wi-Fi MQTT broker dan Web Bluetooth BLE untuk kendali nirkabel jarak jauh dari dashboard operator.',
     target: 'ESP32 DevKit V1 (30-pin / 38-pin)',
-    libraries: ['PubSubClient (Nick O\'Leary)', 'ArduinoJson (Benoit Blanchon v6/v7)', 'WiFi.h', 'BLEDevice.h', 'Preferences.h'],
+    libraries: ['DHT sensor library', 'BH1750', 'LiquidCrystal_I2C', 'PubSubClient', 'ArduinoJson (v6/v7)', 'WiFi.h', 'BLEDevice.h', 'Preferences.h'],
     baudrate: 115200,
     code: ESP32_DUAL_MODE_CODE,
   },
   {
     id: 'simulator',
-    title: 'Firmware Simulator ESP32 (Uji Coba Cepat Tanpa Sensor)',
+    title: 'Firmware Simulator ESP32 (Uji Coba Cepat Tanpa Sensor Tambahan)',
     filename: 'esp32_smart_dryer_simulator.ino',
     badge: 'Simulasi Mandiri / Plug & Play',
     badgeClass: 'badge-sim',
     desc: 'Program simulasi mandiri untuk uji coba transmisi Wi-Fi MQTT dan Bluetooth BLE langsung dari board ESP32 tanpa memerlukan modul sensor fisik tambahan (cukup colok kabel USB ke laptop/charger).',
     target: 'ESP32 DevKit V1 (Cukup colok kabel USB)',
-    libraries: ['PubSubClient (Nick O\'Leary)', 'ArduinoJson (v6/v7)', 'BLEDevice.h', 'WiFi.h', 'Preferences.h'],
+    libraries: ['PubSubClient', 'ArduinoJson (v6/v7)', 'BLEDevice.h', 'WiFi.h', 'Preferences.h'],
     baudrate: 115200,
     code: ESP32_SIMULATOR_CODE,
   }
