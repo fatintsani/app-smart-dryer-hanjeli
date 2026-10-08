@@ -22,6 +22,9 @@ class ActuatorController extends Controller
             'circ_fan_status' => true,
             'aux_heater_status' => true,
             'aux_heater_level' => 45,
+            'uv_light_status' => false,
+            'rotary_tray_status' => true,
+            'dehumidifier_status' => true,
             'is_override_active' => false,
             'override_mode' => 'AUTO',
         ]);
@@ -33,6 +36,9 @@ class ActuatorController extends Controller
             'circFanStatus' => $state->circ_fan_status,
             'auxHeaterStatus' => $state->aux_heater_status,
             'auxHeaterLevel' => $state->aux_heater_level,
+            'uvLightStatus' => $state->uv_light_status ?? false,
+            'rotaryTrayStatus' => $state->rotary_tray_status ?? false,
+            'dehumidifierStatus' => $state->dehumidifier_status ?? false,
             'isOverrideActive' => $state->is_override_active,
             'overrideMode' => $state->override_mode,
         ]);
@@ -50,6 +56,9 @@ class ActuatorController extends Controller
             'circ_fan_status' => true,
             'aux_heater_status' => true,
             'aux_heater_level' => 45,
+            'uv_light_status' => false,
+            'rotary_tray_status' => true,
+            'dehumidifier_status' => true,
             'is_override_active' => false,
             'override_mode' => 'AUTO',
         ]);
@@ -62,6 +71,9 @@ class ActuatorController extends Controller
         if ($request->has('circFanStatus')) $updates['circ_fan_status'] = (bool) $request->circFanStatus;
         if ($request->has('auxHeaterStatus')) $updates['aux_heater_status'] = (bool) $request->auxHeaterStatus;
         if ($request->has('auxHeaterLevel')) $updates['aux_heater_level'] = (int) $request->auxHeaterLevel;
+        if ($request->has('uvLightStatus')) $updates['uv_light_status'] = (bool) $request->uvLightStatus;
+        if ($request->has('rotaryTrayStatus')) $updates['rotary_tray_status'] = (bool) $request->rotaryTrayStatus;
+        if ($request->has('dehumidifierStatus')) $updates['dehumidifier_status'] = (bool) $request->dehumidifierStatus;
         if ($request->has('isOverrideActive')) $updates['is_override_active'] = (bool) $request->isOverrideActive;
         if ($request->has('overrideMode')) $updates['override_mode'] = $request->overrideMode;
 
@@ -90,6 +102,9 @@ class ActuatorController extends Controller
                 'circFanStatus' => $state->circ_fan_status,
                 'auxHeaterStatus' => $state->aux_heater_status,
                 'auxHeaterLevel' => $state->aux_heater_level,
+                'uvLightStatus' => $state->uv_light_status,
+                'rotaryTrayStatus' => $state->rotary_tray_status,
+                'dehumidifierStatus' => $state->dehumidifier_status,
                 'isOverrideActive' => $state->is_override_active,
                 'overrideMode' => $state->override_mode,
             ];
@@ -106,6 +121,9 @@ class ActuatorController extends Controller
                 'circFanStatus' => $state->circ_fan_status,
                 'auxHeaterStatus' => $state->aux_heater_status,
                 'auxHeaterLevel' => $state->aux_heater_level,
+                'uvLightStatus' => $state->uv_light_status,
+                'rotaryTrayStatus' => $state->rotary_tray_status,
+                'dehumidifierStatus' => $state->dehumidifier_status,
                 'isOverrideActive' => $state->is_override_active,
                 'overrideMode' => $state->override_mode,
             ],

@@ -17,6 +17,10 @@ export const deviceService = {
     return api.post(`/devices/${id}/ping`);
   },
 
+  async toggle(id) {
+    return api.post(`/devices/${id}/toggle`);
+  },
+
   async pingAll() {
     return api.post('/devices/ping-all');
   },

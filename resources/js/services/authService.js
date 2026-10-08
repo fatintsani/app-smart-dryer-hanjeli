@@ -229,8 +229,17 @@ export const authService = {
     return api.post('/auth/verify-otp', { email, otp });
   },
 
-  async resetPassword({ token, email, otp, newPassword }) {
-    return api.post('/auth/reset-password', { token, email, otp, newPassword });
+  async resetPassword(payload) {
+    const newPassword = payload.newPassword || payload.password;
+    const body = {
+      token: payload.token,
+      email: payload.email,
+      otp: payload.otp,
+      newPassword: newPassword,
+      password: newPassword,
+      password_confirmation: payload.password_confirmation || payload.confirmPassword
+    };
+    return api.post('/auth/reset-password', body);
   },
 
   async getAllUsers() {

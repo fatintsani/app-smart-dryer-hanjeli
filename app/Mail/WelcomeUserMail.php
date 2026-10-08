@@ -18,7 +18,8 @@ class WelcomeUserMail extends Mailable
     public function __construct(
         public string $name,
         public string $email,
-        public string $role = 'OPERATOR'
+        public string $role = 'OPERATOR',
+        public ?string $username = null
     ) {}
 
     /**

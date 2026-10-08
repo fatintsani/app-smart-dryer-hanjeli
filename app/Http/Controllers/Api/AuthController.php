@@ -113,7 +113,7 @@ class AuthController extends Controller
         $token = $user->createToken('smart-dryer-token')->plainTextToken;
 
         try {
-            Mail::to($user->email)->send(new \App\Mail\WelcomeUserMail($user->name, $user->email, $user->role));
+            Mail::to($user->email)->send(new \App\Mail\WelcomeUserMail($user->name, $user->email, $user->role, $user->username));
         } catch (\Throwable $e) {
             Log::warning('Welcome email failed: ' . $e->getMessage());
         }
@@ -383,6 +383,11 @@ class AuthController extends Controller
      */
     public function resetPassword(Request $request): JsonResponse
     {
+        $newPass = $request->input('newPassword') ?? $request->input('password');
+        if ($newPass !== null) {
+            $request->merge(['newPassword' => $newPass, 'password' => $newPass]);
+        }
+
         $validated = $request->validate([
             'email' => 'nullable|email',
             'token' => 'nullable|string',

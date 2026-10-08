@@ -19,6 +19,9 @@ class ActuatorState extends Model
         'circ_fan_status',
         'aux_heater_status',
         'aux_heater_level',
+        'uv_light_status',
+        'rotary_tray_status',
+        'dehumidifier_status',
         'is_override_active',
         'override_mode',
         'updated_by',
@@ -31,6 +34,9 @@ class ActuatorState extends Model
         'circ_fan_status' => 'boolean',
         'aux_heater_status' => 'boolean',
         'aux_heater_level' => 'integer',
+        'uv_light_status' => 'boolean',
+        'rotary_tray_status' => 'boolean',
+        'dehumidifier_status' => 'boolean',
         'is_override_active' => 'boolean',
     ];
 

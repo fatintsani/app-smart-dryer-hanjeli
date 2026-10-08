@@ -80,6 +80,7 @@ $smartDryerApi = function () {
     Route::post('/devices', [DeviceController::class, 'store']);
     Route::post('/devices/ping-all', [DeviceController::class, 'pingAll']);
     Route::post('/devices/{id}/ping', [DeviceController::class, 'ping']);
+    Route::post('/devices/{id}/toggle', [DeviceController::class, 'toggle']);
     Route::post('/devices/{id}/regenerate-token', [DeviceController::class, 'regenerateToken']);
     Route::post('/devices/{id}/trigger-ota', [DeviceController::class, 'triggerOta']);
     Route::put('/devices/{id}', [DeviceController::class, 'update']);

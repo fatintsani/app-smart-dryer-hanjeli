@@ -570,6 +570,8 @@ async function handleSaveNewPassword() {
     await authService.resetPassword({
       email: resetEmail.value,
       token: resetToken.value || code,
+      otp: code,
+      newPassword: newPassword.value,
       password: newPassword.value,
       password_confirmation: confirmNewPassword.value
     })
