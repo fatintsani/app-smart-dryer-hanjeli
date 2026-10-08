@@ -395,7 +395,7 @@
             <div
                 class="sidebar-creator-badge"
                 :title="
-                    isCollapsed ? 'Smart Room Dryer v1.0.0 by CoE STAS-RG' : ''
+                    isCollapsed ? 'Smart Room Dryer by CoE STAS-RG' : ''
                 "
             >
                 <StasLogo :size="isCollapsed ? 26 : 28" />
@@ -404,7 +404,6 @@
                         <span class="creator-label">{{
                             $t("common.hardwareBy")
                         }}</span>
-                        <span class="creator-version-tag">v1.0.0</span>
                     </div>
                     <span class="creator-org">CoE STAS-RG</span>
                 </div>

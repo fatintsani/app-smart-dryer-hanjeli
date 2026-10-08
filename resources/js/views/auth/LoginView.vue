@@ -49,7 +49,6 @@
               <HanjeliLogo :size="36" />
               <div class="brand-divider"></div>
               <StasLogo :size="28" />
-              <span class="auth-version-badge">v1.0</span>
             </div>
 
             <!-- Language Selector Desktop -->
@@ -384,6 +383,32 @@
 
     <!-- Mobile Login / Register View -->
     <div v-else class="mobile-login-container">
+      <div class="mobile-top-bar">
+        <!-- Mobile Language Selector -->
+        <div class="lang-switch-wrap">
+          <button 
+            type="button" 
+            class="lang-pill" 
+            :class="{ active: currentLang === 'id' }" 
+            @click="setLang('id')"
+            title="Bahasa Indonesia"
+          >
+            <FlagIcon code="id" :size="15" />
+            <span>ID</span>
+          </button>
+          <button 
+            type="button" 
+            class="lang-pill" 
+            :class="{ active: currentLang === 'en' }" 
+            @click="setLang('en')"
+            title="English"
+          >
+            <FlagIcon code="gb" :size="15" />
+            <span>EN</span>
+          </button>
+        </div>
+      </div>
+
       <div class="mobile-login-card">
         <div class="mobile-brand-center">
           <div class="mobile-dual-logo-box">
@@ -393,33 +418,8 @@
           </div>
           <div class="mobile-brand-title-wrap">
             <h1 class="mobile-brand-title">{{ $t('auth.brandTitle') }}</h1>
-            <span class="auth-version-badge">v1.0</span>
           </div>
           <p class="mobile-brand-sub">{{ $t('common.facilityName') }} • STAS</p>
-
-          <!-- Mobile Language Selector -->
-          <div class="lang-switch-wrap">
-            <button 
-              type="button" 
-              class="lang-pill" 
-              :class="{ active: currentLang === 'id' }" 
-              @click="setLang('id')"
-              title="Bahasa Indonesia"
-            >
-              <FlagIcon code="id" :size="15" />
-              <span>ID</span>
-            </button>
-            <button 
-              type="button" 
-              class="lang-pill" 
-              :class="{ active: currentLang === 'en' }" 
-              @click="setLang('en')"
-              title="English"
-            >
-              <FlagIcon code="gb" :size="15" />
-              <span>EN</span>
-            </button>
-          </div>
         </div>
 
         <!-- Auth Switcher Mobile -->
@@ -632,11 +632,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import HanjeliLogo from '../../components/HanjeliLogo.vue'
 import StasLogo from '../../components/StasLogo.vue'
 import FlagIcon from '../../components/FlagIcon.vue'
 import { authService, formatAuthError } from '../../services/authService'
 import { currentLang, setLanguage, t } from '../../i18n'
+
+const router = useRouter()
+
+const goBackToLanding = () => {
+  router.push('/')
+}
 
 defineProps({
   isMobile: {
@@ -1077,6 +1084,15 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.mobile-top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  max-width: 440px;
+  margin-bottom: 12px;
 }
 
 .brand-dual-logo {

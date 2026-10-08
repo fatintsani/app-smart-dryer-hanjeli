@@ -738,13 +738,8 @@
           <div class="stages-grid">
             <!-- Stage 1 -->
             <div class="stage-card">
-              <div class="stage-card-top">
-                <div class="stage-num-badge">1</div>
-                <div class="stage-icon-box bg-soft-green">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                  </svg>
-                </div>
+              <div class="stage-icon-wrap">
+                <img src="/assets/icons/alur/step1.png" alt="Panen Segar di Kebun" class="stage-3d-img" />
               </div>
               <h3 class="stage-title">{{ currentLang === 'id' ? '1. Panen Segar di Kebun' : '1. Fresh Field Harvest' }}</h3>
               <p class="stage-desc">
@@ -757,13 +752,8 @@
 
             <!-- Stage 2 -->
             <div class="stage-card">
-              <div class="stage-card-top">
-                <div class="stage-num-badge">2</div>
-                <div class="stage-icon-box bg-soft-blue">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                  </svg>
-                </div>
+              <div class="stage-icon-wrap">
+                <img src="/assets/icons/alur/step2.png" alt="Pengeringan Cerdas IoT" class="stage-3d-img" />
               </div>
               <h3 class="stage-title">{{ currentLang === 'id' ? '2. Pengeringan Cerdas IoT' : '2. Smart IoT Drying' }}</h3>
               <p class="stage-desc">
@@ -776,14 +766,8 @@
 
             <!-- Stage 3 -->
             <div class="stage-card">
-              <div class="stage-card-top">
-                <div class="stage-num-badge">3</div>
-                <div class="stage-icon-box bg-soft-orange">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </div>
+              <div class="stage-icon-wrap">
+                <img src="/assets/icons/alur/step3.png" alt="Audit Mutu & Sensor" class="stage-3d-img" />
               </div>
               <h3 class="stage-title">{{ currentLang === 'id' ? '3. Audit Mutu & Sensor' : '3. Quality & Sensor Audit' }}</h3>
               <p class="stage-desc">
@@ -796,17 +780,8 @@
 
             <!-- Stage 4 -->
             <div class="stage-card">
-              <div class="stage-card-top">
-                <div class="stage-num-badge">4</div>
-                <div class="stage-icon-box bg-soft-purple">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <rect x="7" y="7" width="3" height="3"></rect>
-                    <rect x="14" y="7" width="3" height="3"></rect>
-                    <rect x="14" y="14" width="3" height="3"></rect>
-                    <rect x="7" y="14" width="3" height="3"></rect>
-                  </svg>
-                </div>
+              <div class="stage-icon-wrap">
+                <img src="/assets/icons/alur/step4.png" alt="Pengemasan & QR Label" class="stage-3d-img" />
               </div>
               <h3 class="stage-title">{{ currentLang === 'id' ? '4. Pengemasan & QR Label' : '4. Packaging & QR Label' }}</h3>
               <p class="stage-desc">
@@ -841,12 +816,175 @@
       </div>
     </main>
 
-    <!-- Public Footer -->
-    <footer class="verify-footer">
+    <!-- 7. FOOTER (Matching CoE STAS-RG Theme & Layout) -->
+    <footer class="landing-footer">
       <div class="footer-container">
-        <p class="footer-copy">
-          &copy; {{ new Date().getFullYear() }} {{ $t('common.smartRoomDryer') }}. {{ currentLang === 'id' ? 'Dikembangkan oleh' : 'Developed by' }} <a href="https://github.com/fatintsani" target="_blank" class="footer-link"></a> ({{ $t('common.devCredit') }}) {{ currentLang === 'id' ? 'bersama' : 'in partnership with' }} {{ $t('common.facilityName') }}.
-        </p>
+        <div class="footer-top-grid">
+          <!-- Column 1: Brand, Description & Social Links -->
+          <div class="footer-col footer-col-brand">
+            <div class="footer-brand-header">
+              <div class="footer-brand-logo-box">
+                <img v-if="logoSrc" :src="logoSrc" alt="Hanjeli Logo" class="footer-hanjeli-logo" />
+                <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+              </div>
+              <div class="footer-brand-meta">
+                <h3 class="footer-brand-title">Smart Room Dryer</h3>
+                <span class="footer-brand-badge">by CoE STAS-RG</span>
+              </div>
+            </div>
+            <p class="footer-desc">
+              {{ currentLang === 'id'
+                ? 'Platform monitoring dan otomasi pengeringan biji Hanjeli berbasis IoT dan kendali histeresis real-time dari Center of Excellence STAS-RG Universitas Telkom untuk mendukung budidaya dan kelestarian ekosistem pertanian pascapanen di Desa Wisata Hanjeli Waluran.'
+                : 'Real-time IoT-based monitoring and drying automation platform from Center of Excellence STAS-RG Telkom University to support farming productivity and post-harvest quality at Hanjeli Tourism Village Sukabumi.'
+              }}
+            </p>
+            <div class="footer-social-row">
+              <a href="https://www.instagram.com/coestasrg" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="Instagram">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+              </a>
+              <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="LinkedIn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                  <rect x="2" y="9" width="4" height="12"></rect>
+                  <circle cx="4" cy="4" r="2"></circle>
+                </svg>
+              </a>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="GitHub">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                </svg>
+              </a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="YouTube">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                  <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                </svg>
+              </a>
+              <a href="https://stas-rg.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="Website">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Column 2: Navigasi -->
+          <div class="footer-col footer-col-nav">
+            <div class="footer-col-header">
+              <h4 class="footer-heading">{{ currentLang === 'id' ? 'Navigasi' : 'Navigation' }}</h4>
+              <span class="footer-green-bar"></span>
+            </div>
+            <nav class="footer-nav-list">
+              <a href="/#tentang" @click.prevent="navigateToLanding('tentang')">{{ currentLang === 'id' ? 'Tentang' : 'About' }}</a>
+              <a href="/#hardware" @click.prevent="navigateToLanding('hardware')">{{ currentLang === 'id' ? 'Hardware' : 'Hardware' }}</a>
+              <a href="/#fitur" @click.prevent="navigateToLanding('fitur')">{{ currentLang === 'id' ? 'Fitur' : 'Features' }}</a>
+              <a href="/#panduan" @click.prevent="navigateToLanding('panduan')">{{ currentLang === 'id' ? 'Panduan' : 'Guide' }}</a>
+            </nav>
+          </div>
+
+          <!-- Column 3: Info Kontak -->
+          <div class="footer-col footer-col-contact">
+            <div class="footer-col-header">
+              <h4 class="footer-heading">{{ currentLang === 'id' ? 'Info Kontak' : 'Contact Info' }}</h4>
+              <span class="footer-green-bar"></span>
+            </div>
+            <div class="footer-contact-list">
+              <!-- EMAIL -->
+              <div class="footer-contact-item">
+                <div class="footer-contact-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                </div>
+                <div class="footer-contact-info">
+                  <span class="contact-label">EMAIL</span>
+                  <a href="mailto:userstas@mail.com" class="contact-value">userstas@mail.com</a>
+                </div>
+              </div>
+
+              <!-- PHONE -->
+              <div class="footer-contact-item">
+                <div class="footer-contact-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                  </svg>
+                </div>
+                <div class="footer-contact-info">
+                  <span class="contact-label">PHONE</span>
+                  <a href="tel:085722182480" class="contact-value">0857-2218-2480</a>
+                </div>
+              </div>
+
+              <!-- WEBSITE -->
+              <div class="footer-contact-item">
+                <div class="footer-contact-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                </div>
+                <div class="footer-contact-info">
+                  <span class="contact-label">WEBSITE</span>
+                  <a href="https://www.stas-rg.com" target="_blank" rel="noopener noreferrer" class="contact-value">www.stas-rg.com</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 4: Lokasi Desa Wisata Hanjeli Map -->
+          <div class="footer-col footer-col-map">
+            <div class="footer-col-header">
+              <h4 class="footer-heading">{{ currentLang === 'id' ? 'Lokasi Desa Wisata' : 'Tourism Village Location' }}</h4>
+              <span class="footer-green-bar"></span>
+            </div>
+            <div class="footer-map-card">
+              <div class="footer-map-iframe-box">
+                <iframe
+                  src="https://maps.google.com/maps?q=Desa%20Wisata%20Hanjeli,%20Jl.%20Pamoyan,%20Waluran%20Mandiri,%20Kec.%20Waluran,%20Kabupaten%20Sukabumi,%20Jawa%20Barat%2043175&t=&z=14&ie=UTF8&iwloc=&output=embed"
+                  width="100%"
+                  height="125"
+                  style="border:0;"
+                  allowfullscreen=""
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  title="Peta Lokasi Desa Wisata Hanjeli - Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia"
+                ></iframe>
+              </div>
+              <div class="footer-map-address" title="Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Copyright Bar -->
+        <div class="footer-bottom-row">
+          <span class="footer-copy">
+            {{ currentLang === 'id' 
+              ? 'Hak Cipta © 2026 Smart Room Dryer — CoE STAS-RG Universitas Telkom. Semua hak dilindungi undang-undang.' 
+              : 'Copyright © 2026 Smart Room Dryer — CoE STAS-RG Telkom University. All rights reserved.' 
+            }}
+          </span>
+          <div class="footer-meta-tags">
+            <span class="footer-tagline">
+              {{ currentLang === 'id' ? 'Telemetri IoT • Pengeringan Hanjeli Real-Time' : 'IoT Telemetry • Real-Time Hanjeli Drying' }}
+            </span>
+          </div>
+        </div>
       </div>
     </footer>
   </div>
@@ -2215,76 +2353,55 @@ function printCertificate() {
 .stage-card {
   background: var(--color-card-bg, #FFFFFF);
   border: 1px solid var(--color-border, #CBD5E1);
-  border-radius: 14px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 22px 18px 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: all 0.2s ease;
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.32s ease, border-color 0.25s ease;
+  cursor: default;
 }
 
 .stage-card:hover {
   border-color: #0D631B;
-  transform: translateY(-2px);
+  transform: translateY(-5px);
+  box-shadow: 0 14px 28px -6px rgba(13, 99, 27, 0.14);
 }
 
-.stage-card-top {
+.stage-icon-wrap {
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  margin-bottom: 2px;
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.stage-num-badge {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--color-bg, #F4F7F5);
-  border: 1px solid var(--color-border, #CBD5E1);
-  color: var(--color-text-main, #071E27);
-  font-weight: 800;
-  font-size: 0.8125rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.stage-card:hover .stage-icon-wrap {
+  transform: scale(1.12) rotate(3deg);
 }
 
-.stage-icon-box {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bg-soft-green {
-  background: rgba(13, 99, 27, 0.1);
-}
-
-.bg-soft-blue {
-  background: rgba(2, 132, 199, 0.1);
-}
-
-.bg-soft-orange {
-  background: rgba(234, 88, 12, 0.1);
-}
-
-.bg-soft-purple {
-  background: rgba(124, 58, 237, 0.1);
+.stage-3d-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.1));
 }
 
 .stage-title {
-  font-size: 0.9375rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--color-text-main, #071E27);
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .stage-desc {
   font-size: 0.8125rem;
   color: var(--color-text-muted, #707A6C);
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0;
 }
 
@@ -2348,32 +2465,296 @@ function printCertificate() {
   }
 }
 
-/* Footer */
-.verify-footer {
-  background: var(--color-card-bg, #FFFFFF);
-  border-top: 1px solid var(--color-border, #CBD5E1);
-  padding: 20px 24px;
-  text-align: center;
+/* 7. Footer (Hanjeli Green Theme with CoE STAS-RG Layout) */
+.landing-footer {
+  background: #e9f6fd;
+  color: #40493d;
+  border-top: 1px solid #cbd5e1;
+  padding: 56px 24px 28px;
+  transition: all 0.25s ease;
+  margin-top: auto;
 }
 
 .footer-container {
-  max-width: 1080px;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+.footer-top-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.75fr 1.25fr 1.15fr;
+  gap: 36px;
+  margin-bottom: 40px;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Col 1: Brand & Bio */
+.footer-col-brand {
+  gap: 14px;
+}
+
+.footer-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-brand-logo-box {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  flex-shrink: 0;
+}
+
+.footer-hanjeli-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.footer-brand-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-brand-title {
+  font-size: 17.5px;
+  font-weight: 800;
+  color: #111d23;
+  line-height: 1.2;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.footer-brand-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0d631b;
+  letter-spacing: 0.3px;
+}
+
+.footer-desc {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #40493d;
+  margin: 0;
+}
+
+.footer-social-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.footer-social-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #40493d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.footer-social-btn:hover {
+  background: #0d631b;
+  border-color: #0d631b;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(13, 99, 27, 0.25);
+}
+
+/* Col Headers with Green Bar */
+.footer-col-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.footer-heading {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111d23;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+.footer-green-bar {
+  width: 24px;
+  height: 2.5px;
+  background: #0d631b;
+  border-radius: 2px;
+}
+
+/* Col 2: Navigasi */
+.footer-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-nav-list a {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #40493d;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.footer-nav-list a:hover {
+  color: #0d631b;
+  transform: translateX(3px);
+}
+
+/* Col 3: Info Kontak */
+.footer-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.footer-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.footer-contact-icon {
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: none;
+  color: #0d631b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.footer-contact-icon svg {
+  stroke: currentColor;
+}
+
+.footer-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.contact-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #707a6c;
+  letter-spacing: 0.6px;
+}
+
+.contact-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111d23;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a.contact-value:hover {
+  color: #0d631b;
+  text-decoration: underline;
+}
+
+/* Col 4: Lokasi Map */
+.footer-map-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-map-iframe-box {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.footer-map-iframe-box iframe {
+  display: block;
+}
+
+.footer-map-address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #40493d;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Bottom Bar */
+.footer-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 22px;
+  border-top: 1px solid #cbd5e1;
+  font-size: 12px;
+  color: #707a6c;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .footer-copy {
   font-size: 0.8125rem;
-  color: var(--color-text-muted, #707A6C);
+  color: #707a6c;
   margin: 0;
 }
 
-.footer-link {
-  color: #0D631B;
-  text-decoration: none;
+.footer-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.footer-link:hover {
-  text-decoration: underline;
+.footer-tagline {
+  font-size: 11px;
+  font-weight: 600;
+  color: #0d631b;
+}
+
+/* Responsive Footer */
+@media (max-width: 1024px) {
+  .footer-top-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer-top-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .landing-footer {
+    padding: 40px 16px 24px;
+  }
 }
 
 /* Print Rules */
@@ -2386,7 +2767,7 @@ function printCertificate() {
   .verify-top-header,
   .search-bar-section,
   .consumer-action-bar,
-  .verify-footer {
+  .landing-footer {
     display: none !important;
   }
 

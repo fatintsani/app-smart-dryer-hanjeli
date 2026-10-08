@@ -45,8 +45,5 @@ class DatabaseSeeder extends Seeder
                 'phone' => '081345678901',
             ]
         );
-
-        // 4. Run Smart Dryer Core Seeder (Batches, Telemetry, Devices, Settings, Alerts)
-        $this->call(SmartDryerSeeder::class);
     }
 }

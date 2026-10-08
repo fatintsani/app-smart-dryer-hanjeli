@@ -852,9 +852,7 @@
                             }}</span>
                         </button>
                         <div class="profile-menu-version-info">
-                            <span
-                                >Smart Room Dryer <strong>v1.0.0</strong></span
-                            >
+                            <span>Smart Room Dryer</span>
                             <span class="version-dot-sep">•</span>
                             <span>CoE STAS-RG</span>
                         </div>

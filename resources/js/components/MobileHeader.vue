@@ -5,7 +5,6 @@
         <HanjeliLogo :size="34" />
         <div class="mobile-brand-group">
           <span class="brand-text">Smart Dryer</span>
-          <span class="mobile-version-tag">v1.0</span>
         </div>
       </div>
       
