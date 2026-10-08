@@ -452,9 +452,9 @@
                                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto;">
                                     <tr>
                                         <td align="center" style="padding: 3px 4px;">
-                                            <a href="mailto:userstas@mail.com" class="footer-contact-pill" style="display: inline-block; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(52, 211, 153, 0.25); padding: 6px 14px; border-radius: 20px; font-size: 11.5px; color: #E2E8F0; text-decoration: none; font-weight: 500;">
+                                            <a href="mailto:stas-rg@telkomuniversity.ac.id" class="footer-contact-pill" style="display: inline-block; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(52, 211, 153, 0.25); padding: 6px 14px; border-radius: 20px; font-size: 11.5px; color: #E2E8F0; text-decoration: none; font-weight: 500;">
                                                 <span style="color: #34D399; margin-right: 4px;">✉</span>
-                                                <span style="color: #6EE7B7; font-weight: 600;">userstas@mail.com</span>
+                                                <span style="color: #6EE7B7; font-weight: 600;">stas-rg@telkomuniversity.ac.id</span>
                                             </a>
                                         </td>
                                         <td align="center" style="padding: 3px 4px;">

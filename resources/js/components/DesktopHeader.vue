@@ -648,7 +648,10 @@
                         </div>
                         <div class="profile-header-info">
                             <strong class="ph-name">{{ user.name }}</strong>
-                            <span class="ph-email">{{ user.email }}</span>
+                            <span class="ph-email">
+                                {{ user.email }}
+                                <span v-if="user.username" class="ph-username" style="opacity: 0.8; font-size: 11px; margin-left: 2px;">(@{{ user.username }})</span>
+                            </span>
                             <span class="ph-location">{{ user.location }}</span>
                         </div>
                     </div>
@@ -889,10 +892,10 @@ const props = defineProps({
         type: Object,
         default: () => ({
             name: "Dr. Ir. Fatin Tsani",
-            email: "admin@hanjeli.com",
+            email: "stas-rg@telkomuniversity.ac.id",
             role: "ADMIN",
             location:
-                "Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia",
+                "Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)",
         }),
     },
 });

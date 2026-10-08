@@ -170,7 +170,7 @@
         :title="currentLang === 'id' ? 'Tanya Hanjeli AI Copilot' : 'Ask Hanjeli AI Copilot'"
       >
         <div class="copilot-avatar-thumb">
-          <img src="/assets/img/ai_profile.jpg" alt="AI Profile" class="copilot-thumb-img" />
+          <img src="/assets/icons/profile/cs.png" alt="AI Profile" class="copilot-thumb-img" />
           <span class="copilot-pulse-badge"></span>
         </div>
         <span class="copilot-btn-label">{{ currentLang === 'id' ? 'Tanya AI' : 'Ask AI' }}</span>
@@ -246,10 +246,10 @@ function toggleSidebarCollapse() {
 // User Profile Data
 const currentUser = ref(authService.getCurrentUser() || {
   name: 'Operator Green House',
-  email: 'operator@hanjeli.com',
-  phone: '+62 813-8899-2211',
+  email: 'stas-rg@telkomuniversity.ac.id',
+  phone: '0857-2218-2480',
   role: 'OPERATOR',
-  location: 'Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia'
+  location: 'Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)'
 })
 
 const isEditProfileOpen = ref(false)
@@ -486,7 +486,7 @@ html, body {
   overflow: hidden;
   background-color: var(--color-bg);
   color: var(--color-text-main);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

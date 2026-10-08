@@ -17,7 +17,7 @@
           </div>
         </div>
 
-        <!-- Bottom Tagline & STAS Credit -->
+        <!-- Bottom Tagline & STAS Developer Credit -->
         <div class="banner-bottom">
           <div class="eco-tag-row">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#CBFFC2" stroke-width="2.2" class="eco-icon">
@@ -25,16 +25,16 @@
               <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
             </svg>
             <div class="banner-headline-wrap">
-              <h4 class="banner-headline-main">{{ $t('auth.forgotHeadlineMain') }}</h4>
-              <p class="banner-headline-sub">{{ $t('auth.forgotHeadlineSub') }}</p>
+              <h4 class="banner-headline-main">{{ $t('auth.heroTitle') }}</h4>
+              <p class="banner-headline-sub">{{ $t('auth.heroSub') }}</p>
             </div>
           </div>
           
           <div class="banner-stas-card">
             <StasLogo :size="28" />
             <div class="stas-card-text">
-              <span class="stas-lead">{{ $t('common.hardwareBy') }}</span>
-              <strong class="stas-name">{{ $t('common.devCredit') }}</strong>
+              <span class="stas-lead">{{ $t('auth.hardwareBy') }}</span>
+              <strong class="stas-name">{{ $t('auth.devCredit') }}</strong>
             </div>
           </div>
         </div>
@@ -43,7 +43,7 @@
       <!-- Right Content Area -->
       <div class="forgot-form-side">
         <div class="form-wrapper">
-          <!-- Top Row: Back button + Language Switcher -->
+          <!-- Top Row: Back button -->
           <div class="top-nav-row">
             <button class="back-link-btn" @click="$emit('back-to-login')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -52,54 +52,6 @@
               </svg>
               <span>{{ $t('auth.backToLogin') }}</span>
             </button>
-
-            <!-- Language Switcher -->
-            <div class="lang-selector-wrapper" ref="langDropdownRef">
-              <button 
-                class="lang-pill-btn" 
-                @click.stop="isLangOpen = !isLangOpen"
-                :title="currentLang === 'id' ? 'Bahasa: Indonesia' : 'Language: English'"
-              >
-                <FlagIcon :code="currentLang" :size="18" />
-              </button>
-
-              <div v-if="isLangOpen" class="lang-dropdown-menu">
-                <button 
-                  class="lang-option" 
-                  :class="{ active: currentLang === 'id' }"
-                  @click="selectLang('id')"
-                >
-                  <div class="lang-option-lead">
-                    <FlagIcon code="id" :size="16" />
-                    <span>Bahasa Indonesia</span>
-                  </div>
-                  <svg v-if="currentLang === 'id'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="3">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </button>
-
-                <button 
-                  class="lang-option" 
-                  :class="{ active: currentLang === 'en' }"
-                  @click="selectLang('en')"
-                >
-                  <div class="lang-option-lead">
-                    <FlagIcon code="en" :size="16" />
-                    <span>English</span>
-                  </div>
-                  <svg v-if="currentLang === 'en'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="3">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Brand Dual Logo -->
-          <div class="brand-dual-logo">
-            <HanjeliLogo :size="38" />
-            <div class="brand-divider"></div>
-            <StasLogo :size="30" />
           </div>
 
           <!-- Feedback Banners -->
@@ -346,25 +298,6 @@
             </svg>
             <span>{{ $t('auth.backToLogin') }}</span>
           </button>
-
-          <!-- Language Button Mobile -->
-          <button 
-            class="lang-pill-btn-sm" 
-            @click="selectLang(currentLang === 'id' ? 'en' : 'id')"
-            :title="currentLang === 'id' ? 'Switch to English' : 'Ganti ke Bahasa Indonesia'"
-          >
-            <FlagIcon :code="currentLang" :size="16" />
-          </button>
-        </div>
-
-        <!-- Dual Brand Center -->
-        <div class="m-brand-center">
-          <div class="m-dual-logo-box">
-            <HanjeliLogo :size="48" />
-            <div class="m-logo-divider"></div>
-            <StasLogo :size="36" />
-          </div>
-          <h1 class="m-brand-title">{{ $t('common.smartRoomDryer') }}</h1>
         </div>
 
         <!-- Feedback Banners Mobile -->
@@ -459,9 +392,8 @@
 import { ref, computed, nextTick } from 'vue'
 import HanjeliLogo from '../../components/HanjeliLogo.vue'
 import StasLogo from '../../components/StasLogo.vue'
-import FlagIcon from '../../components/FlagIcon.vue'
 import { authService, formatAuthError } from '../../services/authService'
-import { currentLang, setLanguage, t } from '../../i18n'
+import { currentLang, t } from '../../i18n'
 
 defineProps({
   isMobile: {
@@ -478,12 +410,6 @@ const resetToken = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
-const isLangOpen = ref(false)
-
-function selectLang(lang) {
-  setLanguage(lang)
-  isLangOpen.value = false
-}
 
 const otpDigits = ref(['', '', '', '', '', ''])
 const otpInputRefs = ref([])
@@ -663,94 +589,116 @@ async function handleSaveNewPassword() {
   min-height: 100vh;
   width: 100%;
   background: #EBF3F9;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Desktop Frame */
 .desktop-forgot-container {
-  min-height: 100vh;
   display: flex;
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  background: #FFFFFF;
 }
 
 /* Left Banner */
 .forgot-banner {
-  flex: 1.1;
-  background: linear-gradient(135deg, #071E27 0%, #0D631B 100%);
+  flex: 1;
+  height: 100vh;
+  background: linear-gradient(135deg, #1B5E20 0%, #0D631B 50%, #073810 100%);
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 48px;
-  color: #FFFFFF;
+  padding: 32px 36px;
   overflow: hidden;
+  color: white;
 }
 
 .banner-overlay {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(203, 255, 194, 0.1) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12), transparent 70%);
   pointer-events: none;
 }
 
 .banner-center-emblem {
-  position: relative;
-  z-index: 2;
-  margin: auto 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
+  gap: 12px;
+  flex: 1;
+  z-index: 2;
   text-align: center;
-  gap: 16px;
 }
 
 .emblem-card {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 28px;
-  padding: 24px;
-  backdrop-filter: blur(10px);
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emblem-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .emblem-org {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
   color: #FFFFFF;
-  margin: 0;
+  letter-spacing: 0.3px;
 }
 
 .emblem-loc {
-  font-size: 0.9375rem;
+  font-size: 12px;
   color: #CBFFC2;
-  margin: 4px 0 0 0;
+  opacity: 0.9;
 }
 
 .banner-bottom {
-  position: relative;
-  z-index: 2;
+  max-width: 440px;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2;
 }
 
 .eco-tag-row {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.eco-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.banner-headline-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .banner-headline-main {
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   color: #FFFFFF;
-  margin: 0;
+  line-height: 20px;
 }
 
 .banner-headline-sub {
-  font-size: 0.8125rem;
+  font-size: 12.5px;
   color: #CBFFC2;
-  margin: 2px 0 0 0;
+  line-height: 17px;
+  opacity: 0.92;
 }
 
 .banner-stas-card {
@@ -758,35 +706,41 @@ async function handleSaveNewPassword() {
   align-items: center;
   gap: 10px;
   background: rgba(0, 0, 0, 0.25);
-  padding: 8px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  padding: 8px 12px;
+  border-radius: 10px;
 }
 
 .stas-card-text {
   display: flex;
   flex-direction: column;
+  text-align: left;
 }
 
 .stas-lead {
-  font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 9.5px;
+  color: #E2E8F0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stas-name {
-  font-size: 0.8125rem;
-  color: #FFFFFF;
+  font-size: 12px;
   font-weight: 700;
+  color: #CBFFC2;
 }
 
 /* Right Side */
 .forgot-form-side {
-  flex: 0.9;
-  background: #FFFFFF;
+  flex: 1;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 24px 36px;
+  background: #FFFFFF;
+  overflow-y: auto;
 }
 
 .form-wrapper {
@@ -810,15 +764,18 @@ async function handleSaveNewPassword() {
   background: transparent;
   border: none;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #64748B;
   cursor: pointer;
-  padding: 0;
-  transition: color 0.2s;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .back-link-btn:hover {
   color: #0D631B;
+  background: #E8F5E9;
+  transform: translateX(-2px);
 }
 
 .lang-selector-wrapper {
@@ -826,30 +783,38 @@ async function handleSaveNewPassword() {
 }
 
 .lang-pill-btn {
-  background: transparent;
-  border: 1px solid #CBD5E1;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+  border: 1px solid rgba(203, 213, 225, 0.9);
   border-radius: 8px;
   padding: 5px 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1), 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lang-pill-btn:hover {
   border-color: #0D631B;
-  background: rgba(13, 99, 27, 0.05);
+  background: linear-gradient(180deg, #FFFFFF 0%, #E8F5E9 100%);
+  transform: translateY(-1px);
 }
 
 .lang-pill-btn-sm {
-  background: transparent;
-  border: 1px solid #CBD5E1;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+  border: 1px solid rgba(203, 213, 225, 0.9);
   border-radius: 6px;
   padding: 4px 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1);
+  transition: all 0.2s;
+}
+
+.lang-pill-btn-sm:hover {
+  border-color: #0D631B;
 }
 
 .lang-dropdown-menu {
@@ -1129,29 +1094,49 @@ async function handleSaveNewPassword() {
 
 /* Submit Action Button */
 .submit-action-btn {
+  position: relative;
   width: 100%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
-  background: #0D631B;
-  color: #FFFFFF;
-  border: none;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  color: #FFFFFF !important;
+  border: 1px solid rgba(13, 99, 27, 0.4);
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(13, 99, 27, 0.28) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-.submit-action-btn:hover {
-  background: #15803D;
+.submit-action-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  border-color: rgba(13, 99, 27, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 4px 14px rgba(13, 99, 27, 0.38) !important;
+  transform: translateY(-1.5px);
+}
+
+.submit-action-btn:active:not(:disabled) {
+  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  transform: scale(0.98);
 }
 
 .submit-action-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* Success Card */

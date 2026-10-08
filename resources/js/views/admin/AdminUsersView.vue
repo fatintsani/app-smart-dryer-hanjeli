@@ -84,7 +84,10 @@
                     </div>
                     <div class="user-meta">
                       <strong class="user-name">{{ u.name }}</strong>
-                      <span class="user-email">{{ u.email }}</span>
+                      <span class="user-email">
+                        {{ u.email }}
+                        <span v-if="u.username" class="user-username-tag" style="color:var(--color-text-muted); font-size:12px; margin-left:4px;">(@{{ u.username }})</span>
+                      </span>
                     </div>
                   </div>
                 </td>
@@ -171,6 +174,12 @@
           </div>
 
           <div class="form-field-group">
+            <label class="form-label">Username</label>
+            <input type="text" v-model="newUser.username" placeholder="Contoh: user_hanjeli" pattern="^[a-zA-Z0-9._-]+$" class="modern-input" />
+            <span class="field-hint" style="font-size:12px; color:var(--color-text-muted); margin-top:4px;">Opsional. Jika kosong, akan otomatis dibuat dari nama/email.</span>
+          </div>
+
+          <div class="form-field-group">
             <label class="form-label">Alamat Email</label>
             <input type="email" v-model="newUser.email" placeholder="nama@domain.com" class="modern-input" required />
           </div>
@@ -220,6 +229,11 @@
           <div class="form-field-group">
             <label class="form-label">Nama Lengkap</label>
             <input type="text" v-model="editUser.name" placeholder="Masukkan nama lengkap" class="modern-input" required />
+          </div>
+
+          <div class="form-field-group">
+            <label class="form-label">Username</label>
+            <input type="text" v-model="editUser.username" placeholder="Contoh: user_hanjeli" pattern="^[a-zA-Z0-9._-]+$" class="modern-input" required />
           </div>
 
           <div class="form-field-group">
@@ -278,6 +292,7 @@ const isUpdatingUser = ref(false)
 const editUser = reactive({
   id: '',
   name: '',
+  username: '',
   email: '',
   role: 'OPERATOR',
   phone: '',
@@ -299,6 +314,7 @@ function showAlert(text, type = 'success') {
 
 const newUser = reactive({
   name: '',
+  username: '',
   email: '',
   role: 'OPERATOR',
   phone: '',
@@ -313,13 +329,16 @@ const filteredUsers = computed(() => {
   if (!userSearchQuery.value) return usersList.value
   const q = userSearchQuery.value.toLowerCase()
   return usersList.value.filter(u => 
-    u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.role?.toLowerCase().includes(q)
+    u.name?.toLowerCase().includes(q) || 
+    u.username?.toLowerCase().includes(q) || 
+    u.email?.toLowerCase().includes(q) || 
+    u.role?.toLowerCase().includes(q)
   )
 })
 
 function isSelf(targetUser) {
   const current = authService.getCurrentUser()
-  return current && (current.id === targetUser.id || current.email === targetUser.email)
+  return current && (current.id === targetUser.id || current.email === targetUser.email || current.username === targetUser.username)
 }
 
 function formatDate(dateStr) {
@@ -360,6 +379,7 @@ async function handleCreateUser() {
     showAlert('Pengguna baru berhasil ditambahkan!')
     isCreateUserModalOpen.value = false
     newUser.name = ''
+    newUser.username = ''
     newUser.email = ''
     newUser.password = ''
     newUser.phone = ''
@@ -374,6 +394,7 @@ async function handleCreateUser() {
 function openEditUserModal(userObj) {
   editUser.id = userObj.id
   editUser.name = userObj.name || ''
+  editUser.username = userObj.username || ''
   editUser.email = userObj.email || ''
   editUser.role = userObj.role || 'OPERATOR'
   editUser.phone = userObj.phone || ''
@@ -387,6 +408,7 @@ async function handleUpdateUser() {
   try {
     const payload = {
       name: editUser.name,
+      username: editUser.username,
       email: editUser.email,
       role: editUser.role,
       phone: editUser.phone || null

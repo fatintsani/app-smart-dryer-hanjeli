@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@hanjeli.id'],
             [
                 'name' => 'Admin Smart Dryer',
+                'username' => 'admin',
                 'password' => Hash::make('admin123'),
                 'role' => 'ADMIN',
                 'phone' => '081234567890',
@@ -29,6 +30,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'operator@hanjeli.id'],
             [
                 'name' => 'Operator Greenhouse',
+                'username' => 'operator',
                 'password' => Hash::make('operator123'),
                 'role' => 'OPERATOR',
                 'phone' => '089876543210',
@@ -40,6 +42,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'petani@hanjeli.id'],
             [
                 'name' => 'Petani Hanjeli Waluran',
+                'username' => 'petani',
                 'password' => Hash::make('petani123'),
                 'role' => 'OPERATOR',
                 'phone' => '081345678901',

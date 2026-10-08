@@ -29,14 +29,33 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'username' => 'nullable|string|min:3|max:50|alpha_dash|unique:users,username',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
             'role' => 'nullable|string|in:ADMIN,OPERATOR',
             'phone' => 'nullable|string|max:30',
+        ], [
+            'username.unique' => 'Username ini sudah digunakan.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda hubung, dan garis bawah.',
         ]);
+
+        $username = !empty($validated['username'])
+            ? strtolower(trim($validated['username']))
+            : strtolower(explode('@', $validated['email'])[0]);
+
+        if (empty($validated['username'])) {
+            $baseUsername = preg_replace('/[^a-z0-9_-]/', '', $username) ?: 'user';
+            $username = $baseUsername;
+            $counter = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = $baseUsername . $counter;
+                $counter++;
+            }
+        }
 
         $user = User::create([
             'name' => $validated['name'],
+            'username' => $username,
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'role' => strtoupper($validated['role'] ?? 'OPERATOR'),
@@ -58,10 +77,14 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'username' => 'nullable|string|min:3|max:50|alpha_dash|unique:users,username,' . $user->id,
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|string|in:ADMIN,OPERATOR',
             'phone' => 'nullable|string|max:30',
             'password' => 'nullable|string|min:6',
+        ], [
+            'username.unique' => 'Username ini sudah digunakan.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda hubung, dan garis bawah.',
         ]);
 
         $updateData = [
@@ -70,6 +93,10 @@ class UserController extends Controller
             'phone' => $validated['phone'] ?? null,
             'role' => strtoupper($validated['role']),
         ];
+
+        if (isset($validated['username'])) {
+            $updateData['username'] = strtolower(trim($validated['username']));
+        }
 
         if (!empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);

@@ -21,24 +21,36 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * Handle Email & Password Login
+     * Handle Email / Username & Password Login
      */
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'email' => 'required|email',
+            'login' => 'nullable|string',
+            'email' => 'nullable|string',
+            'username' => 'nullable|string',
             'password' => 'required|string',
         ], [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $identifier = trim($validated['login'] ?? $validated['email'] ?? $validated['username'] ?? '');
+
+        if (empty($identifier)) {
+            return response()->json([
+                'message' => 'Email atau Username wajib diisi.',
+                'errors' => ['login' => ['Email atau Username wajib diisi.']],
+            ], 422);
+        }
+
+        // Support login by either email or username (case-insensitive)
+        $user = User::where('email', $identifier)
+            ->orWhere('username', $identifier)
+            ->first();
 
         if (! $user || ! $user->password || ! Hash::check($validated['password'], $user->password)) {
             return response()->json([
-                'message' => 'Email atau kata sandi yang Anda masukkan salah.',
+                'message' => 'Email/Username atau kata sandi yang Anda masukkan salah.',
             ], 401);
         }
 
@@ -58,20 +70,40 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'username' => 'nullable|string|min:3|max:50|alpha_dash|unique:users,username',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
             'phone' => 'nullable|string|max:30',
             'role' => 'nullable|string|in:ADMIN,OPERATOR',
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
+            'username.min' => 'Username minimal harus 3 karakter.',
+            'username.unique' => 'Username ini sudah digunakan.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda hubung, dan garis bawah.',
             'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Alamat email ini sudah terdaftar.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.min' => 'Kata sandi minimal harus 6 karakter.',
         ]);
 
+        // Auto-generate username from email if not explicitly provided
+        $username = !empty($validated['username'])
+            ? strtolower(trim($validated['username']))
+            : strtolower(explode('@', $validated['email'])[0]);
+
+        if (empty($validated['username'])) {
+            $baseUsername = preg_replace('/[^a-z0-9_-]/', '', $username) ?: 'user';
+            $username = $baseUsername;
+            $counter = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = $baseUsername . $counter;
+                $counter++;
+            }
+        }
+
         $user = User::create([
             'name' => $validated['name'],
+            'username' => $username,
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'role' => strtoupper($validated['role'] ?? 'OPERATOR'),
@@ -83,7 +115,7 @@ class AuthController extends Controller
         try {
             Mail::to($user->email)->send(new \App\Mail\WelcomeUserMail($user->name, $user->email, $user->role));
         } catch (\Throwable $e) {
-            \Log::warning('Welcome email failed: ' . $e->getMessage());
+            Log::warning('Welcome email failed: ' . $e->getMessage());
         }
 
         return response()->json([
@@ -416,10 +448,15 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
+            'username' => 'nullable|string|min:3|max:50|alpha_dash|unique:users,username,' . $user->id,
             'phone' => 'nullable|string|max:30',
             'avatarUrl' => 'nullable|string',
             'currentPassword' => 'nullable|string',
             'newPassword' => 'nullable|string|min:6',
+        ], [
+            'username.min' => 'Username minimal harus 3 karakter.',
+            'username.unique' => 'Username ini sudah digunakan.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda hubung, dan garis bawah.',
         ]);
 
         if (! empty($validated['newPassword'])) {
@@ -432,6 +469,7 @@ class AuthController extends Controller
         }
 
         if (isset($validated['name'])) $user->name = $validated['name'];
+        if (isset($validated['username'])) $user->username = strtolower(trim($validated['username']));
         if (isset($validated['phone'])) $user->phone = $validated['phone'];
         if (isset($validated['avatarUrl'])) $user->avatar = $validated['avatarUrl'];
 

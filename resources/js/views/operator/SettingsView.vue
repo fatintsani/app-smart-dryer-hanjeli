@@ -2191,7 +2191,7 @@
                                             v-model="
                                                 notifSettings.customEmailRecipient
                                             "
-                                            placeholder="operator@hanjeli.id atau email admin"
+                                            placeholder="stas-rg@telkomuniversity.ac.id"
                                             class="settings-input"
                                         />
                                         <span class="field-hint"
@@ -2595,7 +2595,7 @@ const props = defineProps({
         type: Object,
         default: () => ({
             name: "Dr. Ir. Fatin Tsani",
-            email: "admin@hanjeli.com",
+            email: "stas-rg@telkomuniversity.ac.id",
             role: "OPERATOR",
         }),
     },
@@ -2712,7 +2712,7 @@ const notifSettings = ref(
               dryingFinishedAlert: true,
               hardwareDisconnectAlert: true,
               emailAlertsEnabled: true,
-              customEmailRecipient: "operator@hanjeli.id",
+              customEmailRecipient: "stas-rg@telkomuniversity.ac.id",
               whatsappEnabled: true,
               whatsappNumber: "+62 813-8899-2211",
               whatsappApiUrl: "https://api.fonnte.com/send",
@@ -2979,7 +2979,7 @@ async function testSendEmail(type) {
         const targetEmail =
             notifSettings.value.customEmailRecipient ||
             props.user?.email ||
-            "operator@hanjeli.id";
+            "stas-rg@telkomuniversity.ac.id";
         const res = await settingsService.testEmail({
             type,
             email: targetEmail,
@@ -3093,7 +3093,7 @@ async function handleRegisterPasskey() {
         const userEmail =
             props.user?.email ||
             localStorage.getItem("user_email") ||
-            "operator@hanjeli.id";
+            "stas-rg@telkomuniversity.ac.id";
         const userName = props.user?.name || "Operator";
         const res = await authService.passkeyRegister(userEmail, userName);
         if (res && res.success) {

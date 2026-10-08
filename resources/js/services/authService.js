@@ -56,8 +56,13 @@ export function formatAuthError(err) {
 }
 
 export const authService = {
-  async login(email, password) {
-    const res = await api.post('/auth/login', { email, password });
+  async login(loginIdentifier, password) {
+    const res = await api.post('/auth/login', {
+      login: loginIdentifier,
+      email: loginIdentifier,
+      username: loginIdentifier,
+      password,
+    });
     if (res.accessToken) {
       setAuthToken(res.accessToken);
       localStorage.setItem('smart_dryer_user', JSON.stringify(res.user));

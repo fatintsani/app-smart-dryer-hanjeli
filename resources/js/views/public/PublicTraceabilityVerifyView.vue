@@ -314,7 +314,7 @@
             <div class="origin-item">
               <span class="origin-label">{{ currentLang === 'id' ? 'Desa Asal Budidaya' : 'Origin Village' }}</span>
               <span class="origin-value font-bold">{{ data.origin.village }}</span>
-              <span class="origin-desc">{{ data.origin.address || 'Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia' }}</span>
+              <span class="origin-desc">{{ data.origin.address || 'Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)' }}</span>
             </div>
 
             <div class="origin-item">
@@ -793,26 +793,6 @@
             </div>
           </div>
         </section>
-
-        <!-- Partner & Trust Assurance Banner -->
-        <section class="portal-trust-card">
-          <div class="trust-content">
-            <div class="trust-logos">
-              <img src="/assets/img/hanjeli.png" alt="Logo Hanjeli" class="trust-logo-img" />
-              <div class="trust-divider"></div>
-              <img src="/assets/img/stas.png" alt="Logo STAS-RG" class="trust-logo-img" />
-            </div>
-            <div class="trust-text">
-              <h4 class="trust-title">{{ currentLang === 'id' ? 'Didukung Oleh Inovasi Teknologi Universitas Telkom' : 'Supported by Telkom University Technology Innovation' }}</h4>
-              <p class="trust-desc">
-                {{ currentLang === 'id'
-                  ? 'Program Pengabdian kepada Masyarakat Center of Excellence STAS-RG Universitas Telkom bersama Kelompok Tani Desa Wisata Hanjeli, Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia.'
-                  : 'Community Development Program by Center of Excellence STAS-RG Telkom University in partnership with Hanjeli Tourism Village Farmers, Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia.'
-                }}
-              </p>
-            </div>
-          </div>
-        </section>
       </div>
     </main>
 
@@ -830,47 +810,35 @@
                 </svg>
               </div>
               <div class="footer-brand-meta">
-                <h3 class="footer-brand-title">Smart Room Dryer</h3>
-                <span class="footer-brand-badge">by CoE STAS-RG</span>
+                <h3 class="footer-brand-title">Desa Wisata Hanjeli</h3>
+                <span class="footer-brand-badge">Smart Room Dryer IoT</span>
               </div>
             </div>
             <p class="footer-desc">
               {{ currentLang === 'id'
-                ? 'Platform monitoring dan otomasi pengeringan biji Hanjeli berbasis IoT dan kendali histeresis real-time dari Center of Excellence STAS-RG Universitas Telkom untuk mendukung budidaya dan kelestarian ekosistem pertanian pascapanen di Desa Wisata Hanjeli Waluran.'
-                : 'Real-time IoT-based monitoring and drying automation platform from Center of Excellence STAS-RG Telkom University to support farming productivity and post-harvest quality at Hanjeli Tourism Village Sukabumi.'
+                ? 'Pusat edukasi agrowisata, budidaya, dan hilirisasi pangan lokal Hanjeli di Waluran Sukabumi (Kawasan Geopark Ciletuh), dilengkapi teknologi Green House Smart Dryer cerdas berbasis IoT hasil kolaborasi bersama Center of Excellence STAS-RG Telkom University.'
+                : 'Education, agrotourism, and local food preservation center of Hanjeli in Waluran Sukabumi (Ciletuh Geopark area), equipped with IoT Smart Dryer Green House technology developed in collaboration with CoE STAS-RG Telkom University.'
               }}
             </p>
             <div class="footer-social-row">
-              <a href="https://www.instagram.com/coestasrg" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="Instagram">
+              <a href="https://www.instagram.com/desawisatahanjeli" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="@desawisatahanjeli">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                 </svg>
               </a>
-              <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="LinkedIn">
+              <a href="https://www.visithanjeli.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="Website Resmi">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                  <rect x="2" y="9" width="4" height="12"></rect>
-                  <circle cx="4" cy="4" r="2"></circle>
-                </svg>
-              </a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="GitHub">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                 </svg>
               </a>
               <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="YouTube">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
                   <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
-                </svg>
-              </a>
-              <a href="https://stas-rg.com" target="_blank" rel="noopener noreferrer" class="footer-social-btn" title="Website">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="2" y1="12" x2="22" y2="12"></line>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                 </svg>
               </a>
             </div>
@@ -907,11 +875,11 @@
                 </div>
                 <div class="footer-contact-info">
                   <span class="contact-label">EMAIL</span>
-                  <a href="mailto:userstas@mail.com" class="contact-value">userstas@mail.com</a>
+                  <a href="mailto:stas-rg@telkomuniversity.ac.id" class="contact-value">stas-rg@telkomuniversity.ac.id</a>
                 </div>
               </div>
 
-              <!-- PHONE -->
+              <!-- PHONE / WA -->
               <div class="footer-contact-item">
                 <div class="footer-contact-icon">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -919,8 +887,27 @@
                   </svg>
                 </div>
                 <div class="footer-contact-info">
-                  <span class="contact-label">PHONE</span>
-                  <a href="tel:085722182480" class="contact-value">0857-2218-2480</a>
+                  <span class="contact-label">TELEPON / WA</span>
+                  <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                    <a href="tel:085722182480" class="contact-value">0857-2218-2480</a>
+                    <span style="color: #94A3B8; font-size: 11px;">/</span>
+                    <a href="tel:081398115760" class="contact-value">0813-9811-5760</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INSTAGRAM -->
+              <div class="footer-contact-item">
+                <div class="footer-contact-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </div>
+                <div class="footer-contact-info">
+                  <span class="contact-label">INSTAGRAM</span>
+                  <a href="https://www.instagram.com/desawisatahanjeli" target="_blank" rel="noopener noreferrer" class="contact-value">@desawisatahanjeli</a>
                 </div>
               </div>
 
@@ -935,7 +922,7 @@
                 </div>
                 <div class="footer-contact-info">
                   <span class="contact-label">WEBSITE</span>
-                  <a href="https://www.stas-rg.com" target="_blank" rel="noopener noreferrer" class="contact-value">www.stas-rg.com</a>
+                  <a href="https://www.visithanjeli.com" target="_blank" rel="noopener noreferrer" class="contact-value">www.visithanjeli.com</a>
                 </div>
               </div>
             </div>
@@ -957,15 +944,15 @@
                   allowfullscreen=""
                   loading="lazy"
                   referrerpolicy="no-referrer-when-downgrade"
-                  title="Peta Lokasi Desa Wisata Hanjeli - Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia"
+                  title="Peta Lokasi Desa Wisata Hanjeli - Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)"
                 ></iframe>
               </div>
-              <div class="footer-map-address" title="Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia">
+              <div class="footer-map-address" title="Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                   <circle cx="12" cy="10" r="3"></circle>
                 </svg>
-                <span>Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia</span>
+                <span>Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)</span>
               </div>
             </div>
           </div>
@@ -975,8 +962,8 @@
         <div class="footer-bottom-row">
           <span class="footer-copy">
             {{ currentLang === 'id' 
-              ? 'Hak Cipta © 2026 Smart Room Dryer — CoE STAS-RG Universitas Telkom. Semua hak dilindungi undang-undang.' 
-              : 'Copyright © 2026 Smart Room Dryer — CoE STAS-RG Telkom University. All rights reserved.' 
+              ? 'Hak Cipta © 2026 Desa Wisata Hanjeli — Kolaborasi Riset bersama CoE STAS-RG Universitas Telkom. Semua hak dilindungi.' 
+              : 'Copyright © 2026 Hanjeli Tourism Village — In Collaboration with CoE STAS-RG Telkom University. All rights reserved.' 
             }}
           </span>
           <div class="footer-meta-tags">
@@ -1235,7 +1222,7 @@ function printCertificate() {
   color: var(--color-text-main, #071E27);
   display: flex;
   flex-direction: column;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* 1. Landing Navbar (Identical to Landing Page) */
@@ -1459,25 +1446,35 @@ function printCertificate() {
 }
 
 .btn-nav-login {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
-  background: #0D631B;
-  color: #FFFFFF;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
+  padding: 8px 18px;
+  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  color: #FFFFFF !important;
+  font-size: 13.5px;
+  font-weight: 700;
+  border: 1px solid rgba(13, 99, 27, 0.4);
+  border-radius: 10px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(13, 99, 27, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.3), 0 2px 8px rgba(13, 99, 27, 0.28) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn-nav-login:hover {
-  background: #1B5E20;
-  box-shadow: 0 4px 12px rgba(13, 99, 27, 0.3);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 4px 14px rgba(13, 99, 27, 0.38) !important;
+  transform: translateY(-1.5px);
+}
+
+.btn-nav-login:active {
+  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  transform: scale(0.98);
 }
 
 /* Mobile Drawer & Dropdown */
@@ -1556,12 +1553,13 @@ function printCertificate() {
 }
 
 .btn-mobile-login {
+  position: relative;
   width: 100%;
   padding: 12px 20px;
-  background: #0D631B;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 10px;
+  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  color: #FFFFFF !important;
+  border: 1px solid rgba(13, 99, 27, 0.4);
+  border-radius: 12px;
   font-size: 14.5px;
   font-weight: 700;
   display: flex;
@@ -1569,14 +1567,22 @@ function printCertificate() {
   justify-content: center;
   gap: 10px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(13, 99, 27, 0.22);
-  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.3), 0 4px 14px rgba(13, 99, 27, 0.28) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn-mobile-login:hover {
-  background: #094713;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(13, 99, 27, 0.32);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 6px 18px rgba(13, 99, 27, 0.38) !important;
+  transform: translateY(-1.5px);
+}
+
+.btn-mobile-login:active {
+  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  transform: scale(0.98);
 }
 
 /* Vue Transition for Mobile Drawer */
@@ -1756,24 +1762,37 @@ function printCertificate() {
 }
 
 .btn-search {
-  background: #0D631B;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
+  position: relative;
+  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  color: #FFFFFF !important;
+  border: 1px solid rgba(13, 99, 27, 0.4);
+  border-radius: 10px;
+  padding: 8px 20px;
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.3), 0 2px 6px rgba(13, 99, 27, 0.25) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn-search:hover {
-  background: #15803D;
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 4px 14px rgba(13, 99, 27, 0.35) !important;
+  transform: translateY(-1.5px);
+}
+
+.btn-search:active {
+  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  transform: scale(0.98);
 }
 
 .btn-search:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* State Cards */
@@ -2188,43 +2207,77 @@ function printCertificate() {
 }
 
 .btn-action-outline {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 9px 16px;
-  border: 1px solid var(--color-border, #CBD5E1);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-text-main, #071E27);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+  color: #1E293B;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn-action-outline:hover {
   border-color: #0D631B;
   color: #0D631B;
+  background: linear-gradient(180deg, #FFFFFF 0%, #E8F5E9 100%);
+  transform: translateY(-1.5px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 4px 12px rgba(13, 99, 27, 0.15) !important;
+}
+
+.btn-action-outline:active {
+  background: linear-gradient(180deg, #F1F5F9 0%, #E2E8F0 100%);
+  transform: scale(0.98);
 }
 
 .btn-primary {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 9px 18px;
-  border: 1px solid #0D631B;
-  border-radius: 8px;
-  background: #0D631B;
-  color: #FFFFFF;
+  border: 1px solid rgba(13, 99, 27, 0.4);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  color: #FFFFFF !important;
   font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(13, 99, 27, 0.28) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn-primary:hover {
-  background: #15803D;
-  border-color: #15803D;
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  border-color: rgba(13, 99, 27, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 4px 14px rgba(13, 99, 27, 0.38) !important;
+  transform: translateY(-1.5px);
+}
+
+.btn-primary:active {
+  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  transform: scale(0.98);
 }
 
 /* Error Actions */
@@ -2238,23 +2291,73 @@ function printCertificate() {
 }
 
 .btn-secondary {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 9px 18px;
-  border: 1px solid var(--color-border, #CBD5E1);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-text-main, #071E27);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+  color: #1E293B;
   font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn-secondary:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: var(--color-text-main, #071E27);
+  background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
+  border-color: #94A3B8;
+  transform: translateY(-1.5px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Footer Social Buttons */
+.footer-social-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  color: #40493D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.footer-social-btn:hover {
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  border-color: rgba(13, 99, 27, 0.4);
+  color: #FFFFFF !important;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 4px 14px rgba(13, 99, 27, 0.3) !important;
+}
+
+.footer-social-btn:active {
+  transform: scale(0.96);
 }
 
 /* Portal Welcome Landing Styling */
@@ -2405,66 +2508,6 @@ function printCertificate() {
   margin: 0;
 }
 
-/* Trust Banner */
-.portal-trust-card {
-  background: var(--color-card-bg, #FFFFFF);
-  border: 1px solid var(--color-border, #CBD5E1);
-  border-radius: 14px;
-  padding: 24px 28px;
-}
-
-.trust-content {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.trust-logos {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-.trust-logo-img {
-  height: 40px;
-  object-fit: contain;
-}
-
-.trust-divider {
-  width: 1px;
-  height: 32px;
-  background: var(--color-border, #CBD5E1);
-}
-
-.trust-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.trust-title {
-  font-size: 0.9375rem;
-  font-weight: 800;
-  color: var(--color-text-main, #071E27);
-  margin: 0;
-}
-
-.trust-desc {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted, #707A6C);
-  line-height: 1.5;
-  margin: 0;
-}
-
-@media (max-width: 640px) {
-  .trust-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-}
-
 /* 7. Footer (Hanjeli Green Theme with CoE STAS-RG Layout) */
 .landing-footer {
   background: #e9f6fd;
@@ -2557,26 +2600,38 @@ function printCertificate() {
 }
 
 .footer-social-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1px solid rgba(203, 213, 225, 0.9);
   color: #40493d;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 3px rgba(0, 0, 0, 0.04) !important;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .footer-social-btn:hover {
-  background: #0d631b;
-  border-color: #0d631b;
-  color: #ffffff;
+  background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+  border-color: rgba(13, 99, 27, 0.4);
+  color: #ffffff !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(13, 99, 27, 0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 4px 14px rgba(13, 99, 27, 0.3) !important;
+}
+
+.footer-social-btn:active {
+  transform: scale(0.96);
 }
 
 /* Col Headers with Green Bar */
@@ -2755,6 +2810,249 @@ a.contact-value:hover {
   .landing-footer {
     padding: 40px 16px 24px;
   }
+}
+
+/* Dark Mode Overrides for Verification & Portal Cards */
+.dark-landing .search-bar-card {
+  background: #11261B;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .search-input {
+  color: #F1F5F9;
+}
+
+.dark-landing .search-input::placeholder {
+  color: #64748B;
+}
+
+.dark-landing .state-card {
+  background: #11261B;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .loading-title,
+.dark-landing .error-title {
+  color: #F1F5F9;
+}
+
+.dark-landing .loading-subtitle,
+.dark-landing .error-message {
+  color: #94A3B8;
+}
+
+.dark-landing .portal-hero-card {
+  background: #11261B;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .portal-hero-title {
+  color: #F1F5F9;
+}
+
+.dark-landing .portal-hero-desc {
+  color: #94A3B8;
+}
+
+.dark-landing .portal-section-title {
+  color: #F1F5F9;
+}
+
+.dark-landing .portal-section-sub {
+  color: #94A3B8;
+}
+
+.dark-landing .stage-card {
+  background: #11261B;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .stage-card:hover {
+  border-color: #4ADE80;
+  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.4);
+}
+
+.dark-landing .stage-title {
+  color: #F1F5F9;
+}
+
+.dark-landing .stage-desc {
+  color: #94A3B8;
+}
+
+.dark-landing .certificate-banner-card {
+  background: #11261B;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .cert-main-title {
+  color: #F1F5F9;
+}
+
+.dark-landing .cert-meta-row {
+  color: #94A3B8;
+}
+
+.dark-landing .quality-score-pill,
+.dark-landing .quality-grade-pill,
+.dark-landing .moisture-status-pill {
+  background: #152C20;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .info-card {
+  background: #11261B;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .card-title {
+  color: #F1F5F9;
+}
+
+.dark-landing .card-subtitle {
+  color: #94A3B8;
+}
+
+.dark-landing .origin-item {
+  background: #152C20;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .origin-desc {
+  color: #94A3B8;
+}
+
+.dark-landing .metric-box {
+  background: #152C20;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .hygiene-statement-box {
+  background: rgba(13, 99, 27, 0.15);
+  border-color: rgba(74, 222, 128, 0.25);
+}
+
+.dark-landing .hygiene-desc {
+  color: #CBD5E1;
+}
+
+.dark-landing .svg-chart-wrapper {
+  background: #0E1F16;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .consumer-action-bar {
+  background: #11261B;
+  border-color: #1E3A2B;
+}
+
+.dark-landing .btn-action-outline {
+  border-color: #1E3A2B;
+  color: #F1F5F9;
+  background: linear-gradient(180deg, #152C20 0%, #0E1F16 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark-landing .btn-action-outline:hover {
+  border-color: #4ADE80;
+  color: #4ADE80;
+  background: linear-gradient(180deg, #1E3A2B 0%, #152C20 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark-landing .footer-social-btn {
+  background: linear-gradient(180deg, #152C20 0%, #0E1F16 100%);
+  border-color: #1E3A2B;
+  color: #94A3B8;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark-landing .footer-social-btn:hover {
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  border-color: #4ADE80;
+  color: #FFFFFF !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 4px 14px rgba(22, 163, 74, 0.35) !important;
+}
+
+.dark-landing .landing-footer {
+  background: #0b1911;
+  color: #94a3b8;
+  border-top-color: #1e3a2b;
+}
+
+.dark-landing .footer-brand-title {
+  color: #ffffff;
+}
+
+.dark-landing .footer-brand-badge {
+  color: #4ade80;
+}
+
+.dark-landing .footer-desc {
+  color: #94a3b8;
+}
+
+.dark-landing .footer-social-btn {
+  background: #13271c;
+  border-color: #1e3a2b;
+  color: #94a3b8;
+}
+
+.dark-landing .footer-social-btn:hover {
+  background: #0d631b;
+  border-color: #4ade80;
+  color: #ffffff;
+}
+
+.dark-landing .footer-heading {
+  color: #ffffff;
+}
+
+.dark-landing .footer-green-bar {
+  background: #4ade80;
+}
+
+.dark-landing .footer-nav-list a {
+  color: #94a3b8;
+}
+
+.dark-landing .footer-nav-list a:hover {
+  color: #4ade80;
+}
+
+.dark-landing .contact-value {
+  color: #e2e8f0;
+}
+
+.dark-landing a.contact-value:hover {
+  color: #4ade80;
+}
+
+.dark-landing .footer-map-iframe-box {
+  border-color: #1e3a2b;
+  background: #13271c;
+}
+
+.dark-landing .footer-map-address {
+  color: #94a3b8;
+}
+
+.dark-landing .footer-bottom-row {
+  border-top-color: #1e3a2b;
+  color: #64748b;
+}
+
+.dark-landing .footer-copy,
+.dark-landing .footer-tagline {
+  color: #64748b;
 }
 
 /* Print Rules */

@@ -20,6 +20,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'role',
         'phone',
@@ -67,6 +68,7 @@ class User extends Authenticatable
         return [
             'id' => (string) $this->id,
             'name' => $this->name,
+            'username' => $this->username ?: (explode('@', $this->email)[0] ?? ''),
             'email' => $this->email,
             'role' => strtoupper($this->role ?: 'OPERATOR'),
             'phone' => $this->phone,

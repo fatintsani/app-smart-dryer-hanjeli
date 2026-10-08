@@ -605,7 +605,7 @@ function printRetailLabel() {
         body { 
           margin: 0; 
           padding: 3mm; 
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+          font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; 
           -webkit-print-color-adjust: exact; 
           print-color-adjust: exact;
           background: #FFFFFF;
@@ -802,7 +802,7 @@ function printA4Grid() {
         body { 
           margin: 0; 
           padding: 0; 
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+          font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; 
           -webkit-print-color-adjust: exact; 
           print-color-adjust: exact;
           background: #FFFFFF;

@@ -1379,7 +1379,7 @@ function executeExport() {
           @page { size: A4 landscape; margin: 10mm 12mm; }
           * { box-shadow: none !important; text-shadow: none !important; box-sizing: border-box; }
           body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 10.5px;
             color: #071E27;
             margin: 0;
@@ -1558,7 +1558,7 @@ function executeExport() {
             <div>
               <div class="kop-org">DESA WISATA HANJELI WALURAN & CoE STAS-RG</div>
               <div class="kop-sub">Sistem Cerdas Greenhouse Smart Room Dryer Berbasis IoT & Tenaga Surya</div>
-              <div class="kop-addr">Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia</div>
+              <div class="kop-addr">Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)</div>
             </div>
           </div>
           <div class="kop-meta">

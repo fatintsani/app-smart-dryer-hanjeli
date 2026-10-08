@@ -624,14 +624,32 @@
                     </div>
                 </div>
 
-                <!-- Hero Right Column: 3D Illustration -->
+                <!-- Hero Right Column: 3D Illustration with Interactive Parallax -->
                 <div class="hero-right">
-                    <div class="hero-illustration-wrap">
+                    <div 
+                        class="hero-illustration-wrap"
+                        ref="hero3dRef"
+                        @mousemove="handleHeroMouseMove"
+                        @mouseleave="handleHeroMouseLeave"
+                        @mouseenter="handleHeroMouseEnter"
+                        :style="hero3dStyle"
+                    >
+                        <!-- Ambient 3D Depth Glow -->
+                        <div class="hero-3d-ambient-glow"></div>
+                        
+                        <!-- Main 3D Hero Graphic -->
                         <img
                             src="/assets/icons/hero/hero.png"
                             alt="Smart Dryer Greenhouse Hanjeli"
                             class="hero-main-img"
+                            :style="heroImg3dStyle"
                         />
+
+                        <!-- Dynamic Specular Glare / Lighting Reflection -->
+                        <div 
+                            class="hero-3d-glare"
+                            :style="heroGlareStyle"
+                        ></div>
                     </div>
                 </div>
             </div>
@@ -661,57 +679,44 @@
                                 : "Power-efficient industrial instruments designed specifically for the tropical plantation environment of Waluran Sukabumi."
                         }}
                     </p>
-                          <!-- Hardware Cards Dynamic Bento Grid -->
+                </div>
+
+                <!-- Hardware Cards 6-Grid -->
                 <div class="hardware-grid">
-                    <!-- Card 1: ESP32 Microcontroller (Hero Bento - Spans 7 cols) -->
-                    <div class="hw-card hw-card-hero">
-                        <div class="hw-hero-layout">
-                            <div class="hw-hero-media">
-                                <div class="hw-icon-box hw-icon-hero">
-                                    <img
-                                        src="/assets/icons/hardware/Microcontroller.png"
-                                        alt="ESP32 Microcontroller"
-                                        class="icon-3d-img"
-                                    />
-                                </div>
-                                <span class="hw-chip-pill hw-chip-green">Master Hub</span>
+                    <!-- Card 1: ESP32 -->
+                    <div class="hw-card">
+                        <div class="hw-card-top">
+                            <div class="hw-icon-box">
+                                <img
+                                    src="/assets/icons/hardware/Microcontroller.png"
+                                    alt="ESP32 Microcontroller"
+                                    class="icon-3d-img"
+                                />
                             </div>
-                            <div class="hw-hero-body">
-                                <div class="hw-tag-header">
-                                    <span class="hw-cat-label">{{ currentLang === 'id' ? 'UNIT KENDALI PUSAT' : 'CORE PROCESSING UNIT' }}</span>
-                                    <span class="hw-live-badge">
-                                        <span class="pulse-dot-sm"></span> Dual-Core 240MHz
-                                    </span>
-                                </div>
-                                <h3 class="hw-title">ESP32 Microcontroller</h3>
-                                <p class="hw-desc">
-                                    {{
-                                        currentLang === "id"
-                                            ? "Pusat kendali pintar dengan konektivitas Wi-Fi terintegrasi untuk kalkulasi histeresis lokal dan transmisi data sensor kontinu ke server cloud tanpa jeda."
-                                            : "Smart control hub with integrated Wi-Fi for local hysteresis calculation and seamless continuous sensor data transmission to cloud servers."
-                                    }}
-                                </p>
-                                <div class="hw-specs-pills-row">
-                                    <span class="hw-spec-item">Wi-Fi 2.4 GHz</span>
-                                    <span class="hw-spec-item">Real-Time MQTT</span>
-                                    <span class="hw-spec-item">Flash 4MB SPI</span>
-                                </div>
-                            </div>
+                            <h3 class="hw-title">ESP32 Microcontroller</h3>
+                            <p class="hw-desc">
+                                {{
+                                    currentLang === "id"
+                                        ? "Pusat kendali pintar dengan konektivitas Wi-Fi terintegrasi untuk kalkulasi histeresis lokal dan transmisi data sensor kontinu ke server cloud tanpa jeda."
+                                        : "Smart control hub with integrated Wi-Fi for local hysteresis calculation and seamless continuous sensor data transmission to cloud servers."
+                                }}
+                            </p>
+                        </div>
+                        <div class="hw-card-footer">
+                            <span class="hw-spec-tag">Dual Core 240MHz</span>
+                            <span class="hw-badge-green">Wi-Fi 2.4 GHz</span>
                         </div>
                     </div>
 
-                    <!-- Card 2: Sensor DHT22 Presisi Tinggi (Spans 5 cols) -->
-                    <div class="hw-card hw-card-sensor">
+                    <!-- Card 2: DHT22 -->
+                    <div class="hw-card">
                         <div class="hw-card-top">
-                            <div class="hw-header-flex">
-                                <div class="hw-icon-box">
-                                    <img
-                                        src="/assets/icons/hardware/SensorDHT.png"
-                                        alt="Sensor DHT22"
-                                        class="icon-3d-img"
-                                    />
-                                </div>
-                                <span class="hw-badge-precision">±0.5°C & 2%RH</span>
+                            <div class="hw-icon-box">
+                                <img
+                                    src="/assets/icons/hardware/SensorDHT.png"
+                                    alt="Sensor DHT22"
+                                    class="icon-3d-img"
+                                />
                             </div>
                             <h3 class="hw-title">
                                 {{
@@ -728,33 +733,32 @@
                                 }}
                             </p>
                         </div>
-                        <div class="hw-sensor-metrics-bar">
-                            <div class="hw-metric-mini">
-                                <span class="mini-label">{{ currentLang === 'id' ? 'Suhu Operasional' : 'Chamber Temp' }}</span>
-                                <span class="mini-val text-orange">0°C – 80°C</span>
-                            </div>
-                            <div class="hw-metric-sep"></div>
-                            <div class="hw-metric-mini">
-                                <span class="mini-label">{{ currentLang === 'id' ? 'Kelembapan Udara' : 'Relative Humidity' }}</span>
-                                <span class="mini-val text-blue">0 – 100% RH</span>
-                            </div>
+                        <div class="hw-card-footer">
+                            <span class="hw-spec-tag">Range: 0-100% RH</span>
+                            <span class="hw-badge-blue"
+                                >±0.5°C
+                                {{
+                                    currentLang === "id"
+                                        ? "Presisi"
+                                        : "Precision"
+                                }}</span
+                            >
                         </div>
                     </div>
 
-                    <!-- Card 3: PTC Heater 12V 120W + Blower (Spans 4 cols) -->
-                    <div class="hw-card hw-card-thermal">
+                    <!-- Card 3: PTC Heater -->
+                    <div class="hw-card">
                         <div class="hw-card-top">
-                            <div class="hw-header-flex">
-                                <div class="hw-icon-box">
-                                    <img
-                                        src="/assets/icons/hardware/PTC.png"
-                                        alt="PTC Ceramic Heater"
-                                        class="icon-3d-img"
-                                    />
-                                </div>
-                                <span class="hw-badge-red">{{ currentLang === 'id' ? '120W Rendah Emisi' : '120W Low Emission' }}</span>
+                            <div class="hw-icon-box">
+                                <img
+                                    src="/assets/icons/hardware/PTC.png"
+                                    alt="PTC Ceramic Heater"
+                                    class="icon-3d-img"
+                                />
                             </div>
-                            <h3 class="hw-title">PTC Heater 12V 120W + Blower</h3>
+                            <h3 class="hw-title">
+                                PTC Heater 12V 120W + Blower
+                            </h3>
                             <p class="hw-desc">
                                 {{
                                     currentLang === "id"
@@ -764,23 +768,28 @@
                             </p>
                         </div>
                         <div class="hw-card-footer">
-                            <span class="hw-spec-tag">{{ currentLang === 'id' ? 'Konveksi Merata' : 'Even Convection' }}</span>
-                            <span class="hw-badge-thermal-pill">{{ currentLang === 'id' ? 'Sirkulasi 360°' : '360° Forced Air' }}</span>
+                            <span class="hw-spec-tag">{{
+                                currentLang === "id"
+                                    ? "Daya: 120W Rendah Emisi"
+                                    : "Power: 120W Low Emission"
+                            }}</span>
+                            <span class="hw-badge-red">{{
+                                currentLang === "id"
+                                    ? "Konveksi Merata"
+                                    : "Even Convection"
+                            }}</span>
                         </div>
                     </div>
 
-                    <!-- Card 4: Modul Relay & Histeresis (Spans 4 cols) -->
-                    <div class="hw-card hw-card-relay">
+                    <!-- Card 4: Relay & Hysteresis -->
+                    <div class="hw-card">
                         <div class="hw-card-top">
-                            <div class="hw-header-flex">
-                                <div class="hw-icon-box">
-                                    <img
-                                        src="/assets/icons/hardware/Relay.png"
-                                        alt="Modul Relay & Histeresis"
-                                        class="icon-3d-img"
-                                    />
-                                </div>
-                                <span class="hw-badge-green">Auto Histeresis</span>
+                            <div class="hw-icon-box">
+                                <img
+                                    src="/assets/icons/hardware/Relay.png"
+                                    alt="Modul Relay & Histeresis"
+                                    class="icon-3d-img"
+                                />
                             </div>
                             <h3 class="hw-title">
                                 {{
@@ -798,26 +807,22 @@
                             </p>
                         </div>
                         <div class="hw-card-footer">
-                            <div class="hw-loop-pill">
-                                <span>≤38°C ON</span>
-                                <span class="loop-arrow">⇄</span>
-                                <span>≥40°C OFF</span>
-                            </div>
+                            <span class="hw-spec-tag"
+                                >Switching Solid-State</span
+                            >
+                            <span class="hw-badge-green">Auto 38°C - 40°C</span>
                         </div>
                     </div>
 
-                    <!-- Card 5: Kesiapan Sensor Cahaya (LDR) (Spans 4 cols) -->
-                    <div class="hw-card hw-card-light">
+                    <!-- Card 5: LDR Sensor -->
+                    <div class="hw-card">
                         <div class="hw-card-top">
-                            <div class="hw-header-flex">
-                                <div class="hw-icon-box">
-                                    <img
-                                        src="/assets/icons/hardware/LDR.png"
-                                        alt="Sensor Cahaya LDR"
-                                        class="icon-3d-img"
-                                    />
-                                </div>
-                                <span class="hw-badge-orange">{{ currentLang === 'id' ? 'Siap Pasang' : 'Plug & Play' }}</span>
+                            <div class="hw-icon-box">
+                                <img
+                                    src="/assets/icons/hardware/LDR.png"
+                                    alt="Sensor Cahaya LDR"
+                                    class="icon-3d-img"
+                                />
                             </div>
                             <h3 class="hw-title">
                                 {{
@@ -835,56 +840,66 @@
                             </p>
                         </div>
                         <div class="hw-card-footer">
-                            <span class="hw-spec-tag">{{ currentLang === 'id' ? 'Kalibrasi Lux Terbuka' : 'Open Lux Calibration' }}</span>
-                            <span class="hw-badge-aux">Aux Channel</span>
+                            <span class="hw-spec-tag">{{
+                                currentLang === "id"
+                                    ? "Kalibrasi Lux Terbuka"
+                                    : "Open Lux Calibration"
+                            }}</span>
+                            <span class="hw-badge-orange">{{
+                                currentLang === "id"
+                                    ? "Siap Pasang"
+                                    : "Plug & Play"
+                            }}</span>
                         </div>
                     </div>
 
-                    <!-- Card 6: Efisiensi Energi Berkelanjutan (Hero Green Banner - Spans 12 cols) -->
-                    <div class="hw-card hw-card-featured-banner">
-                        <div class="hw-banner-layout">
-                            <div class="hw-banner-media">
-                                <div class="hw-icon-box hw-icon-banner">
-                                    <img
-                                        src="/assets/icons/hardware/Efisiensi.png"
-                                        alt="Efisiensi Energi"
-                                        class="icon-3d-img"
-                                    />
-                                </div>
+                    <!-- Card 6: Energy Efficiency -->
+                    <div class="hw-card hw-card-featured">
+                        <div class="hw-card-top">
+                            <div class="hw-icon-box">
+                                <img
+                                    src="/assets/icons/hardware/Efisiensi.png"
+                                    alt="Efisiensi Energi"
+                                    class="icon-3d-img"
+                                />
                             </div>
-                            <div class="hw-banner-body">
-                                <div class="hw-banner-tag-row">
-                                    <span class="hw-eco-pill">ECO-GREEN SMART FARMING</span>
-                                    <span class="hw-saving-chip">{{ currentLang === 'id' ? 'Otomasi Pemutus Arus' : 'Auto Current Cut-Off' }}</span>
-                                </div>
-                                <h3 class="hw-banner-title">
-                                    {{
-                                        currentLang === "id"
-                                            ? "Efisiensi Energi Berkelanjutan & Otomasi Presisi"
-                                            : "Sustainable Energy Efficiency & Precision Automation"
-                                    }}
-                                </h3>
-                                <p class="hw-banner-desc">
-                                    {{
-                                        currentLang === "id"
-                                            ? "Sistem memutus arus ketika suhu ideal tercapai, menghemat konsumsi listrik operasional kelompok tani secara signifikan dibanding oven konvensional."
-                                            : "Automatically cuts power when ideal temperature is achieved, drastically reducing farmer electricity expenses compared to conventional ovens."
-                                    }}
-                                </p>
-                            </div>
-                            <div class="hw-banner-stat-box">
-                                <span class="hw-stat-number">-40%</span>
-                                <span class="hw-stat-label">{{ currentLang === 'id' ? 'Daya Listrik per Batch' : 'Power Usage per Batch' }}</span>
-                                <div class="hw-stat-check">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
-                                    <span>{{ currentLang === 'id' ? 'Ramah Petani' : 'Farmer Friendly' }}</span>
-                                </div>
+                            <h3 class="hw-title text-white">
+                                {{
+                                    currentLang === "id"
+                                        ? "Efisiensi Energi Berkelanjutan"
+                                        : "Sustainable Energy Efficiency"
+                                }}
+                            </h3>
+                            <p class="hw-desc text-white-sub">
+                                {{
+                                    currentLang === "id"
+                                        ? "Sistem memutus arus ketika suhu ideal tercapai, menghemat konsumsi listrik operasional kelompok tani secara signifikan dibanding oven konvensional."
+                                        : "Automatically cuts power when ideal temperature is achieved, drastically reducing farmer electricity expenses compared to conventional ovens."
+                                }}
+                            </p>
+                        </div>
+                        <div class="hw-card-footer">
+                            <div class="hw-badge-pill-light">
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="#FFFFFF"
+                                    stroke-width="2.5"
+                                >
+                                    <polyline
+                                        points="20 6 9 17 4 12"
+                                    ></polyline>
+                                </svg>
+                                <span>{{
+                                    currentLang === "id"
+                                        ? "Hemat daya hingga 40% per batch"
+                                        : "Up to 40% energy savings per batch"
+                                }}</span>
                             </div>
                         </div>
                     </div>
-                </div>   </div>
                 </div>
 
                 <!-- Assembly Showcase Feature Banner -->
@@ -1405,27 +1420,27 @@
                             </div>
                             <div class="footer-brand-meta">
                                 <h3 class="footer-brand-title">
-                                    Smart Room Dryer
+                                    Desa Wisata Hanjeli
                                 </h3>
                                 <span class="footer-brand-badge"
-                                    >by CoE STAS-RG</span
+                                    >Smart Room Dryer IoT</span
                                 >
                             </div>
                         </div>
                         <p class="footer-desc">
                             {{
                                 currentLang === "id"
-                                    ? "Platform monitoring dan otomasi pengeringan biji Hanjeli berbasis IoT dan kendali histeresis real-time dari Center of Excellence STAS-RG Universitas Telkom untuk mendukung budidaya dan kelestarian ekosistem pertanian pascapanen di Desa Wisata Hanjeli Waluran."
-                                    : "Real-time IoT-based monitoring and drying automation platform from Center of Excellence STAS-RG Telkom University to support farming productivity and post-harvest quality at Hanjeli Tourism Village Sukabumi."
+                                    ? "Pusat edukasi agrowisata, budidaya, dan hilirisasi pangan lokal Hanjeli di Waluran Sukabumi (Kawasan Geopark Ciletuh), dilengkapi teknologi Green House Smart Dryer cerdas berbasis IoT hasil kolaborasi bersama Center of Excellence STAS-RG Telkom University."
+                                    : "Education, agrotourism, and local food preservation center of Hanjeli in Waluran Sukabumi (Ciletuh Geopark area), equipped with IoT Smart Dryer Green House technology developed in collaboration with CoE STAS-RG Telkom University."
                             }}
                         </p>
                         <div class="footer-social-row">
                             <a
-                                href="https://www.instagram.com/coestasrg"
+                                href="https://www.instagram.com/desawisatahanjeli"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="footer-social-btn"
-                                title="Instagram"
+                                title="@desawisatahanjeli"
                             >
                                 <svg
                                     width="18"
@@ -1533,11 +1548,11 @@
                                 </svg>
                             </a>
                             <a
-                                href="https://stas-rg.com"
+                                href="https://www.visithanjeli.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="footer-social-btn"
-                                title="Website"
+                                title="Website Resmi"
                             >
                                 <svg
                                     width="18"
@@ -1642,14 +1657,14 @@
                                 <div class="footer-contact-info">
                                     <span class="contact-label">EMAIL</span>
                                     <a
-                                        href="mailto:userstas@mail.com"
+                                        href="mailto:stas-rg@telkomuniversity.ac.id"
                                         class="contact-value"
-                                        >userstas@mail.com</a
+                                        >stas-rg@telkomuniversity.ac.id</a
                                     >
                                 </div>
                             </div>
 
-                            <!-- PHONE -->
+                            <!-- PHONE / WA -->
                             <div class="footer-contact-item">
                                 <div class="footer-contact-icon">
                                     <svg
@@ -1668,11 +1683,49 @@
                                     </svg>
                                 </div>
                                 <div class="footer-contact-info">
-                                    <span class="contact-label">PHONE</span>
+                                    <span class="contact-label">TELEPON / WA</span>
+                                    <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                                        <a
+                                            href="tel:085722182480"
+                                            class="contact-value"
+                                            >0857-2218-2480</a
+                                        >
+                                        <span style="color: #94A3B8; font-size: 11px;">/</span>
+                                        <a
+                                            href="tel:081398115760"
+                                            class="contact-value"
+                                            >0813-9811-5760</a
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- INSTAGRAM -->
+                            <div class="footer-contact-item">
+                                <div class="footer-contact-icon">
+                                    <svg
+                                        width="18"
+                                        height="18"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                    </svg>
+                                </div>
+                                <div class="footer-contact-info">
+                                    <span class="contact-label">INSTAGRAM</span>
                                     <a
-                                        href="tel:085722182480"
+                                        href="https://www.instagram.com/desawisatahanjeli"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         class="contact-value"
-                                        >0857-2218-2480</a
+                                        >@desawisatahanjeli</a
                                     >
                                 </div>
                             </div>
@@ -1705,11 +1758,11 @@
                                 <div class="footer-contact-info">
                                     <span class="contact-label">WEBSITE</span>
                                     <a
-                                        href="https://www.stas-rg.com"
+                                        href="https://www.visithanjeli.com"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         class="contact-value"
-                                        >www.stas-rg.com</a
+                                        >www.visithanjeli.com</a
                                     >
                                 </div>
                             </div>
@@ -1738,12 +1791,12 @@
                                     allowfullscreen=""
                                     loading="lazy"
                                     referrerpolicy="no-referrer-when-downgrade"
-                                    title="Peta Lokasi Desa Wisata Hanjeli - Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia"
+                                    title="Peta Lokasi Desa Wisata Hanjeli - Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)"
                                 ></iframe>
                             </div>
                             <div
                                 class="footer-map-address"
-                                title="Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia"
+                                title="Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)"
                             >
                                 <svg
                                     width="14"
@@ -1761,9 +1814,7 @@
                                     <circle cx="12" cy="10" r="3"></circle>
                                 </svg>
                                 <span
-                                    >Jl. Pamoyan, Waluran Mandiri, Kec. Waluran,
-                                    Kabupaten Sukabumi, Jawa Barat 43175,
-                                    Indonesia</span
+                                    >Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)</span
                                 >
                             </div>
                         </div>
@@ -1775,8 +1826,8 @@
                     <span class="footer-copy">
                         {{
                             currentLang === "id"
-                                ? "Hak Cipta © 2026 Smart Room Dryer — CoE STAS-RG Universitas Telkom. Semua hak dilindungi undang-undang."
-                                : "Copyright © 2026 Smart Room Dryer — CoE STAS-RG Telkom University. All rights reserved."
+                                ? "Hak Cipta © 2026 Desa Wisata Hanjeli — Kolaborasi Riset bersama CoE STAS-RG Universitas Telkom. Semua hak dilindungi."
+                                : "Copyright © 2026 Hanjeli Tourism Village — In Collaboration with CoE STAS-RG Telkom University. All rights reserved."
                         }}
                     </span>
                     <div class="footer-meta-tags">
@@ -1836,6 +1887,83 @@ function handleClickOutside(e) {
         isMobileMenuOpen.value = false;
     }
 }
+
+// 3D Hero Tilt & Parallax Interactive Logic
+const hero3dRef = ref(null);
+const heroTiltX = ref(0);
+const heroTiltY = ref(0);
+const isHeroHovered = ref(false);
+const glareX = ref(50);
+const glareY = ref(50);
+const glareOpacity = ref(0);
+
+function handleHeroMouseEnter() {
+    isHeroHovered.value = true;
+    glareOpacity.value = 0.55;
+}
+
+function handleHeroMouseMove(e) {
+    if (!hero3dRef.value) return;
+    const rect = hero3dRef.value.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Smooth 3D tilt angles up to ±16 degrees
+    const rotateY = ((x - centerX) / centerX) * 16;
+    const rotateX = -((y - centerY) / centerY) * 16;
+    
+    heroTiltX.value = rotateX;
+    heroTiltY.value = rotateY;
+    
+    glareX.value = (x / rect.width) * 100;
+    glareY.value = (y / rect.height) * 100;
+}
+
+function handleHeroMouseLeave() {
+    isHeroHovered.value = false;
+    heroTiltX.value = 0;
+    heroTiltY.value = 0;
+    glareOpacity.value = 0;
+}
+
+const hero3dStyle = computed(() => {
+    if (!isHeroHovered.value) {
+        return {
+            transform: 'perspective(1100px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+            transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+        };
+    }
+    return {
+        transform: `perspective(1100px) rotateX(${heroTiltX.value.toFixed(2)}deg) rotateY(${heroTiltY.value.toFixed(2)}deg) scale3d(1.06, 1.06, 1.06)`,
+        transition: 'transform 0.08s ease-out',
+    };
+});
+
+const heroImg3dStyle = computed(() => {
+    if (!isHeroHovered.value) {
+        return {
+            transform: 'translateZ(0px)',
+            filter: 'drop-shadow(0 20px 38px rgba(13, 99, 27, 0.22)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.1))',
+            transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.65s ease',
+        };
+    }
+    const shadowX = (-heroTiltY.value * 2.2).toFixed(1);
+    const shadowY = (heroTiltX.value * 2.2 + 28).toFixed(1);
+    return {
+        transform: 'translateZ(36px)',
+        filter: `drop-shadow(${shadowX}px ${shadowY}px 48px rgba(13, 99, 27, 0.35)) drop-shadow(${Number(shadowX) * 0.5}px ${Number(shadowY) * 0.5}px 18px rgba(0, 0, 0, 0.18))`,
+        transition: 'transform 0.08s ease-out, filter 0.08s ease-out',
+    };
+});
+
+const heroGlareStyle = computed(() => ({
+    background: `radial-gradient(circle at ${glareX.value}% ${glareY.value}%, rgba(255, 255, 255, 0.45) 0%, rgba(203, 255, 194, 0.2) 30%, transparent 65%)`,
+    opacity: glareOpacity.value,
+    transition: isHeroHovered.value ? 'opacity 0.2s ease' : 'opacity 0.5s ease',
+}));
 
 // Real Database & IoT States
 const telemetry = ref({
@@ -2366,7 +2494,8 @@ onUnmounted(() => {
     background-color: #f4faff;
     color: #111d23;
     font-family:
-        "Inter",
+        "Plus Jakarta Sans",
+        system-ui,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
@@ -2593,25 +2722,41 @@ onUnmounted(() => {
 }
 
 .btn-nav-login {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 18px;
-    background: #0d631b;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
+    padding: 8px 18px;
+    background: linear-gradient(180deg, #15803d 0%, #0d631b 55%, #094713 100%);
+    color: #ffffff !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    border: 1px solid rgba(13, 99, 27, 0.4);
+    border-radius: 10px;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(13, 99, 27, 0.2);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 2px 8px rgba(13, 99, 27, 0.28) !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .btn-nav-login:hover {
-    background: #1b5e20;
-    box-shadow: 0 4px 12px rgba(13, 99, 27, 0.3);
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 4px 14px rgba(13, 99, 27, 0.38) !important;
+    transform: translateY(-1.5px);
+}
+
+.btn-nav-login:active {
+    background: linear-gradient(180deg, #0d631b 0%, #094713 100%);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+    transform: scale(0.98);
 }
 
 /* Mobile Drawer & Dropdown */
@@ -2690,12 +2835,13 @@ onUnmounted(() => {
 }
 
 .btn-mobile-login {
+    position: relative;
     width: 100%;
     padding: 12px 20px;
-    background: #0d631b;
-    color: #ffffff;
-    border: none;
-    border-radius: 10px;
+    background: linear-gradient(180deg, #15803d 0%, #0d631b 55%, #094713 100%);
+    color: #ffffff !important;
+    border: 1px solid rgba(13, 99, 27, 0.4);
+    border-radius: 12px;
     font-size: 14.5px;
     font-weight: 700;
     display: flex;
@@ -2703,14 +2849,28 @@ onUnmounted(() => {
     justify-content: center;
     gap: 10px;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(13, 99, 27, 0.22);
-    transition: all 0.2s ease;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 4px 14px rgba(13, 99, 27, 0.28) !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .btn-mobile-login:hover {
-    background: #094713;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(13, 99, 27, 0.32);
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 6px 18px rgba(13, 99, 27, 0.38) !important;
+    transform: translateY(-1.5px);
+}
+
+.btn-mobile-login:active {
+    background: linear-gradient(180deg, #0d631b 0%, #094713 100%);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+    transform: scale(0.98);
 }
 
 /* Vue Transition for Mobile Drawer */
@@ -2916,42 +3076,76 @@ onUnmounted(() => {
 }
 
 .btn-hero-primary {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 13px 26px;
-    background: #0d631b;
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
+    padding: 12px 26px;
+    background: linear-gradient(180deg, #15803d 0%, #0d631b 55%, #094713 100%);
+    color: #ffffff !important;
+    font-size: 14.5px;
+    font-weight: 700;
+    border: 1px solid rgba(13, 99, 27, 0.4);
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 4px 14px rgba(13, 99, 27, 0.3) !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .btn-hero-primary:hover {
-    background: #1b5e20;
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        0 6px 18px rgba(13, 99, 27, 0.4) !important;
+    transform: translateY(-1.5px);
+}
+
+.btn-hero-primary:active {
+    background: linear-gradient(180deg, #0d631b 0%, #094713 100%);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+    transform: scale(0.98);
 }
 
 .btn-hero-secondary {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 13px 24px;
-    background: #ffffff;
-    color: #0d631b;
-    font-size: 15px;
-    font-weight: 600;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+    color: #1e293b !important;
+    font-size: 14.5px;
+    font-weight: 700;
+    border: 1px solid rgba(203, 213, 225, 0.9);
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .btn-hero-secondary:hover {
     border-color: #0d631b;
-    background: #f4f7f5;
+    color: #0d631b !important;
+    background: linear-gradient(180deg, #ffffff 0%, #e8f5e9 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 4px 12px rgba(13, 99, 27, 0.15) !important;
+    transform: translateY(-1.5px);
+}
+
+.btn-hero-secondary:active {
+    background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+    transform: scale(0.98);
 }
 
 .hero-mini-cards-row {
@@ -3017,11 +3211,12 @@ onUnmounted(() => {
     line-height: 1.25;
 }
 
-/* Hero Right: 3D Illustration */
+/* Hero Right: 3D Illustration Interactive Stage */
 .hero-right {
     display: flex;
     align-items: center;
     justify-content: center;
+    perspective: 1200px;
 }
 
 .hero-illustration-wrap {
@@ -3031,19 +3226,126 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     position: relative;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-style: preserve-3d;
+    cursor: grab;
+    user-select: none;
+    padding: 18px;
+    box-sizing: border-box;
+    will-change: transform;
 }
 
-.hero-illustration-wrap:hover {
-    transform: translateY(-8px) scale(1.03);
+.hero-illustration-wrap:active {
+    cursor: grabbing;
+}
+
+.hero-3d-ambient-glow {
+    position: absolute;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(46, 125, 50, 0.32) 0%, rgba(203, 255, 194, 0.18) 45%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(42px);
+    pointer-events: none;
+    z-index: 1;
+    transform: translateZ(-25px);
+    animation: heroGlowPulse 5s ease-in-out infinite alternate;
+}
+
+@keyframes heroGlowPulse {
+    0% { transform: scale(0.92) translateZ(-25px); opacity: 0.6; }
+    100% { transform: scale(1.18) translateZ(-25px); opacity: 0.95; }
 }
 
 .hero-main-img {
     width: 100%;
-    max-height: 500px;
+    max-height: 510px;
     object-fit: contain;
     display: block;
-    filter: drop-shadow(0 20px 42px rgba(13, 99, 27, 0.22)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.1));
+    position: relative;
+    z-index: 2;
+    transform-style: preserve-3d;
+    pointer-events: none;
+    will-change: transform, filter;
+}
+
+.hero-3d-glare {
+    position: absolute;
+    inset: 10px;
+    border-radius: 30px;
+    pointer-events: none;
+    z-index: 3;
+    mix-blend-mode: overlay;
+    transform: translateZ(40px);
+}
+
+.hero-floating-badge {
+    position: absolute;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(13, 99, 27, 0.2);
+    border-radius: 100px;
+    box-shadow: 0 10px 25px rgba(13, 99, 27, 0.15), 0 2px 6px rgba(0, 0, 0, 0.05);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0D631B;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.badge-iot {
+    top: 24px;
+    left: -10px;
+    animation: floatBadge1 4s ease-in-out infinite alternate;
+}
+
+.badge-greenhouse {
+    bottom: 24px;
+    right: -10px;
+    animation: floatBadge2 4.5s ease-in-out infinite alternate;
+}
+
+.badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #16A34A;
+}
+
+.pulse-green {
+    box-shadow: 0 0 0 rgba(22, 163, 74, 0.6);
+    animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+@keyframes floatBadge1 {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-7px); }
+}
+
+@keyframes floatBadge2 {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(7px); }
+}
+
+@media (max-width: 768px) {
+    .hero-floating-badge {
+        display: none;
+    }
+    .hero-3d-ambient-glow {
+        width: 250px;
+        height: 250px;
+    }
 }
 
 .live-preview-card {
@@ -3921,24 +4223,37 @@ onUnmounted(() => {
 }
 
 .btn-cta-white {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 14px 28px;
-    background: #ffffff;
-    color: #0d631b;
-    font-size: 15px;
-    font-weight: 700;
-    border: none;
-    border-radius: 8px;
+    padding: 13px 28px;
+    background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+    color: #0d631b !important;
+    font-size: 14.5px;
+    font-weight: 800;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.2s ease;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 4px 14px rgba(0, 0, 0, 0.12) !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .btn-cta-white:hover {
-    background: #f0fdf4;
-    transform: translateY(-1px);
+    background: #ffffff;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 6px 20px rgba(0, 0, 0, 0.18) !important;
+    transform: translateY(-2px);
+}
+
+.btn-cta-white:active {
+    transform: scale(0.98);
 }
 
 /* 7. Footer (Hanjeli Green Theme with CoE STAS-RG Layout) */
@@ -4027,26 +4342,38 @@ onUnmounted(() => {
 }
 
 .footer-social-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+    border: 1px solid rgba(203, 213, 225, 0.9);
     color: #40493d;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 1px 3px rgba(0, 0, 0, 0.04) !important;
     transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     flex-shrink: 0;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .footer-social-btn:hover {
-    background: #0d631b;
-    border-color: #0d631b;
-    color: #ffffff;
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+    border-color: rgba(13, 99, 27, 0.4);
+    color: #ffffff !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(13, 99, 27, 0.25);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 4px 14px rgba(13, 99, 27, 0.3) !important;
+}
+
+.footer-social-btn:active {
+    transform: scale(0.96);
 }
 
 /* Col Headers with Green Bar */

@@ -43,73 +43,10 @@
       <!-- Right Login / Register Form Area -->
       <div class="login-form-side">
         <div class="form-wrapper">
-          <!-- Top Title & Language Switcher -->
-          <div class="form-header-row">
-            <div class="brand-dual-logo">
-              <HanjeliLogo :size="36" />
-              <div class="brand-divider"></div>
-              <StasLogo :size="28" />
-            </div>
-
-            <!-- Language Selector Desktop -->
-            <div class="lang-switch-wrap">
-              <button 
-                type="button" 
-                class="lang-pill" 
-                :class="{ active: currentLang === 'id' }" 
-                @click="setLang('id')"
-                title="Bahasa Indonesia"
-              >
-                <FlagIcon code="id" :size="16" />
-                <span>ID</span>
-              </button>
-              <button 
-                type="button" 
-                class="lang-pill" 
-                :class="{ active: currentLang === 'en' }" 
-                @click="setLang('en')"
-                title="English"
-              >
-                <FlagIcon code="gb" :size="16" />
-                <span>EN</span>
-              </button>
-            </div>
-          </div>
 
           <div class="brand-text-wrap">
-            <h1 class="brand-title-green">{{ $t('auth.brandTitle') }}</h1>
+            <h1 class="brand-title-green">{{ isRegisterMode ? $t('auth.registerTitle') : $t('auth.brandTitle') }}</h1>
             <p class="welcome-sub">{{ isRegisterMode ? $t('auth.welcomeRegisterSub') : $t('auth.welcomeLoginSub') }}</p>
-          </div>
-
-          <!-- Auth Mode Switcher Tab -->
-          <div class="auth-tabs">
-            <button 
-              type="button" 
-              class="tab-btn" 
-              :class="{ active: !isRegisterMode }" 
-              @click="switchMode(false)"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                <polyline points="10 17 15 12 10 7"></polyline>
-                <line x1="15" y1="12" x2="3" y2="12"></line>
-              </svg>
-              <span>{{ $t('auth.tabLogin') }}</span>
-            </button>
-            <button 
-              type="button" 
-              class="tab-btn" 
-              :class="{ active: isRegisterMode }" 
-              @click="switchMode(true)"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <line x1="19" y1="8" x2="19" y2="14"></line>
-                <line x1="22" y1="11" x2="16" y2="11"></line>
-              </svg>
-              <span>{{ $t('auth.tabRegister') }}</span>
-            </button>
           </div>
 
           <!-- Error Banner -->
@@ -138,20 +75,20 @@
 
           <!-- 1. LOGIN FORM -->
           <form v-if="!isRegisterMode" @submit.prevent="handleLogin" class="login-form">
-            <!-- Email Input -->
+            <!-- Email / Username Input -->
             <div class="input-group">
-              <label class="input-label">{{ $t('auth.email') }}</label>
+              <label class="input-label">{{ $t('auth.loginIdentifier') }}</label>
               <div class="input-field-wrapper" :class="{ 'field-error': emailError }">
                 <span class="field-icon">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707A6C" stroke-width="2">
-                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                 </span>
                 <input 
-                  type="email" 
+                  type="text" 
                   v-model="email" 
-                  :placeholder="$t('auth.emailPlaceholder')" 
+                  :placeholder="$t('auth.loginIdentifierPlaceholder')" 
                   class="text-input" 
                   required
                   @input="clearFieldErrors"
@@ -234,6 +171,28 @@
                   :placeholder="$t('auth.fullNamePlaceholder')" 
                   class="text-input" 
                   required
+                />
+              </div>
+            </div>
+
+            <!-- Username Input -->
+            <div class="input-group">
+              <label class="input-label">{{ $t('auth.username') }} <span class="label-sub">{{ $t('auth.usernameMinHint') }}</span></label>
+              <div class="input-field-wrapper">
+                <span class="field-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707A6C" stroke-width="2">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"></path>
+                  </svg>
+                </span>
+                <input 
+                  type="text" 
+                  v-model="regUsername" 
+                  :placeholder="$t('auth.usernamePlaceholder')" 
+                  class="text-input" 
+                  required
+                  minlength="3"
+                  @input="handleUsernameInput"
                 />
               </div>
             </div>
@@ -369,77 +328,37 @@
             </button>
           </div>
 
-          <!-- Security & Creator Credit Footer -->
-          <div class="security-footer">
-            <div class="footer-collab-row">
-              <span>{{ $t('common.facilityName') }}</span>
-              <span class="dot-sep">•</span>
-              <span>{{ $t('auth.devCredit') }}</span>
-            </div>
+          <!-- Auth Switch Prompt (Belum punya akun? Register di sini / Sudah punya akun? Masuk di sini) -->
+          <div class="auth-switch-prompt">
+            <span class="prompt-text">
+              {{ isRegisterMode ? $t('auth.hasAccountPrompt') : $t('auth.noAccountPrompt') }}
+            </span>
+            <button 
+              type="button" 
+              class="prompt-action-btn" 
+              @click="switchMode(!isRegisterMode)"
+            >
+              {{ isRegisterMode ? $t('auth.loginHere') : $t('auth.registerHere') }}
+            </button>
           </div>
+
+
         </div>
       </div>
     </div>
 
     <!-- Mobile Login / Register View -->
     <div v-else class="mobile-login-container">
-      <div class="mobile-top-bar">
-        <!-- Mobile Language Selector -->
-        <div class="lang-switch-wrap">
-          <button 
-            type="button" 
-            class="lang-pill" 
-            :class="{ active: currentLang === 'id' }" 
-            @click="setLang('id')"
-            title="Bahasa Indonesia"
-          >
-            <FlagIcon code="id" :size="15" />
-            <span>ID</span>
-          </button>
-          <button 
-            type="button" 
-            class="lang-pill" 
-            :class="{ active: currentLang === 'en' }" 
-            @click="setLang('en')"
-            title="English"
-          >
-            <FlagIcon code="gb" :size="15" />
-            <span>EN</span>
-          </button>
-        </div>
-      </div>
 
       <div class="mobile-login-card">
         <div class="mobile-brand-center">
-          <div class="mobile-dual-logo-box">
-            <HanjeliLogo :size="54" />
-            <div class="mobile-logo-divider"></div>
-            <StasLogo :size="42" />
+          <div class="mobile-brand-logo" style="margin-bottom: 6px;">
+            <HanjeliLogo :size="52" />
           </div>
           <div class="mobile-brand-title-wrap">
-            <h1 class="mobile-brand-title">{{ $t('auth.brandTitle') }}</h1>
+            <h1 class="mobile-brand-title">{{ isRegisterMode ? $t('auth.registerTitle') : $t('auth.brandTitle') }}</h1>
           </div>
-          <p class="mobile-brand-sub">{{ $t('common.facilityName') }} • STAS</p>
-        </div>
-
-        <!-- Auth Switcher Mobile -->
-        <div class="auth-tabs">
-          <button 
-            type="button" 
-            class="tab-btn" 
-            :class="{ active: !isRegisterMode }" 
-            @click="switchMode(false)"
-          >
-            <span>{{ $t('auth.tabLogin') }}</span>
-          </button>
-          <button 
-            type="button" 
-            class="tab-btn" 
-            :class="{ active: isRegisterMode }" 
-            @click="switchMode(true)"
-          >
-            <span>{{ $t('auth.tabRegister') }}</span>
-          </button>
+          <p class="mobile-brand-sub">{{ isRegisterMode ? $t('auth.welcomeRegisterSub') : $t('auth.welcomeLoginSub') }}</p>
         </div>
 
         <!-- Feedback Banners -->
@@ -453,15 +372,15 @@
         <!-- Mobile Login Form -->
         <form v-if="!isRegisterMode" @submit.prevent="handleLogin" class="mobile-form">
           <div class="input-group">
-            <label class="input-label">{{ $t('auth.email') }}</label>
+            <label class="input-label">{{ $t('auth.loginIdentifier') }}</label>
             <div class="input-field-wrapper" :class="{ 'field-error': emailError }">
               <span class="field-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#707A6C" stroke-width="2">
-                  <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
                 </svg>
               </span>
-              <input type="email" v-model="email" :placeholder="$t('auth.emailPlaceholder')" class="text-input" required @input="clearFieldErrors" />
+              <input type="text" v-model="email" :placeholder="$t('auth.loginIdentifierPlaceholder')" class="text-input" required @input="clearFieldErrors" />
             </div>
             <span v-if="emailError" class="input-hint-error">{{ emailError }}</span>
           </div>
@@ -508,6 +427,11 @@
           <div class="input-group">
             <label class="input-label">{{ $t('auth.fullName') }}</label>
             <input type="text" v-model="regName" :placeholder="$t('auth.fullNamePlaceholder')" class="text-input" required />
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">{{ $t('auth.username') }}</label>
+            <input type="text" v-model="regUsername" :placeholder="$t('auth.usernamePlaceholder')" class="text-input" required minlength="3" @input="handleUsernameInput" />
           </div>
 
           <div class="input-group">
@@ -572,6 +496,20 @@
           </button>
         </div>
 
+        <!-- Auth Switch Prompt Mobile -->
+        <div class="auth-switch-prompt mobile-switch-prompt">
+          <span class="prompt-text">
+            {{ isRegisterMode ? $t('auth.hasAccountPrompt') : $t('auth.noAccountPrompt') }}
+          </span>
+          <button 
+            type="button" 
+            class="prompt-action-btn" 
+            @click="switchMode(!isRegisterMode)"
+          >
+            {{ isRegisterMode ? $t('auth.loginHere') : $t('auth.registerHere') }}
+          </button>
+        </div>
+
         <div class="mobile-security-box">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#40493D" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -579,7 +517,7 @@
           <span>{{ $t('auth.securityProtected') }}</span>
         </div>
 
-        <p class="mobile-dev-credit">{{ $t('auth.devCredit') }}</p>
+
       </div>
     </div>
 
@@ -635,7 +573,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HanjeliLogo from '../../components/HanjeliLogo.vue'
 import StasLogo from '../../components/StasLogo.vue'
-import FlagIcon from '../../components/FlagIcon.vue'
 import { authService, formatAuthError } from '../../services/authService'
 import { currentLang, setLanguage, t } from '../../i18n'
 
@@ -665,11 +602,17 @@ const rememberMe = ref(true)
 
 // Register fields
 const regName = ref('')
+const regUsername = ref('')
 const regEmail = ref('')
 const regPhone = ref('')
 const regRole = ref('OPERATOR')
 const regPassword = ref('')
 const showRegPassword = ref(false)
+
+function handleUsernameInput(e) {
+  // Allow only alphanumeric, dashes, underscores
+  regUsername.value = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '')
+}
 
 // Status & Field Errors
 const isLoading = ref(false)
@@ -711,12 +654,12 @@ function switchMode(toRegister) {
   successMessage.value = ''
 }
 
-// 1. Handle Regular Email & Password Login
+// 1. Handle Regular Email / Username & Password Login
 async function handleLogin() {
   clearFieldErrors()
 
   if (!email.value) {
-    emailError.value = t('auth.emailRequired')
+    emailError.value = t('auth.loginIdentifier') + ' ' + (currentLang.value === 'id' ? 'wajib diisi.' : 'is required.')
     return
   }
   if (!password.value) {
@@ -726,7 +669,7 @@ async function handleLogin() {
 
   isLoading.value = true
   try {
-    const res = await authService.login(email.value, password.value)
+    const res = await authService.login(email.value.trim(), password.value)
     successMessage.value = t('auth.loginSuccess')
     setTimeout(() => {
       emit('login-success', res.user)
@@ -747,6 +690,10 @@ async function handleRegister() {
     errorMessage.value = t('auth.allFieldsRequired')
     return
   }
+  if (regUsername.value && regUsername.value.length < 3) {
+    errorMessage.value = currentLang.value === 'id' ? 'Username minimal harus 3 karakter.' : 'Username must be at least 3 characters.'
+    return
+  }
   if (regPassword.value.length < 6) {
     errorMessage.value = t('auth.passwordMinLength')
     return
@@ -756,6 +703,7 @@ async function handleRegister() {
   try {
     const res = await authService.register({
       name: regName.value,
+      username: regUsername.value ? regUsername.value.toLowerCase().trim() : undefined,
       email: regEmail.value,
       phone: regPhone.value || undefined,
       role: regRole.value,
@@ -1080,79 +1028,7 @@ onMounted(() => {
   gap: 12px;
 }
 
-.form-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
-.mobile-top-bar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  width: 100%;
-  max-width: 440px;
-  margin-bottom: 12px;
-}
-
-.brand-dual-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.auth-version-badge {
-  font-size: 10px;
-  font-weight: 700;
-  color: #0D631B;
-  background: #E8F5E9;
-  border: 1px solid #C8E6C9;
-  padding: 1px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.3px;
-  line-height: 1.3;
-}
-
-.mobile-brand-title-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.brand-divider {
-  width: 1px;
-  height: 22px;
-  background: #CBD5E1;
-}
-
-.lang-switch-wrap {
-  display: flex;
-  background: #F1F5F9;
-  padding: 3px;
-  border-radius: 8px;
-  gap: 2px;
-}
-
-.lang-pill {
-  border: none;
-  background: transparent;
-  padding: 4px 8px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #64748B;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.lang-pill.active {
-  background: #FFFFFF;
-  color: #0D631B;
-  }
 
 .brand-text-wrap {
   display: flex;
@@ -1173,36 +1049,44 @@ onMounted(() => {
   line-height: 16px;
 }
 
-/* Auth Tabs */
-.auth-tabs {
-  display: flex;
-  background: #F1F5F9;
-  padding: 4px;
-  border-radius: 10px;
-  gap: 4px;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  background: transparent;
-  color: #64748B;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 7px;
+/* Auth Switch Prompt */
+.auth-switch-prompt {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 13px;
+  padding: 8px 0 2px;
+  text-align: center;
+  flex-wrap: wrap;
 }
 
-.tab-btn.active {
-  background: #FFFFFF;
+.prompt-text {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.prompt-action-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
   color: #0D631B;
-  }
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: all 0.2s ease;
+}
+
+.prompt-action-btn:hover {
+  color: #084011;
+  text-decoration-thickness: 2px;
+}
+
+.mobile-switch-prompt {
+  padding: 10px 0 4px;
+}
 
 /* Feedback Banners */
 .feedback-banner {
@@ -1248,26 +1132,41 @@ onMounted(() => {
 
 /* Full Width Google Sign In Button */
 .google-auth-full-btn {
+  position: relative;
   width: 100%;
-  padding: 10px 16px;
-  background: #FFFFFF;
-  border: 1.5px solid #CBD5E1;
+  padding: 10.5px 16px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+  border: 1px solid rgba(203, 213, 225, 0.9);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1E293B;
   cursor: pointer;
-  transition: all 0.2s ease;
-  }
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 .google-auth-full-btn:hover:not(:disabled) {
-  background: #F8FAFC;
-  border-color: #94A3B8;
-    transform: translateY(-1px);
+  background: linear-gradient(180deg, #FFFFFF 0%, #E8F5E9 100%);
+  border-color: #0D631B;
+  color: #0D631B;
+  transform: translateY(-1.5px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 4px 12px rgba(13, 99, 27, 0.15) !important;
+}
+
+.google-auth-full-btn:active:not(:disabled) {
+  background: linear-gradient(180deg, #F1F5F9 0%, #E2E8F0 100%);
+  transform: scale(0.98);
 }
 
 .google-auth-full-btn:disabled {
@@ -1283,28 +1182,42 @@ onMounted(() => {
 
 /* Passkey Biometric Button */
 .passkey-auth-btn {
+  position: relative;
   width: 100%;
-  padding: 10px 16px;
-  background: #F0FDF4;
-  border: 1.5px solid #86EFAC;
+  padding: 10.5px 16px;
+  background: linear-gradient(180deg, #F0FDF4 0%, #DCFCE7 100%);
+  border: 1px solid rgba(134, 239, 172, 0.9);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: #15803D;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 1px 3px rgba(22, 163, 74, 0.1) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   margin-top: 0;
-  }
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 .passkey-auth-btn:hover:not(:disabled) {
-  background: #DCFCE7;
-  border-color: #4ADE80;
+  background: linear-gradient(180deg, #DCFCE7 0%, #BBF7D0 100%);
+  border-color: #16A34A;
   color: #0D631B;
-    transform: translateY(-1px);
+  transform: translateY(-1.5px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 12px rgba(22, 163, 74, 0.2) !important;
+}
+
+.passkey-auth-btn:active:not(:disabled) {
+  background: linear-gradient(180deg, #BBF7D0 0%, #86EFAC 100%);
+  transform: scale(0.98);
 }
 
 .passkey-auth-btn:disabled {
@@ -1326,74 +1239,97 @@ onMounted(() => {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 .form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 12px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 7px;
 }
 
 .input-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #071E27;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  letter-spacing: 0.1px;
 }
 
 .input-field-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .field-icon {
   position: absolute;
-  left: 10px;
+  left: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  color: #64748B;
+  transition: color 0.2s ease;
+}
+
+.input-field-wrapper:focus-within .field-icon {
+  color: #0D631B;
 }
 
 .text-input, .text-select {
   width: 100%;
-  padding: 8px 10px 8px 34px;
-  border: 1px solid #CBD5E1;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #071E27;
-  background: #F8FAFC;
-  transition: all 0.2s;
+  padding: 11px 14px 11px 38px;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #0F172A;
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
+  box-sizing: border-box;
+}
+
+.text-input::placeholder {
+  color: #94A3B8;
+  font-weight: 400;
 }
 
 .text-select {
-  padding-left: 10px;
+  padding-left: 12px;
   cursor: pointer;
 }
 
-.field-error .text-input {
-  border-color: #DC2626;
-  background: #FEF2F2;
-}
-
-.input-hint-error {
-  font-size: 11px;
-  color: #DC2626;
-  margin-top: 2px;
+.text-input:hover, .text-select:hover {
+  border-color: #94A3B8;
 }
 
 .text-input:focus, .text-select:focus {
   border-color: #0D631B;
   background: #FFFFFF;
-  }
+  box-shadow: 0 0 0 3.5px rgba(13, 99, 27, 0.12), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.field-error .text-input {
+  border-color: #DC2626;
+  background: #FEF2F2;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.input-hint-error {
+  font-size: 11.5px;
+  color: #DC2626;
+  font-weight: 600;
+  margin-top: 3px;
+}
 
 .toggle-pwd-btn {
   position: absolute;
@@ -1404,65 +1340,95 @@ onMounted(() => {
   justify-content: center;
   cursor: pointer;
   border: none;
+  padding: 5px;
+  border-radius: 6px;
+  color: #64748B;
+  transition: all 0.2s ease;
+}
+
+.toggle-pwd-btn:hover {
+  color: #0D631B;
+  background: #F1F5F9;
 }
 
 .row-between {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 12.5px;
+  margin-top: -2px;
 }
 
 .remember-me {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #40493D;
+  gap: 7px;
+  color: #334155;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+  accent-color: #0D631B;
   cursor: pointer;
 }
 
 .forgot-link {
   color: #0D631B;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .forgot-link:hover {
+  color: #084011;
   text-decoration: underline;
 }
 
 .submit-login-btn {
+  position: relative;
   width: 100%;
-  padding: 10px 14px;
-  background: #0D631B;
-  color: #FFFFFF;
-  border-radius: 8px;
-  font-size: 13.5px;
-  font-weight: 600;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  color: #FFFFFF !important;
+  border: 1px solid rgba(13, 99, 27, 0.4);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(13, 99, 27, 0.28) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
-  border: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .submit-login-btn:hover:not(:disabled) {
-  background: #15803D;
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  border-color: rgba(13, 99, 27, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 4px 14px rgba(13, 99, 27, 0.38) !important;
+  transform: translateY(-1.5px);
+}
+
+.submit-login-btn:active:not(:disabled) {
+  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  transform: scale(0.98);
 }
 
 .submit-login-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
-}
-
-.register-submit-btn {
-  background: #047857;
-}
-
-.register-submit-btn:hover:not(:disabled) {
-  background: #059669;
+  transform: none;
 }
 
 .divider-row {
@@ -1484,25 +1450,7 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.security-footer {
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid #F1F5F9;
-  display: flex;
-  justify-content: center;
-}
 
-.footer-collab-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #64748B;
-}
-
-.dot-sep {
-  color: #CBD5E1;
-}
 
 /* Mobile Layout */
 .mobile-login-container {
@@ -1534,22 +1482,7 @@ onMounted(() => {
   gap: 6px;
 }
 
-.mobile-dual-logo-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 8px 14px;
-  background: #F8FAFC;
-  border-radius: 14px;
-  border: 1px solid #E2E8F0;
-}
 
-.mobile-logo-divider {
-  width: 1px;
-  height: 28px;
-  background: #CBD5E1;
-}
 
 .mobile-brand-title {
   font-size: 19px;
@@ -1567,7 +1500,7 @@ onMounted(() => {
 .mobile-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 15px;
 }
 
 .mobile-security-box {
@@ -1584,12 +1517,7 @@ onMounted(() => {
   text-align: center;
 }
 
-.mobile-dev-credit {
-  font-size: 10px;
-  color: #64748B;
-  font-weight: 600;
-  text-align: center;
-}
+
 
 /* System Alert Modal */
 .modal-backdrop {
@@ -1726,18 +1654,40 @@ onMounted(() => {
 }
 
 .btn-alert-dismiss {
-  padding: 9px 22px;
-  background: #0D631B;
-  color: #FFFFFF;
-  border-radius: 8px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9.5px 22px;
+  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  color: #FFFFFF !important;
+  border: 1px solid rgba(13, 99, 27, 0.4);
+  border-radius: 10px;
   font-size: 13px;
-  font-weight: 600;
-  border: none;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(13, 99, 27, 0.28) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .btn-alert-dismiss:hover {
-  background: #15803D;
-  }
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  border-color: rgba(13, 99, 27, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 4px 14px rgba(13, 99, 27, 0.38) !important;
+  transform: translateY(-1.5px);
+}
+
+.btn-alert-dismiss:active {
+  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  transform: scale(0.98);
+}
 </style>

@@ -16,7 +16,7 @@
           <div class="copilot-header">
             <div class="copilot-header-brand">
               <div class="copilot-profile-avatar">
-                <img src="/assets/img/ai_profile.jpg" alt="Hanjeli AI Profile" class="copilot-profile-img" />
+                <img src="/assets/icons/profile/cs.png" alt="Hanjeli AI Profile" class="copilot-profile-img" />
                 <span class="live-pulse-dot" :class="{ 'pulse-active': !isLoading }"></span>
               </div>
               <div class="copilot-header-info">
@@ -190,7 +190,7 @@
               <!-- Welcome Initial Message -->
               <div class="message-group ai-group">
                 <div class="msg-avatar ai-avatar">
-                  <img src="/assets/img/ai_profile.jpg" alt="Hanjeli AI" class="ai-msg-avatar-img" />
+                  <img src="/assets/icons/profile/cs.png" alt="Hanjeli AI" class="ai-msg-avatar-img" />
                 </div>
                 <div class="msg-body-wrapper">
                   <div class="msg-author-row">
@@ -220,7 +220,7 @@
               >
                 <!-- Avatar on Left (for AI) -->
                 <div v-if="msg.sender !== 'user'" class="msg-avatar ai-avatar">
-                  <img src="/assets/img/ai_profile.jpg" alt="Hanjeli AI" class="ai-msg-avatar-img" />
+                  <img src="/assets/icons/profile/cs.png" alt="Hanjeli AI" class="ai-msg-avatar-img" />
                 </div>
 
                 <!-- Message Content Body -->
@@ -285,7 +285,7 @@
               <!-- Typing / Loading Skeleton -->
               <div v-if="isLoading" class="message-group ai-group">
                 <div class="msg-avatar ai-avatar">
-                  <img src="/assets/img/ai_profile.jpg" alt="Hanjeli AI" class="ai-msg-avatar-img" />
+                  <img src="/assets/icons/profile/cs.png" alt="Hanjeli AI" class="ai-msg-avatar-img" />
                 </div>
                 <div class="msg-body-wrapper">
                   <div class="msg-bubble ai-bubble thinking-bubble">

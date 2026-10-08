@@ -92,6 +92,21 @@
             />
           </div>
 
+          <!-- Username -->
+          <div class="input-group">
+            <label class="form-label">{{ currentLang === 'id' ? 'Username' : 'Username' }}</label>
+            <input 
+              type="text" 
+              v-model="formData.username" 
+              class="modal-input" 
+              placeholder="username_pengguna"
+              pattern="^[a-zA-Z0-9._-]+$"
+              required 
+            />
+          </div>
+        </div>
+
+        <div class="form-grid-2">
           <!-- Role -->
           <div class="input-group">
             <label class="form-label">{{ currentLang === 'id' ? 'Peran / Jabatan' : 'Role / Position' }}</label>
@@ -102,9 +117,7 @@
               required 
             />
           </div>
-        </div>
 
-        <div class="form-grid-2">
           <!-- Email -->
           <div class="input-group">
             <label class="form-label">Email</label>
@@ -115,7 +128,9 @@
               required 
             />
           </div>
+        </div>
 
+        <div class="form-grid-2">
           <!-- Phone Number -->
           <div class="input-group">
             <label class="form-label">{{ currentLang === 'id' ? 'Nomor WhatsApp / HP' : 'WhatsApp Number' }}</label>
@@ -126,17 +141,17 @@
               class="modal-input" 
             />
           </div>
-        </div>
 
-        <!-- Location -->
-        <div class="input-group">
-          <label class="form-label">{{ currentLang === 'id' ? 'Lokasi Green House / Kebun' : 'Green House Location' }}</label>
-          <input 
-            type="text" 
-            v-model="formData.location" 
-            placeholder="Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia" 
-            class="modal-input" 
-          />
+          <!-- Location -->
+          <div class="input-group">
+            <label class="form-label">{{ currentLang === 'id' ? 'Lokasi Green House / Kebun' : 'Green House Location' }}</label>
+            <input 
+              type="text" 
+              v-model="formData.location" 
+              placeholder="Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat" 
+              class="modal-input" 
+            />
+          </div>
         </div>
 
         <!-- Modal Footer Actions -->
@@ -172,10 +187,11 @@ const props = defineProps({
     type: Object,
     default: () => ({
       name: 'Operator Green House',
-      email: 'operator@hanjeli.id',
-      phone: '+62 812-3456-7890',
+      username: 'operator',
+      email: 'stas-rg@telkomuniversity.ac.id',
+      phone: '0857-2218-2480',
       role: 'Operator Green House',
-      location: 'Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia',
+      location: 'Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)',
       avatarUrl: ''
     })
   }
@@ -189,6 +205,7 @@ const uploadError = ref('')
 
 const formData = ref({
   name: props.user?.name || '',
+  username: props.user?.username || '',
   email: props.user?.email || '',
   phone: props.user?.phone || '',
   role: props.user?.role || '',
@@ -200,6 +217,7 @@ watch(() => props.user, (newUser) => {
   if (newUser) {
     formData.value = { 
       name: newUser.name || '',
+      username: newUser.username || '',
       email: newUser.email || '',
       phone: newUser.phone || '',
       role: newUser.role || '',

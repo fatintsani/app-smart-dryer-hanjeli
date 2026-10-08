@@ -1572,7 +1572,7 @@ async function handleExport() {
       <title>Laporan Komprehensif Mutu & Kinetika Pengeringan - ${code}</title>
       <style>
         @page { size: A4 portrait; margin: 10mm 12mm; }
-        body { font-family: sans-serif; font-size: 11px; }
+        body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; }
         .kop-wrapper { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #0D631B; padding-bottom: 10px; margin-bottom: 12px; }
         .kop-logos { display: flex; align-items: center; gap: 12px; }
         .kop-logo-img { height: 52px; width: auto; object-fit: contain; }
@@ -1618,7 +1618,7 @@ async function handleExport() {
           <img src="${stasLogoUrl}" alt="Logo" class="kop-logo-img" />
           <div class="kop-text">
             <span class="kop-org-main">DESA WISATA HANJELI WALURAN & CoE STAS-RG</span>
-            <div style="font-size: 8px; color: #475569; margin-top: 2px;">Jl. Pamoyan, Waluran Mandiri, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat 43175, Indonesia</div>
+            <div style="font-size: 8px; color: #475569; margin-top: 2px;">Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)</div>
           </div>
         </div>
         <div class="kop-doc-meta">
