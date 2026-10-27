@@ -27,6 +27,7 @@
   <img src="https://img.shields.io/badge/Laravel_Reverb-WebSocket-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel Reverb" />
   <img src="https://img.shields.io/badge/MQTT-HiveMQ%20%2F%20Mosquitto-660066?style=for-the-badge&logo=eclipsemosquitto&logoColor=white" alt="MQTT Protocol" />
   <img src="https://img.shields.io/badge/ESP32-Dual_Mode_IoT-E7352C?style=for-the-badge&logo=espressif&logoColor=white" alt="ESP32 Dual-Mode" />
+  <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions CI/CD" />
   <img src="https://img.shields.io/badge/PWA-Ready-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA Ready" />
 </p>
 
@@ -41,13 +42,14 @@
 5. [Struktur Direktori Proyek](#-struktur-direktori-proyek)
 6. [Panduan Instalasi & Setup Cepat](#-panduan-instalasi--setup-cepat)
 7. [Menjalankan Layanan (Multi-Service Architecture)](#-menjalankan-layanan-multi-service-architecture)
-8. [Akun Default & Role-Based Access Control (RBAC)](#-akun-default--role-based-access-control-rbac)
-9. [Integrasi Hardware ESP32 & Pinout](#-integrasi-hardware-esp32--pinout)
-10. [Protokol Komunikasi MQTT & Kontrak Payload](#-protokol-komunikasi-mqtt--kontrak-payload)
-11. [Dokumentasi Endpoint RESTful API](#-dokumentasi-endpoint-restful-api)
-12. [Design System & Standar UI/UX](#-design-system--standar-uiux)
-13. [Catatan Rilis (Changelog v1.0.0)](#-catatan-rilis-changelog-v100)
-14. [Lisensi & Kredit Pengembang](#-lisensi--kredit-pengembang)
+8. [Otomasi Deployment CI/CD (GitHub Actions ke VPS)](#-otomasi-deployment-cicd-github-actions-ke-vps)
+9. [Akun Default & Role-Based Access Control (RBAC)](#-akun-default--role-based-access-control-rbac)
+10. [Integrasi Hardware ESP32 & Pinout](#-integrasi-hardware-esp32--pinout)
+11. [Protokol Komunikasi MQTT & Kontrak Payload](#-protokol-komunikasi-mqtt--kontrak-payload)
+12. [Dokumentasi Endpoint RESTful API](#-dokumentasi-endpoint-restful-api)
+13. [Design System & Standar UI/UX](#-design-system--standar-uiux)
+14. [Catatan Rilis (Changelog v1.0.0)](#-catatan-rilis-changelog-v100)
+15. [Lisensi & Kredit Pengembang](#-lisensi--kredit-pengembang)
 
 ---
 
@@ -409,6 +411,30 @@ php artisan greenhouse:mqtt-worker
 ```
 
 Setelah semua layanan berjalan, buka browser Anda di: **`http://localhost:8000`**
+ 
+---
+
+## 🚀 Otomasi Deployment CI/CD (GitHub Actions ke VPS)
+
+Platform ini telah dilengkapi dengan pipeline **Continuous Integration & Continuous Deployment (CI/CD)** siap pakai melalui GitHub Actions:
+
+- **Workflow File**: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+- **Panduan Lengkap Setup VPS & Secrets**: [`docs/PANDUAN_CI_CD_VPS.md`](docs/PANDUAN_CI_CD_VPS.md)
+
+### Alur Kerja Deployment Otomatis:
+1. **Push ke branch `main`** memicu workflow GitHub Actions.
+2. **Job CI (Test & Build)**:
+   - Menyiapkan environment PHP 8.3 & Node.js 20.
+   - Menjalankan unit & feature testing Laravel (`php artisan test`).
+   - Menguji kompilasi asset frontend Vite & Vue 3 (`npm run build`).
+3. **Job CD (Deployment SSH ke VPS)**:
+   - Berjalan hanya jika job testing lulus.
+   - Melakukan backup otomatis snapshot `.env` dan database SQLite.
+   - Mengaktifkan mode pemeliharaan (`php artisan down`).
+   - Menarik kode terbaru, menginstal dependensi produksi (`--no-dev`), memigrasikan database (`--force`), dan menghangatkan cache sistem.
+   - Merestart worker background (Reverb WebSocket, MQTT Worker, dan Queue).
+   - Menonaktifkan mode pemeliharaan (`php artisan up`).
+   - **Fitur Rollback Otomatis**: Jika terjadi kegagalan di langkah mana pun, sistem secara otomatis mengembalikan kode, file `.env`, dan database ke kondisi stabil sebelumnya.
 
 ---
 

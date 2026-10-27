@@ -27,7 +27,9 @@ class RealtimeBroadcastingTest extends TestCase
     {
         Event::fake([TelemetryUpdated::class]);
 
-        $response = $this->postJson('/api/telemetry/ingest', [
+        $response = $this->withHeaders([
+            'X-Device-Token' => 'esp32_sec_7f9a2b1c8e3d4f5a6b7c8d9e0f1a2b3c',
+        ])->postJson('/api/telemetry/ingest', [
             'tempInternal' => 48.5,
             'humidityInternal' => 45.2,
             'tempExternal' => 31.0,

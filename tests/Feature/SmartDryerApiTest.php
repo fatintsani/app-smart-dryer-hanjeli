@@ -101,7 +101,9 @@ class SmartDryerApiTest extends TestCase
         $histRes->assertStatus(200);
 
         // Ingest reading
-        $ingestRes = $this->postJson('/api/telemetry/ingest', [
+        $ingestRes = $this->withHeaders([
+            'X-Device-Token' => 'esp32_sec_7f9a2b1c8e3d4f5a6b7c8d9e0f1a2b3c',
+        ])->postJson('/api/telemetry/ingest', [
             'tempInternal' => 45.2,
             'humidityInternal' => 52.0,
             'solarRadiation' => 780.0,
@@ -143,10 +145,10 @@ class SmartDryerApiTest extends TestCase
         // 3. Ping device
         $pingRes = $this->postJson("/api/devices/{$deviceId}/ping");
         $pingRes->assertStatus(200)
-            ->assertJsonPath('status', 'online');
+            ->assertJsonPath('device.status', 'online');
 
         // 4. Toggle device
-        $toggleRes = $this->patchJson("/api/devices/{$deviceId}/toggle");
+        $toggleRes = $this->postJson("/api/devices/{$deviceId}/toggle");
         $toggleRes->assertStatus(200);
 
         // 5. Ping all
@@ -175,7 +177,19 @@ class SmartDryerApiTest extends TestCase
 
     public function test_public_batch_verification_endpoint(): void
     {
-        $batch = Batch::first();
+        $batch = Batch::first() ?? Batch::create([
+            'batch_code' => 'HNJ-2026-TEST01',
+            'crop_variety' => 'Hanjeli Stone',
+            'initial_weight_kg' => 50.0,
+            'current_weight_kg' => 45.0,
+            'target_moisture_percent' => 13.0,
+            'initial_moisture_percent' => 24.0,
+            'current_moisture_percent' => 13.5,
+            'status' => 'COMPLETED',
+            'operator_name' => 'Operator Greenhouse',
+            'started_at' => now()->subDays(2),
+            'completed_at' => now(),
+        ]);
         $this->assertNotNull($batch);
 
         // 1. Verify via public API
