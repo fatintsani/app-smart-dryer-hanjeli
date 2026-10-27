@@ -42,7 +42,7 @@ export const batchService = {
     return api.get(`/batches/${id}/export`);
   },
 
-  async seedSample(cropVariety = 'Hanjeli Ketan Sukabumi (Grade A)') {
+  async seedSample(cropVariety = 'Biji Hanjeli') {
     return api.post('/batches/seed-sample', { cropVariety });
   },
 

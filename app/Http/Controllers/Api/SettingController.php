@@ -26,8 +26,8 @@ class SettingController extends Controller
     {
         $setting = SystemSetting::firstOrCreate([], [
             'is_system_active' => true,
-            'iot_mode' => 'SIMULATION',
-            'environment_mode' => 'LOCAL',
+            'iot_mode' => 'HARDWARE',
+            'environment_mode' => 'PRODUCTION',
             'max_safe_temp' => 55.0,
             'min_safe_temp' => 35.0,
             'target_moisture_default' => 12.0,
@@ -52,8 +52,8 @@ class SettingController extends Controller
 
         return response()->json([
             'isSystemActive' => (bool) ($setting->is_system_active ?? true),
-            'iotMode' => $setting->iot_mode ?? 'SIMULATION',
-            'environmentMode' => $setting->environment_mode ?? 'LOCAL',
+            'iotMode' => $setting->iot_mode ?? 'HARDWARE',
+            'environmentMode' => $setting->environment_mode ?? 'PRODUCTION',
             'maxSafeTemp' => $setting->max_safe_temp,
             'minSafeTemp' => $setting->min_safe_temp,
             'targetMoistureDefault' => $setting->target_moisture_default,
@@ -98,8 +98,8 @@ class SettingController extends Controller
             'message' => 'Pengaturan sistem berhasil disimpan ke database.',
             'settings' => [
                 'isSystemActive' => (bool) ($setting->is_system_active ?? true),
-                'iotMode' => $setting->iot_mode ?? 'SIMULATION',
-                'environmentMode' => $setting->environment_mode ?? 'LOCAL',
+                'iotMode' => $setting->iot_mode ?? 'HARDWARE',
+                'environmentMode' => $setting->environment_mode ?? 'PRODUCTION',
                 'maxSafeTemp' => $setting->max_safe_temp,
                 'minSafeTemp' => $setting->min_safe_temp,
                 'targetMoistureDefault' => $setting->target_moisture_default,
@@ -135,7 +135,7 @@ class SettingController extends Controller
                     if (!$batch) {
                         $batch = new Batch([
                             'batch_code' => 'HJ-TEST-001',
-                            'crop_variety' => 'Hanjeli Ketan Sukabumi (Super)',
+                            'crop_variety' => 'Biji Hanjeli',
                             'initial_weight_kg' => 50.0,
                             'final_weight_kg' => 42.5,
                             'initial_moisture_percent' => 24.5,

@@ -15,7 +15,6 @@ import { reactive } from 'vue';
 import socketService from './socketService';
 import bleService from './ble/bleService';
 import usbSerialService from './serial/usbSerialService';
-import { simulatorService } from './simulatorService';
 import api from './api';
 import { BLE_CONFIG, MQTT_CONFIG_DEFAULTS } from './ble/bleConstants';
 
@@ -26,10 +25,10 @@ class ConnectionManager {
     const savedDeviceId = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_device_id') || 'OPPO Reno') : 'OPPO Reno';
     const savedHotspot = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_hotspot_name') || 'OPPO Reno') : 'OPPO Reno';
 
-    // Reactive State for UI binding
+    // Reactive State for UI binding - 100% Production Direct Hardware
     this.state = reactive({
-      sourceMode: typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_source_mode') || 'hardware') : 'hardware', // 'hardware' | 'simulation'
-      mode: typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_connection_mode') || 'wifi') : 'wifi',           // 'wifi' | 'ble' | 'usb'
+      sourceMode: 'hardware', // Locked to 'hardware' production mode
+      mode: typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_connection_mode') || 'wifi') : 'wifi', // 'wifi' | 'ble' | 'usb'
       deviceId: savedDeviceId,
       hotspotName: savedHotspot,
       isConnected: false,
@@ -53,13 +52,10 @@ class ConnectionManager {
       lastError: null,
     });
 
+    try { localStorage.setItem('hanjeli_source_mode', 'hardware'); } catch (e) {}
+
     this.initListeners();
     this.startWatchdog();
-
-    // Ensure simulator is immediately stopped if in hardware mode
-    if (this.state.sourceMode === 'hardware') {
-      simulatorService.stop();
-    }
   }
 
   /**
@@ -336,87 +332,20 @@ class ConnectionManager {
   /**
    * Sync mode from master backend setting (database)
    */
+  /**
+   * Sync mode from master backend setting (database)
+   */
   syncFromSettings(iotMode) {
-    if (!iotMode) return;
-    const targetSource = String(iotMode).toUpperCase() === 'SIMULATION' ? 'simulation' : 'hardware';
-
-    if (this.state.sourceMode !== targetSource) {
-      this.state.sourceMode = targetSource;
-      try { localStorage.setItem('hanjeli_source_mode', targetSource); } catch (e) {}
-
-      if (targetSource === 'simulation') {
-        this.state.isConnected = true;
-        this.state.isHardwareActive = true;
-        this.state.statusText = 'Simulation Active';
-        simulatorService.start();
-      } else {
-        simulatorService.stop();
-        if (this.state.mode === 'ble') {
-          this.state.isConnected = bleService.isConnected;
-          this.state.isHardwareActive = bleService.isConnected;
-          this.state.statusText = bleService.isConnected ? 'Connected' : 'Disconnected';
-        } else if (this.state.mode === 'usb') {
-          this.state.isConnected = usbSerialService.isConnected;
-          this.state.isHardwareActive = usbSerialService.isConnected;
-          this.state.statusText = usbSerialService.isConnected ? 'Connected' : 'Disconnected';
-        } else {
-          this.state.isConnected = socketService.isConnected;
-          this.state.isHardwareActive = false;
-          this.state.statusText = 'Standby / Menunggu ESP32';
-        }
-        this.emitBlankTelemetry();
-      }
-
-      this.emit('connection_change', this.getStatusSnapshot());
-    }
+    this.state.sourceMode = 'hardware';
+    try { localStorage.setItem('hanjeli_source_mode', 'hardware'); } catch (e) {}
   }
 
   /**
-   * Switch between 'hardware' (Live ESP32) and 'simulation' (IoT Simulator)
+   * Production mode is permanently locked to 'hardware' (Live ESP32)
    */
   setSourceMode(source) {
-    if (this.state.sourceMode === source) return;
-
-    if (source === 'simulation') {
-      const role = typeof localStorage !== 'undefined' ? (localStorage.getItem('user_role') || (JSON.parse(localStorage.getItem('user') || '{}').role)) : null;
-      if (role && role !== 'ADMIN') {
-        console.warn('[ConnectionManager] Mode simulasi dibatasi hanya untuk Administrator.');
-        return;
-      }
-    }
-
-    this.state.sourceMode = source;
-    try { localStorage.setItem('hanjeli_source_mode', source); } catch (e) {}
-
-    if (source === 'simulation') {
-      // Start Simulator
-      this.state.isConnected = true;
-      this.state.isHardwareActive = true;
-      this.state.statusText = 'Simulation Active';
-      simulatorService.start();
-    } else {
-      // Stop Simulator, Return to Physical Hardware
-      simulatorService.stop();
-      
-      // Reset hardware active until fresh real device signal is confirmed
-      if (this.state.mode === 'ble') {
-        this.state.isConnected = bleService.isConnected;
-        this.state.isHardwareActive = bleService.isConnected;
-        this.state.statusText = bleService.isConnected ? 'Connected' : 'Disconnected';
-      } else if (this.state.mode === 'usb') {
-        this.state.isConnected = usbSerialService.isConnected;
-        this.state.isHardwareActive = usbSerialService.isConnected;
-        this.state.statusText = usbSerialService.isConnected ? 'Connected' : 'Disconnected';
-      } else {
-        this.state.isConnected = socketService.isConnected;
-        this.state.isHardwareActive = false; // Must wait for genuine ESP32 packets
-        this.state.statusText = 'Standby / Menunggu ESP32';
-      }
-
-      this.emitBlankTelemetry();
-    }
-
-    this.emit('connection_change', this.getStatusSnapshot());
+    this.state.sourceMode = 'hardware';
+    try { localStorage.setItem('hanjeli_source_mode', 'hardware'); } catch (e) {}
   }
 
   /**
@@ -427,6 +356,10 @@ class ConnectionManager {
 
     this.state.mode = targetMode;
     try { localStorage.setItem('hanjeli_connection_mode', targetMode); } catch (e) {}
+
+    if (this.state.sourceMode === 'simulation') {
+      return; // Do not trigger physical device connects when in simulation
+    }
 
     if (targetMode === 'wifi') {
       socketService.connect();
@@ -497,6 +430,8 @@ class ConnectionManager {
       grainMoisture: 0,
       solarRadiation: 0,
       weightCurrentKg: 0,
+      isRaining: false,
+      rainVal: null,
       hasData: false,
       timestamp: new Date().toISOString(),
       source: 'offline',
@@ -507,12 +442,6 @@ class ConnectionManager {
    * Send unified control command to ESP32
    */
   async sendCommand(commandData) {
-    if (this.state.sourceMode === 'simulation') {
-      // Apply directly to simulator
-      Object.assign(simulatorService.simulatedActuators, commandData);
-      return { success: true };
-    }
-
     if (this.state.mode === 'ble' && bleService.isConnected) {
       // Direct BLE characteristic write
       return await bleService.sendControlCommand({
@@ -583,6 +512,8 @@ class ConnectionManager {
       solarRadiation: typeof raw.solarRadiation === 'number' ? raw.solarRadiation : parseFloat(raw.solar_radiation ?? raw.solar ?? 700.0),
       grainMoisture: typeof raw.grainMoisture === 'number' ? raw.grainMoisture : parseFloat(raw.grain_moisture ?? raw.moisture ?? 14.0),
       weightCurrentKg: typeof raw.weightCurrentKg === 'number' ? raw.weightCurrentKg : parseFloat(raw.weight_kg ?? raw.weightCurrentKg ?? raw.weightKg ?? raw.weight ?? 45.0),
+      isRaining: raw.isRaining !== undefined ? Boolean(raw.isRaining) : (raw.is_raining !== undefined ? Boolean(raw.is_raining) : false),
+      rainVal: raw.rainVal !== undefined ? raw.rainVal : (raw.rain_val !== undefined ? raw.rain_val : null),
       hasData: true,
       timestamp: raw.timestamp || raw.recorded_at || new Date().toISOString(),
       source: source,

@@ -203,7 +203,6 @@ import HanjeliLogo from './HanjeliLogo.vue'
 import FlagIcon from './FlagIcon.vue'
 import { alertService } from '../services/alertService'
 import { socketService } from '../services/socketService'
-import { simulatorService } from '../services/simulatorService'
 import { systemState } from '../services/settingsService'
 
 const props = defineProps({
@@ -242,7 +241,6 @@ const emit = defineEmits([
   'edit-profile',
   'settings',
   'navigate',
-  'open-simulator',
   'open-ai-copilot'
 ])
 

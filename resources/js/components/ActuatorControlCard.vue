@@ -15,13 +15,13 @@
           <div class="acc-heading-row">
             <h3 class="acc-title">{{ currentLang === 'id' ? 'Pusat Kontrol Aktuator & Relai Hardware' : 'Actuator & Hardware Relay Control' }}</h3>
             <span class="acc-mode-pill" :class="actuators.isOverrideActive ? 'mode-manual' : 'mode-auto'">
-              {{ actuators.isOverrideActive ? (currentLang === 'id' ? 'MANUAL OVERRIDE' : 'MANUAL OVERRIDE') : (currentLang === 'id' ? 'OTOMATIS (AI PID)' : 'AUTO (AI PID)') }}
+              {{ actuators.isOverrideActive ? (currentLang === 'id' ? 'MANUAL OVERRIDE' : 'MANUAL OVERRIDE') : (currentLang === 'id' ? 'OTOMATIS (ON/OFF HISTESIS)' : 'AUTO (ON/OFF HYSTERESIS)') }}
             </span>
           </div>
           <p class="acc-subtitle">
             {{ actuators.isOverrideActive 
               ? (currentLang === 'id' ? 'Kontrol manual aktif: Anda memiliki kendali langsung atas sakelar relai daya.' : 'Manual control active: You have direct control over power relays.') 
-              : (currentLang === 'id' ? 'Regulasi otomatis aktif berdasarkan target suhu dan kelembapan ruang pengering.' : 'Automatic regulation active based on target temperature and humidity.') 
+              : (currentLang === 'id' ? 'Regulasi otomatis aktif: PTC Heater ON/OFF berbasis ambang cahaya lux (BH1750), hujan, dan histeresis suhu (48°C - 50°C).' : 'Automatic regulation active: PTC Heater ON/OFF based on BH1750 solar lux, rain detection, and temperature hysteresis (48°C - 50°C).') 
             }}
           </p>
         </div>
@@ -48,118 +48,8 @@
 
     <!-- Actuators Grid -->
     <div class="actuators-grid">
-      <!-- 1. Kipas Exhaust (Blower Pembuangan Lembap) -->
-      <div class="actuator-item-card" :class="{ 'is-active': actuators.exhaustFanStatus }">
-        <div class="aic-top-row">
-          <div class="aic-icon-box" :class="{ 'spinning': actuators.exhaustFanStatus }">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 12c0-3 2.5-5.5 5.5-5.5S23 9 23 12s-2.5 5.5-5.5 5.5S12 15 12 12z"></path>
-              <path d="M12 12c-3 0-5.5-2.5-5.5-5.5S9 1 12 1s5.5 2.5 5.5 5.5S15 12 12 12z"></path>
-              <path d="M12 12c0 3-2.5 5.5-5.5 5.5S1 15 1 12s2.5-5.5 5.5-5.5S12 9 12 12z"></path>
-              <path d="M12 12c3 0 5.5 2.5 5.5 5.5S15 23 12 23s-5.5-2.5-5.5-5.5S9 12 12 12z"></path>
-            </svg>
-          </div>
-          <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Kipas Exhaust' : 'Exhaust Fan' }}</h4>
-            <span class="aic-pin">Pin GPIO 18 &bull; Relai 1</span>
-          </div>
-          <!-- Toggle Switch -->
-          <label class="toggle-switch">
-            <input 
-              type="checkbox" 
-              v-model="actuators.exhaustFanStatus" 
-              @change="handleActuatorToggle('exhaustFanStatus', actuators.exhaustFanStatus)"
-            />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <!-- Slider Speed Control -->
-        <div class="aic-slider-block">
-          <div class="aic-slider-header">
-            <span class="slider-caption">{{ currentLang === 'id' ? 'Kecepatan Blower' : 'Blower Speed' }}</span>
-            <strong class="slider-val">{{ actuators.exhaustFanStatus ? `${actuators.exhaustFanSpeed}%` : '0%' }}</strong>
-          </div>
-          <input 
-            type="range" 
-            min="10" 
-            max="100" 
-            step="5" 
-            v-model.number="actuators.exhaustFanSpeed" 
-            :disabled="!actuators.exhaustFanStatus"
-            @change="handleSpeedChange('exhaustFanSpeed', actuators.exhaustFanSpeed)"
-            class="aic-range-slider"
-          />
-        </div>
-      </div>
-
-      <!-- 2. Kipas Intake (Pemasok Udara Bersih) -->
-      <div class="actuator-item-card" :class="{ 'is-active': actuators.intakeFanStatus }">
-        <div class="aic-top-row">
-          <div class="aic-icon-box" :class="{ 'spinning': actuators.intakeFanStatus }">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"></path>
-              <path d="M9.6 4.6A2 2 0 1 1 11 8H2"></path>
-              <path d="M12.6 19.4A2 2 0 1 0 14 16H2"></path>
-            </svg>
-          </div>
-          <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Kipas Intake Udara' : 'Intake Fresh Air' }}</h4>
-            <span class="aic-pin">Pin GPIO 19 &bull; Relai 2</span>
-          </div>
-          <label class="toggle-switch">
-            <input 
-              type="checkbox" 
-              v-model="actuators.intakeFanStatus" 
-              @change="handleActuatorToggle('intakeFanStatus', actuators.intakeFanStatus)"
-            />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="aic-status-footer">
-          <span class="status-tag" :class="actuators.intakeFanStatus ? 'tag-on' : 'tag-off'">
-            {{ actuators.intakeFanStatus ? (currentLang === 'id' ? 'MENYALA (AKTIF)' : 'RUNNING (ON)') : (currentLang === 'id' ? 'MATI (OFF)' : 'STOPPED (OFF)') }}
-          </span>
-          <span class="status-desc">{{ currentLang === 'id' ? 'Menarik udara kering dari luar' : 'Drawing dry ambient air' }}</span>
-        </div>
-      </div>
-
-      <!-- 3. Kipas Sirkulasi Internal -->
-      <div class="actuator-item-card" :class="{ 'is-active': actuators.circFanStatus }">
-        <div class="aic-top-row">
-          <div class="aic-icon-box" :class="{ 'spinning': actuators.circFanStatus }">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"></path>
-              <line x1="12" y1="2" x2="12" y2="4"></line>
-              <line x1="12" y1="20" x2="12" y2="22"></line>
-              <line x1="2" y1="12" x2="4" y2="12"></line>
-              <line x1="20" y1="12" x2="22" y2="12"></line>
-            </svg>
-          </div>
-          <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Kipas Sirkulasi 360°' : 'Circulation Fan' }}</h4>
-            <span class="aic-pin">Pin GPIO 21 &bull; Relai 3</span>
-          </div>
-          <label class="toggle-switch">
-            <input 
-              type="checkbox" 
-              v-model="actuators.circFanStatus" 
-              @change="handleActuatorToggle('circFanStatus', actuators.circFanStatus)"
-            />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="aic-status-footer">
-          <span class="status-tag" :class="actuators.circFanStatus ? 'tag-on' : 'tag-off'">
-            {{ actuators.circFanStatus ? (currentLang === 'id' ? 'MENYALA (AKTIF)' : 'RUNNING (ON)') : (currentLang === 'id' ? 'MATI (OFF)' : 'STOPPED (OFF)') }}
-          </span>
-          <span class="status-desc">{{ currentLang === 'id' ? 'Pemerataan panas ruang gabah' : 'Even heat distribution' }}</span>
-        </div>
-      </div>
-
-      <!-- 4. Pemanas Bantu Listrik (Aux Heater) -->
-      <div class="actuator-item-card" :class="{ 'is-active': actuators.auxHeaterStatus, 'is-heater': true }">
+      <!-- 1. Relai Pemanas PTC Channel 1 -->
+      <div class="actuator-item-card is-active is-heater">
         <div class="aic-top-row">
           <div class="aic-icon-box heater-icon" :class="{ 'heat-pulse': actuators.auxHeaterStatus }">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -168,8 +58,8 @@
             </svg>
           </div>
           <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Pemanas Bantu (Heater)' : 'Auxiliary Heater' }}</h4>
-            <span class="aic-pin">Pin GPIO 22 &bull; Relai 4 (SSR)</span>
+            <h4 class="aic-name">{{ currentLang === 'id' ? 'Relai Pemanas PTC - Channel 1' : 'PTC Heater Relay - Channel 1' }}</h4>
+            <span class="aic-pin">Pin GPIO 26 &bull; Beban Pemanas Utama (ON/OFF)</span>
           </div>
           <label class="toggle-switch">
             <input 
@@ -180,83 +70,126 @@
             <span class="toggle-slider slider-orange"></span>
           </label>
         </div>
-
-        <!-- Heat Level Slider -->
-        <div class="aic-slider-block">
-          <div class="aic-slider-header">
-            <span class="slider-caption">{{ currentLang === 'id' ? 'Level Pemanasan' : 'Heating Level' }}</span>
-            <strong class="slider-val text-orange">{{ actuators.auxHeaterStatus ? `${actuators.auxHeaterLevel}% (~${(actuators.auxHeaterLevel * 0.02 + 0.5).toFixed(1)} kW)` : '0 kW (OFF)' }}</strong>
-          </div>
-          <input 
-            type="range" 
-            min="10" 
-            max="100" 
-            step="5" 
-            v-model.number="actuators.auxHeaterLevel" 
-            :disabled="!actuators.auxHeaterStatus"
-            @change="handleSpeedChange('auxHeaterLevel', actuators.auxHeaterLevel)"
-            class="aic-range-slider slider-orange-track"
-          />
+        <div class="aic-status-footer">
+          <span class="status-tag" :class="actuators.auxHeaterStatus ? 'tag-orange' : 'tag-off'">
+            {{ actuators.auxHeaterStatus 
+              ? (currentLang === 'id' ? 'RELAY CH1: AKTIF (ON)' : 'RELAY CH1: ON') 
+              : (currentLang === 'id' ? 'RELAY CH1: STANDBY (OFF)' : 'RELAY CH1: OFF') 
+            }}
+          </span>
+          <span class="status-desc">
+            {{ currentLang === 'id' ? 'Histeresis: Mati ≥50°C • Nyala ≤48°C' : 'Hysteresis: Cut-off ≥50°C • Restart ≤48°C' }}
+          </span>
         </div>
       </div>
 
-      <!-- 5. Lampu Sanitasi UV-C -->
-      <div class="actuator-item-card" :class="{ 'is-active': actuators.uvLightStatus, 'is-uv': true }">
+      <!-- 2. Relai Pemanas PTC Channel 2 -->
+      <div class="actuator-item-card is-active is-heater">
         <div class="aic-top-row">
-          <div class="aic-icon-box uv-icon" :class="{ 'uv-glow': actuators.uvLightStatus }">
+          <div class="aic-icon-box heater-icon" :class="{ 'heat-pulse': actuators.auxHeaterStatus }">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M12 2a6 6 0 0 0-6 6v3a6 6 0 0 0 12 0V8a6 6 0 0 0-6-6z"></path>
-              <line x1="12" y1="17" x2="12" y2="22"></line>
-              <line x1="9" y1="22" x2="15" y2="22"></line>
+              <path d="M12 2v20"></path>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
           </div>
           <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Lampu UV-C Sanitasi' : 'UV-C Sterilizer' }}</h4>
-            <span class="aic-pin">Pin GPIO 23 &bull; Relai 5</span>
+            <h4 class="aic-name">{{ currentLang === 'id' ? 'Relai Pemanas PTC - Channel 2' : 'PTC Heater Relay - Channel 2' }}</h4>
+            <span class="aic-pin">Pin GPIO 27 &bull; Beban Pemanas Sekunder (ON/OFF)</span>
           </div>
           <label class="toggle-switch">
             <input 
               type="checkbox" 
-              v-model="actuators.uvLightStatus" 
-              @change="handleActuatorToggle('uvLightStatus', actuators.uvLightStatus)"
+              v-model="actuators.auxHeaterStatus" 
+              @change="handleActuatorToggle('auxHeaterStatus', actuators.auxHeaterStatus)"
             />
-            <span class="toggle-slider slider-purple"></span>
+            <span class="toggle-slider slider-orange"></span>
           </label>
         </div>
         <div class="aic-status-footer">
-          <span class="status-tag" :class="actuators.uvLightStatus ? 'tag-purple' : 'tag-off'">
-            {{ actuators.uvLightStatus ? (currentLang === 'id' ? 'STERILISASI AKTIF' : 'UV ON') : (currentLang === 'id' ? 'MATI (OFF)' : 'OFF') }}
+          <span class="status-tag" :class="actuators.auxHeaterStatus ? 'tag-orange' : 'tag-off'">
+            {{ actuators.auxHeaterStatus 
+              ? (currentLang === 'id' ? 'RELAY CH2: AKTIF (ON)' : 'RELAY CH2: ON') 
+              : (currentLang === 'id' ? 'RELAY CH2: STANDBY (OFF)' : 'RELAY CH2: OFF') 
+            }}
           </span>
-          <span class="status-desc">{{ currentLang === 'id' ? 'Pencegahan jamur & spora gabah' : 'Anti-mold fungal protection' }}</span>
+          <span class="status-desc">
+            {{ currentLang === 'id' ? 'Sinkron Ganda: Menjaga kestabilan panas' : 'Dual-Synched Thermal Stage' }}
+          </span>
         </div>
       </div>
 
-      <!-- 6. Motor Pemutar Rak Tray -->
-      <div class="actuator-item-card" :class="{ 'is-active': actuators.rotaryTrayStatus }">
+      <!-- 3. Layar LCD 20x4 I2C -->
+      <div class="actuator-item-card is-active">
         <div class="aic-top-row">
-          <div class="aic-icon-box" :class="{ 'spinning': actuators.rotaryTrayStatus }">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+          <div class="aic-icon-box" style="background:#0D631B; color:#FFFFFF; border-color:#0D631B;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
             </svg>
           </div>
           <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Motor Pemutar Rak' : 'Rotary Tray Motor' }}</h4>
-            <span class="aic-pin">Pin GPIO 25 &bull; Relai 6</span>
+            <h4 class="aic-name">{{ currentLang === 'id' ? 'Display Layar LCD 20x4 I2C' : 'LCD 20x4 I2C Display' }}</h4>
+            <span class="aic-pin">I2C (SDA 21, SCL 22) &bull; Addr: 0x27</span>
           </div>
-          <label class="toggle-switch">
-            <input 
-              type="checkbox" 
-              v-model="actuators.rotaryTrayStatus" 
-              @change="handleActuatorToggle('rotaryTrayStatus', actuators.rotaryTrayStatus)"
-            />
-            <span class="toggle-slider"></span>
-          </label>
+          <div class="status-tag tag-on" style="font-size:11px;">
+            ONLINE
+          </div>
         </div>
         <div class="aic-status-footer">
-          <span class="status-tag" :class="actuators.rotaryTrayStatus ? 'tag-on' : 'tag-off'">
-            {{ actuators.rotaryTrayStatus ? (currentLang === 'id' ? 'BERPUTAR (ROTATING)' : 'ROTATING') : (currentLang === 'id' ? 'DIAM (STANDBY)' : 'IDLE') }}
+          <span class="status-tag tag-on">
+            {{ currentLang === 'id' ? 'AKTIF (HALAMAN 1 & 2)' : 'ACTIVE (PAGE 1 & 2)' }}
           </span>
-          <span class="status-desc">{{ currentLang === 'id' ? 'Rotasi lapisan hanjeli merata' : 'Even layer sun exposure' }}</span>
+          <span class="status-desc">
+            {{ currentLang === 'id' ? 'Tampil Suhu, Lembap, Lux, Rain, PTC' : 'Displaying T, H, Lux, Rain, PTC' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Panel Physical Indicator LEDs Widget -->
+    <div class="panel-led-indicator-bar">
+      <div class="pli-left">
+        <div class="pli-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+            <circle cx="8" cy="12" r="2.5" fill="currentColor"></circle>
+            <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
+            <circle cx="16" cy="12" r="2.5" fill="currentColor"></circle>
+          </svg>
+        </div>
+        <div>
+          <h4 class="pli-title">{{ currentLang === 'id' ? 'Status Lampu LED Indikator Panel Box Fisik' : 'Physical Box Panel LED Indicators' }}</h4>
+          <p class="pli-sub">{{ currentLang === 'id' ? 'Sinkron otomatis: Mengikuti status pemanas PTC & kondisi suhu proteksi sensor' : 'Auto-synced: Reflects PTC heater state & sensor thermal safety' }}</p>
+        </div>
+      </div>
+
+      <div class="pli-led-group">
+        <!-- 1. LED HIJAU -->
+        <div class="pli-led-item" :class="{ 'is-lit-green': isLedGreenActive }">
+          <span class="led-bulb bulb-green"></span>
+          <div class="led-text-box">
+            <span class="led-color-title">{{ currentLang === 'id' ? 'HIJAU' : 'GREEN' }}</span>
+            <span class="led-condition">{{ isLedGreenActive ? (currentLang === 'id' ? 'NYALA (Standby/Normal)' : 'ON (Standby/Normal)') : (currentLang === 'id' ? 'MATI' : 'OFF') }}</span>
+          </div>
+        </div>
+
+        <!-- 2. LED KUNING -->
+        <div class="pli-led-item" :class="{ 'is-lit-yellow': isLedYellowActive }">
+          <span class="led-bulb bulb-yellow"></span>
+          <div class="led-text-box">
+            <span class="led-color-title">{{ currentLang === 'id' ? 'KUNING' : 'YELLOW' }}</span>
+            <span class="led-condition">{{ isLedYellowActive ? (currentLang === 'id' ? 'NYALA (PTC Aktif)' : 'ON (PTC Heating)') : (currentLang === 'id' ? 'MATI' : 'OFF') }}</span>
+          </div>
+        </div>
+
+        <!-- 3. LED MERAH -->
+        <div class="pli-led-item" :class="{ 'is-lit-red': isLedRedActive }">
+          <span class="led-bulb bulb-red"></span>
+          <div class="led-text-box">
+            <span class="led-color-title">{{ currentLang === 'id' ? 'MERAH' : 'RED' }}</span>
+            <span class="led-condition">{{ isLedRedActive ? (currentLang === 'id' ? 'NYALA (Lockout ≥50°C)' : 'ON (Lockout ≥50°C)') : (currentLang === 'id' ? 'MATI (Aman)' : 'OFF (Safe)') }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -264,9 +197,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { actuatorService } from '../services/actuatorService'
+import { telemetryService } from '../services/telemetryService'
 import { socketService } from '../services/socketService'
+import connectionManager from '../services/connectionManager'
 
 const props = defineProps({
   currentLang: {
@@ -274,6 +209,8 @@ const props = defineProps({
     default: 'id'
   }
 })
+
+const currentTemp = ref(32.0)
 
 const actuators = ref({
   exhaustFanStatus: true,
@@ -287,6 +224,19 @@ const actuators = ref({
   dehumidifierStatus: true,
   isOverrideActive: false,
   overrideMode: 'AUTO'
+})
+
+// Physical Box 3-LED Indicators Computed Status
+const isLedRedActive = computed(() => {
+  return currentTemp.value >= 50.0
+})
+
+const isLedYellowActive = computed(() => {
+  return Boolean(actuators.value.auxHeaterStatus) && !isLedRedActive.value
+})
+
+const isLedGreenActive = computed(() => {
+  return !actuators.value.auxHeaterStatus && !isLedRedActive.value
 })
 
 const feedbackMsg = ref('')
@@ -326,7 +276,7 @@ async function toggleOverrideMode() {
     showFeedback(
       newOverride 
         ? (props.currentLang === 'id' ? 'Mode Manual Override Aktif. Anda dapat mengontrol semua sakelar relai.' : 'Manual Override Active. Direct relay control enabled.')
-        : (props.currentLang === 'id' ? 'Mode Otomatis (AI PID) Aktif. Relai diatur cerdas oleh sistem.' : 'Auto Mode Active. Smart AI PID regulation enabled.')
+        : (props.currentLang === 'id' ? 'Mode Otomatis (ON/OFF Histeresis) Aktif. Relai dikendalikan cerdas oleh ESP32.' : 'Auto Mode Active. Smart ON/OFF Hysteresis regulation enabled.')
     )
   } catch (err) {
     showFeedback(props.currentLang === 'id' ? 'Gagal mengubah mode kontrol.' : 'Failed to switch mode.', 'error')
@@ -334,16 +284,16 @@ async function toggleOverrideMode() {
 }
 
 async function handleActuatorToggle(field, value) {
+  const payload = { [field]: value }
+  
+  if (!actuators.value.isOverrideActive) {
+    actuators.value.isOverrideActive = true
+    actuators.value.overrideMode = 'MANUAL'
+    payload.isOverrideActive = true
+    payload.overrideMode = 'MANUAL'
+  }
+
   try {
-    const payload = { [field]: value }
-    // If operator toggles a switch directly, activate override so hardware respects the manual input
-    if (!actuators.value.isOverrideActive) {
-      actuators.value.isOverrideActive = true
-      actuators.value.overrideMode = 'MANUAL'
-      payload.isOverrideActive = true
-      payload.overrideMode = 'MANUAL'
-    }
-    
     await actuatorService.updateStatus(payload)
     showFeedback(props.currentLang === 'id' ? 'Perintah sakelar berhasil dikirim ke mikrokontroler.' : 'Relay switch command transmitted.')
   } catch (err) {
@@ -362,16 +312,31 @@ async function handleSpeedChange(field, val) {
 onMounted(() => {
   fetchStatus()
 
+  // Get initial telemetry temperature for LED indicators
+  telemetryService.getCurrent().then((res) => {
+    if (res?.telemetry?.tempInternal !== undefined) {
+      currentTemp.value = Number(res.telemetry.tempInternal)
+    }
+  }).catch(() => {})
+
   // Real-time WebSocket sync
   socketService.on('actuator_update', (data) => {
     if (data) {
       actuators.value = { ...actuators.value, ...data }
     }
   })
+
+  socketService.on('telemetry_live', (data) => {
+    if (data && data.tempInternal !== undefined) {
+      currentTemp.value = Number(data.tempInternal)
+    }
+  })
 })
 
 onUnmounted(() => {
   if (feedbackTimer) clearTimeout(feedbackTimer)
+  socketService.off('actuator_update')
+  socketService.off('telemetry_live')
 })
 </script>
 
@@ -768,6 +733,11 @@ onUnmounted(() => {
   color: #0D631B;
 }
 
+.status-tag.tag-orange {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
 .status-tag.tag-purple {
   background: #F3E8FF;
   color: #7E22CE;
@@ -815,6 +785,167 @@ onUnmounted(() => {
   animation: uv-glow 2s ease-in-out infinite;
 }
 
+/* Panel LED Indicator Widget */
+.panel-led-indicator-bar {
+  margin-top: 22px;
+  padding: 16px 20px;
+  background: var(--color-bg-light, #F8FAFC);
+  border: 1px solid var(--color-border, #E2E8F0);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pli-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pli-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+  flex-shrink: 0;
+}
+
+.pli-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-title, #0F172A);
+  margin: 0 0 2px 0;
+}
+
+.pli-sub {
+  font-size: 11.5px;
+  color: var(--color-text-muted, #64748B);
+  margin: 0;
+}
+
+.pli-led-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pli-led-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.led-bulb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #CBD5E1;
+  border: 1.5px solid rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.led-text-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.led-color-title {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.led-condition {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+}
+
+/* Green Lit */
+.pli-led-item.is-lit-green {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+}
+
+.pli-led-item.is-lit-green .led-bulb {
+  background: #22C55E;
+  box-shadow: 0 0 10px #22C55E;
+  border-color: #16A34A;
+}
+
+.pli-led-item.is-lit-green .led-color-title {
+  color: #166534;
+}
+
+.pli-led-item.is-lit-green .led-condition {
+  color: #15803D;
+}
+
+/* Yellow Lit */
+.pli-led-item.is-lit-yellow {
+  background: #FFFBEB;
+  border-color: #FCD34D;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+.pli-led-item.is-lit-yellow .led-bulb {
+  background: #F59E0B;
+  box-shadow: 0 0 10px #F59E0B;
+  border-color: #D97706;
+}
+
+.pli-led-item.is-lit-yellow .led-color-title {
+  color: #92400E;
+}
+
+.pli-led-item.is-lit-yellow .led-condition {
+  color: #B45309;
+}
+
+/* Red Lit */
+.pli-led-item.is-lit-red {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+  animation: pulse-red-widget 1.5s infinite;
+}
+
+.pli-led-item.is-lit-red .led-bulb {
+  background: #EF4444;
+  box-shadow: 0 0 10px #EF4444;
+  border-color: #DC2626;
+}
+
+.pli-led-item.is-lit-red .led-color-title {
+  color: #991B1B;
+}
+
+.pli-led-item.is-lit-red .led-condition {
+  color: #DC2626;
+}
+
+@keyframes pulse-red-widget {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
 @media (max-width: 640px) {
   .actuator-control-card {
     padding: 16px 14px;
@@ -834,6 +965,20 @@ onUnmounted(() => {
 
   .actuators-grid {
     grid-template-columns: 1fr;
+  }
+
+  .panel-led-indicator-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pli-led-group {
+    width: 100%;
+  }
+
+  .pli-led-item {
+    flex: 1;
+    min-width: 120px;
   }
 }
 </style>

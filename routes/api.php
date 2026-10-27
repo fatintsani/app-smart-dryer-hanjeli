@@ -111,7 +111,6 @@ $smartDryerApi = function () {
     // Sensor Anomaly Detection Routes
     Route::get('/anomalies/status', [AnomalyController::class, 'status']);
     Route::post('/anomalies/check', [AnomalyController::class, 'check']);
-    Route::post('/anomalies/simulate', [AnomalyController::class, 'simulate']);
 
 
 

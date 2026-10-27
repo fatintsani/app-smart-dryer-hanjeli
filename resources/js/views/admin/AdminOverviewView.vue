@@ -132,8 +132,8 @@
       <div class="content-card system-mode-control-card">
         <div class="card-header-flex">
           <div>
-            <h2 class="card-section-heading">Kontrol Mode & Operasional Sistem</h2>
-            <p class="card-section-sub">Atur mode simulasi/alat fisik, status operasional, serta lingkungan sistem Smart Dryer.</p>
+            <h2 class="card-section-heading">Kontrol Operasional Sistem</h2>
+            <p class="card-section-sub">Pantau status operasional serta lingkungan produksi Smart Dryer.</p>
           </div>
           <div class="system-power-badge" :class="systemState.isSystemActive ? 'power-active' : 'power-standby'">
             <span class="power-dot"></span>
@@ -171,39 +171,21 @@
           <!-- 2. IoT Data Source Mode -->
           <div class="control-block">
             <div class="block-header">
-              <div class="block-icon" :class="systemState.iotMode === 'SIMULATION' ? 'bg-amber' : 'bg-green'">
+              <div class="block-icon bg-green">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                 </svg>
               </div>
               <div>
                 <strong class="block-title">Sumber Data Sensor IoT</strong>
-                <p class="block-desc">Beralih antara Mode Simulasi IoT dan Mode Alat Fisik ESP32</p>
+                <p class="block-desc">Telemetri terhubung langsung ke mikrokontroler ESP32 fisik Greenhouse</p>
               </div>
             </div>
-            <div class="block-action btn-group-selector">
-              <button 
-                class="btn-segment" 
-                :class="{ active: systemState.iotMode === 'SIMULATION' }"
-                @click="setIotSourceMode('SIMULATION')"
-              >
-                <span>Mode Simulasi IoT</span>
-              </button>
-              <button 
-                class="btn-segment" 
-                :class="{ active: systemState.iotMode === 'HARDWARE' }"
-                @click="setIotSourceMode('HARDWARE')"
-              >
-                <span>Mode Alat Fisik Live</span>
-              </button>
-            </div>
-            <div v-if="systemState.iotMode === 'SIMULATION'" class="sub-action-row">
-              <button class="btn-open-sim" @click="$emit('open-simulator')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                </svg>
-                <span>Buka Panel Simulator IoT</span>
-              </button>
+            <div class="block-action">
+              <span class="badge-status-online" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-weight: 700; background: #DCFCE7; color: #166534; font-size: 13px; border: 1px solid #86EFAC;">
+                <span class="status-pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #16A34A;"></span>
+                Mode Produksi: Alat Fisik Live ESP32
+              </span>
             </div>
           </div>
 
@@ -274,95 +256,95 @@
         </div>
       </div>
 
-      <!-- Emergency Actuator Overrides Card -->
+      <!-- Emergency Actuator Overrides Card (Real Hardware Fleet) -->
       <div class="content-card">
         <div class="card-header-flex">
           <div>
-            <h2 class="card-section-heading">Kontrol & Override Darurat Aktuator</h2>
-            <p class="card-section-sub">Pengendalian manual aktuator greenhouse untuk kebutuhan uji coba dan keselamatan.</p>
+            <h2 class="card-section-heading">Kontrol & Override Aktuator (Hardware Fisik)</h2>
+            <p class="card-section-sub">Pengendalian manual relai pemanas PTC, layar LCD 20x4, dan indikator panel LED fisik.</p>
           </div>
           <span class="badge-pill" :class="actuatorState.controlMode === 'AUTOMATIC' ? 'bg-green-subtle text-green-dark' : 'bg-orange-subtle text-orange'">
-            Mode: {{ actuatorState.controlMode }}
+            Mode: {{ actuatorState.controlMode === 'AUTOMATIC' ? 'OTOMATIS (HISTERESIS 48-50°C)' : 'MANUAL OVERRIDE' }}
           </span>
         </div>
 
         <div class="actuators-tile-grid">
-          <!-- Exhaust Fan -->
-          <div class="actuator-tile" :class="{ 'tile-active': actuatorState.exhaustFanStatus }">
+          <!-- Relay Pemanas PTC Channel 1 -->
+          <div class="actuator-tile" :class="{ 'tile-active': actuatorState.heaterCh1Status }">
             <div class="tile-header">
               <div>
-                <strong class="tile-title">Exhaust Fan</strong>
-                <p class="tile-desc">Pembuang Udara Panas / Lembab</p>
+                <strong class="tile-title">Relai Pemanas PTC (CH 1)</strong>
+                <p class="tile-desc">GPIO 26 • Elemen Pemanas Utama</p>
               </div>
               <button 
                 class="btn-toggle-switch" 
-                :class="{ active: actuatorState.exhaustFanStatus }"
-                @click="toggleActuator('exhaustFanStatus')"
+                :class="{ active: actuatorState.heaterCh1Status }"
+                @click="toggleActuator('heaterCh1Status')"
               >
-                {{ actuatorState.exhaustFanStatus ? 'ON' : 'OFF' }}
+                {{ actuatorState.heaterCh1Status ? 'ON' : 'OFF' }}
               </button>
             </div>
-            <div v-if="actuatorState.exhaustFanStatus" class="tile-slider-box">
-              <span>Kecepatan: {{ actuatorState.exhaustFanSpeed }}%</span>
-              <input type="range" min="0" max="100" v-model.number="actuatorState.exhaustFanSpeed" @change="updateActuatorSpeed" />
+            <div class="tile-meta" style="margin-top: 8px; font-size: 12px; color: #64748B;">
+              <span>Status: {{ actuatorState.heaterCh1Status ? '⚡ Relai Aktif (Memanaskan)' : '💤 Standby (Terputus)' }}</span>
             </div>
           </div>
 
-          <!-- Blower Fan -->
-          <div class="actuator-tile" :class="{ 'tile-active': actuatorState.blowerFanStatus }">
+          <!-- Relay Pemanas PTC Channel 2 -->
+          <div class="actuator-tile" :class="{ 'tile-active': actuatorState.heaterCh2Status }">
             <div class="tile-header">
               <div>
-                <strong class="tile-title">Blower Sirkulasi Rak</strong>
-                <p class="tile-desc">Distribusi Aliran Udara Internal</p>
+                <strong class="tile-title">Relai Pemanas PTC (CH 2)</strong>
+                <p class="tile-desc">GPIO 27 • Elemen Pemanas Sekunder</p>
               </div>
               <button 
                 class="btn-toggle-switch" 
-                :class="{ active: actuatorState.blowerFanStatus }"
-                @click="toggleActuator('blowerFanStatus')"
+                :class="{ active: actuatorState.heaterCh2Status }"
+                @click="toggleActuator('heaterCh2Status')"
               >
-                {{ actuatorState.blowerFanStatus ? 'ON' : 'OFF' }}
+                {{ actuatorState.heaterCh2Status ? 'ON' : 'OFF' }}
               </button>
             </div>
-            <div v-if="actuatorState.blowerFanStatus" class="tile-slider-box">
-              <span>Kecepatan: {{ actuatorState.blowerFanSpeed }}%</span>
-              <input type="range" min="0" max="100" v-model.number="actuatorState.blowerFanSpeed" @change="updateActuatorSpeed" />
+            <div class="tile-meta" style="margin-top: 8px; font-size: 12px; color: #64748B;">
+              <span>Status: {{ actuatorState.heaterCh2Status ? '⚡ Relai Aktif (Memanaskan)' : '💤 Standby (Terputus)' }}</span>
             </div>
           </div>
 
-          <!-- Auxiliary Heater -->
-          <div class="actuator-tile" :class="{ 'tile-active': actuatorState.auxHeaterStatus }">
+          <!-- Layar LCD 20x4 I2C -->
+          <div class="actuator-tile" :class="{ 'tile-active': actuatorState.lcdStatus }">
             <div class="tile-header">
               <div>
-                <strong class="tile-title">Auxiliary Heater</strong>
-                <p class="tile-desc">Pemanas Keramik Tambahan</p>
+                <strong class="tile-title">Display Layar LCD 20x4 I2C</strong>
+                <p class="tile-desc">I2C (SDA 21, SCL 22 • Addr 0x27)</p>
               </div>
               <button 
                 class="btn-toggle-switch" 
-                :class="{ active: actuatorState.auxHeaterStatus }"
-                @click="toggleActuator('auxHeaterStatus')"
+                :class="{ active: actuatorState.lcdStatus }"
+                @click="toggleActuator('lcdStatus')"
               >
-                {{ actuatorState.auxHeaterStatus ? 'ON' : 'OFF' }}
+                {{ actuatorState.lcdStatus ? 'ON' : 'OFF' }}
               </button>
             </div>
-            <div v-if="actuatorState.auxHeaterStatus" class="tile-meta">
-              <span>Daya: Level {{ actuatorState.auxHeaterLevel }} / 3 (Aktif)</span>
+            <div class="tile-meta" style="margin-top: 8px; font-size: 12px; color: #64748B;">
+              <span>Tampilan Data Realtime & Diagnostik Lokal</span>
             </div>
           </div>
 
-          <!-- Roof Vent -->
-          <div class="actuator-tile" :class="{ 'tile-active': actuatorState.roofVentStatus }">
+          <!-- Status Lampu LED Panel Box Fisik (3 LED) -->
+          <div class="actuator-tile tile-active" style="border-left: 3px solid #EAB308;">
             <div class="tile-header">
               <div>
-                <strong class="tile-title">Ventilasi Atap (Roof Vent)</strong>
-                <p class="tile-desc">Sirkulasi Atap Otomatis</p>
+                <strong class="tile-title">Lampu LED Indikator Panel (3 LED)</strong>
+                <p class="tile-desc">Hijau (Normal) • Kuning (Heater) • Merah (Lockout)</p>
               </div>
-              <button 
-                class="btn-toggle-switch" 
-                :class="{ active: actuatorState.roofVentStatus }"
-                @click="toggleActuator('roofVentStatus')"
-              >
-                {{ actuatorState.roofVentStatus ? 'BUKA' : 'TUTUP' }}
-              </button>
+              <span class="badge-pill bg-gray-subtle text-muted" style="font-size: 11px;">AUTO SYNC</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px;">
+              <span :style="`display:inline-block; width:12px; height:12px; border-radius:50%; background:${!actuatorState.heaterCh1Status && !actuatorState.heaterCh2Status && liveTemp < 50 ? '#22C55E; box-shadow:0 0 8px #22C55E;' : '#D1D5DB;'}`" title="LED Hijau"></span>
+              <span :style="`display:inline-block; width:12px; height:12px; border-radius:50%; background:${(actuatorState.heaterCh1Status || actuatorState.heaterCh2Status) && liveTemp < 50 ? '#EAB308; box-shadow:0 0 8px #EAB308;' : '#D1D5DB;'}`" title="LED Kuning"></span>
+              <span :style="`display:inline-block; width:12px; height:12px; border-radius:50%; background:${liveTemp >= 50 ? '#EF4444; box-shadow:0 0 8px #EF4444;' : '#D1D5DB;'}`" title="LED Merah"></span>
+              <span style="font-size: 12px; font-weight: 600; color: #475569; margin-left: 4px;">
+                {{ liveTemp >= 50 ? '🔴 Merah: Overheat Lockout (≥50°C)' : ((actuatorState.heaterCh1Status || actuatorState.heaterCh2Status) ? '🟡 Kuning: Pemanas PTC Aktif' : '🟢 Hijau: Standby / Normal') }}
+              </span>
             </div>
           </div>
         </div>
@@ -453,29 +435,6 @@ async function toggleSystemActiveState() {
   }
 }
 
-async function setIotSourceMode(newMode) {
-  if (systemState.iotMode === newMode) return
-
-  const confirmed = await confirmDialog({
-    title: newMode === 'SIMULATION' ? 'Beralih ke Mode Simulasi IoT?' : 'Beralih ke Mode Alat Fisik Live?',
-    message: newMode === 'SIMULATION'
-      ? 'Sistem akan mengaktifkan generator telemetri IoT buatan untuk pengujian software dan simulasi sensor.'
-      : 'Sistem akan mengalirkan data sensor asli yang dikirim langsung dari mikrokontroler ESP32 di Greenhouse.',
-    type: 'info',
-    confirmText: newMode === 'SIMULATION' ? 'Ganti ke Mode Simulasi' : 'Ganti ke Alat Fisik Live',
-    cancelText: 'Batal',
-  })
-
-  if (confirmed) {
-    try {
-      await settingsService.setIotMode(newMode)
-      showAlert(`Mode IoT berhasil diubah ke: ${newMode === 'SIMULATION' ? 'Mode Simulasi IoT' : 'Mode Alat Fisik (ESP32)'}`)
-    } catch (e) {
-      showAlert(e.message || 'Gagal mengubah mode IoT.', 'error')
-    }
-  }
-}
-
 async function setEnvironmentMode(newEnv) {
   if (systemState.environmentMode === newEnv) return
 
@@ -499,18 +458,18 @@ async function setEnvironmentMode(newEnv) {
   }
 }
 
+const liveTemp = ref(42.5)
+
 const actuatorState = reactive({
-  exhaustFanStatus: false,
-  exhaustFanSpeed: 70,
-  blowerFanStatus: true,
-  blowerFanSpeed: 80,
+  heaterCh1Status: false,
+  heaterCh2Status: false,
+  lcdStatus: true,
   auxHeaterStatus: false,
-  auxHeaterLevel: 0,
-  roofVentStatus: true,
   controlMode: 'AUTOMATIC'
 })
 
 import { alertService } from '../../services/alertService'
+import { telemetryService } from '../../services/telemetryService'
 
 const systemAuditLogs = ref([])
 
@@ -576,16 +535,49 @@ async function fetchBatches() {
   }
 }
 
+async function fetchHardwareStatus() {
+  try {
+    const actRes = await actuatorService.getStatus()
+    if (actRes) {
+      actuatorState.heaterCh1Status = Boolean(actRes.heaterCh1Status ?? actRes.auxHeaterStatus ?? actRes.heaterStatus)
+      actuatorState.heaterCh2Status = Boolean(actRes.heaterCh2Status ?? actRes.auxHeaterStatus ?? actRes.heaterStatus)
+      actuatorState.lcdStatus = Boolean(actRes.lcdStatus ?? true)
+      actuatorState.auxHeaterStatus = actuatorState.heaterCh1Status || actuatorState.heaterCh2Status
+      actuatorState.controlMode = actRes.controlMode || 'AUTOMATIC'
+    }
+  } catch (err) {
+    console.warn('Could not fetch actuator state:', err.message)
+  }
+
+  try {
+    const telemRes = await telemetryService.getCurrent()
+    if (telemRes && (telemRes.tempInternal || telemRes.temp_internal)) {
+      liveTemp.value = Number(telemRes.tempInternal ?? telemRes.temp_internal ?? 42.5)
+      if (telemRes.heaterStatus !== undefined) {
+        actuatorState.heaterCh1Status = Boolean(telemRes.heaterStatus)
+        actuatorState.heaterCh2Status = Boolean(telemRes.heaterStatus)
+        actuatorState.auxHeaterStatus = Boolean(telemRes.heaterStatus)
+      }
+    }
+  } catch (err) {
+    console.warn('Could not fetch current telemetry for admin overview:', err.message)
+  }
+}
+
 function refreshOverview() {
   fetchUsers()
   fetchBatches()
   fetchAuditLogs()
+  fetchHardwareStatus()
   settingsService.getSettings()
   showAlert('Data ringkasan sistem berhasil diperbarui!')
 }
 
 async function toggleActuator(key) {
   actuatorState[key] = !actuatorState[key]
+  if (key === 'heaterCh1Status' || key === 'heaterCh2Status') {
+    actuatorState.auxHeaterStatus = actuatorState.heaterCh1Status || actuatorState.heaterCh2Status
+  }
   actuatorState.controlMode = 'MANUAL'
   try {
     await actuatorService.updateStatus(actuatorState)
@@ -595,20 +587,12 @@ async function toggleActuator(key) {
   }
 }
 
-async function updateActuatorSpeed() {
-  actuatorState.controlMode = 'MANUAL'
-  try {
-    await actuatorService.updateStatus(actuatorState)
-  } catch (e) {
-    console.warn('Actuator speed note:', e.message)
-  }
-}
-
 onMounted(() => {
   Promise.allSettled([
     fetchUsers(),
     fetchBatches(),
     fetchAuditLogs(),
+    fetchHardwareStatus(),
     settingsService.getSettings()
   ]).finally(() => {
     setTimeout(() => {

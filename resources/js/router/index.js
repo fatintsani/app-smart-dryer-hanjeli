@@ -5,7 +5,6 @@ import { authService } from '../services/authService'
 import AdminOverviewView from '../views/admin/AdminOverviewView.vue'
 import AdminUsersView from '../views/admin/AdminUsersView.vue'
 import AdminDevicesView from '../views/admin/AdminDevicesView.vue'
-import AdminSimulatorView from '../views/admin/AdminSimulatorView.vue'
 import AdminLogsView from '../views/admin/AdminLogsView.vue'
 import AdminParametersView from '../views/admin/AdminParametersView.vue'
 
@@ -101,13 +100,11 @@ const routes = [
   },
   {
     path: '/admin/simulator',
-    name: 'AdminSimulator',
-    component: AdminSimulatorView,
-    meta: { requiresAuth: true, role: 'ADMIN', title: 'Simulator & Uji IoT' },
+    redirect: '/admin/devices',
   },
   {
     path: '/admin/testbed',
-    redirect: '/admin/simulator',
+    redirect: '/admin/devices',
   },
   {
     path: '/admin/logs',

@@ -129,7 +129,7 @@ class AiAssistantService
         $summary = [
             'hasActiveBatch' => (bool)$activeBatch,
             'batchCode' => $latestBatch?->batch_code ?? 'TIDAK ADA',
-            'cropVariety' => $latestBatch?->crop_variety ?? 'Hanjeli Ketan Sukabumi',
+            'cropVariety' => $latestBatch?->crop_variety ?? 'Biji Hanjeli',
             'batchStatus' => $latestBatch?->status ?? 'IDLE',
             'initialWeightKg' => $latestBatch?->initial_weight_kg ?? 0,
             'currentWeightKg' => $latestBatch?->current_weight_kg ?? ($latestTelemetry?->weight_kg ?? 0),

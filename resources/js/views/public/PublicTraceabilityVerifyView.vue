@@ -347,11 +347,11 @@
               </svg>
             </div>
             <div class="flex-1">
-              <div class="flex items-center justify-between">
+              <div class="card-title-badge-row">
                 <h3 class="card-title">{{ currentLang === 'id' ? 'Penilaian Mutu & Klasifikasi Grade Otomatis' : 'Automated Quality Grade & SNI Scoring' }}</h3>
                 <span 
-                  class="font-mono font-bold text-xs px-2.5 py-1 rounded-full border"
-                  :class="(data.qualityAssessment?.grade || 'A') === 'A' ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-blue-50 text-blue-800 border-blue-300'"
+                  class="quality-score-badge"
+                  :class="(data.qualityAssessment?.grade || 'A') === 'A' ? 'badge-grade-a' : 'badge-grade-b'"
                 >
                   Skor: {{ data.qualityAssessment?.qualityScore || data.batch.qualityScore || 95.0 }}/100
                 </span>
@@ -361,27 +361,27 @@
           </div>
 
           <!-- Grade Banner Box -->
-          <div class="quality-grade-hero-box p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/30 mt-3">
-            <div class="flex items-start gap-3.5">
-              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-green-700 text-white flex items-center justify-center font-black text-2xl shadow-lg shadow-emerald-600/30 flex-shrink-0">
+          <div class="quality-grade-hero-box">
+            <div class="grade-banner-flex">
+              <div class="grade-letter-avatar">
                 {{ data.qualityAssessment?.grade || 'A' }}
               </div>
-              <div class="flex-1">
-                <h4 class="text-base font-extrabold text-slate-900 dark:text-white">
+              <div class="grade-info-col">
+                <h4 class="grade-main-title">
                   {{ data.qualityAssessment?.gradeLabel || data.batch.qualityGrade || 'Grade A (Super Premium / Ekspor)' }}
                 </h4>
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                <p class="grade-desc-text">
                   {{ data.qualityAssessment?.summary || 'Kadar air optimal standar ekspor SNI (<13.5%), stabilitas kurva suhu sangat presisi, dan nutrisi biji terjaga utuh tanpa retak/kerusakan termal.' }}
                 </p>
-                <div class="mt-2 text-xs font-medium text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-start gap-1.5">
-                  <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="market-rec-card">
+                  <svg class="market-rec-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 18h6"></path>
                     <path d="M10 22h4"></path>
                     <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path>
                   </svg>
-                  <div>
+                  <div class="market-rec-text">
                     <strong>{{ currentLang === 'id' ? 'Rekomendasi Pemanfaatan' : 'Market Recommendation' }}:</strong>
-                    {{ data.qualityAssessment?.marketRecommendation || 'Sangat direkomendasikan untuk komoditas ekspor premium, benih berkualitas tinggi, dan sereal pangan fungsional.' }}
+                    <span>{{ data.qualityAssessment?.marketRecommendation || 'Sangat direkomendasikan untuk komoditas ekspor premium, benih berkualitas tinggi, dan sereal pangan fungsional.' }}</span>
                   </div>
                 </div>
               </div>
@@ -389,30 +389,30 @@
           </div>
 
           <!-- Quality Sub-metrics 3 Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-xs">
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">1. Kadar Air Akhir</span>
-              <span class="font-extrabold text-base text-slate-900 dark:text-white">{{ data.batch.finalMoisturePercent }}%</span>
-              <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <div class="quality-submetrics-grid">
+            <div class="submetric-card">
+              <span class="submetric-label">1. Kadar Air Akhir</span>
+              <span class="submetric-value">{{ data.batch.finalMoisturePercent }}%</span>
+              <span class="submetric-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span>{{ data.qualityAssessment?.metrics?.moistureStatus || 'Optimal SNI Ekspor (<13.5%)' }}</span>
               </span>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">2. Stabilitas Kurva Suhu</span>
-              <span class="font-extrabold text-base text-slate-900 dark:text-white">&plusmn;{{ data.qualityAssessment?.metrics?.tempStdDev || '2.1' }}&deg;C</span>
-              <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="submetric-card">
+              <span class="submetric-label">2. Stabilitas Kurva Suhu</span>
+              <span class="submetric-value">&plusmn;{{ data.qualityAssessment?.metrics?.tempStdDev || '2.1' }}&deg;C</span>
+              <span class="submetric-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span>{{ data.qualityAssessment?.metrics?.tempStabilityLevel || 'Sangat Stabil & Terkendali' }}</span>
               </span>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">3. Indeks Keseragaman</span>
-              <span class="font-extrabold text-base text-slate-900 dark:text-white">{{ data.qualityAssessment?.metrics?.uniformityIndex || '95' }}%</span>
-              <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <div class="submetric-card">
+              <span class="submetric-label">3. Indeks Keseragaman</span>
+              <span class="submetric-value">{{ data.qualityAssessment?.metrics?.uniformityIndex || '95' }}%</span>
+              <span class="submetric-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span>Dehidrasi Merata Seluruh Tray</span>
               </span>
             </div>
@@ -682,13 +682,14 @@
             </button>
           </div>
 
-          <button class="btn-primary" @click="printCertificate">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button class="btn-primary" :disabled="isPrinting" @click="printCertificate">
+            <svg v-if="!isPrinting" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6 9 6 2 18 2 18 9"></polyline>
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
               <rect x="6" y="14" width="12" height="8"></rect>
             </svg>
-            <span>{{ currentLang === 'id' ? 'Cetak Sertifikat Digital' : 'Print Digital Certificate' }}</span>
+            <span v-if="!isPrinting">{{ currentLang === 'id' ? 'Cetak Sertifikat Digital' : 'Print Digital Certificate' }}</span>
+            <span v-else>{{ currentLang === 'id' ? 'Menyiapkan Sertifikat...' : 'Preparing Certificate...' }}</span>
           </button>
         </section>
       </div>
@@ -985,6 +986,7 @@ import FlagIcon from '../../components/FlagIcon.vue'
 import { currentLang, setLanguage } from '../../i18n'
 import { isDark, toggleTheme } from '../../services/themeService'
 import { authService } from '../../services/authService'
+import QRCode from 'qrcode'
 
 const props = defineProps({
   batchCode: {
@@ -1007,6 +1009,7 @@ const searchQuery = ref('')
 const isLoading = ref(true)
 const errorMessage = ref('')
 const isCopied = ref(false)
+const isPrinting = ref(false)
 const data = ref(null)
 
 const isAuth = computed(() => authService.isAuthenticated())
@@ -1209,8 +1212,581 @@ async function copyVerificationLink() {
   }
 }
 
-function printCertificate() {
-  window.print()
+async function printCertificate() {
+  if (!data.value || !data.value.batch) {
+    window.print()
+    return
+  }
+
+  isPrinting.value = true
+  try {
+    const b = data.value.batch
+    const c = data.value.certificate || {}
+    const o = data.value.origin || {}
+    const q = data.value.qualityAssessment || {}
+    const cm = data.value.climateMetrics || {}
+
+    const code = b.batchCode || activeCode.value || 'HJ-2026-001'
+    const variety = b.cropVariety || 'Hanjeli Pulut Super Sukabumi'
+    const certNumber = c.certificateNumber || `CERT-HJ-${code.replace(/[^A-Za-z0-9]/g, '')}`
+    const issuedDate = formatDateTime(c.issuedAt || b.completedAt || new Date().toISOString())
+    const qualityScore = q.qualityScore || b.qualityScore || 95.0
+    const qualityGrade = q.grade || b.qualityGrade || 'A'
+    const gradeLabel = q.gradeLabel || (qualityGrade === 'A' ? 'Grade A (Super Premium / Ekspor)' : `Grade ${qualityGrade}`)
+    const operatorName = b.operatorName || o.operatorName || 'Operator Greenhouse Waluran'
+    const farmerGroup = o.farmerGroup || 'Kelompok Tani Hanjeli Waluran'
+    const village = o.village || 'Desa Wisata Hanjeli'
+    const geopark = o.geopark || 'UNESCO Global Geopark Ciletuh-Palabuhanratu'
+    const finalM = b.finalMoisturePercent ?? 12.0
+    const initialM = b.initialMoisturePercent ?? 24.5
+    const moistureReduction = b.moistureReductionPercent ?? Math.max(0, (initialM - finalM).toFixed(1))
+    const totalDuration = b.totalDurationHours ?? 12.0
+    const dryingMode = b.dryingMode || 'Hybrid Solar-Electric IoT'
+    const avgTemp = cm.avgTempInternal ?? 46.5
+    const maxTemp = cm.maxTempInternal ?? 52.3
+    const avgHumidity = cm.avgHumidityInternal ?? 43.8
+
+    const originUrl = window.location.origin || 'http://localhost:8000'
+    const verifyUrl = `${originUrl}/verify/${encodeURIComponent(code)}`
+    const hanjeliLogoUrl = `${originUrl}/assets/img/hanjeli.png`
+    const stasLogoUrl = `${originUrl}/assets/img/stas.png`
+
+    let qrDataUrl = ''
+    try {
+      qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+        width: 160,
+        margin: 1,
+        color: { dark: '#071E27', light: '#FFFFFF' }
+      })
+    } catch (e) {
+      console.error('Failed to generate QR for certificate:', e)
+    }
+
+    const printDocContent = `
+      <!DOCTYPE html>
+      <html lang="id">
+      <head>
+        <meta charset="UTF-8">
+        <title>Sertifikat Mutu & Ketertelusuran Digital - ${code}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 8mm 10mm;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            color: #071E27;
+            background: #FFFFFF;
+            font-size: 10px;
+            line-height: 1.35;
+          }
+          .cert-outer-wrapper {
+            border: 3.5px solid #0D631B;
+            padding: 3.5px;
+            border-radius: 8px;
+            background: #FFFFFF;
+          }
+          .cert-inner-frame {
+            border: 1.5px solid #C29938;
+            padding: 14px 18px 12px 18px;
+            border-radius: 5px;
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, #FFFFFF 0%, #FAFCFA 100%);
+          }
+          .cert-inner-frame::before {
+            content: "SMART ROOM DRYER HANJELI";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            font-size: 42px;
+            font-weight: 900;
+            color: rgba(13, 99, 27, 0.03);
+            pointer-events: none;
+            letter-spacing: 4px;
+            white-space: nowrap;
+            z-index: 0;
+          }
+          .cert-content {
+            position: relative;
+            z-index: 1;
+          }
+          .cert-kop {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #0D631B;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            position: relative;
+          }
+          .cert-kop::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #C29938;
+          }
+          .kop-logo {
+            height: 48px;
+            width: auto;
+            object-fit: contain;
+          }
+          .kop-center {
+            text-align: center;
+            flex: 1;
+            margin: 0 12px;
+          }
+          .kop-title-1 {
+            font-size: 12px;
+            font-weight: 900;
+            color: #0D631B;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin: 0;
+          }
+          .kop-title-2 {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #071E27;
+            text-transform: uppercase;
+            margin: 2px 0;
+            letter-spacing: 0.3px;
+          }
+          .kop-sub {
+            font-size: 8px;
+            color: #475569;
+            margin: 0;
+          }
+          .cert-heading-box {
+            text-align: center;
+            margin: 8px 0 10px 0;
+          }
+          .cert-num-badge {
+            display: inline-block;
+            background: #E8F5E9;
+            border: 1px solid #86EFAC;
+            color: #0D631B;
+            font-family: monospace;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+          }
+          .cert-main-h1 {
+            font-size: 14.5px;
+            font-weight: 900;
+            color: #0D631B;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 0;
+          }
+          .cert-en-sub {
+            font-size: 8px;
+            font-style: italic;
+            color: #64748B;
+            margin: 2px 0 0 0;
+          }
+          .cert-preamble {
+            font-size: 8.5px;
+            color: #334155;
+            text-align: justify;
+            margin-bottom: 9px;
+            line-height: 1.4;
+            background: #F8FAFC;
+            border-left: 3px solid #0D631B;
+            padding: 5px 8px;
+            border-radius: 0 4px 4px 0;
+          }
+          .cert-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+            margin-bottom: 9px;
+          }
+          .cert-info-table td {
+            padding: 4px 7px;
+            border: 1px solid #E2E8F0;
+          }
+          .td-lbl {
+            background: #F8FAFC;
+            color: #334155;
+            font-weight: 700;
+            width: 20%;
+          }
+          .td-val {
+            color: #071E27;
+            font-weight: 600;
+            width: 30%;
+          }
+          .quality-panel {
+            display: grid;
+            grid-template-columns: 190px 1fr;
+            gap: 10px;
+            margin-bottom: 9px;
+          }
+          .quality-grade-box {
+            border: 1.5px solid #0D631B;
+            background: #F4FBF5;
+            border-radius: 6px;
+            padding: 8px 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          }
+          .grade-badge-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #0D631B;
+            color: #FFFFFF;
+            font-size: 20px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 4px;
+            box-shadow: 0 2px 4px rgba(13,99,27,0.25);
+          }
+          .grade-title-txt {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0D631B;
+            margin: 0;
+            line-height: 1.2;
+          }
+          .grade-score-txt {
+            font-size: 11px;
+            font-weight: 900;
+            color: #1E293B;
+            margin: 2px 0 1px 0;
+          }
+          .grade-sni-pill {
+            font-size: 7.5px;
+            font-weight: 800;
+            background: #0D631B;
+            color: #FFFFFF;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            margin-top: 2px;
+          }
+          .params-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+          }
+          .param-card {
+            border: 1px solid #CBD5E1;
+            border-radius: 5px;
+            padding: 5px 7px;
+            background: #FFFFFF;
+          }
+          .param-title {
+            font-size: 7.5px;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            margin-bottom: 1px;
+          }
+          .param-val {
+            font-size: 11px;
+            font-weight: 800;
+            color: #071E27;
+          }
+          .param-note {
+            font-size: 7.5px;
+            color: #64748B;
+            margin-top: 1px;
+          }
+          .cert-qr-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #0D631B;
+            background: #F4F7F5;
+            border-radius: 6px;
+            padding: 7px 10px;
+            margin-bottom: 10px;
+          }
+          .cert-qr-img {
+            width: 64px;
+            height: 64px;
+            border-radius: 4px;
+            border: 1px solid #CBD5E1;
+            background: #FFFFFF;
+            padding: 2px;
+            flex-shrink: 0;
+          }
+          .qr-info-col {
+            flex: 1;
+          }
+          .qr-title {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0D631B;
+            margin: 0 0 2px 0;
+            letter-spacing: 0.3px;
+          }
+          .qr-desc {
+            font-size: 8px;
+            color: #334155;
+            margin: 0 0 3px 0;
+            line-height: 1.3;
+          }
+          .qr-url {
+            font-family: monospace;
+            font-size: 7.5px;
+            font-weight: 700;
+            color: #0284C7;
+            word-break: break-all;
+          }
+          .cert-sig-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            text-align: center;
+          }
+          .sig-col {
+            border: 1px solid #E2E8F0;
+            border-radius: 5px;
+            padding: 5px 6px;
+            background: #FAFAFA;
+            position: relative;
+          }
+          .sig-role {
+            font-size: 8px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+          }
+          .sig-stamp {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 1.5px dashed #0D631B;
+            color: #0D631B;
+            font-size: 7px;
+            font-weight: 800;
+            padding: 2px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            background: rgba(232, 245, 233, 0.7);
+            white-space: nowrap;
+          }
+          .sig-name {
+            font-size: 8.5px;
+            font-weight: 800;
+            color: #071E27;
+            border-top: 1px solid #CBD5E1;
+            padding-top: 3px;
+            margin: 0;
+          }
+          .cert-footer-text {
+            margin-top: 7px;
+            text-align: center;
+            font-size: 7px;
+            color: #94A3B8;
+            font-style: italic;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="cert-outer-wrapper">
+          <div class="cert-inner-frame">
+            <div class="cert-content">
+              <!-- Kop Sertifikat -->
+              <div class="cert-kop">
+                <img src="${hanjeliLogoUrl}" alt="Logo Desa Wisata Hanjeli" class="kop-logo" />
+                <div class="kop-center">
+                  <div class="kop-title-1">DESA WISATA HANJELI WALURAN & PUSAT RISET STAS-RG</div>
+                  <div class="kop-title-2">TELKOM UNIVERSITY • UNESCO GLOBAL GEOPARK CILETUH</div>
+                  <div class="kop-sub">Sistem Sertifikasi Mutu & Ketertelusuran Digital Berbasis IoT • Waluran, Sukabumi, Jawa Barat</div>
+                </div>
+                <img src="${stasLogoUrl}" alt="Logo STAS-RG" class="kop-logo" />
+              </div>
+
+              <!-- Judul Sertifikat -->
+              <div class="cert-heading-box">
+                <div class="cert-num-badge">NOMOR REGISTRASI: ${certNumber}</div>
+                <h1 class="cert-main-h1">SERTIFIKAT MUTU & KETERTELUSURAN DIGITAL</h1>
+                <p class="cert-en-sub">DIGITAL CERTIFICATE OF QUALITY ASSURANCE & SEED TRACEABILITY - STANDAR SNI PANGAN</p>
+              </div>
+
+              <!-- Preamble -->
+              <div class="cert-preamble">
+                Menerangkan secara sah bahwa komoditas hasil olahan pangan pascapanen yang tercantum di bawah ini telah diproses melalui fasilitas <strong>Smart Room Dryer Greenhouse Waluran</strong> dengan teknologi kendali mikroklimat otomatis terintegrasi IoT, serta memenuhi ambang batas mutu Standar Nasional Indonesia (SNI) dan Good Agricultural and Drying Practices (GADP):
+              </div>
+
+              <!-- Data Batch -->
+              <table class="cert-info-table">
+                <tr>
+                  <td class="td-lbl">Varietas Biji</td>
+                  <td class="td-val font-bold">${variety}</td>
+                  <td class="td-lbl">Kode Batch Terdaftar</td>
+                  <td class="td-val" style="font-family: monospace; font-weight: 700; color: #0D631B;">${code}</td>
+                </tr>
+                <tr>
+                  <td class="td-lbl">Asal Budidaya</td>
+                  <td class="td-val">${village}, Sukabumi</td>
+                  <td class="td-lbl">Kawasan Geopark</td>
+                  <td class="td-val">${geopark}</td>
+                </tr>
+                <tr>
+                  <td class="td-lbl">Kelompok Tani</td>
+                  <td class="td-val">${farmerGroup}</td>
+                  <td class="td-lbl">Operator Pengawas</td>
+                  <td class="td-val">${operatorName}</td>
+                </tr>
+                <tr>
+                  <td class="td-lbl">Fasilitas & Mode</td>
+                  <td class="td-val">Smart Greenhouse (${dryingMode})</td>
+                  <td class="td-lbl">Durasi Pengeringan</td>
+                  <td class="td-val">${totalDuration} Jam (Terkontrol Otomatis)</td>
+                </tr>
+                <tr>
+                  <td class="td-lbl">Waktu Proses</td>
+                  <td class="td-val">${formatDate(b.startedAt)} s.d. ${formatDate(b.completedAt)}</td>
+                  <td class="td-lbl">Tanggal Penerbitan</td>
+                  <td class="td-val">${issuedDate}</td>
+                </tr>
+              </table>
+
+              <!-- Panel Mutu & Parameter Sensorik -->
+              <div class="quality-panel">
+                <div class="quality-grade-box">
+                  <div class="grade-badge-circle">${qualityGrade}</div>
+                  <div class="grade-title-txt">${gradeLabel}</div>
+                  <div class="grade-score-txt">SKOR MUTU: ${qualityScore}/100</div>
+                  <div class="grade-sni-pill">STANDAR SNI &le;14% TERVERIFIKASI</div>
+                </div>
+
+                <div class="params-grid">
+                  <div class="param-card">
+                    <div class="param-title">1. Kadar Air Akhir (Moisture)</div>
+                    <div class="param-val" style="color: #0D631B;">${finalM}%</div>
+                    <div class="param-note">Awal: ${initialM}% (Turun ${moistureReduction}% • SNI &le;14%)</div>
+                  </div>
+
+                  <div class="param-card">
+                    <div class="param-title">2. Suhu Ruang Pengeringan</div>
+                    <div class="param-val" style="color: #EA580C;">${avgTemp}°C</div>
+                    <div class="param-note">Maks: ${maxTemp}°C (Enzim & Nutrisi Terjaga)</div>
+                  </div>
+
+                  <div class="param-card">
+                    <div class="param-title">3. Kelembaban Ruang (RH)</div>
+                    <div class="param-val" style="color: #0284C7;">${avgHumidity}%</div>
+                    <div class="param-note">Bebas Jamur Aflatoksin & Polusi Udara</div>
+                  </div>
+
+                  <div class="param-card">
+                    <div class="param-title">4. Profil Nutrisi & Higienitas</div>
+                    <div class="param-val" style="color: #7C3AED;">Super Food</div>
+                    <div class="param-note">Protein 14.1g • Serat 8.9g • Rendah GI</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Banner QR Verifikasi -->
+              <div class="cert-qr-box">
+                ${qrDataUrl ? `<img src="${qrDataUrl}" alt="QR Verifikasi" class="cert-qr-img" />` : ''}
+                <div class="qr-info-col">
+                  <div class="qr-title">VERIFIKASI KEASLIAN DIGITAL & JEJAK TELEMETRI REAL-TIME</div>
+                  <div class="qr-desc">Pindai kode QR untuk memverifikasi keaslian dokumen sertifikat ini, memeriksa riwayat grafik kinetika telemetri IoT per menit, dan profil lengkap petani produsen langsung pada portal resmi.</div>
+                  <div class="qr-url">${verifyUrl}</div>
+                </div>
+              </div>
+
+              <!-- Tanda Tangan 3 Pihak -->
+              <div class="cert-sig-grid">
+                <div class="sig-col">
+                  <div class="sig-role">Operator Greenhouse</div>
+                  <div class="sig-stamp">TERCATAT IOT</div>
+                  <p class="sig-name">${operatorName}</p>
+                </div>
+                <div class="sig-col">
+                  <div class="sig-role">Desa Wisata Hanjeli</div>
+                  <div class="sig-stamp">TERVERIFIKASI SAH</div>
+                  <p class="sig-name">Asep Hidayat Mustopa</p>
+                </div>
+                <div class="sig-col">
+                  <div class="sig-role">Pusat Riset STAS-RG</div>
+                  <div class="sig-stamp">TERUJI SISTEM</div>
+                  <p class="sig-name">Tim Peneliti STAS-RG</p>
+                </div>
+              </div>
+
+              <div class="cert-footer-text">
+                Dokumen digital ini diterbitkan secara otomatis dan terotentikasi oleh Sistem Manajemen Mutu IoT Smart Room Dryer Hanjeli. Keabsahan data terikat dengan rekaman database sensor telemetri.
+              </div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+
+    let printIframe = document.getElementById('print-certificate-iframe')
+    if (printIframe) printIframe.remove()
+
+    printIframe = document.createElement('iframe')
+    printIframe.id = 'print-certificate-iframe'
+    printIframe.style.position = 'fixed'
+    printIframe.style.right = '0'
+    printIframe.style.bottom = '0'
+    printIframe.style.width = '0'
+    printIframe.style.height = '0'
+    printIframe.style.border = 'none'
+    printIframe.style.zIndex = '-9999'
+    document.body.appendChild(printIframe)
+
+    const iframeDoc = printIframe.contentWindow.document || printIframe.contentDocument
+    iframeDoc.open()
+    iframeDoc.write(printDocContent)
+    iframeDoc.close()
+
+    setTimeout(() => {
+      try {
+        printIframe.contentWindow.focus()
+        printIframe.contentWindow.print()
+      } catch (err) {
+        console.warn('Iframe print error, falling back to window.open:', err)
+        const printWindow = window.open('', '_blank', 'width=850,height=950')
+        if (printWindow) {
+          printWindow.document.open()
+          printWindow.document.write(printDocContent)
+          printWindow.document.close()
+          printWindow.focus()
+          setTimeout(() => { printWindow.print() }, 300)
+        }
+      } finally {
+        isPrinting.value = false
+      }
+    }, 450)
+  } catch (err) {
+    console.error('Error generating digital certificate:', err)
+    isPrinting.value = false
+    window.print()
+  }
 }
 </script>
 
@@ -2002,6 +2578,219 @@ function printCertificate() {
   font-size: 0.8125rem;
   color: var(--color-text-muted, #707A6C);
   margin: 2px 0 0 0;
+}
+
+/* Quality Scoring Card & Hero Badge */
+.quality-scoring-card {
+  margin-bottom: 24px;
+}
+
+.card-title-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quality-score-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+.badge-grade-a {
+  background: rgba(13, 99, 27, 0.1);
+  color: #0D631B;
+  border-color: rgba(13, 99, 27, 0.25);
+}
+
+.badge-grade-b {
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284C7;
+  border-color: rgba(2, 132, 199, 0.25);
+}
+
+.quality-grade-hero-box {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-top: 16px;
+}
+
+.grade-banner-flex {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.grade-letter-avatar {
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.grade-info-col {
+  flex: 1;
+}
+
+.grade-main-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-main, #071E27);
+  margin: 0 0 4px 0;
+}
+
+.grade-desc-text {
+  font-size: 12.5px;
+  color: var(--color-text-muted, #707A6C);
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+}
+
+.market-rec-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #065F46;
+  line-height: 1.45;
+}
+
+.market-rec-icon {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  max-width: 16px !important;
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.market-rec-text strong {
+  color: #047857;
+  font-weight: 700;
+}
+
+/* Quality Submetrics Grid (3 Kolom Proporsional) */
+.quality-submetrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.submetric-card {
+  background: var(--color-bg, #F4F7F5);
+  border: 1px solid var(--color-border, #CBD5E1);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.submetric-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #707A6C);
+  letter-spacing: 0.04em;
+}
+
+.submetric-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-main, #071E27);
+}
+
+.submetric-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0D631B;
+  margin-top: 2px;
+}
+
+.submetric-badge svg {
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  max-width: 14px !important;
+  flex-shrink: 0;
+}
+
+/* Dark Theme Overrides */
+:global(.dark-theme) .grade-letter-avatar {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+:global(.dark-theme) .grade-main-title {
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .grade-desc-text {
+  color: #CBD5E1;
+}
+
+:global(.dark-theme) .market-rec-card {
+  background: rgba(6, 78, 59, 0.3);
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #A7F3D0;
+}
+
+:global(.dark-theme) .market-rec-icon {
+  color: #34D399;
+}
+
+:global(.dark-theme) .market-rec-text strong {
+  color: #34D399;
+}
+
+:global(.dark-theme) .submetric-card {
+  background: #0E1E2A;
+  border-color: #1E3A4C;
+}
+
+:global(.dark-theme) .submetric-label {
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .submetric-value {
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .submetric-badge {
+  color: #4ADE80;
+}
+
+@media (max-width: 640px) {
+  .quality-submetrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grade-banner-flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 /* Origin Grid */
@@ -3055,17 +3844,22 @@ a.contact-value:hover {
   color: #64748b;
 }
 
-/* Print Rules */
+/* Print Rules for Fallback Ctrl+P */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 12mm;
+    margin: 8mm 10mm;
   }
 
-  .verify-top-header,
+  .landing-navbar,
+  .mobile-menu-drawer,
+  .backdrop-overlay,
   .search-bar-section,
   .consumer-action-bar,
-  .landing-footer {
+  .landing-footer,
+  .portal-welcome-grid,
+  .state-card,
+  #print-certificate-iframe {
     display: none !important;
   }
 
@@ -3073,22 +3867,31 @@ a.contact-value:hover {
     background: #FFFFFF !important;
     padding: 0 !important;
     margin: 0 !important;
-    color: #000000 !important;
+    color: #071E27 !important;
     max-width: 100% !important;
+    min-height: auto !important;
+  }
+
+  .verified-content-grid {
+    gap: 14px !important;
   }
 
   .certificate-banner-card {
     border: 2px solid #0D631B !important;
     page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .info-card {
     border: 1px solid #CBD5E1 !important;
     page-break-inside: avoid;
+    break-inside: avoid;
+    box-shadow: none !important;
   }
 
   .quality-badges-row, .metrics-grid, .origin-details-grid {
     break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
 </style>

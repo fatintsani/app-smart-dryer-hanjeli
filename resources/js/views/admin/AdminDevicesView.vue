@@ -194,6 +194,47 @@
           </svg>
           <span>4. Matriks Kesehatan Sensor & Latensi</span>
         </button>
+
+        <button 
+          type="button" 
+          class="subnav-btn" 
+          :class="{ active: currentTab === 'actuators' }"
+          @click="currentTab = 'actuators'"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="2" y="2" width="20" height="20" rx="4"></rect>
+            <path d="M12 7v10"></path>
+            <path d="M8 12h8"></path>
+          </svg>
+          <span>5. Kontrol Sakelar Relai & Aktuator Hardware</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="subnav-btn" 
+          :class="{ active: currentTab === 'catalog' }"
+          @click="currentTab = 'catalog'"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span>6. Katalog Sensor & Hardware Greenhouse (6)</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="subnav-btn" 
+          :class="{ active: currentTab === 'arduino' }"
+          @click="currentTab = 'arduino'"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          <span>7. Program Arduino / Source Code ESP32 (2)</span>
+        </button>
       </div>
 
       <!-- ========================================================================= -->
@@ -244,9 +285,19 @@
                 <div class="dsc-title-info">
                   <div class="dsc-name-row">
                     <h3 class="dsc-name">{{ d.name }}</h3>
-                    <span class="badge-status-dot" :class="d.status === 'online' ? 'dot-online' : 'dot-offline'">
-                      {{ d.status === 'online' ? 'Online' : 'Offline' }}
-                    </span>
+                    <div class="dsc-toggle-status-wrap">
+                      <span class="badge-status-dot" :class="d.status === 'online' ? 'dot-online' : 'dot-offline'">
+                        {{ d.status === 'online' ? 'Online' : 'Offline' }}
+                      </span>
+                      <label class="device-switch-toggle" :title="d.status === 'online' ? 'Matikan Daya Node' : 'Nyalakan Daya Node'">
+                        <input 
+                          type="checkbox" 
+                          :checked="d.status === 'online'" 
+                          @change="toggleDevicePower(d)"
+                        />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
                   </div>
                   <span class="dsc-meta-tag">Code: <code>{{ d.code || 'ESP32-NODE' }}</code> • MAC: <code>{{ d.macAddress }}</code></span>
                 </div>
@@ -576,12 +627,33 @@
                 <span class="dot-green" :class="{ 'dot-offline': !telemetry.hasData }"></span>
                 <div>
                   <strong>Relai Pemanas Ganda PTC 1 & 2</strong>
-                  <p class="sensor-sub-desc">Pin: CH1 GPIO 26, CH2 GPIO 27 • Kontrol Histeresis (55°C - 60°C)</p>
+                  <p class="sensor-sub-desc">Pin: CH1 GPIO 26, CH2 GPIO 27 • Kontrol Histeresis (48°C - 50°C)</p>
                 </div>
               </div>
-              <span class="sensor-val text-purple font-bold">
+              <span class="sensor-val text-orange font-bold">
                 {{ telemetry.hasData ? (telemetry.auxHeaterStatus ? 'Pemanas AKTIF (ON)' : 'Pemanas STANDBY (OFF)') : 'Siaga' }}
               </span>
+            </div>
+
+            <div class="sensor-matrix-item">
+              <div class="sensor-info">
+                <span class="dot-green" :class="{ 'dot-offline': !telemetry.hasData }"></span>
+                <div>
+                  <strong>Indikator LED Panel Box Fisik (3 Warna)</strong>
+                  <p class="sensor-sub-desc">Indikator Panel: Hijau (Standby/Normal) • Kuning (PTC ON) • Merah (Lockout ≥50°C)</p>
+                </div>
+              </div>
+              <div class="panel-led-status-tags">
+                <span class="mini-led-tag" :class="isLedGreenActive ? 'tag-lit-green' : 'tag-dim'">
+                  <span class="mini-bulb"></span> Hijau: {{ isLedGreenActive ? 'ON' : 'OFF' }}
+                </span>
+                <span class="mini-led-tag" :class="isLedYellowActive ? 'tag-lit-yellow' : 'tag-dim'">
+                  <span class="mini-bulb"></span> Kuning: {{ isLedYellowActive ? 'ON' : 'OFF' }}
+                </span>
+                <span class="mini-led-tag" :class="isLedRedActive ? 'tag-lit-red' : 'tag-dim'">
+                  <span class="mini-bulb"></span> Merah: {{ isLedRedActive ? 'ON' : 'OFF' }}
+                </span>
+              </div>
             </div>
 
             <div class="sensor-matrix-item">
@@ -598,10 +670,278 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 5: ACTUATOR CONTROLS & HARDWARE SWITCHES -->
+      <!-- ========================================================================= -->
+      <div v-show="currentTab === 'actuators'" class="tab-pane-wrapper">
+        <ActuatorControlCard current-lang="id" />
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 6: KATALOG SENSOR & HARDWARE GREENHOUSE (6 KOMPONEN FISIK) -->
+      <!-- ========================================================================= -->
+      <div v-show="currentTab === 'catalog'" class="tab-pane-wrapper">
+        <div class="content-card">
+          <div class="card-head-flex">
+            <div>
+              <h2 class="card-section-heading">Katalog Komponen Sensor & Hardware Greenhouse (6 Modul)</h2>
+              <p class="card-section-sub">Daftar lengkap mikrokontroler, modul sensor terkalibrasi, aktuator pemanas, dan layar diagnostik fisik yang aktif beroperasi pada sistem pengering Smart Greenhouse Hanjeli.</p>
+            </div>
+            <div class="catalog-badge-total">
+              <span class="dot-green"></span>
+              <strong>6 Modul Terpasang</strong>
+            </div>
+          </div>
+
+          <div class="devices-catalog-grid">
+            <div 
+              v-for="hw in hardwareCatalog" 
+              :key="hw.id"
+              class="hardware-catalog-card"
+            >
+              <div class="hw-card-header">
+                <div class="hw-icon-box" :class="hw.iconBoxClass">
+                  <!-- MCU -->
+                  <svg v-if="hw.iconType === 'mcu'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                    <rect x="9" y="9" width="6" height="6"></rect>
+                    <line x1="9" y1="1" x2="9" y2="4"></line>
+                    <line x1="15" y1="1" x2="15" y2="4"></line>
+                    <line x1="9" y1="20" x2="9" y2="23"></line>
+                    <line x1="15" y1="20" x2="15" y2="23"></line>
+                    <line x1="20" y1="9" x2="23" y2="9"></line>
+                    <line x1="20" y1="14" x2="23" y2="14"></line>
+                    <line x1="1" y1="9" x2="4" y2="9"></line>
+                    <line x1="1" y1="14" x2="4" y2="14"></line>
+                  </svg>
+                  <!-- Temp / Humidity -->
+                  <svg v-else-if="hw.iconType === 'temp'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+                  </svg>
+                  <!-- Sun / Light -->
+                  <svg v-else-if="hw.iconType === 'sun'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2"></path>
+                    <path d="M12 20v2"></path>
+                    <path d="m4.93 4.93 1.41 1.41"></path>
+                    <path d="m17.66 17.66 1.41 1.41"></path>
+                    <path d="M2 12h2"></path>
+                    <path d="M20 12h2"></path>
+                    <path d="m6.34 17.66-1.41 1.41"></path>
+                    <path d="m19.07 4.93-1.41 1.41"></path>
+                  </svg>
+                  <!-- Rain -->
+                  <svg v-else-if="hw.iconType === 'rain'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="16" y1="13" x2="16" y2="21"></line>
+                    <line x1="8" y1="13" x2="8" y2="21"></line>
+                    <line x1="12" y1="15" x2="12" y2="23"></line>
+                    <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+                  </svg>
+                  <!-- Relay -->
+                  <svg v-else-if="hw.iconType === 'relay'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                  <!-- LCD Display -->
+                  <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                  </svg>
+                </div>
+                <div class="hw-title-box">
+                  <h3 class="hw-card-name">{{ hw.name }}</h3>
+                  <span class="hw-card-category">{{ hw.category }}</span>
+                </div>
+                <span class="hw-status-pill tag-online">Aktif Siaga</span>
+              </div>
+
+              <p class="hw-card-purpose">{{ hw.purpose }}</p>
+
+              <div class="hw-meta-grid">
+                <div class="hw-meta-row">
+                  <span class="hw-lbl">Spesifikasi:</span>
+                  <span class="hw-val font-semibold">{{ hw.specs }}</span>
+                </div>
+                <div class="hw-meta-row">
+                  <span class="hw-lbl">Pinout / Bus:</span>
+                  <code class="hw-pin-tag">{{ hw.pinout }}</code>
+                </div>
+                <div class="hw-meta-row">
+                  <span class="hw-lbl">Posisi Fisik:</span>
+                  <span class="hw-val">{{ hw.location }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 7: SOURCE CODE & FIRMWARE ESP32 (ARDUINO IDE) -->
+      <!-- ========================================================================= -->
+      <div v-show="currentTab === 'arduino'" class="tab-pane-wrapper">
+        <div class="content-card">
+          <div class="card-head-flex">
+            <div>
+              <h2 class="card-section-heading">Source Code & Firmware ESP32 Greenhouse (Arduino IDE)</h2>
+              <p class="card-section-sub">Pilih firmware produksi mikrokontroler ESP32: Firmware Resmi Fisik Standalone atau Firmware Dual IoT (Wi-Fi + BLE). Anda dapat menyalin kode sumber langsung atau mengunduh file <code>.ino</code>.</p>
+            </div>
+          </div>
+
+          <!-- Program Selector Cards Grid -->
+          <div class="program-selector-grid" style="margin-top: 14px;">
+            <div 
+              v-for="prog in arduinoPrograms" 
+              :key="prog.id"
+              class="program-card"
+              :class="{ active: selectedProgramId === prog.id }"
+              @click="selectedProgramId = prog.id"
+            >
+              <div class="program-card-header">
+                <span class="program-badge" :class="prog.badgeClass">{{ prog.badge }}</span>
+                <span class="program-filename font-mono">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  {{ prog.filename }}
+                </span>
+              </div>
+              <h4 class="program-card-title">{{ prog.title }}</h4>
+              <p class="program-card-desc">{{ prog.desc }}</p>
+              <div class="program-card-footer">
+                <span class="program-select-indicator">
+                  <svg v-if="selectedProgramId === prog.id" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  {{ selectedProgramId === prog.id ? 'Program Dipilih' : 'Pilih Program Ini' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Program Meta & Code Viewer -->
+          <div class="active-program-wrapper" style="margin-top: 20px;">
+            <div class="program-meta-card">
+              <div class="program-meta-grid">
+                <div class="meta-item">
+                  <span class="meta-label">TARGET BOARD:</span>
+                  <span class="meta-val font-semibold">{{ selectedProgram.target }}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">SERIAL BAUDRATE:</span>
+                  <span class="meta-val font-mono">{{ selectedProgram.baudrate }} bps</span>
+                </div>
+                <div class="meta-item-full">
+                  <span class="meta-label">LIBRARY DIBUTUHKAN:</span>
+                  <div class="meta-lib-tags">
+                    <span v-for="lib in selectedProgram.libraries" :key="lib" class="lib-tag font-mono">
+                      {{ lib }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons: Copy & Download -->
+              <div class="program-actions">
+                <button 
+                  class="action-btn-copy" 
+                  @click="copyProgramCode(selectedProgram.code)"
+                  :class="{ copied: isCopied }"
+                >
+                  <svg v-if="!isCopied" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>{{ isCopied ? 'Tersalin ke Clipboard!' : 'Salin Program' }}</span>
+                </button>
+
+                <button class="action-btn-download" @click="downloadInoFile(selectedProgram)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Unduh File .ino</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Code Editor Box -->
+            <div class="code-editor-box">
+              <div class="code-editor-header">
+                <div class="code-header-left">
+                  <div class="code-dots">
+                    <span class="code-dot dot-red"></span>
+                    <span class="code-dot dot-yellow"></span>
+                    <span class="code-dot dot-green"></span>
+                  </div>
+                  <span class="code-file-title font-mono">{{ selectedProgram.filename }}</span>
+                </div>
+                <div class="code-header-right">
+                  <span class="code-lines-count font-mono">{{ selectedProgram.code.split('\n').length }} baris</span>
+                  <button class="code-header-copy-btn" @click="copyProgramCode(selectedProgram.code)">
+                    <svg v-if="isCopied" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>{{ isCopied ? 'Disalin' : 'Salin Kode' }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="code-editor-content">
+                <pre class="code-pre font-mono"><code>{{ selectedProgram.code }}</code></pre>
+              </div>
+            </div>
+
+            <!-- Upload Guide Card -->
+            <div class="flashing-guide-card" style="margin-top: 20px;">
+              <h4 class="guide-steps-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                Panduan Cepat Upload Program ke ESP32 via Arduino IDE
+              </h4>
+              <div class="steps-grid">
+                <div class="step-card">
+                  <div class="step-num">1</div>
+                  <div class="step-desc">
+                    <strong>Pasang Board ESP32:</strong> Buka Arduino IDE → <em>File &gt; Preferences</em> → Masukkan URL Board Manager: <code>https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json</code> lalu pasang via Boards Manager.
+                  </div>
+                </div>
+                <div class="step-card">
+                  <div class="step-num">2</div>
+                  <div class="step-desc">
+                    <strong>Pasang Library:</strong> Buka <em>Tools &gt; Manage Libraries</em>, cari dan install <code>DHT sensor library</code> (oleh Adafruit), <code>BH1750</code> (oleh Christopher Laws), dan <code>LiquidCrystal_I2C</code>.
+                  </div>
+                </div>
+                <div class="step-card">
+                  <div class="step-num">3</div>
+                  <div class="step-desc">
+                    <strong>Pilih Board &amp; Port:</strong> Di menu <em>Tools &gt; Board</em>, pilih <strong>DOIT ESP32 DEVKIT V1</strong> (atau ESP32 Dev Module), lalu pilih Port COM USB ESP32 Anda.
+                  </div>
+                </div>
+                <div class="step-card">
+                  <div class="step-num">4</div>
+                  <div class="step-desc">
+                    <strong>Upload Firmware:</strong> Buka file <code>.ino</code> atau salin kode di atas ke lembar kerja baru Arduino IDE, lalu klik tombol <strong>Upload</strong> (Panah Kanan).
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    </div>
-    </div>
-    </Transition>
+  </div>
+  </Transition>
 
     <!-- ========================================================================= -->
     <!-- MODAL 1: TRIGGER OTA UPDATE CONFIRMATION & TARGET SELECTOR -->
@@ -810,15 +1150,155 @@ void sendTelemetry(float temp, float hum, float moisture, float solar, float wei
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import AdminSkeleton from '../../components/AdminSkeleton.vue'
+import ActuatorControlCard from '../../components/ActuatorControlCard.vue'
 import { deviceService } from '../../services/deviceService'
 import { telemetryService } from '../../services/telemetryService'
 import { socketService } from '../../services/socketService'
 import { confirmDialog } from '../../services/confirmDialogService'
+import { ESP32_PHYSICAL_STANDALONE_CODE, ESP32_DUAL_MODE_CODE } from '../../data/arduinoCode'
 
 const isInitialLoading = ref(true)
-const currentTab = ref('security') // 'security' | 'ota' | 'releases' | 'sensors'
+const currentTab = ref('security') // 'security' | 'ota' | 'releases' | 'sensors' | 'actuators' | 'catalog' | 'arduino'
 const isSubmitting = ref(false)
 const isPingingAll = ref(false)
+
+const selectedProgramId = ref('physical-standalone')
+const isCopied = ref(false)
+
+const arduinoPrograms = computed(() => [
+  {
+    id: 'physical-standalone',
+    title: 'Firmware Resmi Alat Fisik (DHT22, BH1750, Rain Sensor, Dual PTC & LCD 20x4)',
+    filename: 'esp32_smart_dryer_physical_fixed.ino',
+    badge: 'Produksi / Hardware Fix Langsung',
+    badgeClass: 'badge-prod',
+    desc: 'Program resmi mikrokontroler ESP32 langsung untuk hardware greenhouse fisik: Sensor DHT22 (Pin 25), BH1750 I2C (Pin 21/22), Sensor Hujan (Pin 34), Dual Relay PTC Heaters (Pin 26 & 27), LCD 20x4 I2C (0x27) dengan kontrol cerdas 55°C - 60°C serta proteksi safety shut-off.',
+    target: 'ESP32 DevKit V1 (DHT22 Pin 25, Relay 26/27, Rain 34, I2C 21/22)',
+    libraries: ['DHT sensor library (Adafruit)', 'BH1750 (Christopher Laws)', 'LiquidCrystal_I2C', 'Wire.h'],
+    baudrate: 115200,
+    code: ESP32_PHYSICAL_STANDALONE_CODE,
+  },
+  {
+    id: 'dual-mode',
+    title: 'Firmware Alat Fisik Dual IoT (Wi-Fi MQTT + Web Bluetooth BLE + Web Serial)',
+    filename: 'esp32_smart_dryer_dual_iot.ino',
+    badge: 'Hardware Nyata + Sinkronisasi Cloud/Web',
+    badgeClass: 'badge-prod',
+    desc: 'Program ESP32 untuk hardware fisik yang sama dengan tambahan konektivitas ganda: Wi-Fi MQTT broker dan Web Bluetooth BLE untuk kendali nirkabel jarak jauh dari dashboard operator.',
+    target: 'ESP32 DevKit V1 (DHT22 Pin 25, Relay 26/27, Rain 34, I2C 21/22)',
+    libraries: ['DHT sensor library', 'BH1750', 'LiquidCrystal_I2C', 'PubSubClient', 'ArduinoJson (v6/v7)', 'WiFi.h', 'BLEDevice.h', 'Preferences.h'],
+    baudrate: 115200,
+    code: ESP32_DUAL_MODE_CODE,
+  }
+])
+
+const selectedProgram = computed(() => {
+  return arduinoPrograms.value.find(p => p.id === selectedProgramId.value) || arduinoPrograms.value[0]
+})
+
+const hardwareCatalog = computed(() => [
+  {
+    id: 'mcu-esp32',
+    name: 'Mikrokontroler ESP32 DevKit V1',
+    category: 'Node Utama & Master Gateway',
+    purpose: 'Pengendali histeresis pemanas PTC 1 & 2 (48°C - 50°C), pembacaan DHT22, BH1750, sensor hujan, serta stream telemetri JSON serial & LCD 20x4.',
+    specs: 'Dual-Core Xtensa 240MHz, 520KB SRAM, Flash 4MB',
+    pinout: 'GPIO 25, 26, 27, 34, I2C 21/22',
+    location: 'Box Panel Utama Greenhouse',
+    iconType: 'mcu',
+    iconBoxClass: 'icon-green-subtle',
+  },
+  {
+    id: 'sensor-dht22',
+    name: 'Sensor Suhu & Kelembapan Ruang (DHT22)',
+    category: 'Sensor Digital Lingkungan',
+    purpose: 'Mengukur suhu internal ruang pengering (-40~80°C ±0.5°C) & kelembapan (0-100% RH ±2%) dengan safety shut-off otomatis jika pembacaan gagal 3x berturut-turut.',
+    specs: 'Akurasi ±0.5°C / ±2% RH, Sampling 2.0s',
+    pinout: 'Pin GPIO 25 (One-Wire Digital)',
+    location: 'Ruang Pengering Greenhouse (Tengah)',
+    iconType: 'temp',
+    iconBoxClass: 'icon-blue-subtle',
+  },
+  {
+    id: 'sensor-bh1750',
+    name: 'Sensor Intensitas Cahaya / Solar (BH1750)',
+    category: 'Sensor Optik Lingkungan (I2C)',
+    purpose: 'Mengukur intensitas cahaya matahari langsung (1 ~ 65.535 Lux) secara kontinu untuk penyesuaian otomatis strategi pemanasan hibrida surya-listrik.',
+    specs: 'Rentang 1-65535 Lux, Resolusi 1 Lux',
+    pinout: 'I2C Bus (SDA GPIO 21 / SCL GPIO 22, Addr 0x23)',
+    location: 'Plafon Transparan Greenhouse',
+    iconType: 'sun',
+    iconBoxClass: 'icon-amber-subtle',
+  },
+  {
+    id: 'sensor-rain',
+    name: 'Sensor Deteksi Presipitasi & Air Hujan',
+    category: 'Sensor Presipitasi Analog',
+    purpose: 'Mendeteksi rintik air hujan di luar ruang secara instan melalui ADC analog (Threshold < 2000 ADC) untuk mengantisipasi penurunan panas alami.',
+    specs: 'Analog ADC 12-Bit (0-4095), Threshold < 2000',
+    pinout: 'Pin GPIO 34 (Analog ADC Input)',
+    location: 'Atap Luar Greenhouse',
+    iconType: 'rain',
+    iconBoxClass: 'icon-blue-subtle',
+  },
+  {
+    id: 'relay-ptc',
+    name: 'Modul Dual Relay Pemanas Keramik PTC 1 & 2',
+    category: 'Aktuator Pemanas Bantu (Auxiliary)',
+    purpose: 'Kontrol otomatis elemen pemanas keramik PTC ganda berbasis histeresis cerdas untuk menjaga kestabilan suhu pengeringan hanjeli.',
+    specs: 'Dual Relay 5V/10A Songle, Elemen PTC Ceramic',
+    pinout: 'Pin CH1 GPIO 26 & CH2 GPIO 27',
+    location: 'Chamber Pemanas Greenhouse',
+    iconType: 'relay',
+    iconBoxClass: 'icon-orange-subtle',
+  },
+  {
+    id: 'display-lcd',
+    name: 'Layar Display LCD 20x4 I2C (Address 0x27)',
+    category: 'Antarmuka Visual Lokal Panel (HMI)',
+    purpose: 'Menampilkan telemetri pemantauan live T/H/Lux/Rain/Heater (Hal 1) dan Diagnostik Sistem/Sensor (Hal 2) secara bergantian setiap 4 detik.',
+    specs: '20 Kolom x 4 Baris, Backpack I2C PCF8574',
+    pinout: 'I2C Bus (SDA GPIO 21 / SCL GPIO 22, Addr 0x27)',
+    location: 'Pintu Panel Kontrol Greenhouse',
+    iconType: 'lcd',
+    iconBoxClass: 'icon-green-subtle',
+  },
+])
+
+async function copyProgramCode(code) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(code)
+    } else {
+      throw new Error('Clipboard API not available')
+    }
+    isCopied.value = true
+    setTimeout(() => { isCopied.value = false }, 2500)
+  } catch (err) {
+    const textarea = document.createElement('textarea')
+    textarea.value = code
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
+    isCopied.value = true
+    setTimeout(() => { isCopied.value = false }, 2500)
+  }
+}
+
+function downloadInoFile(program) {
+  const blob = new Blob([program.code], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = program.filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
 
 const adminAlert = reactive({
   text: '',
@@ -844,8 +1324,15 @@ const telemetry = reactive({
   solarRadiation: 0.0,
   grainMoisture: 0.0,
   weightCurrentKg: 0.0,
+  isRaining: false,
+  auxHeaterStatus: false,
   hasData: false,
 })
+
+// Physical Box Panel 3-LED Indicator Status (Green, Yellow, Red)
+const isLedRedActive = computed(() => telemetry.hasData && Number(telemetry.tempInternal) >= 50.0)
+const isLedYellowActive = computed(() => telemetry.hasData && Boolean(telemetry.auxHeaterStatus) && Number(telemetry.tempInternal) < 50.0)
+const isLedGreenActive = computed(() => telemetry.hasData && !telemetry.auxHeaterStatus && Number(telemetry.tempInternal) < 50.0)
 
 // Modals State
 const isOtaModalOpen = ref(false)
@@ -904,6 +1391,16 @@ async function copyToken(tokenText) {
     showAlert('Token otentikasi X-Device-Token berhasil disalin ke clipboard!', 'success')
   } catch {
     showAlert('Gagal menyalin token.', 'error')
+  }
+}
+
+async function toggleDevicePower(device) {
+  try {
+    const res = await deviceService.toggle(device.id)
+    device.status = res.status || (device.status === 'online' ? 'offline' : 'online')
+    showAlert(`Status daya ${device.name} diubah menjadi: ${device.status.toUpperCase()}`, 'success')
+  } catch (err) {
+    showAlert(`Gagal mengubah status daya ${device.name}`, 'error')
   }
 }
 
@@ -1094,6 +1591,23 @@ onMounted(async () => {
       fetchDevices(),
       fetchReleases()
     ])
+    // Fetch initial telemetry for sensor matrix
+    try {
+      const currentRes = await telemetryService.getCurrent()
+      if (currentRes && currentRes.telemetry) {
+        const t = currentRes.telemetry
+        telemetry.tempInternal = t.tempInternal ?? 0.0
+        telemetry.humidityInternal = t.humidityInternal ?? 0.0
+        telemetry.solarRadiation = t.solarRadiation ?? 0.0
+        telemetry.grainMoisture = t.grainMoisture ?? 0.0
+        telemetry.weightCurrentKg = t.weightCurrentKg ?? 0.0
+        telemetry.isRaining = t.isRaining ?? false
+        telemetry.auxHeaterStatus = t.heaterStatus ?? currentRes.actuators?.auxHeaterStatus ?? false
+        telemetry.hasData = Boolean(t.hasData)
+      }
+    } catch (e) {
+      console.warn('Initial telemetry fetch skipped:', e)
+    }
   } finally {
     setTimeout(() => {
       isInitialLoading.value = false
@@ -1108,6 +1622,8 @@ onMounted(async () => {
       telemetry.solarRadiation = data.solarRadiation ?? telemetry.solarRadiation
       telemetry.grainMoisture = data.grainMoisture ?? telemetry.grainMoisture
       telemetry.weightCurrentKg = data.weightCurrentKg ?? telemetry.weightCurrentKg
+      telemetry.isRaining = data.isRaining ?? telemetry.isRaining
+      telemetry.auxHeaterStatus = data.heaterStatus ?? data.auxHeaterStatus ?? telemetry.auxHeaterStatus
       telemetry.hasData = true
     }
   })
@@ -1425,6 +1941,60 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+}
+
+.dsc-toggle-status-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.device-switch-toggle {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.device-switch-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.device-switch-toggle .toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #CBD5E1;
+  transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 20px;
+}
+
+.device-switch-toggle .toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.device-switch-toggle input:checked + .toggle-slider {
+  background-color: #0D631B;
+}
+
+.device-switch-toggle input:checked + .toggle-slider:before {
+  transform: translateX(18px);
 }
 
 .dsc-name {
@@ -1983,6 +2553,83 @@ onUnmounted(() => {
   background: #CBD5E1;
 }
 
+.panel-led-status-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mini-led-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+}
+
+.mini-bulb {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mini-led-tag.tag-dim {
+  background: #F1F5F9;
+  color: #94A3B8;
+  border: 1px solid #E2E8F0;
+}
+
+.mini-led-tag.tag-dim .mini-bulb {
+  background: #CBD5E1;
+}
+
+.mini-led-tag.tag-lit-green {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #86EFAC;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.35);
+}
+
+.mini-led-tag.tag-lit-green .mini-bulb {
+  background: #22C55E;
+  box-shadow: 0 0 6px #22C55E;
+}
+
+.mini-led-tag.tag-lit-yellow {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+}
+
+.mini-led-tag.tag-lit-yellow .mini-bulb {
+  background: #F59E0B;
+  box-shadow: 0 0 6px #F59E0B;
+}
+
+.mini-led-tag.tag-lit-red {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  animation: pulse-red-panel 1.5s infinite;
+}
+
+.mini-led-tag.tag-lit-red .mini-bulb {
+  background: #EF4444;
+  box-shadow: 0 0 6px #EF4444;
+}
+
+@keyframes pulse-red-panel {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
 /* Common Button Styles */
 .btn-primary {
   display: inline-flex;
@@ -2256,5 +2903,525 @@ onUnmounted(() => {
 .fade-admin-devices-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+/* ==============================================================================
+   TAB 6: HARDWARE CATALOG & TAB 7: ARDUINO CODE VIEWER STYLES
+   ============================================================================== */
+.catalog-badge-total {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(13, 99, 27, 0.08);
+  color: #0D631B;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+:global(.dark-theme) .catalog-badge-total {
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ADE80;
+}
+
+.devices-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.hardware-catalog-card {
+  background: var(--color-white, #FFFFFF);
+  border: 1px solid var(--color-border-subtle, #E2E8F0);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+:global(.dark-theme) .hardware-catalog-card {
+  background: #0B242F;
+  border-color: rgba(30, 78, 97, 0.6);
+}
+.hardware-catalog-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(13, 99, 27, 0.4);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+:global(.dark-theme) .hardware-catalog-card:hover {
+  border-color: rgba(74, 222, 128, 0.4);
+}
+
+.hw-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hw-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icon-green-subtle { background: #ECFDF5; color: #0D631B; }
+.icon-blue-subtle  { background: #EFF6FF; color: #1D4ED8; }
+.icon-amber-subtle { background: #FFFBEB; color: #B45309; }
+.icon-orange-subtle{ background: #FFF7ED; color: #C2410C; }
+
+:global(.dark-theme) .icon-green-subtle { background: rgba(13, 99, 27, 0.25); color: #4ADE80; }
+:global(.dark-theme) .icon-blue-subtle  { background: rgba(29, 78, 216, 0.25); color: #60A5FA; }
+:global(.dark-theme) .icon-amber-subtle { background: rgba(180, 83, 9, 0.25); color: #FCD34D; }
+:global(.dark-theme) .icon-orange-subtle{ background: rgba(194, 65, 12, 0.25); color: #FB923C; }
+
+.hw-title-box {
+  flex: 1;
+}
+.hw-card-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text-title, #071E27);
+  margin: 0;
+}
+:global(.dark-theme) .hw-card-name {
+  color: #FFFFFF;
+}
+.hw-card-category {
+  font-size: 11.5px;
+  color: var(--color-text-muted, #64748B);
+}
+
+.hw-status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.tag-online {
+  background: #DCFCE7;
+  color: #15803D;
+}
+:global(.dark-theme) .tag-online {
+  background: rgba(22, 101, 52, 0.35);
+  color: #86EFAC;
+}
+
+.hw-card-purpose {
+  font-size: 12.5px;
+  color: var(--color-text-body, #334155);
+  line-height: 1.45;
+  margin: 0;
+}
+:global(.dark-theme) .hw-card-purpose {
+  color: #CBD5E1;
+}
+
+.hw-meta-grid {
+  border-top: 1px solid var(--color-border-subtle, #E2E8F0);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+}
+:global(.dark-theme) .hw-meta-grid {
+  border-top-color: rgba(30, 78, 97, 0.5);
+}
+
+.hw-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.hw-lbl {
+  color: var(--color-text-muted, #64748B);
+  font-weight: 600;
+}
+.hw-val {
+  color: var(--color-text-title, #071E27);
+}
+:global(.dark-theme) .hw-val {
+  color: #F1F5F9;
+}
+.hw-pin-tag {
+  background: #F1F5F9;
+  color: #0D631B;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 11px;
+}
+:global(.dark-theme) .hw-pin-tag {
+  background: #133947;
+  color: #86EFAC;
+}
+
+/* Arduino Tab Styles */
+.program-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.program-card {
+  background: var(--color-white, #FFFFFF);
+  border: 2px solid var(--color-border-subtle, #E2E8F0);
+  border-radius: 16px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+:global(.dark-theme) .program-card {
+  background: #0B242F;
+  border-color: rgba(30, 78, 97, 0.6);
+}
+.program-card:hover {
+  transform: translateY(-2px);
+  border-color: #0D631B;
+  box-shadow: 0 6px 16px rgba(13, 99, 27, 0.08);
+}
+:global(.dark-theme) .program-card:hover {
+  border-color: #4ADE80;
+}
+.program-card.active {
+  border-color: #0D631B;
+  background: #F0FDF4;
+  box-shadow: 0 4px 14px rgba(13, 99, 27, 0.12);
+}
+:global(.dark-theme) .program-card.active {
+  border-color: #4ADE80;
+  background: rgba(13, 99, 27, 0.2);
+}
+.program-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.program-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.badge-prod {
+  background: #DCFCE7;
+  color: #15803D;
+}
+:global(.dark-theme) .badge-prod {
+  background: rgba(22, 101, 52, 0.4);
+  color: #86EFAC;
+}
+.program-filename {
+  font-size: 11.5px;
+  color: var(--color-text-muted, #64748B);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.program-card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text-title, #071E27);
+  margin: 0;
+}
+:global(.dark-theme) .program-card-title {
+  color: #FFFFFF;
+}
+.program-card-desc {
+  font-size: 12px;
+  color: var(--color-text-body, #334155);
+  line-height: 1.45;
+  margin: 0;
+  flex: 1;
+}
+:global(.dark-theme) .program-card-desc {
+  color: #CBD5E1;
+}
+.program-card-footer {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border-subtle, #E2E8F0);
+}
+:global(.dark-theme) .program-card-footer {
+  border-top-color: rgba(30, 78, 97, 0.5);
+}
+.program-select-indicator {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0D631B;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+:global(.dark-theme) .program-select-indicator {
+  color: #4ADE80;
+}
+
+.active-program-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.program-meta-card {
+  background: var(--color-white, #FFFFFF);
+  border: 1px solid var(--color-border-subtle, #E2E8F0);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+:global(.dark-theme) .program-meta-card {
+  background: #0B242F;
+  border-color: rgba(30, 78, 97, 0.6);
+}
+.program-meta-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.meta-item-full {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+.meta-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--color-text-muted, #64748B);
+  letter-spacing: 0.5px;
+}
+.meta-val {
+  font-size: 12.5px;
+  color: var(--color-text-title, #071E27);
+}
+:global(.dark-theme) .meta-val {
+  color: #FFFFFF;
+}
+.meta-lib-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.lib-tag {
+  background: #F1F5F9;
+  color: #334155;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+:global(.dark-theme) .lib-tag {
+  background: #133947;
+  color: #E2E8F0;
+}
+.program-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.action-btn-copy, .action-btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+.action-btn-copy {
+  background: rgba(13, 99, 27, 0.08);
+  color: #0D631B;
+}
+:global(.dark-theme) .action-btn-copy {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ADE80;
+}
+.action-btn-copy:hover {
+  background: rgba(13, 99, 27, 0.15);
+}
+.action-btn-copy.copied {
+  background: #0D631B;
+  color: #FFFFFF;
+}
+.action-btn-download {
+  background: #0D631B;
+  color: #FFFFFF;
+}
+.action-btn-download:hover {
+  background: #0A4F15;
+}
+
+.code-editor-box {
+  background: #081622;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+.code-editor-header {
+  background: #050E17;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.code-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.code-dots {
+  display: flex;
+  gap: 6px;
+}
+.code-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.dot-red { background: #EF4444; }
+.dot-yellow { background: #F59E0B; }
+.dot-green { background: #10B981; }
+.code-file-title {
+  color: #94A3B8;
+  font-size: 12px;
+  font-weight: 600;
+}
+.code-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.code-lines-count {
+  color: #64748B;
+  font-size: 11.5px;
+}
+.code-header-copy-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #E2E8F0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+.code-header-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+.code-editor-content {
+  max-height: 480px;
+  overflow: auto;
+  padding: 16px 20px;
+}
+.code-pre {
+  margin: 0;
+  color: #CBD5E1;
+  font-size: 12px;
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+.flashing-guide-card {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+:global(.dark-theme) .flashing-guide-card {
+  background: rgba(13, 99, 27, 0.12);
+  border-color: rgba(74, 222, 128, 0.25);
+}
+.guide-steps-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #065F46;
+  margin: 0 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+:global(.dark-theme) .guide-steps-title {
+  color: #86EFAC;
+}
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.step-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(13, 99, 27, 0.15);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+:global(.dark-theme) .step-card {
+  background: #0B242F;
+  border-color: rgba(30, 78, 97, 0.6);
+}
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0D631B;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.step-desc {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #1E293B;
+}
+:global(.dark-theme) .step-desc {
+  color: #CBD5E1;
+}
+.step-desc code {
+  background: rgba(13, 99, 27, 0.1);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 10.5px;
+  word-break: break-all;
+}
+:global(.dark-theme) .step-desc code {
+  background: rgba(74, 222, 128, 0.15);
+  color: #86EFAC;
 }
 </style>

@@ -14,12 +14,5 @@ export const anomalyService = {
   async runCheck() {
     return api.post('/anomalies/check');
   },
-
-  /**
-   * Trigger anomaly simulation for testing early warning systems
-   * @param {'THERMAL_DROP_DOOR_OPEN'|'MOISTURE_SPIKE'|'SENSOR_OUT_OF_BOUNDS'} scenario
-   */
-  async simulateAnomaly(scenario) {
-    return api.post('/anomalies/simulate', { scenario });
-  },
 };
+

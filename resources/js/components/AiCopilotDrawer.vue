@@ -165,20 +165,16 @@
                 <span class="ii-val">{{ contextSnapshot.batchStatus }} | {{ t('aiCopilot.inspectorShrinkage', { current: contextSnapshot.currentWeightKg, initial: contextSnapshot.initialWeightKg }) }}</span>
               </div>
               <div class="inspector-item">
-                <span class="ii-label">{{ t('aiCopilot.inspectorTempDelta') }}</span>
-                <span class="ii-val">{{ contextSnapshot.tempInternal }}°C / {{ contextSnapshot.tempExternal }}°C (Δ {{ (contextSnapshot.tempInternal - contextSnapshot.tempExternal).toFixed(1) }}°C)</span>
+                <span class="ii-label">Suhu & Lembap (DHT22)</span>
+                <span class="ii-val">{{ contextSnapshot.tempInternal }}°C • {{ contextSnapshot.humidityInternal }}% RH</span>
               </div>
               <div class="inspector-item">
-                <span class="ii-label">{{ t('aiCopilot.inspectorRhDelta') }}</span>
-                <span class="ii-val">{{ contextSnapshot.humidityInternal }}% / {{ contextSnapshot.humidityExternal }}%</span>
+                <span class="ii-label">Cahaya & Hujan (BH1750 / Rain)</span>
+                <span class="ii-val">{{ contextSnapshot.solarRadiation }} Lux • {{ contextSnapshot.isRaining ? 'Hujan (Basah)' : 'Kering' }}</span>
               </div>
               <div class="inspector-item">
-                <span class="ii-label">{{ t('aiCopilot.inspectorHeaterStatus') }}</span>
-                <span class="ii-val">{{ contextSnapshot.heaterStatus ? `${t('aiCopilot.activeLabel')} (${t('aiCopilot.levelLabel')} ${contextSnapshot.heaterLevel})` : t('aiCopilot.inactiveLabel') }}</span>
-              </div>
-              <div class="inspector-item">
-                <span class="ii-label">{{ t('aiCopilot.inspectorExhaustStatus') }}</span>
-                <span class="ii-val">{{ contextSnapshot.exhaustFanStatus ? `${t('aiCopilot.activeLabel')} (${contextSnapshot.exhaustFanSpeed}%)` : t('aiCopilot.inactiveLabel') }}</span>
+                <span class="ii-label">Pemanas PTC & 3-LED Panel</span>
+                <span class="ii-val">{{ contextSnapshot.heaterStatus ? 'PTC ON (🟡 Memanaskan)' : (contextSnapshot.tempInternal >= 50 ? '🔴 Overheat Lockout' : 'PTC OFF (🟢 Normal)') }}</span>
               </div>
             </div>
           </div>

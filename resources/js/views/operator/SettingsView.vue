@@ -1090,16 +1090,10 @@
                                                 pengalaman native & cepat.
                                             </p>
                                         </div>
-                                        <div>
-                                            <button
+                                        <div class="setting-btn-group">
+                                            <div
                                                 v-if="pwaState.isInstalled"
-                                                class="action-sm-btn"
-                                                style="
-                                                    background: #e8f5e9;
-                                                    color: #0d631b;
-                                                    border-color: #a5d6a7;
-                                                    cursor: default;
-                                                "
+                                                class="status-pill-badge badge-active"
                                             >
                                                 <svg
                                                     width="14"
@@ -1108,45 +1102,40 @@
                                                     fill="none"
                                                     stroke="currentColor"
                                                     stroke-width="2.5"
-                                                    style="
-                                                        display: inline-block;
-                                                        vertical-align: middle;
-                                                        margin-right: 4px;
-                                                    "
                                                 >
                                                     <polyline
                                                         points="20 6 9 17 4 12"
                                                     ></polyline>
                                                 </svg>
-                                                Aplikasi Terpasang (Standalone)
-                                            </button>
+                                                <span>Aplikasi Terpasang</span>
+                                            </div>
                                             <button
                                                 v-else
-                                                class="action-sm-btn"
-                                                style="
-                                                    background: #0d631b;
-                                                    color: #ffffff;
-                                                "
+                                                class="setting-action-btn btn-pwa-install"
                                                 @click="handleManualPwaInstall"
                                             >
                                                 <svg
-                                                    width="14"
-                                                    height="14"
+                                                    width="15"
+                                                    height="15"
                                                     viewBox="0 0 24 24"
                                                     fill="none"
                                                     stroke="currentColor"
-                                                    stroke-width="2"
-                                                    style="
-                                                        display: inline-block;
-                                                        vertical-align: middle;
-                                                        margin-right: 4px;
-                                                    "
+                                                    stroke-width="2.2"
                                                 >
                                                     <path
-                                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
                                                     ></path>
+                                                    <polyline
+                                                        points="7 10 12 15 17 10"
+                                                    ></polyline>
+                                                    <line
+                                                        x1="12"
+                                                        y1="15"
+                                                        x2="12"
+                                                        y2="3"
+                                                    ></line>
                                                 </svg>
-                                                Install Aplikasi (PWA)
+                                                <span>Install Aplikasi (PWA)</span>
                                             </button>
                                         </div>
                                     </div>
@@ -1164,44 +1153,55 @@
                                                 sedang di latar belakang.
                                             </p>
                                         </div>
-                                        <div style="display: flex; gap: 8px">
+                                        <div class="setting-btn-group">
+                                            <div
+                                                v-if="
+                                                    pwaState.notificationPermission ===
+                                                        'granted' ||
+                                                    browserPermissionStatus ===
+                                                        'granted'
+                                                "
+                                                class="status-pill-badge badge-active"
+                                            >
+                                                <svg
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2.5"
+                                                >
+                                                    <polyline
+                                                        points="20 6 9 17 4 12"
+                                                    ></polyline>
+                                                </svg>
+                                                <span>Izin Aktif</span>
+                                            </div>
                                             <button
-                                                class="action-sm-btn"
+                                                v-else
+                                                class="setting-action-btn btn-setting-outline"
                                                 @click="
                                                     requestBrowserNotificationPermission
                                                 "
                                             >
-                                                <template
-                                                    v-if="
-                                                        pwaState.notificationPermission ===
-                                                            'granted' ||
-                                                        browserPermissionStatus ===
-                                                            'granted'
-                                                    "
+                                                <svg
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
                                                 >
-                                                    <svg
-                                                        width="14"
-                                                        height="14"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2.5"
-                                                        style="
-                                                            display: inline-block;
-                                                            vertical-align: middle;
-                                                            margin-right: 4px;
-                                                        "
-                                                    >
-                                                        <polyline
-                                                            points="20 6 9 17 4 12"
-                                                        ></polyline>
-                                                    </svg>
-                                                    Izin Aktif
-                                                </template>
-                                                <template v-else>
-                                                    Minta Izin Push
-                                                </template>
+                                                    <path
+                                                        d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                                                    ></path>
+                                                    <path
+                                                        d="M13.73 21a2 2 0 0 1-3.46 0"
+                                                    ></path>
+                                                </svg>
+                                                <span>Minta Izin Push</span>
                                             </button>
+
                                             <button
                                                 v-if="
                                                     pwaState.notificationPermission ===
@@ -1209,15 +1209,25 @@
                                                     browserPermissionStatus ===
                                                         'granted'
                                                 "
-                                                class="action-sm-btn"
-                                                style="
-                                                    background: #f0fdf4;
-                                                    color: #166534;
-                                                    border-color: #bbf7d0;
-                                                "
+                                                class="setting-action-btn btn-setting-secondary"
                                                 @click="testPushNotification"
                                             >
-                                                Uji Notifikasi Live
+                                                <svg
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <path
+                                                        d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+                                                    ></path>
+                                                    <path
+                                                        d="M13.73 21a2 2 0 0 1-3.46 0"
+                                                    ></path>
+                                                </svg>
+                                                <span>Uji Notifikasi Live</span>
                                             </button>
                                         </div>
                                     </div>
@@ -4097,5 +4107,127 @@ input:checked + .slider:before {
         left: 16px;
         justify-content: center;
     }
+}
+
+/* ==============================================================================
+   MODERN SETTING BUTTONS & STATUS BADGES (PWA & NOTIFICATION ACTIONS)
+   ============================================================================== */
+.setting-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.setting-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.btn-pwa-install {
+    background: #0D631B;
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(13, 99, 27, 0.2);
+}
+
+.btn-pwa-install:hover {
+    background: #094713;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 99, 27, 0.28);
+}
+
+:global(.dark-theme) .btn-pwa-install {
+    background: #16A34A;
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+:global(.dark-theme) .btn-pwa-install:hover {
+    background: #22C55E;
+}
+
+.btn-setting-secondary {
+    background: rgba(13, 99, 27, 0.08);
+    color: #0D631B;
+    border-color: rgba(13, 99, 27, 0.22);
+}
+
+.btn-setting-secondary:hover {
+    background: rgba(13, 99, 27, 0.16);
+    border-color: rgba(13, 99, 27, 0.38);
+    transform: translateY(-1px);
+}
+
+:global(.dark-theme) .btn-setting-secondary {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ADE80;
+    border-color: rgba(74, 222, 128, 0.25);
+}
+
+:global(.dark-theme) .btn-setting-secondary:hover {
+    background: rgba(74, 222, 128, 0.2);
+    border-color: rgba(74, 222, 128, 0.4);
+}
+
+.btn-setting-outline {
+    background: var(--color-white, #FFFFFF);
+    color: var(--color-text-title, #071E27);
+    border-color: rgba(203, 213, 225, 0.8);
+}
+
+.btn-setting-outline:hover {
+    background: var(--color-primary-bg, #ECFDF5);
+    color: #0D631B;
+    border-color: #A7F3D0;
+    transform: translateY(-1px);
+}
+
+:global(.dark-theme) .btn-setting-outline {
+    background: #0B242F;
+    color: #FFFFFF;
+    border-color: rgba(30, 78, 97, 0.7);
+}
+
+:global(.dark-theme) .btn-setting-outline:hover {
+    background: rgba(13, 99, 27, 0.2);
+    color: #4ADE80;
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.status-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: default;
+    white-space: nowrap;
+}
+
+.status-pill-badge.badge-active {
+    background: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
+
+:global(.dark-theme) .status-pill-badge.badge-active {
+    background: rgba(13, 99, 27, 0.2);
+    color: #86EFAC;
+    border-color: rgba(74, 222, 128, 0.25);
 }
 </style>

@@ -871,7 +871,6 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import FlagIcon from "./FlagIcon.vue";
 import { alertService } from "../services/alertService";
 import { socketService } from "../services/socketService";
-import { simulatorService } from "../services/simulatorService";
 import { settingsService, systemState } from "../services/settingsService";
 import connectionManager from "../services/connectionManager";
 
@@ -908,7 +907,6 @@ const emit = defineEmits([
     "settings",
     "navigate",
     "logout",
-    "open-simulator",
     "open-ai-copilot",
 ]);
 

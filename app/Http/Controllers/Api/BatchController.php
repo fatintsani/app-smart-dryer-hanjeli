@@ -107,6 +107,15 @@ class BatchController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // Prevent concurrent batch creation if an active or paused batch is already running
+        $existingActive = Batch::whereIn('status', ['ACTIVE', 'PAUSED'])->first();
+        if ($existingActive) {
+            return response()->json([
+                'message' => "Terdapat sesi pengeringan aktif ({$existingActive->batch_code} - {$existingActive->crop_variety}). Harap selesaikan sesi tersebut melalui menu Riwayat sebelum memulai pengeringan baru.",
+                'activeBatch' => $this->formatBatchDetail($existingActive)
+            ], 422);
+        }
+
         // Generate next batch code (e.g. HJ-2026-005)
         $year = date('Y');
         $countThisYear = Batch::where('batch_code', 'like', "HJ-{$year}-%")->count() + 1;
@@ -126,7 +135,7 @@ class BatchController extends Controller
             'target_moisture_percent' => $targetMoisture,
             'status' => 'ACTIVE',
             'drying_mode' => $validated['dryingMode'] ?? 'HYBRID_AUTO',
-            'tray_level' => $validated['trayLevel'] ?? 'Semua Rak (1, 2, 3)',
+            'tray_level' => $validated['trayLevel'] ?? 'Ruang Pengering',
             'operator_id' => $request->user()?->id,
             'operator_name' => $validated['operatorName'] ?? $request->user()?->name ?? 'Operator Green House',
             'notes' => $validated['notes'] ?? null,

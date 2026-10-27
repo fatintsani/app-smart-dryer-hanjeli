@@ -16,7 +16,24 @@
               </div>
               <p class="page-subtitle">{{ $t('dashboard.subtitle') }}</p>
             </div>
-            <button class="btn-primary" @click="$emit('start-drying')" :disabled="!systemState.isSystemActive">
+            <button 
+              v-if="activeBatch"
+              class="btn-primary" 
+              style="background: linear-gradient(135deg, #D97706 0%, #B45309 100%);"
+              @click="router.push('/drying/active')"
+              :title="'Sesi batch ' + activeBatch.batchCode + ' sedang berjalan'"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Pantau Sesi Aktif ({{ activeBatch.batchCode }})</span>
+            </button>
+            <button 
+              v-else
+              class="btn-primary" 
+              @click="$emit('start-drying')" 
+              :disabled="!systemState.isSystemActive"
+            >
               <svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor">
                 <path d="M1.5 1.5L10.5 7L1.5 12.5V1.5Z"/>
               </svg>
@@ -75,12 +92,12 @@
             </router-link>
           </div>
 
-          <!-- 5 Stat Cards Grid -->
+          <!-- 5 Stat Cards Grid (Sensors: DHT22, BH1750, Rain Sensor + Dual PTC Heater & 3 LED Panel) -->
           <div class="stats-grid-5">
-            <!-- 1. Suhu -->
+            <!-- 1. Suhu Ruang (DHT22 - Pin 25) -->
             <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
               <div class="stat-card-header">
-                <span class="stat-label">{{ $t('dashboard.tempInternal') }}</span>
+                <span class="stat-label">{{ $t('dashboard.tempInternal') }} (DHT22)</span>
                 <div class="icon-circle icon-orange">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
@@ -90,21 +107,23 @@
               <div class="stat-value-row">
                 <span class="stat-number text-red">{{ isDataActive ? telemetry.tempInternal.toFixed(1) : '--' }}</span>
                 <span class="stat-unit">°C</span>
-                <span v-if="isDataActive" class="delta-chip">ΔT: +{{ (telemetry.tempInternal - telemetry.tempExternal).toFixed(1) }}°</span>
+                <span v-if="isDataActive" class="delta-chip" :style="telemetry.tempInternal >= 50 ? 'background:#FEE2E2; color:#DC2626;' : 'background:#DCFCE7; color:#166534;'">
+                  {{ telemetry.tempInternal >= 50 ? 'Cut-off ≥50°C' : (telemetry.tempInternal <= 48 ? 'Heater Re-arm ≤48°C' : 'Optimal (48-50°C)') }}
+                </span>
               </div>
               <div class="stat-trend" :class="isDataActive ? 'trend-up-green' : 'text-muted'">
                 <svg v-if="isDataActive" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
                   <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
                   <polyline points="17 6 23 6 23 12"></polyline>
                 </svg>
-                <span>{{ isDataActive ? `${$t('dashboard.externalLabel')}: ${telemetry.tempExternal.toFixed(1)}°C` : $t('dashboard.waitingEsp32') }}</span>
+                <span>{{ isDataActive ? (telemetry.dhtOk === false ? 'DHT22: ERROR SENSOR' : 'Sensor DHT22 (GPIO 25) • Normal') : $t('dashboard.waitingEsp32') }}</span>
               </div>
             </div>
 
-            <!-- 2. Kelembapan -->
+            <!-- 2. Kelembapan Ruang (DHT22 - Pin 25) -->
             <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
               <div class="stat-card-header">
-                <span class="stat-label">{{ $t('dashboard.humidityInternal') }}</span>
+                <span class="stat-label">{{ $t('dashboard.humidityInternal') }} (DHT22)</span>
                 <div class="icon-circle icon-blue">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
@@ -114,21 +133,21 @@
               <div class="stat-value-row">
                 <span class="stat-number text-blue">{{ isDataActive ? telemetry.humidityInternal.toFixed(0) : '--' }}</span>
                 <span class="stat-unit">% RH</span>
-                <span v-if="isDataActive" class="delta-chip-blue">{{ $t('dashboard.targetLabel') }}: &lt;50%</span>
+                <span v-if="isDataActive" class="delta-chip-blue">Ambang Subuh: &gt;70%</span>
               </div>
               <div class="stat-trend" :class="isDataActive ? 'trend-down-blue' : 'text-muted'">
                 <svg v-if="isDataActive" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.5">
                   <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
                   <polyline points="17 18 23 18 23 12"></polyline>
                 </svg>
-                <span>{{ isDataActive ? `${$t('dashboard.externalLabel')}: ${telemetry.humidityExternal.toFixed(0)}%` : $t('dashboard.waitingEsp32') }}</span>
+                <span>{{ isDataActive ? (telemetry.humidityInternal >= 70 ? 'Kelembapan Tinggi (Perlu Heater)' : 'Kelembapan Terkendali') : $t('dashboard.waitingEsp32') }}</span>
               </div>
             </div>
 
-            <!-- 3. Intensitas Radiasi Surya -->
+            <!-- 3. Intensitas Radiasi Cahaya (BH1750 - I2C 21/22) -->
             <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
               <div class="stat-card-header">
-                <span class="stat-label">{{ $t('dashboard.solarRadiation') }}</span>
+                <span class="stat-label">Cahaya / Radiasi (BH1750)</span>
                 <div class="icon-circle icon-amber">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="5"></circle>
@@ -143,82 +162,71 @@
               </div>
               <div class="stat-value-row">
                 <span class="stat-number text-amber">{{ isDataActive ? telemetry.solarRadiation.toFixed(0) : '--' }}</span>
-                <span class="stat-unit">W/m²</span>
+                <span class="stat-unit">Lux</span>
                 <span v-if="isDataActive" class="delta-chip-amber">
-                  <svg v-if="telemetry.solarRadiation > 500" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:inline-block; vertical-align:middle; margin-right:3px;">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                  </svg>
-                  <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:inline-block; vertical-align:middle; margin-right:3px;">
-                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
-                  </svg>
-                  <span>{{ telemetry.solarRadiation > 500 ? $t('dashboard.sunnyNatural') : $t('dashboard.dimCloudy') }}</span>
+                  <span>{{ telemetry.solarRadiation >= 200 ? '☀️ SIANG' : (telemetry.solarRadiation >= 50 ? '⛅ SUBUH' : '🌙 MALAM') }}</span>
                 </span>
               </div>
               <div class="stat-trend">
                 <span class="badge-pill" :class="isDataActive ? 'bg-amber-subtle text-amber-dark' : 'bg-gray-subtle text-muted'">
-                  <span>{{ isDataActive ? $t('dashboard.statusSafe') : $t('dashboard.standbyUpper') }}</span>
+                  <span>{{ isDataActive ? (telemetry.bh1750Ok === false ? 'BH1750: ERROR' : 'I2C SDA:21 SCL:22 (0x23)') : $t('dashboard.standbyUpper') }}</span>
                 </span>
               </div>
             </div>
 
-            <!-- 4. Kadar Air Gabah -->
+            <!-- 4. Sensor Hujan & Presipitasi (Pin 34) -->
             <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
               <div class="stat-card-header">
-                <span class="stat-label">{{ $t('dashboard.grainMoisture') }}</span>
-                <div class="icon-circle icon-purple-subtle">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7E22CE" stroke-width="2.2">
-                    <circle cx="12" cy="12" r="9"></circle>
-                    <polyline points="12 7 12 12 15 15"></polyline>
+                <span class="stat-label">Sensor Hujan (Rain Sensor)</span>
+                <div class="icon-circle icon-blue-subtle">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+                    <line x1="8" y1="19" x2="8" y2="21"></line>
+                    <line x1="16" y1="19" x2="16" y2="21"></line>
                   </svg>
                 </div>
               </div>
               <div class="stat-value-row">
-                <span class="stat-number text-purple">{{ activeBatch && isDataActive ? telemetry.grainMoisture.toFixed(1) : '--' }}</span>
-                <span class="stat-unit">%</span>
+                <span class="stat-number" :class="telemetry.isRaining ? 'text-blue' : 'text-green-dark'">
+                  {{ isDataActive ? (telemetry.isRaining ? 'HUJAN' : 'KERING') : '--' }}
+                </span>
+                <span v-if="isDataActive" class="delta-chip" :style="telemetry.isRaining ? 'background:#DBEAFE; color:#1D4ED8;' : 'background:#DCFCE7; color:#166534;'">
+                  ADC: {{ telemetry.rainAdc || (telemetry.isRaining ? 1200 : 3800) }}
+                </span>
               </div>
-              <div class="progress-bar-wrapper">
-                <div class="progress-track">
-                  <div class="progress-fill" :style="{ width: (isDataActive ? dryingProgressPercent : 0) + '%' }"></div>
-                </div>
-                <div class="dash-eta-label-row">
-                  <span class="progress-percentage-label">
-                    {{ isDataActive ? (activeBatch ? `${$t('dashboard.targetLabel')}: ${activeBatch.targetMoisturePercent || 12.0}% (${dryingProgressPercent}%)` : $t('dashboard.noActiveBatchProgress')) : $t('dashboard.waitingEsp32Connection') }}
-                  </span>
-                  <span v-if="activeBatch && isDataActive" class="dash-ai-eta-pill" :title="`${$t('dashboard.estimatedCompletion')}: ${predictionData?.estimatedCompletionTimeOnly || '--:--'}`">
-                    <span class="ai-spark-dot"></span>
-                    ETA: {{ predictionData?.estimatedCompletionTimeOnly || $t('dashboard.etaHoursDefault') }}
-                  </span>
-                </div>
+              <div class="stat-trend">
+                <span class="badge-pill" :class="isDataActive && telemetry.isRaining ? 'bg-blue-subtle text-blue' : 'bg-green-subtle text-green-dark'">
+                  <span>{{ isDataActive ? (telemetry.isRaining ? 'Pemanas PTC Otomatis Aktif' : 'GPIO 34 • Ambang < 2000 ADC') : $t('dashboard.waitingEsp32Connection') }}</span>
+                </span>
               </div>
             </div>
 
-            <!-- 5. Kipas & Aktuator -->
+            <!-- 5. Pemanas PTC Dual-Channel & 3 LED Panel Fisik -->
             <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
               <div class="stat-card-header">
-                <span class="stat-label">{{ $t('dashboard.auxHeater') }}</span>
-                <div class="icon-circle icon-green-subtle">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                <span class="stat-label">Pemanas PTC & 3 LED Panel</span>
+                <div class="icon-circle" :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'icon-orange' : 'icon-green-subtle'">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" :stroke="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? '#D97706' : '#0D631B'" stroke-width="2.2">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                   </svg>
                 </div>
               </div>
               <div class="stat-value-row">
-                <span class="stat-number text-green-dark">
-                  {{ actuators.exhaustFanStatus ? actuators.exhaustFanSpeed + '%' : 'OFF' }}
+                <span class="stat-number" :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'text-orange' : 'text-green-dark'">
+                  {{ isDataActive ? ((telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'HEATER ON' : 'HEATER OFF') : '--' }}
                 </span>
-                <span class="stat-unit">Fan</span>
-                <span class="status-chip" :class="actuators.auxHeaterStatus ? 'chip-on' : 'chip-off'">
-                  {{ actuators.auxHeaterStatus ? $t('dashboard.heaterOn') : $t('dashboard.heaterOff') }}
+                <span class="status-chip" :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'chip-on' : 'chip-off'">
+                  {{ (telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'Relai 26 & 27 AKTIF' : 'STANDBY' }}
                 </span>
               </div>
-              <div class="stat-footer-badge">
-                <span class="status-meta-text">{{ $t('dashboard.actuatorStatus') }}:</span>
-                <span class="badge-pill" :class="actuators.exhaustFanStatus ? 'bg-green-subtle text-green-dark' : 'bg-gray-subtle text-muted'">
-                  {{ actuators.controlMode === 'AUTOMATIC' ? $t('dashboard.automatic') : $t('dashboard.manual') }}
+              <div class="stat-footer-badge" style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px;">
+                <div style="display: flex; gap: 4px; align-items: center;">
+                  <span :style="`display:inline-block; width:10px; height:10px; border-radius:50%; background:${isDataActive && !telemetry.heaterStatus && !actuators.auxHeaterStatus && telemetry.tempInternal < 50 ? '#22C55E; box-shadow:0 0 6px #22C55E;' : '#D1D5DB;'}`" title="LED Hijau: Standby / Normal"></span>
+                  <span :style="`display:inline-block; width:10px; height:10px; border-radius:50%; background:${isDataActive && (telemetry.heaterStatus || actuators.auxHeaterStatus) && telemetry.tempInternal < 50 ? '#EAB308; box-shadow:0 0 6px #EAB308;' : '#D1D5DB;'}`" title="LED Kuning: PTC Memanaskan"></span>
+                  <span :style="`display:inline-block; width:10px; height:10px; border-radius:50%; background:${isDataActive && telemetry.tempInternal >= 50 ? '#EF4444; box-shadow:0 0 6px #EF4444;' : '#D1D5DB;'}`" title="LED Merah: Overheat / Proteksi ≥50°C"></span>
+                </div>
+                <span class="badge-pill" :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'bg-orange-subtle text-orange' : 'bg-green-subtle text-green-dark'" style="font-size: 11px;">
+                  {{ !isDataActive ? 'OFF' : (telemetry.tempInternal >= 50 ? '🔴 Overheat (≥50°)' : ((telemetry.heaterStatus || actuators.auxHeaterStatus) ? '🟡 Memanaskan' : '🟢 Normal')) }}
                 </span>
               </div>
             </div>
@@ -257,17 +265,7 @@
                 @click="visibleSeries.tempInternal = !visibleSeries.tempInternal"
               >
                 <span class="legend-color-dot" style="background: #E11D48;"></span>
-                <span>{{ $t('dashboard.seriesTempInternal') }}</span>
-              </button>
-
-              <button 
-                type="button" 
-                class="series-btn" 
-                :class="{ active: visibleSeries.tempExternal }"
-                @click="visibleSeries.tempExternal = !visibleSeries.tempExternal"
-              >
-                <span class="legend-color-dot" style="background: #0D9488;"></span>
-                <span>{{ $t('dashboard.seriesTempExternal') }}</span>
+                <span>{{ $t('dashboard.seriesTempInternal') }} (DHT22)</span>
               </button>
 
               <button 
@@ -277,17 +275,7 @@
                 @click="visibleSeries.humidity = !visibleSeries.humidity"
               >
                 <span class="legend-color-dot" style="background: #0284C7;"></span>
-                <span>{{ $t('dashboard.seriesHumidity') }}</span>
-              </button>
-
-              <button 
-                type="button" 
-                class="series-btn" 
-                :class="{ active: visibleSeries.grainMoisture }"
-                @click="visibleSeries.grainMoisture = !visibleSeries.grainMoisture"
-              >
-                <span class="legend-color-dot" style="background: #9333EA;"></span>
-                <span>{{ $t('dashboard.seriesGrainMoisture') }}</span>
+                <span>{{ $t('dashboard.seriesHumidity') }} (DHT22)</span>
               </button>
 
               <button 
@@ -297,7 +285,7 @@
                 @click="visibleSeries.solarRadiation = !visibleSeries.solarRadiation"
               >
                 <span class="legend-color-dot" style="background: #F59E0B;"></span>
-                <span>{{ $t('dashboard.seriesSolarRadiation') }}</span>
+                <span>{{ $t('dashboard.seriesSolarRadiation') }} (BH1750)</span>
               </button>
             </div>
 
@@ -353,8 +341,6 @@
                 <!-- Curves -->
                 <path v-if="visibleSeries.solarRadiation && solarCurvePath" :d="solarCurvePath" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
                 <path v-if="visibleSeries.humidity && humidityCurvePath" :d="humidityCurvePath" fill="none" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round"/>
-                <path v-if="visibleSeries.tempExternal && tempExtCurvePath" :d="tempExtCurvePath" fill="none" stroke="#0D9488" stroke-width="2" stroke-dasharray="4 2" stroke-linecap="round"/>
-                <path v-if="visibleSeries.grainMoisture && moistureCurvePath" :d="moistureCurvePath" fill="none" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
                 <path v-if="visibleSeries.tempInternal && tempCurvePath" :d="tempCurvePath" fill="none" stroke="#E11D48" stroke-width="3.5" stroke-linecap="round"/>
 
                 <!-- X-Axis Line -->
@@ -370,7 +356,6 @@
                 <g v-if="hoverData">
                   <line :x1="hoverData.svgX" y1="20" :x2="hoverData.svgX" y2="250" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="3 3"/>
                   <circle v-if="visibleSeries.tempInternal" :cx="hoverData.svgX" :cy="hoverData.yTemp" r="5" fill="#E11D48" stroke="#FFFFFF" stroke-width="2"/>
-                  <circle v-if="visibleSeries.grainMoisture" :cx="hoverData.svgX" :cy="hoverData.yMoisture" r="5" fill="#9333EA" stroke="#FFFFFF" stroke-width="2"/>
                   <circle v-if="visibleSeries.humidity" :cx="hoverData.svgX" :cy="hoverData.yHum" r="4.5" fill="#0284C7" stroke="#FFFFFF" stroke-width="2"/>
                   <circle v-if="visibleSeries.solarRadiation" :cx="hoverData.svgX" :cy="hoverData.ySolar" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2"/>
                 </g>
@@ -394,28 +379,18 @@
                 <div class="tooltip-grid">
                   <div class="tooltip-item" v-if="visibleSeries.tempInternal">
                     <span class="tt-dot" style="background: #E11D48;"></span>
-                    <span class="tt-label">{{ $t('dashboard.tooltipTempInternal') }}:</span>
+                    <span class="tt-label">{{ $t('dashboard.tooltipTempInternal') }} (DHT22):</span>
                     <span class="tt-val">{{ hoverData.item.tempInternal.toFixed(1) }}°C</span>
-                  </div>
-                  <div class="tooltip-item" v-if="visibleSeries.tempExternal">
-                    <span class="tt-dot" style="background: #0D9488;"></span>
-                    <span class="tt-label">{{ $t('dashboard.tooltipTempExternal') }}:</span>
-                    <span class="tt-val">{{ hoverData.item.tempExternal.toFixed(1) }}°C</span>
                   </div>
                   <div class="tooltip-item" v-if="visibleSeries.humidity">
                     <span class="tt-dot" style="background: #0284C7;"></span>
-                    <span class="tt-label">{{ $t('dashboard.tooltipHumidity') }}:</span>
+                    <span class="tt-label">{{ $t('dashboard.tooltipHumidity') }} (DHT22):</span>
                     <span class="tt-val">{{ hoverData.item.humidityInternal.toFixed(0) }}% RH</span>
-                  </div>
-                  <div class="tooltip-item" v-if="visibleSeries.grainMoisture">
-                    <span class="tt-dot" style="background: #9333EA;"></span>
-                    <span class="tt-label">{{ $t('dashboard.tooltipGrainMoisture') }}:</span>
-                    <span class="tt-val font-bold">{{ hoverData.item.grainMoisture.toFixed(1) }}%</span>
                   </div>
                   <div class="tooltip-item" v-if="visibleSeries.solarRadiation">
                     <span class="tt-dot" style="background: #F59E0B;"></span>
-                    <span class="tt-label">{{ $t('dashboard.tooltipSolarRadiation') }}:</span>
-                    <span class="tt-val">{{ hoverData.item.solarRadiation.toFixed(0) }} W/m²</span>
+                    <span class="tt-label">{{ $t('dashboard.tooltipSolarRadiation') }} (BH1750):</span>
+                    <span class="tt-val">{{ hoverData.item.solarRadiation.toFixed(0) }} Lux</span>
                   </div>
                 </div>
               </div>
@@ -518,6 +493,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { t } from '../../i18n'
 import { telemetryService } from '../../services/telemetryService'
 import { dashboardService } from '../../services/dashboardService'
@@ -530,6 +506,7 @@ import ConnectionStatusCard from '../../components/ConnectionStatusCard.vue'
 import DeviceSetupBleModal from '../../components/DeviceSetupBleModal.vue'
 import DashboardSkeleton from '../../components/DashboardSkeleton.vue'
 
+const router = useRouter()
 const isInitialLoading = ref(true)
 const predictionData = ref(null)
 const anomalyHealth = ref(null)
@@ -547,24 +524,22 @@ const isWifiSetupOpen = ref(false)
 const isConnected = ref(true)
 const telemetry = ref({
   tempInternal: 0,
-  tempExternal: 0,
   humidityInternal: 0,
-  humidityExternal: 0,
-  grainMoisture: 0,
   solarRadiation: 0,
+  isRaining: false,
+  rainAdc: 4095,
+  heaterStatus: false,
+  heaterLevel: 0,
+  dhtOk: true,
+  bh1750Ok: true,
+  grainMoisture: 0,
   weightCurrentKg: 0,
   hasData: false,
 })
 
 const actuators = ref({
-  exhaustFanStatus: false,
-  exhaustFanSpeed: 0,
-  blowerFanStatus: false,
-  blowerFanSpeed: 0,
   auxHeaterStatus: false,
   auxHeaterLevel: 0,
-  uvSterilizerStatus: false,
-  roofVentStatus: false,
   controlMode: 'AUTOMATIC',
 })
 
@@ -572,13 +547,13 @@ const activeBatch = ref(null)
 const recentAlerts = ref([])
 const statsSummary = ref(null)
 
-// Chart Series Toggles
+// Chart Series Toggles (DHT22 Suhu, DHT22 Kelembapan, BH1750 Lux)
 const visibleSeries = reactive({
   tempInternal: true,
-  tempExternal: true,
   humidity: true,
-  grainMoisture: true,
   solarRadiation: true,
+  grainMoisture: false,
+  tempExternal: false,
 })
 
 const hoverData = ref(null)
@@ -591,12 +566,11 @@ function appendTelemetryToHistory(data) {
     time: timeFormatted,
     timeFormatted,
     tempInternal: Number(data.tempInternal ?? data.temp_internal ?? telemetry.value.tempInternal),
-    tempExternal: Number(data.tempExternal ?? data.temp_external ?? telemetry.value.tempExternal),
     humidityInternal: Number(data.humidityInternal ?? data.humidity_internal ?? telemetry.value.humidityInternal),
-    humidityExternal: Number(data.humidityExternal ?? data.humidity_external ?? telemetry.value.humidityExternal),
     solarRadiation: Number(data.solarRadiation ?? data.solar_radiation ?? telemetry.value.solarRadiation),
-    grainMoisture: Number(data.grainMoisture ?? data.grain_moisture ?? telemetry.value.grainMoisture),
-    weightKg: Number(data.weightCurrentKg ?? data.weight_kg ?? telemetry.value.weightCurrentKg),
+    grainMoisture: Number(data.grainMoisture ?? data.grain_moisture ?? 0),
+    isRaining: Boolean(data.isRaining ?? data.is_raining ?? telemetry.value.isRaining),
+    rainAdc: Number(data.rainAdc ?? data.rain_adc ?? telemetry.value.rainAdc),
   })
 
   if (liveHistoryPoints.value.length > 30) {
@@ -611,31 +585,25 @@ function seedInitialHistory() {
   for (let i = 0; i < count; i++) {
     const t = new Date(baseTime.getTime() + i * 60000)
     const progress = i / (count - 1)
-    const tempIn = 39.0 + progress * 4.2 + (Math.sin(i) * 0.4)
-    const tempExt = 28.5 + progress * 2.0
-    const humIn = 62.0 - progress * 14.0 + (Math.sin(i * 1.5) * 1.5)
-    const humExt = 74.0 - progress * 6.0
-    const solar = 640.0 + progress * 150.0 + (Math.sin(i) * 25)
-    const moisture = 18.5 - progress * 4.2
-    const weight = 130.0 - progress * 4.5
+    const tempIn = 42.0 + progress * 4.2 + (Math.sin(i) * 0.4)
+    const humIn = 65.0 - progress * 10.0 + (Math.sin(i * 1.5) * 1.5)
+    const solar = 450.0 + progress * 120.0 + (Math.sin(i) * 20)
 
     initial.push({
       time: t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       timeFormatted: t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       tempInternal: Number(tempIn.toFixed(1)),
-      tempExternal: Number(tempExt.toFixed(1)),
       humidityInternal: Number(humIn.toFixed(0)),
-      humidityExternal: Number(humExt.toFixed(0)),
       solarRadiation: Number(solar.toFixed(0)),
-      grainMoisture: Number(moisture.toFixed(1)),
-      weightKg: Number(weight.toFixed(1)),
+      grainMoisture: 0,
+      isRaining: false,
+      rainAdc: 3800,
     })
   }
   liveHistoryPoints.value = initial
 }
 
 const isDataActive = computed(() => {
-  if (connectionManager.state.sourceMode === 'simulation') return true;
   return connectionManager.state.isHardwareActive && telemetry.value.hasData;
 })
 
@@ -790,7 +758,7 @@ async function loadInitialData(isFirstTime = false) {
       if (statsRes.summary) {
         statsSummary.value = statsRes.summary
       }
-      if (statsRes.currentTelemetry && connectionManager.state.sourceMode === 'simulation') {
+      if (statsRes.currentTelemetry) {
         telemetry.value = { ...telemetry.value, ...statsRes.currentTelemetry, hasData: true }
         appendTelemetryToHistory(statsRes.currentTelemetry)
       }
@@ -804,7 +772,7 @@ async function loadInitialData(isFirstTime = false) {
 
   try {
     const res = await telemetryService.getCurrent()
-    if (res.telemetry && res.telemetry.hasData && connectionManager.state.sourceMode === 'simulation') {
+    if (res.telemetry && res.telemetry.hasData) {
       telemetry.value = { ...telemetry.value, ...res.telemetry, hasData: true }
       appendTelemetryToHistory(res.telemetry)
     }

@@ -84,21 +84,31 @@ class MqttService
         }
 
         // 2. Save Telemetry with flexible schema mapping
+        $heaterActive = (bool) ($payload['heaterStatus'] ?? $payload['heater_status'] ?? $payload['heater_on'] ?? false);
         $telemetry = Telemetry::create([
             'batch_id' => $batchId,
             'temp_internal' => (float) ($payload['tempInternal'] ?? $payload['temp_internal'] ?? $payload['temperature'] ?? 0.0),
             'humidity_internal' => (float) ($payload['humidityInternal'] ?? $payload['humidity_internal'] ?? $payload['humidity'] ?? 0.0),
             'temp_external' => (float) ($payload['tempExternal'] ?? $payload['temp_external'] ?? 30.0),
             'humidity_external' => (float) ($payload['humidityExternal'] ?? $payload['humidity_external'] ?? 65.0),
-            'solar_radiation' => (float) ($payload['solarRadiation'] ?? $payload['solar_radiation'] ?? $payload['light'] ?? 700.0),
+            'solar_radiation' => (float) ($payload['solarRadiation'] ?? $payload['solar_radiation'] ?? $payload['lux'] ?? $payload['light'] ?? 700.0),
             'grain_moisture' => (float) ($payload['grainMoisture'] ?? $payload['grain_moisture'] ?? $payload['soil'] ?? 14.0),
             'weight_kg' => (float) ($payload['weightKg'] ?? $payload['weight_kg'] ?? 45.0),
-            'heater_status' => (bool) ($payload['heaterStatus'] ?? $payload['heater_status'] ?? false),
-            'heater_level' => (int) ($payload['heaterLevel'] ?? $payload['heater_level'] ?? 0),
+            'heater_status' => $heaterActive,
+            'heater_level' => (int) ($payload['heaterLevel'] ?? $payload['heater_level'] ?? ($heaterActive ? 100 : 0)),
             'exhaust_fan_status' => (bool) ($payload['exhaustFanStatus'] ?? $payload['exhaust_fan_status'] ?? ($payload['fan'] ?? '') === 'ON'),
             'exhaust_fan_speed' => (int) ($payload['exhaustFanSpeed'] ?? $payload['exhaust_fan_speed'] ?? 50),
             'recorded_at' => Carbon::now(),
         ]);
+
+        // Sync ActuatorState when system is running in AUTO (non-override) mode
+        $actuatorState = ActuatorState::first();
+        if ($actuatorState && !$actuatorState->is_override_active) {
+            $actuatorState->update([
+                'aux_heater_status' => $heaterActive,
+                'aux_heater_level' => $heaterActive ? 100 : 0,
+            ]);
+        }
 
         // 3. Update Batch Current Metrics & Check Moisture Target
         if ($batchId) {

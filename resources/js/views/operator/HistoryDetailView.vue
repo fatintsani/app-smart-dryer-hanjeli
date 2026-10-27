@@ -367,57 +367,60 @@
 
               <!-- Hover Cursor Line & Tracker Dot -->
               <g v-if="hoverData">
-                <line :x1="hoverData.domX" y1="25" :x2="hoverData.domX" y2="245" stroke="#1E293B" stroke-dasharray="3 3" />
-                <circle :cx="hoverData.domX" :cy="hoverData.yTemp" r="4.5" fill="#BA1A1A" stroke="#FFFFFF" stroke-width="1.5" />
-                <circle :cx="hoverData.domX" :cy="hoverData.yMoisture" r="4.5" fill="#9333EA" stroke="#FFFFFF" stroke-width="1.5" />
+                <line :x1="hoverData.svgX" y1="25" :x2="hoverData.svgX" y2="245" stroke="#475569" stroke-dasharray="3 3" stroke-width="1.5" />
+                <circle :cx="hoverData.svgX" :cy="hoverData.yTemp" r="5" fill="#BA1A1A" stroke="#FFFFFF" stroke-width="2" />
+                <circle :cx="hoverData.svgX" :cy="hoverData.yMoisture" r="5" fill="#9333EA" stroke="#FFFFFF" stroke-width="2" />
               </g>
             </svg>
 
-            <!-- Chart Interactive Legend Pills -->
-            <div class="chart-legend-floating">
-              <span class="legend-chip"><span class="chip-color bg-red"></span> Suhu Ruang (°C)</span>
-              <span class="legend-chip"><span class="chip-color bg-blue"></span> RH Ruang (%)</span>
-              <span class="legend-chip"><span class="chip-color bg-purple"></span> Kadar Air Gabah (%)</span>
-              <span class="legend-chip"><span class="chip-color bg-amber"></span> Radiasi Surya (W/m²)</span>
-            </div>
+            <!-- Floating Hover Tooltip (Glassmorphic Popover) -->
+            <transition name="fade-tooltip">
+              <div 
+                v-if="hoverData" 
+                class="chart-floating-tooltip"
+                :style="{ left: `${hoverData.domPercentX}%` }"
+              >
+                <div class="tt-header">
+                  <strong>{{ hoverData.item.timeFormatted || hoverData.item.time }}</strong>
+                  <span class="tt-step-badge">Titik #{{ hoverData.index + 1 }}</span>
+                </div>
+                <div class="tt-grid">
+                  <div class="tt-row">
+                    <span class="tt-dot bg-red"></span>
+                    <span class="tt-label">Suhu Internal:</span>
+                    <span class="tt-val text-red">{{ hoverData.item.tempInternal.toFixed(1) }}°C</span>
+                  </div>
+                  <div class="tt-row">
+                    <span class="tt-dot bg-blue"></span>
+                    <span class="tt-label">RH Internal:</span>
+                    <span class="tt-val text-blue">{{ hoverData.item.humidityInternal.toFixed(0) }}%</span>
+                  </div>
+                  <div class="tt-row">
+                    <span class="tt-dot bg-purple"></span>
+                    <span class="tt-label">Kadar Air:</span>
+                    <span class="tt-val text-purple">{{ hoverData.item.grainMoisture.toFixed(1) }}%</span>
+                  </div>
+                  <div class="tt-row">
+                    <span class="tt-dot bg-amber"></span>
+                    <span class="tt-label">Radiasi Surya:</span>
+                    <span class="tt-val text-amber">{{ hoverData.item.solarRadiation.toFixed(0) }} W/m²</span>
+                  </div>
+                  <div class="tt-row">
+                    <span class="tt-dot bg-slate-500"></span>
+                    <span class="tt-label">Bobot Gabah:</span>
+                    <span class="tt-val">{{ (hoverData.item.weightKg || 0).toFixed(1) }} kg</span>
+                  </div>
+                </div>
+              </div>
+            </transition>
+          </div>
 
-            <!-- Floating Hover Tooltip -->
-            <div 
-              v-if="hoverData" 
-              class="chart-floating-tooltip"
-              :style="{ left: `${hoverData.domPercentX}%` }"
-            >
-              <div class="tt-header">
-                <strong>{{ hoverData.item.timeFormatted || hoverData.item.time }}</strong>
-              </div>
-              <div class="tt-grid">
-                <div class="tt-row">
-                  <span class="tt-dot bg-red"></span>
-                  <span class="tt-label">Suhu Internal:</span>
-                  <span class="tt-val font-bold text-red">{{ hoverData.item.tempInternal.toFixed(1) }}°C</span>
-                </div>
-                <div class="tt-row">
-                  <span class="tt-dot bg-blue"></span>
-                  <span class="tt-label">RH Internal:</span>
-                  <span class="tt-val font-bold text-blue">{{ hoverData.item.humidityInternal.toFixed(0) }}%</span>
-                </div>
-                <div class="tt-row">
-                  <span class="tt-dot bg-purple"></span>
-                  <span class="tt-label">Kadar Air:</span>
-                  <span class="tt-val font-bold text-purple">{{ hoverData.item.grainMoisture.toFixed(1) }}%</span>
-                </div>
-                <div class="tt-row">
-                  <span class="tt-dot bg-amber"></span>
-                  <span class="tt-label">Radiasi Surya:</span>
-                  <span class="tt-val">{{ hoverData.item.solarRadiation.toFixed(0) }} W/m²</span>
-                </div>
-                <div class="tt-row">
-                  <span class="tt-dot bg-slate-500"></span>
-                  <span class="tt-label">Bobot:</span>
-                  <span class="tt-val">{{ (hoverData.item.weightKg || 0).toFixed(1) }} kg</span>
-                </div>
-              </div>
-            </div>
+          <!-- Chart Interactive Legend Pills (Rapi di bawah Canvas Grafik) -->
+          <div class="chart-legend-floating">
+            <span class="legend-chip"><span class="chip-color bg-red"></span> Suhu Ruang (°C)</span>
+            <span class="legend-chip"><span class="chip-color bg-blue"></span> RH Ruang (%)</span>
+            <span class="legend-chip"><span class="chip-color bg-purple"></span> Kadar Air Gabah (%)</span>
+            <span class="legend-chip"><span class="chip-color bg-amber"></span> Radiasi Surya (W/m²)</span>
           </div>
         </div>
 
@@ -644,15 +647,11 @@
                   </tr>
                   <tr>
                     <td class="spec-key">Varietas Hanjeli</td>
-                    <td class="spec-val">{{ batch?.cropVariety || 'Hanjeli Ketan Sukabumi' }}</td>
+                    <td class="spec-val">{{ batch?.cropVariety || 'Biji Hanjeli' }}</td>
                   </tr>
                   <tr>
                     <td class="spec-key">Mode Pengeringan</td>
                     <td class="spec-val">{{ batch?.dryingMode || 'HYBRID_SOLAR_ELECTRIC' }}</td>
-                  </tr>
-                  <tr>
-                    <td class="spec-key">Posisi Rak Pengering</td>
-                    <td class="spec-val">{{ batch?.trayLevel || 'Semua Rak (Tingkat 1, 2, 3)' }}</td>
                   </tr>
                   <tr>
                     <td class="spec-key">Operator Penanggung Jawab</td>
@@ -688,37 +687,37 @@
                     <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
                   </svg>
                 </div>
-                <div class="flex-1">
-                  <div class="flex items-center justify-between">
+                <div class="grade-text-body">
+                  <div class="grade-header-row">
                     <h5 class="grade-name">{{ qualityAssessment.gradeLabel }}</h5>
-                    <span class="font-mono font-bold text-xs px-2 py-0.5 rounded bg-emerald-600/10 text-emerald-800 dark:text-emerald-300">
+                    <span class="grade-tag-pill">
                       GRADE {{ qualityAssessment.grade }}
                     </span>
                   </div>
-                  <p class="grade-sub mt-1">{{ qualityAssessment.summary }}</p>
+                  <p class="grade-sub">{{ qualityAssessment.summary }}</p>
                   
-                  <div class="mt-2.5 p-2 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-500/20 text-[11px] text-emerald-900 dark:text-emerald-300">
-                    <strong>Rekomendasi Pasar:</strong> {{ qualityAssessment.marketRecommendation }}
+                  <div class="grade-recommendation-box">
+                    <strong class="rec-label">Rekomendasi Pasar:</strong> {{ qualityAssessment.marketRecommendation }}
                   </div>
                 </div>
               </div>
 
-              <!-- Quality Metrics Grid -->
-              <div class="grid grid-cols-3 gap-2 mt-3 text-xs">
-                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                  <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Kadar Air Akhir</span>
-                  <span class="font-bold text-slate-800 dark:text-white text-sm">{{ qualityAssessment.metrics.finalMoisture || finalMoisture }}</span>
-                  <span class="text-[10px] text-emerald-600 block mt-0.5">Standar SNI &le;13.5%</span>
+              <!-- Quality Metrics Grid (3 Kolom Kartu Rapi) -->
+              <div class="quality-metrics-grid">
+                <div class="quality-metric-item">
+                  <span class="qm-label">Kadar Air Akhir</span>
+                  <strong class="qm-value">{{ qualityAssessment.metrics.finalMoisture || finalMoisture }}</strong>
+                  <span class="qm-sub">Standar SNI &le;13.5%</span>
                 </div>
-                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                  <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Stabilitas Suhu</span>
-                  <span class="font-bold text-slate-800 dark:text-white text-sm">&plusmn;{{ qualityAssessment.metrics.tempStdDev || '2.2' }}&deg;C</span>
-                  <span class="text-[10px] text-emerald-600 block mt-0.5">{{ qualityAssessment.metrics.tempStabilityLevel || 'Sangat Stabil' }}</span>
+                <div class="quality-metric-item">
+                  <span class="qm-label">Stabilitas Suhu</span>
+                  <strong class="qm-value">&plusmn;{{ qualityAssessment.metrics.tempStdDev || '2.2' }}&deg;C</strong>
+                  <span class="qm-sub">{{ qualityAssessment.metrics.tempStabilityLevel || 'Sangat Stabil' }}</span>
                 </div>
-                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                  <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Keseragaman Kurva</span>
-                  <span class="font-bold text-slate-800 dark:text-white text-sm">{{ qualityAssessment.metrics.uniformityIndex || '95' }}%</span>
-                  <span class="text-[10px] text-emerald-600 block mt-0.5">Distribusi Tray Rata</span>
+                <div class="quality-metric-item">
+                  <span class="qm-label">Keseragaman Kurva</span>
+                  <strong class="qm-value">{{ qualityAssessment.metrics.uniformityIndex || '95' }}%</strong>
+                  <span class="qm-sub">Distribusi Tray Rata</span>
                 </div>
               </div>
 
@@ -1433,20 +1432,16 @@ function handleChartMouseMove(e) {
   if (!item) return
 
   const svgX = Math.round(60 + percentX * 880)
-  const normTemp = (item.tempInternal - 0) / 100
-  const normHum = (item.humidityInternal - 0) / 100
-  const normMoist = (item.grainMoisture - 0) / 100
-  const normSolar = (item.solarRadiation - 0) / 1000
+  const normTemp = Math.max(0, Math.min(1, (item.tempInternal - 0) / 80))
+  const normMoist = Math.max(0, Math.min(1, (item.grainMoisture - 0) / 100))
 
   hoverData.value = {
     index,
     item,
     svgX,
-    domPercentX: percentX * 100,
-    yTemp: Math.round(20 + (1 - normTemp) * 240),
-    yHum: Math.round(20 + (1 - normHum) * 240),
-    yMoisture: Math.round(20 + (1 - normMoist) * 240),
-    ySolar: Math.round(20 + (1 - normSolar) * 240),
+    domPercentX: Math.max(14, Math.min(86, percentX * 100)),
+    yTemp: Math.round(245 - normTemp * 220),
+    yMoisture: Math.round(245 - normMoist * 220),
   }
 }
 
@@ -2084,84 +2079,209 @@ async function handleExport() {
   border-radius: 50%;
 }
 
-/* Master SVG */
+/* Master SVG & Canvas Area */
+.chart-canvas-box,
 .master-svg-chart-wrapper {
   position: relative;
   width: 100%;
-  height: 320px;
   background: #FCFDFD;
-  border: 1px solid var(--color-border-subtle, #F1F5F9);
-  border-radius: 10px;
+  border: 1px solid var(--color-border-subtle, #E2E8F0);
+  border-radius: 12px;
   overflow: hidden;
   cursor: crosshair;
+  padding: 8px 4px;
 }
 
+:global(.dark-theme) .chart-canvas-box,
 :global(.dark-theme) .master-svg-chart-wrapper {
-  background: #0F172A;
-  border-color: #1E293B;
+  background: #0B131E;
+  border-color: rgba(51, 65, 85, 0.7);
 }
 
+.master-svg-chart,
 .master-svg {
   width: 100%;
-  height: 100%;
+  height: 280px;
+  display: block;
 }
 
-/* Floating Glassmorphic Tooltip */
+/* Floating Glassmorphic Tooltip (Follows Cursor) */
+.chart-floating-tooltip,
 .floating-chart-tooltip {
   position: absolute;
-  top: 15px;
+  top: 16px;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid #CBD5E1;
-  border-radius: 10px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 12px 16px;
   pointer-events: none;
-  z-index: 20;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 40;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   min-width: 220px;
+  transition: left 0.06s ease-out;
 }
 
+:global(.dark-theme) .chart-floating-tooltip,
 :global(.dark-theme) .floating-chart-tooltip {
-  background: rgba(15, 23, 42, 0.92);
+  background: rgba(15, 23, 42, 0.95);
+  border-color: #334155;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.5);
+}
+
+.tt-header,
+.tooltip-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-title, #0F172A);
+  border-bottom: 1px solid var(--color-border-subtle, #E2E8F0);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+:global(.dark-theme) .tt-header,
+:global(.dark-theme) .tooltip-header {
+  color: #F8FAFC;
   border-color: #334155;
 }
 
-.tooltip-header {
-  font-size: 12px;
-  color: var(--color-text-title);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 6px;
-  margin-bottom: 8px;
+.tt-step-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: rgba(13, 99, 27, 0.12);
+  color: #0D631B;
 }
 
+:global(.dark-theme) .tt-step-badge {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ADE80;
+}
+
+.tt-grid,
 .tooltip-grid {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
+.tt-row,
 .tooltip-item {
   display: flex;
   align-items: center;
   font-size: 12px;
+  gap: 6px;
 }
 
 .tt-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  margin-right: 6px;
+  flex-shrink: 0;
 }
 
 .tt-label {
-  color: var(--color-text-muted);
-  margin-right: auto;
+  color: var(--color-text-muted, #64748B);
+  font-weight: 500;
+}
+
+:global(.dark-theme) .tt-label {
+  color: #94A3B8;
 }
 
 .tt-val {
+  margin-left: auto;
   font-weight: 700;
-  color: var(--color-text-title);
+  color: var(--color-text-title, #0F172A);
+}
+
+:global(.dark-theme) .tt-val {
+  color: #F8FAFC;
+}
+
+/* Tooltip & Chip Color Utilities */
+.bg-red { background-color: #BA1A1A; }
+.bg-blue { background-color: #005DB7; }
+.bg-purple { background-color: #9333EA; }
+.bg-amber { background-color: #D97706; }
+.bg-slate-500 { background-color: #64748B; }
+
+.text-red { color: #BA1A1A; }
+.text-blue { color: #005DB7; }
+.text-purple { color: #9333EA; }
+.text-amber { color: #D97706; }
+
+/* Interactive Legend Pills Below Chart */
+.chart-legend-floating {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border-subtle, #E2E8F0);
+}
+
+:global(.dark-theme) .chart-legend-floating {
+  border-color: rgba(51, 65, 85, 0.5);
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--color-bg-light, #F8FAFC);
+  border: 1px solid var(--color-border, #E2E8F0);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-title, #1E293B);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.legend-chip:hover {
+  background: #FFFFFF;
+  border-color: #94A3B8;
+  transform: translateY(-1px);
+}
+
+:global(.dark-theme) .legend-chip {
+  background: #152233;
+  border-color: #24354A;
+  color: #E2E8F0;
+}
+
+:global(.dark-theme) .legend-chip:hover {
+  background: #1B2B40;
+  border-color: #3B5270;
+}
+
+.chip-color {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Tooltip Fade Transition */
+.fade-tooltip-enter-active,
+.fade-tooltip-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.fade-tooltip-enter-from,
+.fade-tooltip-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
 }
 
 /* 2 Subcharts Grid */
@@ -2428,6 +2548,111 @@ async function handleExport() {
 
 :global(.dark-theme) .grade-sub {
   color: #FCD34D !important;
+}
+
+.grade-text-body {
+  flex: 1;
+}
+
+.grade-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.grade-tag-pill {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(13, 99, 27, 0.12);
+  color: #0D631B;
+}
+
+:global(.dark-theme) .grade-tag-pill {
+  background: rgba(74, 222, 128, 0.2);
+  color: #4ADE80;
+}
+
+.grade-recommendation-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(13, 99, 27, 0.08);
+  border: 1px solid rgba(13, 99, 27, 0.18);
+  font-size: 12px;
+  color: #064E3B;
+  line-height: 1.5;
+}
+
+:global(.dark-theme) .grade-recommendation-box {
+  background: rgba(6, 78, 59, 0.25);
+  border-color: rgba(52, 211, 153, 0.2);
+  color: #A7F3D0;
+}
+
+.rec-label {
+  font-weight: 700;
+  color: #047857;
+}
+
+:global(.dark-theme) .rec-label {
+  color: #34D399;
+}
+
+/* Quality Metrics Grid (3 Kolom Elegan) */
+.quality-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.quality-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-bg-light, #F8FAFC);
+  border: 1px solid var(--color-border, #E2E8F0);
+  transition: all 0.2s ease;
+}
+
+:global(.dark-theme) .quality-metric-item {
+  background: #111D2E;
+  border-color: #1E2E44;
+}
+
+.qm-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, #64748B);
+}
+
+.qm-value {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text-title, #0F172A);
+}
+
+:global(.dark-theme) .qm-value {
+  color: #F8FAFC;
+}
+
+.qm-sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #0D631B;
+}
+
+:global(.dark-theme) .qm-sub {
+  color: #4ADE80;
 }
 
 .operator-notes-container {

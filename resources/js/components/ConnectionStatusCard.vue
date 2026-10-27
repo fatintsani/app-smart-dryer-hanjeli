@@ -85,60 +85,21 @@
       </div>
     </div>
 
-    <!-- 1. Top Section: Sumber Data Sensor IoT Switcher (Mode Alat Fisik Live vs Mode Simulasi IoT) -->
+    <!-- 1. Top Section: Status Integrasi Perangkat Fisik ESP32 -->
     <div class="source-mode-bar" :class="{ 'is-collapsed': !isCardExpanded }">
       <div class="source-mode-info">
         <div class="source-title-row">
-          <span class="source-label">{{ $t('connectionCard.sourceLabel') }}</span>
-          <span class="source-mode-badge" :class="sourceMode === 'simulation' ? 'badge-sim' : 'badge-hw'">
+          <span class="source-label">{{ $t('connectionCard.sourceLabel') || 'INTEGRASI PERANGKAT' }}</span>
+          <span class="source-mode-badge badge-hw">
             <span class="badge-dot" :class="statusDotClass"></span>
-            <span>{{ sourceMode === 'simulation' ? $t('connectionCard.modeSimulation') : (activeMode === 'wifi' ? 'Wi-Fi Live' : (activeMode === 'ble' ? 'BLE Live' : 'USB Live')) }}</span>
+            <span>{{ activeMode === 'wifi' ? 'Wi-Fi Live (MQTT)' : (activeMode === 'ble' ? 'BLE Live' : 'USB Serial Live') }}</span>
           </span>
         </div>
-        <p class="source-sub">{{ $t('connectionCard.sourceSub') }}</p>
+        <p class="source-sub">Telemetri sensor terhubung langsung dari mikrokontroler ESP32 fisik (Mode Produksi)</p>
       </div>
 
       <div class="source-control-container">
         <div class="source-control-actions">
-          <div class="source-segmented-control" :class="{ 'control-locked': !isAdmin }">
-            <button 
-              type="button" 
-              class="source-segment-btn" 
-              :class="{ active: sourceMode === 'hardware', 'btn-locked': !isAdmin }"
-              :disabled="!isAdmin"
-              :title="isAdmin ? $t('connectionCard.tooltipPhysical') : $t('connectionCard.tooltipAdminOnly')"
-              @click="switchSourceMode('hardware')"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                <rect x="9" y="9" width="6" height="6"></rect>
-                <line x1="9" y1="1" x2="9" y2="4"></line>
-                <line x1="15" y1="1" x2="15" y2="4"></line>
-                <line x1="9" y1="20" x2="9" y2="23"></line>
-                <line x1="15" y1="20" x2="15" y2="23"></line>
-              </svg>
-              <span>{{ $t('connectionCard.modePhysical') }}</span>
-            </button>
-
-            <button 
-              type="button" 
-              class="source-segment-btn" 
-              :class="{ active: sourceMode === 'simulation', 'btn-locked': !isAdmin }"
-              :disabled="!isAdmin"
-              :title="isAdmin ? $t('connectionCard.tooltipSimulation') : $t('connectionCard.tooltipAdminOnly')"
-              @click="switchSourceMode('simulation')"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <path d="M10 2v7.31"></path>
-                <path d="M14 9.3V2"></path>
-                <path d="M8.5 2h7"></path>
-                <path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path>
-                <path d="M5.52 16h12.96"></path>
-              </svg>
-              <span>{{ $t('connectionCard.modeSimulation') }}</span>
-            </button>
-          </div>
-
           <!-- Dropdown / Collapse Button for Card Body -->
           <button 
             type="button" 
@@ -165,24 +126,13 @@
             </svg>
           </button>
         </div>
-
-        <transition name="fade">
-          <div v-if="permissionWarning" class="permission-alert-tooltip">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <span>{{ $t('connectionCard.permissionWarning') }}</span>
-          </div>
-        </transition>
       </div>
     </div>
 
     <!-- Expandable / Collapsible Body -->
     <div class="card-collapsible-body" :class="{ 'is-collapsed': !isCardExpanded }">
-      <!-- 2. Multi-Connectivity Selector & Status (When in Hardware Live Mode) -->
-      <div v-if="sourceMode === 'hardware'" class="hardware-connection-section">
+      <!-- 2. Multi-Connectivity Selector & Status (Physical Hardware Mode) -->
+      <div class="hardware-connection-section">
       <div class="card-header-row">
         <div class="header-title-group">
           <div class="mode-icon-circle" :class="activeMode">
@@ -534,31 +484,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 3. Simulation Mode Active Banner (When in Simulation Mode) -->
-    <div v-else class="simulation-active-banner">
-      <div class="sim-banner-content">
-        <div class="sim-icon-box">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M10 2v7.31"></path>
-            <path d="M14 9.3V2"></path>
-            <path d="M8.5 2h7"></path>
-            <path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path>
-            <path d="M5.52 16h12.96"></path>
-          </svg>
-        </div>
-        <div class="sim-text-group">
-          <h4 class="sim-heading">{{ $t('connectionCard.simActiveHeading') }}</h4>
-          <p class="sim-caption">{{ $t('connectionCard.simActiveDesc') }}</p>
-        </div>
-      </div>
-      <div class="sim-badge-wrap">
-        <span class="sim-live-badge">
-          <span class="sim-dot-pulse"></span>
-          <span>{{ $t('connectionCard.generatorRunning') }}</span>
-        </span>
-      </div>
-    </div>
   </div>
 
     <!-- 4. Device Identifier & Connection Setup Quick Modal -->
@@ -686,9 +611,6 @@ const isAdmin = computed(() => {
   return authService.isAdmin();
 });
 
-const permissionWarning = ref(false);
-let permTimer = null;
-
 const now = ref(Date.now());
 let timer = null;
 
@@ -734,25 +656,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (timer) clearInterval(timer);
-  if (permTimer) clearTimeout(permTimer);
 });
-
-const switchSourceMode = async (mode) => {
-  if (!isAdmin.value) {
-    permissionWarning.value = true;
-    if (permTimer) clearTimeout(permTimer);
-    permTimer = setTimeout(() => {
-      permissionWarning.value = false;
-    }, 4000);
-    return;
-  }
-  try {
-    await settingsService.setIotMode(mode.toUpperCase());
-  } catch (e) {
-    console.warn('Failed to persist mode to backend:', e);
-  }
-  connectionManager.setSourceMode(mode);
-};
 
 const switchMode = (mode) => {
   connectionManager.setConnectionMode(mode);

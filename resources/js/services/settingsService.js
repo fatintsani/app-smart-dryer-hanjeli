@@ -2,12 +2,10 @@ import { reactive } from 'vue';
 import api from './api';
 import connectionManager from './connectionManager';
 
-const initialIotMode = typeof localStorage !== 'undefined' && localStorage.getItem('hanjeli_source_mode') === 'simulation' ? 'SIMULATION' : 'HARDWARE';
-
 export const systemState = reactive({
   isSystemActive: true,
-  iotMode: initialIotMode, // 'SIMULATION' | 'HARDWARE'
-  environmentMode: 'LOCAL', // 'LOCAL' | 'PRODUCTION'
+  iotMode: 'HARDWARE', // Always HARDWARE for production direct device connection
+  environmentMode: 'PRODUCTION', // PRODUCTION
   maxSafeTemp: 55.0,
   minSafeTemp: 35.0,
   targetMoistureDefault: 12.0,

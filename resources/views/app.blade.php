@@ -24,6 +24,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,700;1,800&display=swap" rel="stylesheet">
 
+    <style>
+      *, *::before, *::after, html, body, button, input, select, textarea, span, p, h1, h2, h3, h4, h5, h6, div, table, td, th, label {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+      }
+    </style>
+
     <!-- Google Identity Services (GIS) for Google Sign-In -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 

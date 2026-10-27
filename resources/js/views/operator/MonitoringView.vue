@@ -95,6 +95,9 @@
                         @open-wifi-setup="isWifiSetupOpen = true"
                     />
 
+                    <!-- Interactive Actuator & Hardware Relay Control Hub -->
+                    <ActuatorControlCard :current-lang="currentLang" />
+
                     <!-- Live Sensor Health & Anomaly Diagnostics Bar -->
                     <div
                         class="sensor-health-card"
@@ -325,17 +328,15 @@
                         </Transition>
                     </div>
 
-                    <!-- 4 Top KPI Cards Grid -->
+                    <!-- 4 Top KPI Cards Grid (Sensors: DHT22, BH1750, Rain Sensor + Dual PTC Heater) -->
                     <div class="stats-grid-4">
-                        <!-- 1. Suhu Ruangan -->
+                        <!-- 1. Suhu Ruangan (DHT22 - Pin 25) -->
                         <div
                             class="stat-card"
                             :class="{ 'stat-card-standby': !isDataActive }"
                         >
                             <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >{{ $t("monitoring.kpiInternalTemp") }}</span
-                                >
+                                <span class="stat-label">Suhu Ruang (DHT22)</span>
                                 <div class="icon-circle icon-red-subtle">
                                     <svg
                                         width="18"
@@ -367,39 +368,20 @@
                                         : 'text-muted'
                                 "
                             >
-                                <span class="delta-chip"
-                                    >ΔT:
-                                    {{
-                                        isDataActive
-                                            ? (
-                                                  telemetry.tempInternal -
-                                                  telemetry.tempExternal
-                                              ).toFixed(1)
-                                            : "--"
-                                    }}°C</span
-                                >
-                                <span
-                                    >{{ $t("monitoring.kpiOutside") }}
-                                    {{
-                                        isDataActive
-                                            ? telemetry.tempExternal.toFixed(
-                                                  1,
-                                               ) + "°C"
-                                            : "--"
-                                    }}</span
-                                >
+                                <span class="delta-chip" :style="telemetry.tempInternal >= 50 ? 'background:#FEE2E2; color:#DC2626;' : 'background:#DCFCE7; color:#166534;'">
+                                    {{ telemetry.tempInternal >= 50 ? 'Cut-off ≥50°C' : (telemetry.tempInternal <= 48 ? 'Heater Re-arm ≤48°C' : 'Optimal (48-50°C)') }}
+                                </span>
+                                <span>{{ isDataActive ? (telemetry.dhtOk === false ? 'DHT22: ERROR' : 'GPIO 25 • Normal') : $t("dashboard.waitingEsp32") }}</span>
                             </div>
                         </div>
 
-                        <!-- 2. Kelembapan -->
+                        <!-- 2. Kelembapan Ruangan (DHT22 - Pin 25) -->
                         <div
                             class="stat-card"
                             :class="{ 'stat-card-standby': !isDataActive }"
                         >
                             <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >{{ $t("monitoring.kpiInternalHum") }}</span
-                                >
+                                <span class="stat-label">Kelembapan Ruang (DHT22)</span>
                                 <div class="icon-circle icon-blue-subtle">
                                     <svg
                                         width="18"
@@ -431,29 +413,18 @@
                                         : 'text-muted'
                                 "
                             >
-                                <span class="delta-chip-blue"
-                                    >{{ $t("monitoring.kpiOutside") }}
-                                    {{
-                                        isDataActive
-                                            ? telemetry.humidityExternal.toFixed(
-                                                  0,
-                                               ) + "%"
-                                            : "--"
-                                    }}</span
-                                >
-                                <span>{{ $t("monitoring.kpiTargetHum") }}</span>
+                                <span class="delta-chip-blue">Ambang Subuh: &gt;70%</span>
+                                <span>{{ isDataActive ? (telemetry.humidityInternal >= 70 ? 'Kelembapan Tinggi (Perlu Heater)' : 'Kelembapan Terkendali') : $t("dashboard.waitingEsp32") }}</span>
                             </div>
                         </div>
 
-                        <!-- 3. Kondisi Cahaya & Radiasi -->
+                        <!-- 3. Kondisi Cahaya & Radiasi (BH1750) -->
                         <div
                             class="stat-card"
                             :class="{ 'stat-card-standby': !isDataActive }"
                         >
                             <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >{{ $t("monitoring.kpiSolarRadiation") }}</span
-                                >
+                                <span class="stat-label">Cahaya / Radiasi (BH1750)</span>
                                 <div class="icon-circle icon-amber-subtle">
                                     <svg
                                         width="18"
@@ -479,7 +450,7 @@
                                         ? telemetry.solarRadiation.toFixed(0)
                                         : "--"
                                 }}</span>
-                                <span class="stat-unit">W/m²</span>
+                                <span class="stat-unit">Lux</span>
                             </div>
                             <div
                                 class="stat-trend"
@@ -490,121 +461,53 @@
                                 "
                             >
                                 <span class="delta-chip-amber">
-                                    <svg
-                                        v-if="telemetry.solarRadiation > 600"
-                                        width="12"
-                                        height="12"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2.2"
-                                        style="
-                                            display: inline-block;
-                                            vertical-align: middle;
-                                            margin-right: 3px;
-                                        "
-                                    >
-                                        <circle cx="12" cy="12" r="5"></circle>
-                                        <line
-                                            x1="12"
-                                            y1="1"
-                                            x2="12"
-                                            y2="3"
-                                        ></line>
-                                        <line
-                                            x1="12"
-                                            y1="21"
-                                            x2="12"
-                                            y2="23"
-                                        ></line>
-                                        <line
-                                            x1="4.22"
-                                            y1="4.22"
-                                            x2="5.64"
-                                            y2="5.64"
-                                        ></line>
-                                        <line
-                                            x1="18.36"
-                                            y1="18.36"
-                                            x2="19.78"
-                                            y2="19.78"
-                                        ></line>
-                                    </svg>
-                                    <svg
-                                        v-else
-                                        width="12"
-                                        height="12"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2.2"
-                                        style="
-                                            display: inline-block;
-                                            vertical-align: middle;
-                                            margin-right: 3px;
-                                        "
-                                    >
-                                        <path
-                                            d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"
-                                        ></path>
-                                    </svg>
-                                    <span>{{
-                                        telemetry.solarRadiation > 600
-                                            ? $t("monitoring.kpiSunny")
-                                            : $t("monitoring.kpiOvercast")
-                                    }}</span>
+                                    <span>{{ telemetry.solarRadiation >= 200 ? '☀️ SIANG' : (telemetry.solarRadiation >= 50 ? '⛅ SUBUH' : '🌙 MALAM') }}</span>
                                 </span>
-                                <span>{{ $t("monitoring.kpiSolarGain") }}</span>
+                                <span class="badge-pill" :class="isDataActive ? 'bg-amber-subtle text-amber-dark' : 'bg-gray-subtle text-muted'">
+                                    <span>{{ isDataActive ? (telemetry.bh1750Ok === false ? 'BH1750: ERROR' : 'I2C SDA:21 SCL:22') : $t('dashboard.standbyUpper') }}</span>
+                                </span>
                             </div>
                         </div>
 
-                        <!-- 4. Kadar Air & Bobot Hanjeli -->
+                        <!-- 4. Sensor Hujan & Pemanas PTC Dual-Channel -->
                         <div
                             class="stat-card"
                             :class="{ 'stat-card-standby': !isDataActive }"
                         >
                             <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >{{ $t("monitoring.kpiGrainMoisture") }}</span
-                                >
-                                <div class="icon-circle icon-purple-subtle">
+                                <span class="stat-label">Sensor Hujan & Pemanas PTC</span>
+                                <div class="icon-circle" :class="telemetry.isRaining || telemetry.heaterStatus ? 'icon-orange' : 'icon-blue-subtle'">
                                     <svg
                                         width="18"
                                         height="18"
                                         viewBox="0 0 24 24"
                                         fill="none"
-                                        stroke="#7E22CE"
+                                        :stroke="telemetry.isRaining || telemetry.heaterStatus ? '#D97706' : '#005DB7'"
                                         stroke-width="2.2"
                                     >
-                                        <circle cx="12" cy="12" r="9"></circle>
-                                        <polyline
-                                            points="12 7 12 12 15 15"
-                                        ></polyline>
+                                        <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+                                        <line x1="8" y1="19" x2="8" y2="21"></line>
+                                        <line x1="16" y1="19" x2="16" y2="21"></line>
                                     </svg>
                                 </div>
                             </div>
                             <div class="stat-value-row">
-                                <span class="stat-number">{{
+                                <span class="stat-number" :class="telemetry.isRaining ? 'text-blue' : 'text-green-dark'">{{
                                     isDataActive
-                                        ? telemetry.grainMoisture.toFixed(1)
+                                        ? (telemetry.isRaining ? 'HUJAN' : 'KERING')
                                         : "--"
                                 }}</span>
-                                <span class="stat-unit">%</span>
+                                <span class="status-chip" :class="telemetry.heaterStatus ? 'chip-on' : 'chip-off'">
+                                    {{ isDataActive ? (telemetry.heaterStatus ? 'PTC ON' : 'PTC OFF') : 'STANDBY' }}
+                                </span>
                             </div>
-                            <div class="stat-trend">
-                                <span class="delta-chip-purple"
-                                    >{{ $t("monitoring.kpiTargetMoisture") }}</span
-                                >
-                                <span
-                                    >{{ $t("monitoring.kpiWeight") }}
-                                    {{
-                                        isDataActive
-                                            ? telemetry.weightCurrentKg.toFixed(
-                                                  1,
-                                               ) + " kg"
-                                            : "--"
-                                    }}</span
-                                >
+                            <div class="stat-trend" style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="delta-chip" :style="telemetry.isRaining ? 'background:#DBEAFE; color:#1D4ED8;' : 'background:#DCFCE7; color:#166534;'">
+                                    ADC: {{ isDataActive ? (telemetry.rainAdc || (telemetry.isRaining ? 1200 : 3800)) : '--' }}
+                                </span>
+                                <span style="font-size: 11px; font-weight: 600; color: #64748B;">
+                                    {{ !isDataActive ? 'Pin 34 & Relai 26/27' : (telemetry.tempInternal >= 50 ? '🔴 Overheat (≥50°C)' : (telemetry.heaterStatus ? '🟡 PTC Aktif' : '🟢 Normal')) }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -743,20 +646,7 @@
                                 "
                             >
                                 <span class="series-box-dot bg-red"></span>
-                                <span>{{ $t("monitoring.seriesTempInt") }}</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="series-toggle-pill"
-                                :class="{ active: seriesVisible.tempExternal }"
-                                @click="
-                                    seriesVisible.tempExternal =
-                                        !seriesVisible.tempExternal
-                                "
-                            >
-                                <span class="series-box-dot bg-sky"></span>
-                                <span>{{ $t("monitoring.seriesTempExt") }}</span>
+                                <span>{{ $t("monitoring.seriesTempInt") }} (DHT22)</span>
                             </button>
 
                             <button
@@ -2282,18 +2172,6 @@
                             >
                                 <span class="series-box-dot bg-red"></span>
                                 <span>{{ $t("monitoring.seriesTempInt") }}</span>
-                            </button>
-                            <button
-                                type="button"
-                                class="series-toggle-pill"
-                                :class="{ active: seriesVisible.tempExternal }"
-                                @click="
-                                    seriesVisible.tempExternal =
-                                        !seriesVisible.tempExternal
-                                "
-                            >
-                                <span class="series-box-dot bg-sky"></span>
-                                <span>{{ $t("monitoring.seriesTempExt") }}</span>
                             </button>
                             <button
                                 type="button"
@@ -4055,8 +3933,16 @@ import { anomalyService } from "../../services/anomalyService";
 import { socketService } from "../../services/socketService";
 import connectionManager from "../../services/connectionManager";
 import ConnectionStatusCard from "../../components/ConnectionStatusCard.vue";
+import ActuatorControlCard from "../../components/ActuatorControlCard.vue";
 import DeviceSetupBleModal from "../../components/DeviceSetupBleModal.vue";
 import MonitoringSkeleton from "../../components/MonitoringSkeleton.vue";
+
+const props = defineProps({
+    currentLang: {
+        type: String,
+        default: 'id'
+    }
+});
 
 const isInitialLoading = ref(true);
 const isWifiSetupOpen = ref(false);
@@ -4090,23 +3976,22 @@ async function handleRunAnomalyScan() {
 
 const telemetry = ref({
     tempInternal: 0,
-    tempExternal: 0,
     humidityInternal: 0,
-    humidityExternal: 0,
-    grainMoisture: 0,
     solarRadiation: 0,
+    isRaining: false,
+    rainAdc: 4095,
+    heaterStatus: false,
+    heaterLevel: 0,
+    dhtOk: true,
+    bh1750Ok: true,
+    grainMoisture: 0,
     weightCurrentKg: 0,
     hasData: false,
 });
 
 const actuators = ref({
-    exhaustFanStatus: false,
-    exhaustFanSpeed: 0,
-    blowerFanStatus: false,
-    blowerFanSpeed: 0,
     auxHeaterStatus: false,
     auxHeaterLevel: 0,
-    roofVentStatus: false,
     controlMode: "AUTOMATIC",
 });
 
@@ -4146,7 +4031,7 @@ const fsDeltaTooltipLeft = ref(0);
 // Interactive Series Toggles
 const seriesVisible = reactive({
     tempInternal: true,
-    tempExternal: true,
+    tempExternal: false,
     humidityInternal: true,
     grainMoisture: true,
     solarRadiation: true,
@@ -4154,7 +4039,6 @@ const seriesVisible = reactive({
 });
 
 const isDataActive = computed(() => {
-    if (connectionManager.state.sourceMode === "simulation") return true;
     return connectionManager.state.isHardwareActive && telemetry.value.hasData;
 });
 

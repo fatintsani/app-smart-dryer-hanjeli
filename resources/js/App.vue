@@ -45,7 +45,6 @@
               @settings="handleNavigate('settings')"
               @navigate="handleNavigate"
               @logout="handleLogout"
-              @open-simulator="isSimulatorOpen = true"
               @open-ai-copilot="isAiCopilotOpen = true"
             />
 
@@ -140,11 +139,6 @@
       @save="handleSaveProfile"
     />
 
-    <!-- Global Hardware IoT Simulator Modal -->
-    <HardwareSimulatorModal 
-      :is-open="isSimulatorOpen"
-      @close="isSimulatorOpen = false"
-    />
 
     <!-- Global Alert Notification Toast Banner -->
     <AlertNotificationToast 
@@ -194,7 +188,6 @@ import DesktopHeader from './components/DesktopHeader.vue'
 import MobileHeader from './components/MobileHeader.vue'
 import MobileBottomNav from './components/MobileBottomNav.vue'
 import EditProfileModal from './components/EditProfileModal.vue'
-import HardwareSimulatorModal from './components/HardwareSimulatorModal.vue'
 import AlertNotificationToast from './components/AlertNotificationToast.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
 import PwaInstallPrompt from './components/PwaInstallPrompt.vue'
@@ -253,7 +246,6 @@ const currentUser = ref(authService.getCurrentUser() || {
 })
 
 const isEditProfileOpen = ref(false)
-const isSimulatorOpen = ref(false)
 
 function onResize() {
   windowWidth.value = window.innerWidth
@@ -338,7 +330,7 @@ const mobileHeaderTitle = computed(() => {
   if (route.name === 'DryingForm') return 'Mulai Pengeringan'
   if (route.name === 'ActiveDrying') return 'Pengeringan Aktif'
   if (route.name === 'Settings') return currentLang.value === 'id' ? 'Pengaturan Akun & Alat' : 'Account & Device Settings'
-  if (route.name === 'Guide') return 'Panduan Alat'
+  if (route.name === 'Guide') return currentLang.value === 'id' ? 'SOP & Panduan' : 'SOP & Guide'
   return ''
 })
 
@@ -381,8 +373,7 @@ async function handleSaveProfile(updatedUser) {
 function handleNavigate(view) {
   if (view === 'admin' || view === 'admin-dashboard' || view === 'admin-overview') router.push('/admin')
   else if (view === 'admin-users') router.push('/admin/users')
-  else if (view === 'admin-devices') router.push('/admin/devices')
-  else if (view === 'admin-simulator') router.push('/admin/simulator')
+  else if (view === 'admin-devices' || view === 'admin-simulator') router.push('/admin/devices')
   else if (view === 'admin-logs') router.push('/admin/logs')
   else if (view === 'admin-parameters' || view === 'admin-settings') router.push('/admin/parameters')
   else if (view === 'dashboard') {

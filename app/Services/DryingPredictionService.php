@@ -113,7 +113,7 @@ class DryingPredictionService
             'success' => true,
             'batchId' => $batch?->id,
             'batchCode' => $batch?->batch_code ?? 'HJ-ACTIVE',
-            'cropVariety' => $batch?->crop_variety ?? 'Hanjeli Ketan Sukabumi',
+            'cropVariety' => $batch?->crop_variety ?? 'Biji Hanjeli',
             'status' => $batch?->status ?? 'ACTIVE',
             'currentMoisture' => round($currentMoisture, 1),
             'targetMoisture' => round($targetMoisture, 1),

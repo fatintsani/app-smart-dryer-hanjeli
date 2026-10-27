@@ -46,12 +46,7 @@
                                 </span>
                             </div>
                             <p class="page-subtitle">
-                                {{ $t("dashboard.trayLevel") }}:
-                                <strong>{{
-                                    activeBatch?.trayLevel ||
-                                    "Semua Rak (1, 2, 3)"
-                                }}</strong>
-                                • {{ $t("dashboard.dryingMode") }}:
+                                {{ $t("dashboard.dryingMode") }}:
                                 <strong>{{
                                     actuators.controlMode === "MANUAL"
                                         ? "Manual Control"
@@ -571,19 +566,17 @@
                             </div>
                         </div>
 
-                        <!-- 6. Status Aktuator & Kipas -->
+                        <!-- 6. Status Pemanas PTC & 3 LED Panel -->
                         <div class="stat-card">
                             <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >AKTUATOR & SIRKULASI</span
-                                >
-                                <div class="icon-circle icon-green-subtle">
+                                <span class="stat-label">PEMANAS PTC & 3 LED PANEL</span>
+                                <div class="icon-circle icon-orange">
                                     <svg
                                         width="18"
                                         height="18"
                                         viewBox="0 0 24 24"
                                         fill="none"
-                                        stroke="#0D631B"
+                                        stroke="#D97706"
                                         stroke-width="2.2"
                                     >
                                         <polygon
@@ -593,35 +586,23 @@
                                 </div>
                             </div>
                             <div class="stat-value-row">
-                                <span class="stat-number text-green-dark">
-                                    {{
-                                        actuators.exhaustFanStatus
-                                            ? actuators.exhaustFanSpeed + "%"
-                                            : "OFF"
-                                    }}
+                                <span class="stat-number" :class="actuators.auxHeaterStatus ? 'text-orange' : 'text-green-dark'">
+                                    {{ actuators.auxHeaterStatus ? 'PTC ON' : 'PTC OFF' }}
                                 </span>
-                                <span class="stat-unit">Fan</span>
                                 <span
                                     class="status-chip"
-                                    :class="
-                                        actuators.auxHeaterStatus
-                                            ? 'chip-on'
-                                            : 'chip-off'
-                                    "
+                                    :class="actuators.auxHeaterStatus ? 'chip-on' : 'chip-off'"
                                 >
-                                    Heater
-                                    {{
-                                        actuators.auxHeaterStatus ? "ON" : "OFF"
-                                    }}
+                                    {{ actuators.auxHeaterStatus ? 'Relai 26 & 27' : 'Standby' }}
                                 </span>
                             </div>
-                            <div class="stat-footer-text">
-                                <span
-                                    >Mode Kontrol:
-                                    <strong>{{
-                                        actuators.controlMode || "AUTOMATIC"
-                                    }}</strong></span
-                                >
+                            <div class="stat-footer-text" style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; gap: 4px; align-items: center;">
+                                    <span :style="`display:inline-block; width:8px; height:8px; border-radius:50%; background:${!actuators.auxHeaterStatus && (telemetry.tempInternal < 50) ? '#22C55E;' : '#D1D5DB;'}`"></span>
+                                    <span :style="`display:inline-block; width:8px; height:8px; border-radius:50%; background:${actuators.auxHeaterStatus && (telemetry.tempInternal < 50) ? '#EAB308;' : '#D1D5DB;'}`"></span>
+                                    <span :style="`display:inline-block; width:8px; height:8px; border-radius:50%; background:${telemetry.tempInternal >= 50 ? '#EF4444;' : '#D1D5DB;'}`"></span>
+                                </div>
+                                <span style="font-size: 11px;">Histeresis: <strong>48°C - 50°C</strong></span>
                             </div>
                         </div>
                     </div>

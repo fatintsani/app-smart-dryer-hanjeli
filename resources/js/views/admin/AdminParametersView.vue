@@ -51,11 +51,10 @@
 
             <div class="form-field-group">
               <label class="form-label">Mode Sumber Data IoT</label>
-              <select v-model="masterSettings.iotMode" class="modern-input">
-                <option value="SIMULATION">Mode Simulasi IoT (ESP32 Software)</option>
-                <option value="HARDWARE">Mode Langsung Alat Fisik (ESP32 Live)</option>
+              <select v-model="masterSettings.iotMode" class="modern-input" disabled>
+                <option value="HARDWARE">Mode Langsung Alat Fisik (ESP32 Live Production)</option>
               </select>
-              <small class="form-hint">Pilih sumber telemetri data sensor greenhouse.</small>
+              <small class="form-hint">Sistem berjalan penuh secara langsung menghubungkan mikrokontroler fisik ESP32.</small>
             </div>
 
             <div class="form-field-group">
@@ -248,8 +247,8 @@ const isSendingDailyDigest = ref(false)
 
 const masterSettings = reactive({
   isSystemActive: true,
-  iotMode: 'SIMULATION',
-  environmentMode: 'LOCAL',
+  iotMode: 'HARDWARE',
+  environmentMode: 'PRODUCTION',
   maxSafeTemp: 55.0,
   minHumidityTrigger: 70.0,
   targetMoistureDefault: 12.0,

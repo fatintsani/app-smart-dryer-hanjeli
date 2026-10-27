@@ -16,78 +16,51 @@
         </div>
       </div>
 
-      <!-- System Readiness Overview Banner -->
-      <div class="system-overview-banner" :class="isSystemActive ? 'banner-ready' : 'banner-standby'">
+      <!-- Status Kesiapan SOP Pengeringan Hanjeli -->
+      <div class="system-overview-banner banner-ready">
         <div class="banner-left">
           <div class="banner-status-icon">
-            <svg v-if="isSystemActive" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.4">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.4">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.4">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
           </div>
           <div>
             <div class="banner-title">
-              {{ isSystemActive ? $t('guide.allSensorsReady') : $t('guide.espWaiting') }}
+              Prosedur Operasional Standar (SOP) Pengeringan
             </div>
             <p class="banner-desc">
-              {{ isSystemActive ? $t('guide.allSensorsDesc') : $t('guide.espWaitingDesc') }}
+              Pedomani 5 tahapan baku pengeringan biji hanjeli untuk menjamin kualitas fisik prima dan kadar air standar SNI (≤ 12.0%).
             </p>
           </div>
         </div>
 
         <div class="banner-indicators">
           <div class="indicator-item">
-            <span class="ind-lbl">{{ $t('guide.mainMcu') }}</span>
+            <span class="ind-lbl">KOMODITAS UTAMA</span>
             <span class="ind-val text-green-dark">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                <rect x="9" y="9" width="6" height="6"></rect>
-              </svg>
-              ESP32 DevKit V1
+              Biji Hanjeli Sukabumi
             </span>
           </div>
           <div class="indicator-sep"></div>
           <div class="indicator-item">
-            <span class="ind-lbl">{{ $t('guide.commChannel') }}</span>
+            <span class="ind-lbl">STANDAR MUTU</span>
             <span class="ind-val text-green-dark">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                <line x1="12" y1="20" x2="12.01" y2="20"></line>
-              </svg>
-              Dual Mode (Wi-Fi & BLE)
+              SNI (Kadar Air ≤ 12.0%)
             </span>
           </div>
           <div class="indicator-sep"></div>
           <div class="indicator-item">
-            <span class="ind-lbl">{{ $t('guide.totalModules') }}</span>
+            <span class="ind-lbl">RENTANG SUHU AMAN</span>
             <span class="ind-val text-green-dark">
-              {{ $t('guide.modulesUnit', { count: hardwareCatalog.length }) }}
+              48°C - 50°C
             </span>
           </div>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
+      <!-- Navigation Tabs (Khusus Operator: SOP dan Panduan Kendala) -->
       <div class="guide-nav-tabs">
-        <button 
-          class="guide-tab-btn" 
-          :class="{ active: activeTab === 'devices' }"
-          @click="activeTab = 'devices'"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-          </svg>
-          <span>{{ $t('guide.tabCatalog') }} ({{ hardwareCatalog.length }})</span>
-        </button>
-
         <button 
           class="guide-tab-btn" 
           :class="{ active: activeTab === 'sop' }"
@@ -115,129 +88,6 @@
           </svg>
           <span>{{ $t('guide.tabFaq') }}</span>
         </button>
-
-        <button 
-          class="guide-tab-btn" 
-          :class="{ active: activeTab === 'arduino' }"
-          @click="activeTab = 'arduino'"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16 18 22 12 16 6"></polyline>
-            <polyline points="8 6 2 12 8 18"></polyline>
-          </svg>
-          <span>{{ $t('guide.tabArduino') }} ({{ arduinoPrograms.length }})</span>
-        </button>
-      </div>
-
-      <!-- TAB 1: DAFTAR SENSOR (RINGKAS & SIMPEL UNTUK OPERATOR) -->
-      <div v-if="activeTab === 'devices'" class="tab-pane">
-        <div class="devices-simple-grid">
-          <div 
-            v-for="hw in hardwareCatalog" 
-            :key="hw.id" 
-            class="sensor-simple-card"
-          >
-            <!-- Card Top Header -->
-            <div class="sensor-card-top">
-              <div class="sensor-icon-box" :class="getIconBoxClass(hw.iconType)">
-                <!-- Microchip (ESP32) -->
-                <svg v-if="hw.iconType === 'mcu'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                  <rect x="9" y="9" width="6" height="6"></rect>
-                  <line x1="9" y1="1" x2="9" y2="4"></line>
-                  <line x1="15" y1="1" x2="15" y2="4"></line>
-                  <line x1="9" y1="20" x2="9" y2="23"></line>
-                  <line x1="15" y1="20" x2="15" y2="23"></line>
-                  <line x1="20" y1="9" x2="23" y2="9"></line>
-                  <line x1="20" y1="14" x2="23" y2="14"></line>
-                  <line x1="1" y1="9" x2="4" y2="9"></line>
-                  <line x1="1" y1="14" x2="4" y2="14"></line>
-                </svg>
-                <!-- Temp / Humidity Sensor -->
-                <svg v-else-if="hw.iconType === 'temp'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
-                </svg>
-                <!-- Solar / Pyranometer -->
-                <svg v-else-if="hw.iconType === 'sun'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="4"></circle>
-                  <path d="M12 2v2"></path>
-                  <path d="M12 20v2"></path>
-                  <path d="m4.93 4.93 1.41 1.41"></path>
-                  <path d="m17.66 17.66 1.41 1.41"></path>
-                  <path d="M2 12h2"></path>
-                  <path d="M20 12h2"></path>
-                  <path d="m6.34 17.66-1.41 1.41"></path>
-                  <path d="m19.07 4.93-1.41 1.41"></path>
-                </svg>
-                <!-- Weight / Moisture -->
-                <svg v-else-if="hw.iconType === 'weight'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="9"></circle>
-                  <polyline points="12 7 12 12 15 15"></polyline>
-                </svg>
-                <!-- Relay / Actuator -->
-                <svg v-else-if="hw.iconType === 'relay'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="2" y="7" width="20" height="14" rx="2"></rect>
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                </svg>
-                <!-- WiFi / Wireless -->
-                <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                  <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                  <line x1="12" y1="20" x2="12.01" y2="20"></line>
-                </svg>
-              </div>
-
-              <div class="sensor-title-info">
-                <h3 class="sensor-simple-title">{{ hw.name }}</h3>
-                <span class="sensor-category-tag">{{ hw.category }}</span>
-              </div>
-
-              <div class="sensor-status-tag" :class="isSystemActive ? 'tag-online' : 'tag-standby'">
-                <span class="status-pulse-dot" :class="isSystemActive ? 'online' : 'standby'"></span>
-                <span>{{ isSystemActive ? $t('guide.statusActive') : $t('guide.statusStandby') }}</span>
-              </div>
-            </div>
-
-            <!-- Card Description -->
-            <p class="sensor-simple-desc">{{ hw.purpose }}</p>
-
-            <!-- Card Bottom Meta -->
-            <div class="sensor-card-bottom">
-              <div class="sensor-loc-pill">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span>{{ hw.location }}</span>
-              </div>
-
-              <div class="sensor-unit-pill">
-                <span>{{ hw.unitBadge }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Partnership & Developer Section -->
-        <div class="collab-strip-card">
-          <div class="collab-item">
-            <HanjeliLogo :size="44" />
-            <div class="collab-text">
-              <span class="collab-role">{{ $t('guide.collabOwnerRole') }}</span>
-              <strong class="collab-name">{{ $t('guide.collabOwnerName') }}</strong>
-              <p class="collab-desc">{{ $t('guide.collabOwnerDesc') }}</p>
-            </div>
-          </div>
-          <div class="collab-divider"></div>
-          <div class="collab-item">
-            <StasLogo :size="44" />
-            <div class="collab-text">
-              <span class="collab-role">{{ $t('guide.collabDevRole') }}</span>
-              <strong class="collab-name">{{ $t('guide.collabDevName') }}</strong>
-              <p class="collab-desc">{{ $t('guide.collabDevDesc') }}</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- TAB 2: SOP PENGERINGAN HANJELI -->
@@ -435,163 +285,23 @@
         </div>
       </div>
 
-      <!-- TAB 4: PROGRAM ARDUINO / ESP32 (2 PROGRAM) -->
-      <div v-if="activeTab === 'arduino'" class="tab-pane">
-        <div class="arduino-tab-container">
-          <!-- Intro Banner -->
-          <div class="arduino-intro-banner">
-            <div class="arduino-intro-content">
-              <div class="arduino-logo-badge">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
-                  <polyline points="16 18 22 12 16 6"></polyline>
-                  <polyline points="8 6 2 12 8 18"></polyline>
-                </svg>
-              </div>
-              <div class="arduino-intro-text">
-                <h3 class="arduino-intro-title">{{ $t('guide.arduinoIntroTitle') }}</h3>
-                <p class="arduino-intro-sub" v-html="$t('guide.arduinoIntroSub')"></p>
-              </div>
-            </div>
+      <!-- Partnership & Developer Section -->
+      <div class="collab-strip-card" style="margin-top: 24px;">
+        <div class="collab-item">
+          <HanjeliLogo :size="44" />
+          <div class="collab-text">
+            <span class="collab-role">{{ $t('guide.collabOwnerRole') }}</span>
+            <strong class="collab-name">{{ $t('guide.collabOwnerName') }}</strong>
+            <p class="collab-desc">{{ $t('guide.collabOwnerDesc') }}</p>
           </div>
-
-          <!-- Program Selector Cards -->
-          <div class="program-selector-grid">
-            <div 
-              v-for="prog in arduinoPrograms" 
-              :key="prog.id"
-              class="program-card"
-              :class="{ active: selectedProgramId === prog.id }"
-              @click="selectedProgramId = prog.id"
-            >
-              <div class="program-card-header">
-                <span class="program-badge" :class="prog.badgeClass">{{ prog.badge }}</span>
-                <span class="program-filename">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                  </svg>
-                  {{ prog.filename }}
-                </span>
-              </div>
-              <h4 class="program-card-title">{{ prog.title }}</h4>
-              <p class="program-card-desc">{{ prog.desc }}</p>
-              <div class="program-card-footer">
-                <span class="program-select-indicator">
-                  <svg v-if="selectedProgramId === prog.id" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  {{ selectedProgramId === prog.id ? $t('guide.selectedProgram') : $t('guide.selectThisProgram') }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Active Program Details & Code Viewer -->
-          <div class="active-program-wrapper">
-            <!-- Program Meta Card -->
-            <div class="program-meta-card">
-              <div class="program-meta-grid">
-                <div class="meta-item">
-                  <span class="meta-label">{{ $t('guide.targetBoard') }}</span>
-                  <span class="meta-val font-semibold">{{ selectedProgram.target }}</span>
-                </div>
-                <div class="meta-item">
-                  <span class="meta-label">{{ $t('guide.serialBaudrate') }}</span>
-                  <span class="meta-val font-mono">{{ selectedProgram.baudrate }} bps</span>
-                </div>
-                <div class="meta-item-full">
-                  <span class="meta-label">{{ $t('guide.requiredLibraries') }}</span>
-                  <div class="meta-lib-tags">
-                    <span v-for="lib in selectedProgram.libraries" :key="lib" class="lib-tag">
-                      {{ lib }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Top Actions: Copy & Download -->
-              <div class="program-actions">
-                <button 
-                  class="action-btn-copy" 
-                  @click="copyProgramCode(selectedProgram.code)"
-                  :class="{ copied: isCopied }"
-                >
-                  <svg v-if="!isCopied" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span>{{ isCopied ? $t('guide.copiedToClipboard') : $t('guide.copyProgram') }}</span>
-                </button>
-
-                <button class="action-btn-download" @click="downloadInoFile(selectedProgram)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  <span>{{ $t('guide.downloadIno') }}</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Code Editor Viewer -->
-            <div class="code-editor-box">
-              <div class="code-editor-header">
-                <div class="code-header-left">
-                  <div class="code-dots">
-                    <span class="code-dot dot-red"></span>
-                    <span class="code-dot dot-yellow"></span>
-                    <span class="code-dot dot-green"></span>
-                  </div>
-                  <span class="code-file-title">{{ selectedProgram.filename }}</span>
-                </div>
-                <div class="code-header-right">
-                  <span class="code-lines-count">{{ $t('guide.linesCount', { count: selectedProgram.code.split('\n').length }) }}</span>
-                  <button class="code-header-copy-btn" @click="copyProgramCode(selectedProgram.code)">
-                    <svg v-if="isCopied" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    <span>{{ isCopied ? $t('guide.copied') : $t('guide.copyCode') }}</span>
-                  </button>
-                </div>
-              </div>
-
-              <div class="code-editor-content">
-                <pre class="code-pre"><code>{{ selectedProgram.code }}</code></pre>
-              </div>
-            </div>
-
-            <!-- Step by Step Flashing Guide -->
-            <div class="flashing-guide-card">
-              <h4 class="guide-steps-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                {{ $t('guide.flashGuideTitle') }}
-              </h4>
-              <div class="steps-grid">
-                <div class="step-card">
-                  <div class="step-num">1</div>
-                  <div class="step-desc" v-html="$t('guide.flashStep1Text')"></div>
-                </div>
-                <div class="step-card">
-                  <div class="step-num">2</div>
-                  <div class="step-desc" v-html="$t('guide.flashStep2Text')"></div>
-                </div>
-                <div class="step-card">
-                  <div class="step-num">3</div>
-                  <div class="step-desc" v-html="$t('guide.flashStep3Text')"></div>
-                </div>
-                <div class="step-card">
-                  <div class="step-num">4</div>
-                  <div class="step-desc" v-html="$t('guide.flashStep4Text')"></div>
-                </div>
-              </div>
-            </div>
+        </div>
+        <div class="collab-divider"></div>
+        <div class="collab-item">
+          <StasLogo :size="44" />
+          <div class="collab-text">
+            <span class="collab-role">{{ $t('guide.collabDevRole') }}</span>
+            <strong class="collab-name">{{ $t('guide.collabDevName') }}</strong>
+            <p class="collab-desc">{{ $t('guide.collabDevDesc') }}</p>
           </div>
         </div>
       </div>
@@ -602,18 +312,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import HanjeliLogo from '../../components/HanjeliLogo.vue';
 import StasLogo from '../../components/StasLogo.vue';
-import connectionManager from '../../services/connectionManager';
-import { ESP32_PHYSICAL_STANDALONE_CODE, ESP32_DUAL_MODE_CODE, ESP32_SIMULATOR_CODE } from '../../data/arduinoCode';
 import GuideSkeleton from '../../components/GuideSkeleton.vue';
 import { useI18n } from '../../i18n';
 
-const { t, currentLang } = useI18n();
+const { t } = useI18n();
 
 const isInitialLoading = ref(true);
-const activeTab = ref('devices');
+const activeTab = ref('sop');
 const openFaq = ref(1);
 
 onMounted(() => {
@@ -621,169 +329,6 @@ onMounted(() => {
     isInitialLoading.value = false;
   }, 350);
 });
-
-const selectedProgramId = ref('physical-standalone');
-const isCopied = ref(false);
-
-const arduinoPrograms = computed(() => [
-  {
-    id: 'physical-standalone',
-    title: t('guide.progPhysicalTitle'),
-    filename: 'esp32_smart_dryer_physical_fixed.ino',
-    badge: t('guide.progPhysicalBadge'),
-    badgeClass: 'badge-prod',
-    desc: t('guide.progPhysicalDesc'),
-    target: t('guide.progPhysicalTarget'),
-    libraries: ['DHT sensor library (Adafruit)', 'BH1750 (Christopher Laws)', 'LiquidCrystal_I2C', 'Wire.h'],
-    baudrate: 115200,
-    code: ESP32_PHYSICAL_STANDALONE_CODE,
-  },
-  {
-    id: 'dual-mode',
-    title: t('guide.progDualTitle'),
-    filename: 'esp32_smart_dryer_dual_iot.ino',
-    badge: t('guide.progDualBadge'),
-    badgeClass: 'badge-prod',
-    desc: t('guide.progDualDesc'),
-    target: t('guide.progDualTarget'),
-    libraries: ['DHT sensor library', 'BH1750', 'LiquidCrystal_I2C', 'PubSubClient', 'ArduinoJson (v6/v7)', 'WiFi.h', 'BLEDevice.h', 'Preferences.h'],
-    baudrate: 115200,
-    code: ESP32_DUAL_MODE_CODE,
-  },
-  {
-    id: 'simulator',
-    title: t('guide.progSimTitle'),
-    filename: 'esp32_smart_dryer_simulator.ino',
-    badge: t('guide.progSimBadge'),
-    badgeClass: 'badge-sim',
-    desc: t('guide.progSimDesc'),
-    target: t('guide.progSimTarget'),
-    libraries: ['PubSubClient (Nick O\'Leary)', 'ArduinoJson (v6/v7)', 'BLEDevice.h', 'WiFi.h', 'Preferences.h'],
-    baudrate: 115200,
-    code: ESP32_SIMULATOR_CODE,
-  }
-]);
-
-const selectedProgram = computed(() => {
-  return arduinoPrograms.value.find(p => p.id === selectedProgramId.value) || arduinoPrograms.value[0];
-});
-
-async function copyProgramCode(code) {
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(code);
-    } else {
-      throw new Error('Clipboard API not available');
-    }
-    isCopied.value = true;
-    setTimeout(() => {
-      isCopied.value = false;
-    }, 2500);
-  } catch (err) {
-    // Fallback for non-secure contexts
-    const textarea = document.createElement('textarea');
-    textarea.value = code;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    isCopied.value = true;
-    setTimeout(() => {
-      isCopied.value = false;
-    }, 2500);
-  }
-}
-
-function downloadInoFile(program) {
-  const blob = new Blob([program.code], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = program.filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
-// Reactive connection state from connectionManager
-const isSystemActive = computed(() => {
-  return connectionManager.state.isConnected || connectionManager.state.isHardwareActive;
-});
-
-// Live sensor telemetry snapshot from connectionManager
-const currentTelemetry = computed(() => {
-  return connectionManager.state.lastDataTimestamp ? connectionManager.getStatusSnapshot() : null;
-});
-
-// Structured Hardware Catalog for Smart Room Dryer Hanjeli (Ringkas & Sesuai Kebutuhan Operator)
-const hardwareCatalog = computed(() => [
-  {
-    id: 'mcu-esp32',
-    name: t('guide.hwMcuName'),
-    category: t('guide.hwMcuCategory'),
-    purpose: t('guide.hwMcuPurpose'),
-    location: t('guide.hwMcuLocation'),
-    unitBadge: t('guide.hwMcuBadge'),
-    iconType: 'mcu',
-  },
-  {
-    id: 'sensor-dht22-int',
-    name: t('guide.hwTempIntName'),
-    category: t('guide.hwTempIntCategory'),
-    purpose: t('guide.hwTempIntPurpose'),
-    location: t('guide.hwTempIntLocation'),
-    unitBadge: t('guide.hwTempIntBadge'),
-    iconType: 'temp',
-  },
-  {
-    id: 'sensor-dht22-ext',
-    name: t('guide.hwTempExtName'),
-    category: t('guide.hwTempExtCategory'),
-    purpose: t('guide.hwTempExtPurpose'),
-    location: t('guide.hwTempExtLocation'),
-    unitBadge: t('guide.hwTempExtBadge'),
-    iconType: 'temp',
-  },
-  {
-    id: 'sensor-solar',
-    name: t('guide.hwSolarName'),
-    category: t('guide.hwSolarCategory'),
-    purpose: t('guide.hwSolarPurpose'),
-    location: t('guide.hwSolarLocation'),
-    unitBadge: t('guide.hwSolarBadge'),
-    iconType: 'sun',
-  },
-  {
-    id: 'sensor-moisture-weight',
-    name: t('guide.hwMoistureName'),
-    category: t('guide.hwMoistureCategory'),
-    purpose: t('guide.hwMoisturePurpose'),
-    location: t('guide.hwMoistureLocation'),
-    unitBadge: t('guide.hwMoistureBadge'),
-    iconType: 'weight',
-  },
-  {
-    id: 'actuator-relays',
-    name: t('guide.hwRelayName'),
-    category: t('guide.hwRelayCategory'),
-    purpose: t('guide.hwRelayPurpose'),
-    location: t('guide.hwRelayLocation'),
-    unitBadge: t('guide.hwRelayBadge'),
-    iconType: 'relay',
-  },
-]);
-
-function getIconBoxClass(iconType) {
-  if (iconType === 'mcu') return 'icon-green-subtle';
-  if (iconType === 'temp') return 'icon-blue-subtle';
-  if (iconType === 'sun') return 'icon-amber-subtle';
-  if (iconType === 'weight') return 'icon-purple-subtle';
-  if (iconType === 'relay') return 'icon-orange-subtle';
-  return 'icon-blue-subtle';
-}
 </script>
 
 <style scoped>

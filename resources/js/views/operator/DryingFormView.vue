@@ -15,44 +15,20 @@
             </p>
           </div>
 
-          <!-- Quick Preset Selector Bar -->
+          <!-- Quick Preset Selector Bar (Biji Hanjeli & Kustom) -->
           <div class="preset-selector-bar">
             <span class="preset-lbl">{{ $t('dryingForm.presetLabel') }}</span>
             <button 
               type="button" 
               class="preset-pill" 
-              :class="{ active: selectedPreset === 'ketan_grade_a' }"
-              @click="applyPreset('ketan_grade_a')"
+              :class="{ active: selectedPreset === 'biji_hanjeli' }"
+              @click="applyPreset('biji_hanjeli')"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M12 2a9 9 0 0 1 9 9c0 4.97-4.03 9-9 9A9 9 0 0 1 3 11a9 9 0 0 1 9-9z"></path>
+                <circle cx="12" cy="12" r="9"></circle>
                 <path d="M12 7v10M8 11l4-4 4 4"></path>
               </svg>
-              <span>{{ $t('dryingForm.presetKetan') }}</span>
-            </button>
-            <button 
-              type="button" 
-              class="preset-pill" 
-              :class="{ active: selectedPreset === 'pangan_lokal' }"
-              @click="applyPreset('pangan_lokal')"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-              </svg>
-              <span>{{ $t('dryingForm.presetPangan') }}</span>
-            </button>
-            <button 
-              type="button" 
-              class="preset-pill" 
-              :class="{ active: selectedPreset === 'teh_sangrai' }"
-              @click="applyPreset('teh_sangrai')"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
-              </svg>
-              <span>{{ $t('dryingForm.presetTeh') }}</span>
+              <span>{{ $t('dryingForm.presetBiji') }}</span>
             </button>
             <button 
               type="button" 
@@ -68,8 +44,44 @@
             </button>
           </div>
 
-          <!-- Hardware Connection Status Banner -->
-          <div v-if="!isReadyToDry" class="hw-warning-banner">
+          <!-- 1. Active Batch In-Progress Warning Lock Banner (Takes priority over all other banners) -->
+          <div v-if="hasActiveBatch" class="active-batch-lock-banner">
+            <div class="ab-lock-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div class="ab-lock-content">
+              <div class="ab-lock-head">
+                <h3 class="ab-lock-title">Sesi Pengeringan Sedang Berlangsung</h3>
+                <span class="ab-lock-badge">Batch Aktif: {{ activeBatchData?.batchCode }}</span>
+              </div>
+              <p class="ab-lock-desc">
+                Saat ini sistem sedang menjalankan proses pengeringan untuk <strong>{{ activeBatchData?.cropVariety }}</strong> (Kadar Air Saat Ini: <strong>{{ activeBatchData?.currentMoisturePercent || 12.0 }}%</strong> &bull; Target: <strong>{{ activeBatchData?.targetMoisturePercent || 12.0 }}%</strong>).
+                <br>
+                Anda tidak dapat memulai sesi pengeringan baru secara bersamaan. Harap selesaikan sesi pengeringan aktif terlebih dahulu melalui menu <strong>Riwayat</strong> atau halaman <strong>Sesi Pengeringan Aktif</strong>.
+              </p>
+              <div class="ab-lock-actions">
+                <button type="button" class="btn-primary" @click="router.push('/drying/active')">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  <span>Pantau Sesi Pengeringan Aktif</span>
+                </button>
+                <button type="button" class="btn-outline-action" @click="router.push('/history')">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                  </svg>
+                  <span>Buka Riwayat & Selesaikan Batch</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Hardware Connection Status Banner (When No Active Batch) -->
+          <div v-else-if="!isHardwareConnected" class="hw-warning-banner">
             <div class="hw-warning-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B45000" stroke-width="2.2">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
@@ -92,12 +104,6 @@
                   </svg>
                   <span>{{ $t('dryingForm.btnConnectEsp32') }}</span>
                 </button>
-                <button v-if="isAdmin" type="button" class="btn-hw-sim" @click="activateSimulationMode">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                  </svg>
-                  <span>{{ $t('dryingForm.btnActivateSimulation') }}</span>
-                </button>
               </div>
             </div>
           </div>
@@ -111,7 +117,7 @@
             </div>
             <div class="hw-ready-text">
               <strong>{{ $t('dryingForm.telemetryStandbyLabel') }}</strong>
-              <span>{{ isHardwareConnected ? $t('dryingForm.hwConnectedLiveDesc') : $t('dryingForm.simEngineActiveDesc') }}</span>
+              <span>{{ $t('dryingForm.hwConnectedLiveDesc') }}</span>
             </div>
           </div>
 
@@ -150,16 +156,6 @@
                       class="form-input"
                     />
                   </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">{{ $t('dryingForm.trayPositionLabel') }}</label>
-                  <select v-model="formData.trayLevel" class="form-input">
-                    <option value="Semua Rak (Tingkat 1, 2, 3)">{{ $t('dryingForm.trayAllOption') }}</option>
-                    <option value="Rak Bawah Saja (Tingkat 1)">{{ $t('dryingForm.trayBottomOption') }}</option>
-                    <option value="Rak Tengah Saja (Tingkat 2)">{{ $t('dryingForm.trayMiddleOption') }}</option>
-                    <option value="Rak Atas Saja (Tingkat 3)">{{ $t('dryingForm.trayTopOption') }}</option>
-                  </select>
                 </div>
               </div>
 
@@ -444,6 +440,19 @@
                 <!-- Start & Cancel Actions -->
                 <div class="summary-actions">
                   <button 
+                    v-if="hasActiveBatch"
+                    type="button"
+                    class="btn-start-action btn-start-warning" 
+                    @click="router.push('/drying/active')"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span>Buka Sesi Pengeringan Aktif</span>
+                  </button>
+
+                  <button 
+                    v-else
                     class="btn-start-action" 
                     :class="{ 'btn-start-disabled': !isReadyToDry }"
                     @click="handleStart"
@@ -505,13 +514,6 @@
             <span>{{ $t('dryingForm.hwModalBtnConnect') }}</span>
           </button>
 
-          <button v-if="isAdmin" type="button" class="btn-modal-sim" @click="handleModalSimulateAndStart">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-            <span>{{ $t('dryingForm.hwModalBtnSimulate') }}</span>
-          </button>
-
           <button type="button" class="btn-modal-cancel" @click="isHardwareWarningModalOpen = false">
             {{ $t('common.close') }}
           </button>
@@ -528,6 +530,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { t } from '../../i18n'
 import { batchService } from '../../services/batchService'
 import { authService } from '../../services/authService'
@@ -544,13 +547,33 @@ defineProps({
 
 const emit = defineEmits(['start-process', 'cancel'])
 
+const router = useRouter()
 const isInitialLoading = ref(true)
-const selectedPreset = ref('ketan_grade_a')
+const selectedPreset = ref('biji_hanjeli')
 const isSubmitting = ref(false)
 const isWifiSetupOpen = ref(false)
 const isHardwareWarningModalOpen = ref(false)
 
-onMounted(() => {
+const hasActiveBatch = ref(false)
+const activeBatchData = ref(null)
+
+async function checkActiveBatch() {
+  try {
+    const res = await batchService.getActiveBatch()
+    if (res && res.activeBatch) {
+      hasActiveBatch.value = true
+      activeBatchData.value = res.activeBatch
+    } else {
+      hasActiveBatch.value = false
+      activeBatchData.value = null
+    }
+  } catch (err) {
+    console.warn('Failed to check active batch:', err)
+  }
+}
+
+onMounted(async () => {
+  await checkActiveBatch()
   setTimeout(() => {
     isInitialLoading.value = false
   }, 350)
@@ -560,19 +583,12 @@ const isAdmin = computed(() => {
   return authService.isAdmin()
 })
 
-// Hardware & Simulation State Check
+// Physical Hardware State Check - Direct ESP32 Production
 const isHardwareConnected = computed(() => {
-  return connectionManager.state.sourceMode === 'hardware' && connectionManager.state.isHardwareActive
-})
-
-const isSimulationActive = computed(() => {
-  return connectionManager.state.sourceMode === 'simulation'
+  return connectionManager.state.isHardwareActive
 })
 
 const isReadyToDry = computed(() => {
-  if (connectionManager.state.sourceMode === 'simulation') {
-    return isAdmin.value
-  }
   return isHardwareConnected.value
 })
 
@@ -580,62 +596,33 @@ function openHardwareSetup() {
   isWifiSetupOpen.value = true
 }
 
-function activateSimulationMode() {
-  if (!isAdmin.value) return
-  connectionManager.setSourceMode('simulation')
-}
-
 function handleModalConnect() {
   isHardwareWarningModalOpen.value = false
   isWifiSetupOpen.value = true
 }
 
-async function handleModalSimulateAndStart() {
-  if (!isAdmin.value) return
-  activateSimulationMode()
-  isHardwareWarningModalOpen.value = false
-  await executeStartBatch()
-}
-
 const formData = reactive({
-  cropVariety: 'Hanjeli Ketan Sukabumi (Grade A)',
+  cropVariety: 'Biji Hanjeli',
   operatorName: 'Operator Green House',
-  trayLevel: 'Semua Rak (Tingkat 1, 2, 3)',
   initialWeightKg: 135.0,
   initialMoisturePercent: 24.5,
   targetMoisturePercent: 12.0,
   dryingMode: 'HYBRID_SOLAR_ELECTRIC',
-  maxTempLimit: 55.0,
+  maxTempLimit: 50.0,
   initialFanSpeed: 'AUTO',
-  notes: 'Pengeringan gabah panen basah varietas unggul dengan kontrol suhu stabil.'
+  notes: 'Pengeringan biji hanjeli standar dengan kontrol suhu histeresis 48°C - 50°C.'
 })
 
 function applyPreset(presetKey) {
   selectedPreset.value = presetKey
-  if (presetKey === 'ketan_grade_a') {
-    formData.cropVariety = 'Hanjeli Ketan Sukabumi (Grade A)'
+  if (presetKey === 'biji_hanjeli') {
+    formData.cropVariety = 'Biji Hanjeli'
     formData.initialWeightKg = 135.0
     formData.initialMoisturePercent = 24.5
-    formData.targetMoisturePercent = 11.5
-    formData.dryingMode = 'HYBRID_SOLAR_ELECTRIC'
-    formData.maxTempLimit = 52.0
-    formData.notes = 'Standar ekspor mutu grade A, pengeringan suhu stabil tanpa panas kejut.'
-  } else if (presetKey === 'pangan_lokal') {
-    formData.cropVariety = 'Hanjeli Pangan Olahan Tepung'
-    formData.initialWeightKg = 150.0
-    formData.initialMoisturePercent = 26.0
     formData.targetMoisturePercent = 12.0
     formData.dryingMode = 'HYBRID_SOLAR_ELECTRIC'
-    formData.maxTempLimit = 55.0
-    formData.notes = 'Bahan baku tepung olahan pangan bergizi tinggi.'
-  } else if (presetKey === 'teh_sangrai') {
-    formData.cropVariety = 'Hanjeli Teh / Sangrai Aromatik'
-    formData.initialWeightKg = 100.0
-    formData.initialMoisturePercent = 22.0
-    formData.targetMoisturePercent = 10.0
-    formData.dryingMode = 'ELECTRIC_BOOSTER'
-    formData.maxTempLimit = 58.0
-    formData.notes = 'Kadar air sangat rendah untuk bahan teh seduh dan sangrai aromatik.'
+    formData.maxTempLimit = 50.0
+    formData.notes = 'Standar pengeringan biji hanjeli dengan kontrol histeresis suhu 48°C - 50°C.'
   }
 }
 
@@ -703,9 +690,8 @@ async function executeStartBatch() {
   isSubmitting.value = true
   try {
     const payload = {
-      cropVariety: formData.cropVariety || 'Hanjeli Ketan Sukabumi',
+      cropVariety: formData.cropVariety || 'Biji Hanjeli',
       operatorName: formData.operatorName || 'Operator Green House',
-      trayLevel: formData.trayLevel || 'Semua Rak (1, 2, 3)',
       initialWeightKg: Number(formData.initialWeightKg) || 100,
       initialMoisturePercent: Number(formData.initialMoisturePercent) || 24.5,
       targetMoisturePercent: Number(formData.targetMoisturePercent) || 12.0,
@@ -813,6 +799,159 @@ async function executeStartBatch() {
   color: #0D631B;
   border-color: #0D631B;
   box-shadow: 0 1px 3px rgba(13, 99, 27, 0.15);
+}
+
+/* Active Batch Lock Banner */
+.active-batch-lock-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #FFFBEB;
+  border: 1.5px solid #F59E0B;
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);
+  margin-bottom: 20px;
+}
+
+:global(.dark-theme) .active-batch-lock-banner {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.ab-lock-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  background: #FEF3C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:global(.dark-theme) .ab-lock-icon {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+.ab-lock-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ab-lock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ab-lock-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #B45309;
+  margin: 0;
+}
+
+:global(.dark-theme) .ab-lock-title {
+  color: #FBBF24;
+}
+
+.ab-lock-badge {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #FDE68A;
+  color: #92400E;
+}
+
+:global(.dark-theme) .ab-lock-badge {
+  background: rgba(245, 158, 11, 0.3);
+  color: #FCD34D;
+}
+
+.ab-lock-desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #78350F;
+  margin: 0;
+}
+
+:global(.dark-theme) .ab-lock-desc {
+  color: #F3F4F6;
+}
+
+.ab-lock-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.ab-lock-actions .btn-primary {
+  font-size: 13.5px;
+  padding: 9px 18px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.ab-lock-actions .btn-outline-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: #FFFFFF;
+  border: 1.5px solid #D97706;
+  color: #92400E;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.1);
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ab-lock-actions .btn-outline-action:hover {
+  background: #FEF3C7;
+  border-color: #B45309;
+  color: #78350F;
+  transform: translateY(-1.5px);
+  box-shadow: 0 3px 8px rgba(217, 119, 6, 0.2);
+}
+
+.ab-lock-actions .btn-outline-action:active {
+  transform: scale(0.98);
+  background: #FDE68A;
+}
+
+:global(.dark-theme) .ab-lock-actions .btn-outline-action {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #FDE68A;
+  box-shadow: none;
+}
+
+:global(.dark-theme) .ab-lock-actions .btn-outline-action:hover {
+  background: rgba(245, 158, 11, 0.28);
+  border-color: #F59E0B;
+  color: #FFFBEB;
+}
+
+.btn-start-warning {
+  background: linear-gradient(135deg, #D97706 0%, #B45309 100%) !important;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3) !important;
 }
 
 /* Hardware Status Banners */

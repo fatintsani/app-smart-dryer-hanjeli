@@ -814,7 +814,7 @@
                         </div>
                     </div>
 
-                    <!-- Card 5: LDR Sensor -->
+                    <!-- Card 5: LDR / Light Sensor -->
                     <div class="hw-card">
                         <div class="hw-card-top">
                             <div class="hw-icon-box">
@@ -827,54 +827,58 @@
                             <h3 class="hw-title">
                                 {{
                                     currentLang === "id"
-                                        ? "Kesiapan Sensor Cahaya (LDR)"
-                                        : "Light Sensor Ready (LDR)"
+                                        ? "Sensor Intensitas Cahaya (LDR / BH1750)"
+                                        : "Light Intensity Sensor (LDR / BH1750)"
                                 }}
                             </h3>
                             <p class="hw-desc">
                                 {{
                                     currentLang === "id"
-                                        ? "Mendukung integrasi pemantauan intensitas cahaya lingkungan ruang pengering untuk audit mikroklimat ruang pengeringan terpadu di desa wisata."
-                                        : "Supports ambient light intensity monitoring integration for integrated microclimate environmental audits in the tourism village."
+                                        ? "Memantau tingkat intensitas cahaya matahari dan radiasi surya ruangan pengering secara kontinu untuk optimalisasi dehidrasi biji hanjeli."
+                                        : "Continuously monitors solar radiation and ambient light intensity in the drying chamber for optimized grain dehydration kinetics."
                                 }}
                             </p>
                         </div>
                         <div class="hw-card-footer">
                             <span class="hw-spec-tag">{{
                                 currentLang === "id"
-                                    ? "Kalibrasi Lux Terbuka"
-                                    : "Open Lux Calibration"
+                                    ? "I2C SDA 21 / SCL 22"
+                                    : "I2C SDA 21 / SCL 22"
                             }}</span>
                             <span class="hw-badge-orange">{{
                                 currentLang === "id"
-                                    ? "Siap Pasang"
-                                    : "Plug & Play"
+                                    ? "Sensor Aktif"
+                                    : "Active Sensor"
                             }}</span>
                         </div>
                     </div>
 
-                    <!-- Card 6: Energy Efficiency -->
+                    <!-- Card 6: Rain Sensor -->
                     <div class="hw-card hw-card-featured">
                         <div class="hw-card-top">
-                            <div class="hw-icon-box">
-                                <img
-                                    src="/assets/icons/hardware/Efisiensi.png"
-                                    alt="Efisiensi Energi"
-                                    class="icon-3d-img"
-                                />
+                            <div class="hw-icon-box" style="background: rgba(255, 255, 255, 0.2);">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+                                    <line x1="8" y1="19" x2="8" y2="21"></line>
+                                    <line x1="8" y1="13" x2="8" y2="15"></line>
+                                    <line x1="16" y1="19" x2="16" y2="21"></line>
+                                    <line x1="16" y1="13" x2="16" y2="15"></line>
+                                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                                    <line x1="12" y1="15" x2="12" y2="17"></line>
+                                </svg>
                             </div>
                             <h3 class="hw-title text-white">
                                 {{
                                     currentLang === "id"
-                                        ? "Efisiensi Energi Berkelanjutan"
-                                        : "Sustainable Energy Efficiency"
+                                        ? "Sensor Deteksi Hujan (Rain Sensor)"
+                                        : "Rain Detection Sensor"
                                 }}
                             </h3>
                             <p class="hw-desc text-white-sub">
                                 {{
                                     currentLang === "id"
-                                        ? "Sistem memutus arus ketika suhu ideal tercapai, menghemat konsumsi listrik operasional kelompok tani secara signifikan dibanding oven konvensional."
-                                        : "Automatically cuts power when ideal temperature is achieved, drastically reducing farmer electricity expenses compared to conventional ovens."
+                                        ? "Mendeteksi rintik hujan dan kebasahan luar secara instan via analog ADC pin 34 untuk proteksi ruang greenhouse dan otomasi pemanas cadangan."
+                                        : "Instantly detects raindrops and external precipitation via analog ADC pin 34 for greenhouse protection and automated heating assist."
                                 }}
                             </p>
                         </div>
@@ -894,8 +898,8 @@
                                 </svg>
                                 <span>{{
                                     currentLang === "id"
-                                        ? "Hemat daya hingga 40% per batch"
-                                        : "Up to 40% energy savings per batch"
+                                        ? "Analog ADC Pin 34 • Respon Cepat"
+                                        : "Analog ADC Pin 34 • Fast Response"
                                 }}</span>
                             </div>
                         </div>
