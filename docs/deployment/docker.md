@@ -89,6 +89,8 @@ Review `docker/nginx/host-proxy.conf.example` bersama konfigurasi virtual host e
 
 Host Nginx menimpa header forwarding dari client dan meneruskan Upgrade/Connection ke localhost:8088. Docker Nginx meneruskannya ke Reverb. Laravel mempercayai forwarded proto/port/IP dari rantai proxy privat; FPM tidak boleh diterbitkan ke jaringan publik. Jika arsitektur berubah menjadi shared network yang tidak dipercaya, batasi trusted proxies sesuai alamat proxy aktual. Tidak mempercayai forwarded Host dari client.
 
+**Semua request domain harus menuju `127.0.0.1:8088`, bukan port legacy `8080`.** Ini termasuk HTML `/`, static assets `/build/` dan `/assets/`, serta WebSocket `/app` dan `/apps`. Audit server block dan location yang lebih spesifik: `location /build/` atau `root`/`alias` legacy dapat melewati `location /` meskipun `/up` healthy. Contoh proxy menonaktifkan proxy cache pada lokasi ini; jangan menyimpan HTML aplikasi atau `/sw.js` sebagai immutable. Perubahan konfigurasi host tetap harus direview dan diterapkan operator, tidak oleh workflow.
+
 ```bash
 curl --fail --silent --show-error https://hanjeli-dryer.stas-rg.com/up
 curl --fail --silent --show-error https://hanjeli-dryer.stas-rg.com/api/batches
@@ -160,6 +162,26 @@ Di Settings → Environments → `production`, aktifkan required reviewers dan p
 `VPS_DEPLOY_PATH` harus path absolut ke root clone repository di VPS. Clone harus bersih dari perubahan lokal/untracked, `.env` production existing harus ada dan diabaikan Git, serta Git di VPS harus memiliki akses read ke origin. Workflow mem-fetch **SHA dari run yang sudah diuji**, checkout detached ke SHA tersebut, memverifikasi `.env` tetap sama tanpa mencetak isinya, lalu memanggil `bash docker/deploy.sh SHA`. Kedua image dibangun di VPS menggunakan konfigurasi public VITE dari existing `.env` dengan tag SHA lengkap. Tidak ada `.env` production yang dikirim melalui GitHub atau image.
 
 Setelah release, workflow menjalankan `docker compose ps -a`, `docker/smoke.php` dalam container app, lalu memeriksa HTTPS `/up` dari runner dengan verifikasi sertifikat TLS dan status tepat 200. Kegagalan SSH, script deployment, migrasi, healthcheck, smoke, atau HTTPS menggagalkan job. Tidak ada rollback schema otomatis. Container/volume MySQL lama dan project Docker lain tetap tidak disentuh.
+
+Sebelum pemeriksaan `/up` dari runner, setelah deployment dan smoke di VPS, workflow menjalankan:
+
+```bash
+python3 scripts/verify_frontend.py --expected-revision "$(git rev-parse HEAD)" --wss
+```
+
+Verifier membaca HTML dari Docker **langsung** di `http://127.0.0.1:8088` dan `https://hanjeli-dryer.stas-rg.com`, membandingkan daftar hashed Vite JavaScript, lalu mewajibkan HTTP 200 dan SHA-256 isi yang sama untuk aset lokal yang direferensikan HTML publik (JS/CSS/icon/manifest/gambar). Redirect atau fallback HTML pada URL aset dianggap gagal. Ia juga memverifikasi `/build/version.json` pada kedua origin terhadap commit yang diuji. Jika domain masih melayani build lama, job gagal dengan daftar nama bundle dan diagnostik upstream port 8088; `/up` sehat saja tidak cukup untuk lulus.
+
+Opsi `--wss` mengambil **public** Reverb key dari metadata build Docker, memvalidasi sertifikat TLS domain dan handshake WebSocket HTTP 101 beserta `Sec-WebSocket-Accept`. Probe tidak berlangganan channel, mengirim telemetry, atau menerbitkan event. Kegagalan WSS juga menggagalkan deployment. Script hanya membaca HTTP/WSS dan tidak mengubah Nginx, `.env`, database atau volume.
+
+CI menjalankan regression tests dengan `python3 -m unittest discover -s tests/deployment -p 'test_*.py' -v`, termasuk skenario `/up` healthy tetapi frontend berbeda. Untuk diagnosis server, jalankan verifier yang sama dari direktori deployment. Operator tetap perlu memeriksa DNS/CDN/cache dan server block aktif apabila hasil berbeda; tidak ada upaya memperbaiki host secara otomatis.
+
+### Pembaruan frontend dan PWA
+
+Frontend menghasilkan `/build/version.json` (revisi image + fingerprint build) dan worker dengan versi dari isi build. Docker menyajikan worker di URL tetap `/sw.js` dengan `no-store` dan scope `/`. HTML tidak disimpan, metadata/manifest selalu divalidasi ulang, hanya `/build/assets/` yang berhash diberi cache immutable. Worker membersihkan cache `smart-dryer-*` versi lama tanpa menyentuh cache aplikasi lain; navigasi offline menampilkan halaman offline statis, bukan HTML telemetry lama.
+
+Browser memeriksa update worker ketika kembali aktif/online dan secara berkala. Jika versi baru mengambil alih, aplikasi menawarkan tombol **Perbarui** supaya pengguna dapat menyimpan formulir lebih dahulu. Source AI menggunakan `/assets/icons/profile/cs.png`; Nginx Docker menyediakan alias kompatibilitas HTTP 200 untuk path lama `/assets/img/ai_profile.jpg` selama client lama melakukan update. Ikon 192×192, 512×512 dan Apple 180×180 berasal dari logo Hanjeli existing dengan padding maskable.
+
+Jika browser masih memuat UI lama, cocokkan `/build/version.json`, URL JS pada View Source/Network dan versi worker aktif. Jika curl domain pun berbeda dari Docker, masalah ada pada routing/cache upstream, bukan hanya Cache Storage browser. Jangan menghapus seluruh assets atau volume sebagai cache busting. Referensi lifecycle: [Service Worker update cache](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/updateViaCache), [Vite environment saat build](https://vite.dev/guide/env-and-mode).
 
 Karena checkout server menjadi detached HEAD, update melalui workflow menggunakan SHA berikutnya, bukan `git pull` pada detached HEAD. Jika memilih prosedur CLI manual, pindah kembali ke branch `main` secara eksplisit setelah memastikan checkout bersih. Tetap simpan tag release lama dan ikuti prosedur rollback image di atas. Build/push registry dan deployment otomatis pada setiap push belum diaktifkan.
 

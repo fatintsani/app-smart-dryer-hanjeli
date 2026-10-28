@@ -76,6 +76,12 @@ jobs:
       - name: Install NPM Dependencies
         run: npm ci
 
+      - name: Test frontend connection and Service Worker policies
+        run: npm run test:frontend
+
+      - name: Test post-deployment frontend verification
+        run: python3 -m unittest discover -s tests/deployment -p 'test_*.py' -v
+
       - name: Build Frontend Assets
         run: npm run build
 
@@ -205,6 +211,8 @@ jobs:
           bash docker/deploy.sh "$tested_sha"
           docker compose --env-file .env ps -a
           docker compose --env-file .env exec -T app php docker/smoke.php
+          # Fail even when /up is healthy if the public host still serves legacy assets.
+          python3 scripts/verify_frontend.py --expected-revision "$tested_sha" --wss
           REMOTE
 
       - name: Verify public HTTPS health endpoint

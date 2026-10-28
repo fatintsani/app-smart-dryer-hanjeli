@@ -36,3 +36,4 @@ backups
 .docker-deploy.lock
 .docker-release
 .docker-previous-release
+**/__pycache__

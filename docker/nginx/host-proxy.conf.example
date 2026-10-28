@@ -1,4 +1,6 @@
 # EXAMPLE ONLY. Review alongside existing host virtual hosts before enabling.
+# All domain paths, including /build/, /assets/, /app and /apps, must reach
+# Docker on 127.0.0.1:8088. Do not retain legacy 8080/static-root locations.
 # Put this map inside the host Nginx http {} context, once only.
 map $http_upgrade $hanjeli_connection_upgrade {
     default upgrade;
@@ -21,6 +23,7 @@ server {
 
     location / {
         proxy_pass http://127.0.0.1:8088;
+        proxy_cache off;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         # Overwrite untrusted client forwarding headers at the public edge.
