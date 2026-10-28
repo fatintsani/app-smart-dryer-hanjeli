@@ -29,7 +29,7 @@ const char* ssid        = "tes2";            // Nama Wi-Fi Anda
 const char* password    = "12345678";        // Password Wi-Fi Anda
 
 // Endpoint Backend Web
-const char* serverUrl   = "http://10.13.134.217:8000/api/telemetry";
+const char* serverUrl   = "https://hanjeli-dryer.stas-rg.com/api/telemetry";
 const char* apiKey      = "NCtJiDY-xuz9iPr8LYy4Mb15bXN-tB3EJOcrJ-ei754";
 const char* deviceId    = "SRD-001";
 ```
@@ -52,7 +52,7 @@ const char* deviceId    = "SRD-001";
 
 ## 4. Format Payload Telemetri ke Backend Web
 
-Dikirimkan via HTTP POST setiap 5 detik ke `http://10.13.134.217:8000/api/telemetry`:
+Dikirimkan via HTTP POST setiap 5 detik ke `https://hanjeli-dryer.stas-rg.com/api/telemetry`:
 
 ```json
 {

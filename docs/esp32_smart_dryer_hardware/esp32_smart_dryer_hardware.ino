@@ -51,7 +51,7 @@ const char *ssid = "inode-AOO2";     // Nama Wi-Fi / Hotspot
 const char *password = "stasrg2024"; // Password Wi-Fi
 
 // Endpoint API Web Server Smart Dryer Hanjeli
-const char *serverUrl = "http://10.13.134.217:8000/api/telemetry";
+const char *serverUrl = "https://hanjeli-dryer.stas-rg.com/api/telemetry";
 const char *apiKey = "NCtJiDY-xuz9iPr8LYy4Mb15bXN-tB3EJOcrJ-ei754";
 const char *deviceId = "SRD-001";
 

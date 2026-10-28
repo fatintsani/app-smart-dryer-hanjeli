@@ -85,209 +85,209 @@ jobs:
     steps:
       - name: 🚀 Connect SSH and Execute Production Deployment
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
+          port: ${{ secrets.SSH_PORT || '22' }}
           script_stop: true
           envs: DEPLOY_PATH
-        env:
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-        script: |
-          set -e
+          script: |
+            set -e
 
-          echo "======================================================="
-          echo "🌾 Memulai Otomasi Deployment Smart Dryer Hanjeli..."
-          echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
-          echo "Target Directory: ${DEPLOY_PATH}"
-          echo "======================================================="
+            echo "======================================================="
+            echo "🌾 Memulai Otomasi Deployment Smart Dryer Hanjeli..."
+            echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "Target Directory: ${DEPLOY_PATH}"
+            echo "======================================================="
 
-          # Validasi Direktori Target
-          if [ -z "${DEPLOY_PATH}" ]; then
-            echo "❌ Error: Secret DEPLOY_PATH belum dikonfigurasi di GitHub Secrets."
-            exit 1
-          fi
-
-          if [ ! -d "${DEPLOY_PATH}" ]; then
-            echo "❌ Error: Direktori ${DEPLOY_PATH} tidak ditemukan di VPS."
-            exit 1
-          fi
-
-          cd "${DEPLOY_PATH}"
-
-          # Persiapan Folder Backup
-          BACKUP_ROOT="${DEPLOY_PATH}/../backups_hanjeli"
-          BACKUP_DATE=$(date '+%Y%m%d_%H%M%S')
-          CURRENT_BACKUP_DIR="${BACKUP_ROOT}/backup_${BACKUP_DATE}"
-          PREVIOUS_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "")
-
-          mkdir -p "${CURRENT_BACKUP_DIR}"
-
-          # -------------------------------------------------------------
-          # FUNGSI ROLLBACK OTOMATIS JIKA TERJADI KEGAGALAN
-          # -------------------------------------------------------------
-          rollback() {
-            local exit_code=$?
-            if [ $exit_code -ne 0 ]; then
-              echo "⚠️ ====================================================="
-              echo "⚠️ TERJADI KESALAHAN! Memulai prosedur rollback otomatis..."
-              echo "⚠️ ====================================================="
-
-              cd "${DEPLOY_PATH}"
-
-              # 1. Restore commit Git sebelumnya jika ada
-              if [ -n "${PREVIOUS_COMMIT}" ]; then
-                echo "↺ Mengembalikan kode repository ke commit: ${PREVIOUS_COMMIT}"
-                git reset --hard "${PREVIOUS_COMMIT}" || true
-              fi
-
-              # 2. Restore file .env jika terhapus/rusak
-              if [ -f "${CURRENT_BACKUP_DIR}/.env" ]; then
-                echo "↺ Memulihkan file .env dari backup..."
-                cp -f "${CURRENT_BACKUP_DIR}/.env" "${DEPLOY_PATH}/.env"
-              fi
-
-              # 3. Restore database SQLite jika digunakan
-              if [ -f "${CURRENT_BACKUP_DIR}/database.sqlite" ]; then
-                echo "↺ Memulihkan database.sqlite dari backup..."
-                cp -f "${CURRENT_BACKUP_DIR}/database.sqlite" "${DEPLOY_PATH}/database/database.sqlite"
-              fi
-
-              # 4. Bersihkan cache dan pulihkan status aplikasi
-              echo "↺ Membersihkan dan menyinkronkan cache..."
-              php artisan optimize:clear || true
-              php artisan up || true
-
-              # 5. Restart worker
-              echo "↺ Merestart background workers..."
-              php artisan queue:restart || true
-              if command -v supervisorctl >/dev/null 2>&1; then
-                sudo supervisorctl restart all || true
-              fi
-
-              echo "❌ Rollback selesai. Aplikasi dikembalikan ke versi stabil sebelumnya."
-              exit $exit_code
+            # Validasi Direktori Target
+            if [ -z "${DEPLOY_PATH}" ]; then
+              echo "❌ Error: Secret DEPLOY_PATH belum dikonfigurasi di GitHub Secrets."
+              exit 1
             fi
-          }
 
-          trap rollback EXIT
-
-          # -------------------------------------------------------------
-          # LANGKAH 1: BACKUP ASSET & DATA KRITIS PRODUCTION
-          # -------------------------------------------------------------
-          echo "📦 [1/8] Membuat backup snapshot sebelum update..."
-
-          # Backup .env
-          if [ -f "${DEPLOY_PATH}/.env" ]; then
-            cp "${DEPLOY_PATH}/.env" "${CURRENT_BACKUP_DIR}/.env"
-            echo "   ✓ File .env berhasil diamankan."
-          else
-            echo "   ⚠️ Peringatan: .env tidak ditemukan di ${DEPLOY_PATH}!"
-          fi
-
-          # Backup SQLite jika ada
-          if [ -f "${DEPLOY_PATH}/database/database.sqlite" ]; then
-            cp "${DEPLOY_PATH}/database/database.sqlite" "${CURRENT_BACKUP_DIR}/database.sqlite"
-            echo "   ✓ Database SQLite berhasil dibackup."
-          fi
-
-          # Rotasi Backup: Hanya simpan 5 backup terakhir
-          echo "   🧹 Membersihkan backup lama (menyimpan 5 backup terakhir)..."
-          ls -dt "${BACKUP_ROOT}"/backup_* 2>/dev/null | tail -n +6 | xargs -r rm -rf || true
-
-          # -------------------------------------------------------------
-          # LANGKAH 2: MODE PEMELIHARAAN (MAINTENANCE MODE)
-          # -------------------------------------------------------------
-          echo "🔒 [2/8] Mengaktifkan mode pemeliharaan (artisan down)..."
-          php artisan down --render="errors::503" --retry=60 || true
-
-          # -------------------------------------------------------------
-          # LANGKAH 3: TARIK KODE TERBARU DARI GITHUB
-          # -------------------------------------------------------------
-          echo "📥 [3/8] Menarik perubahan terbaru dari branch main..."
-          git fetch origin main
-          git reset --hard origin/main
-
-          # Pastikan .env tetap aman setelah git reset
-          if [ ! -f "${DEPLOY_PATH}/.env" ] && [ -f "${CURRENT_BACKUP_DIR}/.env" ]; then
-            cp "${CURRENT_BACKUP_DIR}/.env" "${DEPLOY_PATH}/.env"
-          fi
-
-          # -------------------------------------------------------------
-          # LANGKAH 4: DEPENDENSI COMPOSER (PHP)
-          # -------------------------------------------------------------
-          echo "🐘 [4/8] Menginstal dependensi PHP (Composer)..."
-          composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-
-          # -------------------------------------------------------------
-          # LANGKAH 5: DEPENDENSI NPM & BUILD ASSET (VITE & VUE 3)
-          # -------------------------------------------------------------
-          echo "🎨 [5/8] Menginstal dependensi NPM & mengompilasi asset Vite..."
-          npm install --no-audit --prefer-offline
-          npm run build
-
-          # -------------------------------------------------------------
-          # LANGKAH 6: MIGRASI DATABASE PRODUCTION
-          # -------------------------------------------------------------
-          echo "🗄️ [6/8] Menjalankan migrasi database..."
-          php artisan migrate --force
-
-          # -------------------------------------------------------------
-          # LANGKAH 7: OPTIMASI CACHE & STORAGE LINK
-          # -------------------------------------------------------------
-          echo "⚡ [7/8] Mengoptimasi konfigurasi, rute, view, dan storage link..."
-          php artisan optimize:clear
-          php artisan optimize
-          php artisan view:cache
-          php artisan event:cache
-          php artisan storage:link || true
-
-          # Atur hak akses permission folder storage & bootstrap/cache
-          echo "   🔐 Menyesuaikan hak akses direktori storage..."
-          chmod -R 775 storage bootstrap/cache || true
-          if [ -n "$USER" ]; then
-            chown -R $USER:www-data storage bootstrap/cache 2>/dev/null || true
-          fi
-
-          # -------------------------------------------------------------
-          # LANGKAH 8: RESTART BACKGROUND DAEMONS & NONAKTIFKAN MAINTENANCE
-          # -------------------------------------------------------------
-          echo "🔄 [8/8] Me-restart worker dan menonaktifkan mode pemeliharaan..."
-
-          # Restart queue worker
-          php artisan queue:restart || true
-
-          # Restart Supervisor daemon jika terpasang (Reverb, MQTT Worker, Queue)
-          if command -v supervisorctl >/dev/null 2>&1; then
-            echo "   ↺ Merestart layanan Supervisor..."
-            sudo supervisorctl restart all || true
-          fi
-
-          # Restart Systemd services jika Supervisor tidak digunakan
-          if command -v systemctl >/dev/null 2>&1; then
-            if systemctl is-active --quiet hanjeli-reverb 2>/dev/null; then
-              echo "   ↺ Merestart service hanjeli-reverb..."
-              sudo systemctl restart hanjeli-reverb || true
+            if [ ! -d "${DEPLOY_PATH}" ]; then
+              echo "❌ Error: Direktori ${DEPLOY_PATH} tidak ditemukan di VPS."
+              exit 1
             fi
-            if systemctl is-active --quiet hanjeli-mqtt 2>/dev/null; then
-              echo "   ↺ Merestart service hanjeli-mqtt..."
-              sudo systemctl restart hanjeli-mqtt || true
+
+            cd "${DEPLOY_PATH}"
+
+            # Persiapan Folder Backup
+            BACKUP_ROOT="${DEPLOY_PATH}/../backups_hanjeli"
+            BACKUP_DATE=$(date '+%Y%m%d_%H%M%S')
+            CURRENT_BACKUP_DIR="${BACKUP_ROOT}/backup_${BACKUP_DATE}"
+            PREVIOUS_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "")
+
+            mkdir -p "${CURRENT_BACKUP_DIR}"
+
+            # -------------------------------------------------------------
+            # FUNGSI ROLLBACK OTOMATIS JIKA TERJADI KEGAGALAN
+            # -------------------------------------------------------------
+            rollback() {
+              local exit_code=$?
+              if [ $exit_code -ne 0 ]; then
+                echo "⚠️ ====================================================="
+                echo "⚠️ TERJADI KESALAHAN! Memulai prosedur rollback otomatis..."
+                echo "⚠️ ====================================================="
+
+                cd "${DEPLOY_PATH}"
+
+                # 1. Restore commit Git sebelumnya jika ada
+                if [ -n "${PREVIOUS_COMMIT}" ]; then
+                  echo "↺ Mengembalikan kode repository ke commit: ${PREVIOUS_COMMIT}"
+                  git reset --hard "${PREVIOUS_COMMIT}" || true
+                fi
+
+                # 2. Restore file .env jika terhapus/rusak
+                if [ -f "${CURRENT_BACKUP_DIR}/.env" ]; then
+                  echo "↺ Memulihkan file .env dari backup..."
+                  cp -f "${CURRENT_BACKUP_DIR}/.env" "${DEPLOY_PATH}/.env"
+                fi
+
+                # 3. Restore database SQLite jika digunakan
+                if [ -f "${CURRENT_BACKUP_DIR}/database.sqlite" ]; then
+                  echo "↺ Memulihkan database.sqlite dari backup..."
+                  cp -f "${CURRENT_BACKUP_DIR}/database.sqlite" "${DEPLOY_PATH}/database/database.sqlite"
+                fi
+
+                # 4. Bersihkan cache dan pulihkan status aplikasi
+                echo "↺ Membersihkan dan menyinkronkan cache..."
+                php artisan optimize:clear || true
+                php artisan up || true
+
+                # 5. Restart worker
+                echo "↺ Merestart background workers..."
+                php artisan queue:restart || true
+                if command -v supervisorctl >/dev/null 2>&1; then
+                  sudo supervisorctl restart all || true
+                fi
+
+                echo "❌ Rollback selesai. Aplikasi dikembalikan ke versi stabil sebelumnya."
+                exit $exit_code
+              fi
+            }
+
+            trap rollback EXIT
+
+            # -------------------------------------------------------------
+            # LANGKAH 1: BACKUP ASSET & DATA KRITIS PRODUCTION
+            # -------------------------------------------------------------
+            echo "📦 [1/8] Membuat backup snapshot sebelum update..."
+
+            # Backup .env
+            if [ -f "${DEPLOY_PATH}/.env" ]; then
+              cp "${DEPLOY_PATH}/.env" "${CURRENT_BACKUP_DIR}/.env"
+              echo "   ✓ File .env berhasil diamankan."
+            else
+              echo "   ⚠️ Peringatan: .env tidak ditemukan di ${DEPLOY_PATH}!"
             fi
-            if systemctl is-active --quiet php8.3-fpm 2>/dev/null; then
-              echo "   ↺ Me-reload service php8.3-fpm..."
-              sudo systemctl reload php8.3-fpm || true
+
+            # Backup SQLite jika ada
+            if [ -f "${DEPLOY_PATH}/database/database.sqlite" ]; then
+              cp "${DEPLOY_PATH}/database/database.sqlite" "${CURRENT_BACKUP_DIR}/database.sqlite"
+              echo "   ✓ Database SQLite berhasil dibackup."
             fi
-          fi
 
-          # Nonaktifkan maintenance mode
-          php artisan up
+            # Rotasi Backup: Hanya simpan 5 backup terakhir
+            echo "   🧹 Membersihkan backup lama (menyimpan 5 backup terakhir)..."
+            ls -dt "${BACKUP_ROOT}"/backup_* 2>/dev/null | tail -n +6 | xargs -r rm -rf || true
 
-          # Matikan trap error karena seluruh proses sukses
-          trap - EXIT
+            # -------------------------------------------------------------
+            # LANGKAH 2: MODE PEMELIHARAAN (MAINTENANCE MODE)
+            # -------------------------------------------------------------
+            echo "🔒 [2/8] Mengaktifkan mode pemeliharaan (artisan down)..."
+            php artisan down --render="errors::503" --retry=60 || true
 
-          echo "======================================================="
-          echo "✅ DEPLOYMENT BERHASIL! Versi terbaru telah aktif di VPS."
-          echo "Commit: $(git rev-parse --short HEAD)"
-          echo "Selesai pada: $(date '+%Y-%m-%d %H:%M:%S')"
-          echo "======================================================="
+            # -------------------------------------------------------------
+            # LANGKAH 3: TARIK KODE TERBARU DARI GITHUB
+            # -------------------------------------------------------------
+            echo "📥 [3/8] Menarik perubahan terbaru dari branch main..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Pastikan .env tetap aman setelah git reset
+            if [ ! -f "${DEPLOY_PATH}/.env" ] && [ -f "${CURRENT_BACKUP_DIR}/.env" ]; then
+              cp "${CURRENT_BACKUP_DIR}/.env" "${DEPLOY_PATH}/.env"
+            fi
+
+            # -------------------------------------------------------------
+            # LANGKAH 4: DEPENDENSI COMPOSER (PHP)
+            # -------------------------------------------------------------
+            echo "🐘 [4/8] Menginstal dependensi PHP (Composer)..."
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+            # -------------------------------------------------------------
+            # LANGKAH 5: DEPENDENSI NPM & BUILD ASSET (VITE & VUE 3)
+            # -------------------------------------------------------------
+            echo "🎨 [5/8] Menginstal dependensi NPM & mengompilasi asset Vite..."
+            npm install --no-audit --prefer-offline
+            npm run build
+
+            # -------------------------------------------------------------
+            # LANGKAH 6: MIGRASI DATABASE PRODUCTION
+            # -------------------------------------------------------------
+            echo "🗄️ [6/8] Menjalankan migrasi database..."
+            php artisan migrate --force
+
+            # -------------------------------------------------------------
+            # LANGKAH 7: OPTIMASI CACHE & STORAGE LINK
+            # -------------------------------------------------------------
+            echo "⚡ [7/8] Mengoptimasi konfigurasi, rute, view, dan storage link..."
+            php artisan optimize:clear
+            php artisan optimize
+            php artisan view:cache
+            php artisan event:cache
+            php artisan storage:link || true
+
+            # Atur hak akses permission folder storage & bootstrap/cache
+            echo "   🔐 Menyesuaikan hak akses direktori storage..."
+            chmod -R 775 storage bootstrap/cache || true
+            if [ -n "$USER" ]; then
+              chown -R $USER:www-data storage bootstrap/cache 2>/dev/null || true
+            fi
+
+            # -------------------------------------------------------------
+            # LANGKAH 8: RESTART BACKGROUND DAEMONS & NONAKTIFKAN MAINTENANCE
+            # -------------------------------------------------------------
+            echo "🔄 [8/8] Me-restart worker dan menonaktifkan mode pemeliharaan..."
+
+            # Restart queue worker
+            php artisan queue:restart || true
+
+            # Restart Supervisor daemon jika terpasang (Reverb, MQTT Worker, Queue)
+            if command -v supervisorctl >/dev/null 2>&1; then
+              echo "   ↺ Merestart layanan Supervisor..."
+              sudo supervisorctl restart all || true
+            fi
+
+            # Restart Systemd services jika Supervisor tidak digunakan
+            if command -v systemctl >/dev/null 2>&1; then
+              if systemctl is-active --quiet hanjeli-reverb 2>/dev/null; then
+                echo "   ↺ Merestart service hanjeli-reverb..."
+                sudo systemctl restart hanjeli-reverb || true
+              fi
+              if systemctl is-active --quiet hanjeli-mqtt 2>/dev/null; then
+                echo "   ↺ Merestart service hanjeli-mqtt..."
+                sudo systemctl restart hanjeli-mqtt || true
+              fi
+              if systemctl is-active --quiet php8.3-fpm 2>/dev/null; then
+                echo "   ↺ Me-reload service php8.3-fpm..."
+                sudo systemctl reload php8.3-fpm || true
+              fi
+            fi
+
+            # Nonaktifkan maintenance mode
+            php artisan up
+
+            # Matikan trap error karena seluruh proses sukses
+            trap - EXIT
+
+            echo "======================================================="
+            echo "✅ DEPLOYMENT BERHASIL! Versi terbaru telah aktif di VPS."
+            echo "Commit: $(git rev-parse --short HEAD)"
+            echo "Selesai pada: $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "======================================================="

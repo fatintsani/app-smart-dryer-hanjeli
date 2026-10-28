@@ -856,8 +856,8 @@
                     <!-- Card 6: Rain Sensor -->
                     <div class="hw-card hw-card-featured">
                         <div class="hw-card-top">
-                            <div class="hw-icon-box" style="background: rgba(255, 255, 255, 0.2);">
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <div class="hw-icon-box hw-icon-box-featured">
+                                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
                                     <line x1="8" y1="19" x2="8" y2="21"></line>
                                     <line x1="8" y1="13" x2="8" y2="15"></line>
@@ -2896,9 +2896,10 @@ onUnmounted(() => {
 /* 2. Hero Section */
 .hero-section {
     position: relative;
-    padding: 60px 24px 80px;
+    padding: 24px 24px 32px;
     overflow: hidden;
-    scroll-margin-top: 72px;
+    scroll-margin-top: 68px;
+    box-sizing: border-box;
 }
 
 .ambient-glow {
@@ -3013,7 +3014,7 @@ onUnmounted(() => {
     border: 1px solid #c8e6c9;
     border-radius: 9999px;
     width: fit-content;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
 .hero-badge-img {
@@ -3059,15 +3060,15 @@ onUnmounted(() => {
     font-weight: 800;
     color: #111d23;
     line-height: 1.25;
-    margin: 0 0 18px 0;
+    margin: 0 0 16px 0;
     letter-spacing: -0.5px;
 }
 
 .hero-desc {
-    font-size: 16.5px;
+    font-size: 16px;
     line-height: 1.6;
     color: #40493d;
-    margin: 0 0 32px 0;
+    margin: 0 0 24px 0;
     max-width: 560px;
 }
 
@@ -3076,7 +3077,7 @@ onUnmounted(() => {
     flex-wrap: wrap;
     align-items: center;
     gap: 16px;
-    margin-bottom: 40px;
+    margin-bottom: 28px;
 }
 
 .btn-hero-primary {
@@ -3225,7 +3226,7 @@ onUnmounted(() => {
 
 .hero-illustration-wrap {
     width: 100%;
-    max-width: 540px;
+    max-width: 520px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3233,7 +3234,7 @@ onUnmounted(() => {
     transform-style: preserve-3d;
     cursor: grab;
     user-select: none;
-    padding: 18px;
+    padding: 12px;
     box-sizing: border-box;
     will-change: transform;
 }
@@ -3262,7 +3263,7 @@ onUnmounted(() => {
 
 .hero-main-img {
     width: 100%;
-    max-height: 510px;
+    max-height: 480px;
     object-fit: contain;
     display: block;
     position: relative;
@@ -3783,6 +3784,33 @@ onUnmounted(() => {
     background: #0b5517;
     border-color: #0b5517;
     box-shadow: 0 22px 42px -8px rgba(13, 99, 27, 0.32);
+}
+
+.hw-icon-box-featured {
+    width: 64px !important;
+    height: 64px !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow:
+        0 8px 20px -4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    margin-bottom: 6px;
+    transition:
+        transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background-color 0.25s ease,
+        border-color 0.25s ease !important;
+}
+
+.hw-card-featured:hover .hw-icon-box-featured {
+    background: rgba(255, 255, 255, 0.26) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: scale(1.08) translateY(-2px) !important;
 }
 
 .text-white {
@@ -4745,6 +4773,11 @@ a.contact-value:hover {
     border: none !important;
 }
 
+.dark-landing .hw-icon-box-featured {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+}
+
 .dark-landing .preview-chart-box {
     background: #152c20 !important;
     border-color: #1e3a2b !important;
@@ -4867,6 +4900,10 @@ a.contact-value:hover {
 
 /* Responsive Media Queries */
 @media (max-width: 1024px) {
+    .hero-section {
+        padding: 40px 20px 60px;
+    }
+
     .hero-grid {
         grid-template-columns: 1fr;
         gap: 40px;

@@ -5,11 +5,8 @@ import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
     server: {
-        host: '0.0.0.0',
+        host: 'localhost',
         cors: true,
-        hmr: {
-            host: '10.13.134.217',
-        },
     },
     plugins: [
         laravel({
