@@ -154,7 +154,8 @@ class TelemetryController extends Controller
         // Master bypass tokens for local simulation engine or active device matching
         $isLocalSimToken = $token === 'esp32_sec_7f9a2b1c8e3d4f5a6b7c8d9e0f1a2b3c' 
             || $token === 'esp32-sim-token-master'
-            || $token === 'DEVICE_API_KEY_BARU';
+            || $token === 'DEVICE_API_KEY_BARU'
+            || $token === 'NCtJiDY-xuz9iPr8LYy4Mb15bXN-tB3EJOcrJ-ei754';
 
         $validDevice = null;
         if ($token && !$isLocalSimToken) {
@@ -222,12 +223,23 @@ class TelemetryController extends Controller
         }
 
         $telemetry = $mqttService->processTelemetryPayload($payload);
+        $actuatorState = ActuatorState::first();
 
         return response()->json([
             'success' => true,
             'id' => $telemetry->id,
-            'deviceId' => $validDevice?->code ?? 'ESP32-GH-HANJELI-01',
+            'deviceId' => $validDevice?->code ?? 'SRD-001',
             'recordedAt' => $telemetry->recorded_at->toIso8601String(),
+            'actuators' => $actuatorState ? [
+                'exhaustFanStatus' => (bool) $actuatorState->exhaust_fan_status,
+                'exhaustFanSpeed' => (int) $actuatorState->exhaust_fan_speed,
+                'intakeFanStatus' => (bool) $actuatorState->intake_fan_status,
+                'circFanStatus' => (bool) $actuatorState->circ_fan_status,
+                'auxHeaterStatus' => (bool) $actuatorState->aux_heater_status,
+                'auxHeaterLevel' => (int) $actuatorState->aux_heater_level,
+                'isOverrideActive' => (bool) $actuatorState->is_override_active,
+                'overrideMode' => (string) $actuatorState->override_mode,
+            ] : null,
         ], 201);
     }
 

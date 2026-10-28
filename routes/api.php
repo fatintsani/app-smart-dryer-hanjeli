@@ -66,6 +66,7 @@ $smartDryerApi = function () {
     Route::get('/telemetry/current', [TelemetryController::class, 'current']);
     Route::get('/telemetry/history', [TelemetryController::class, 'history']);
     Route::post('/telemetry/ingest', [TelemetryController::class, 'ingest']);
+    Route::post('/telemetry', [TelemetryController::class, 'ingest']);
     Route::post('/telemetry/downsample', [TelemetryController::class, 'downsample']);
     Route::get('/telemetry/storage-stats', [TelemetryController::class, 'storageStats']);
 

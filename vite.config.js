@@ -4,6 +4,13 @@ import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
+    server: {
+        host: '0.0.0.0',
+        cors: true,
+        hmr: {
+            host: '10.13.134.217',
+        },
+    },
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js'],

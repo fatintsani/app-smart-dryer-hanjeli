@@ -72,6 +72,23 @@ class MqttService
     }
 
     /**
+     * Publish telemetry data to MQTT broker.
+     */
+    public function publishTelemetry(array $payload): bool
+    {
+        try {
+            $client = $this->createClient();
+            $topic = config('mqtt.topics.telemetry', 'hanjeli/greenhouse/telemetry');
+            $client->publish($topic, json_encode($payload), 0);
+            $client->disconnect();
+            return true;
+        } catch (\Throwable $e) {
+            Log::warning('MQTT Publish Telemetry Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Ingest and process telemetry payload (from MQTT or HTTP).
      */
     public function processTelemetryPayload(array $payload): Telemetry
