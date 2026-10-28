@@ -1,5 +1,7 @@
 # 🌾 Smart Room Dryer Hanjeli — IoT Greenhouse Monitoring & Control System
 
+Panduan production Docker (PHP 8.4, MySQL 8.4, Reverb, MQTT, queue dan scheduler): [Deployment Ubuntu](docs/deployment/docker.md). Deployment production tetap manual; workflow GitHub Actions menjalankan CI dan validasi Docker terisolasi.
+
 <p align="center">
   <img src="public/assets/img/hanjeli.png" alt="Logo Hanjeli" width="110" style="margin: 10px;" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

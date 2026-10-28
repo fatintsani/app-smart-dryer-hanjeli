@@ -1,0 +1,22 @@
+# ONLY use with docker/validate.sh, an isolated project and synthetic credentials.
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    configs:
+      - source: validation_broker
+        target: /mosquitto/config/mosquitto.conf
+    networks:
+      - egress
+    healthcheck:
+      test: [CMD, mosquitto_pub, -h, localhost, -t, validation/health, -m, ok]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  mqtt:
+    depends_on:
+      mqtt-broker:
+        condition: service_healthy
+
+configs:
+  validation_broker:
+    file: ./docker/mosquitto.validation.conf

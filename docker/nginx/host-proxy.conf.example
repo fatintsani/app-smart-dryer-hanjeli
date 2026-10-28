@@ -1,0 +1,37 @@
+# EXAMPLE ONLY. Review alongside existing host virtual hosts before enabling.
+# Put this map inside the host Nginx http {} context, once only.
+map $http_upgrade $hanjeli_connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+server {
+    listen 80;
+    server_name hanjeli-dryer.stas-rg.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name hanjeli-dryer.stas-rg.com;
+    ssl_certificate /etc/letsencrypt/live/hanjeli-dryer.stas-rg.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/hanjeli-dryer.stas-rg.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    client_max_body_size 21m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8088;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        # Overwrite untrusted client forwarding headers at the public edge.
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $hanjeli_connection_upgrade;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_buffering off;
+    }
+}
