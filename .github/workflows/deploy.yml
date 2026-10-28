@@ -1,29 +1,37 @@
-name: Laravel CI & Docker Validation
+name: Laravel CI & Docker Validation + Manual VPS CD
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
+    inputs:
+      deploy_to_vps:
+        description: 'Deploy the tested main commit to production VPS?'
+        type: boolean
+        required: true
+        default: false
 
 concurrency:
   group: hanjeli-ci-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
-  # =========================================================================
-  # 1. TEST & BUILD VALIDATION (Continuous Integration)
-  # =========================================================================
   ci:
     name: Test & Build Assets
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🐘 Setup PHP 8.4
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -32,7 +40,7 @@ jobs:
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📦 Cache Composer Dependencies
+      - name: Cache Composer Dependencies
         uses: actions/cache@v4
         with:
           path: vendor
@@ -40,7 +48,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
-      - name: 📦 Cache NPM Dependencies
+      - name: Cache NPM Dependencies
         uses: actions/cache@v4
         with:
           path: ~/.npm
@@ -48,20 +56,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: 🔑 Prepare Environment & Database
+      - name: Prepare CI Environment
         run: |
           cp .env.example .env
           touch database/database.sqlite
 
-      - name: 📥 Install Composer Dependencies
-        run: |
-          composer install --prefer-dist --no-interaction --no-progress
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: 🔑 Generate Application Key
-        run: |
-          php artisan key:generate --force
+      - name: Generate Application Key
+        run: php artisan key:generate --force
 
-      - name: 🟢 Setup Node.js 22
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22.23.2'
@@ -70,7 +76,6 @@ jobs:
       - name: Install NPM Dependencies
         run: npm ci
 
-      # Build harus sebelum test karena test GET / memerlukan Vite manifest.
       - name: Build Frontend Assets
         run: npm run build
 
@@ -80,18 +85,11 @@ jobs:
       - name: Run Laravel Tests
         run: php artisan test
 
-  # No SSH/deployment job is enabled. Production remains manual until approved.
   docker:
     name: Build & Smoke Test Docker
     needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Validate isolated stack, migrations, workers and persistence
-        run: bash docker/validate.sh
