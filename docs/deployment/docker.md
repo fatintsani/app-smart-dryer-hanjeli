@@ -1,6 +1,6 @@
 # Deployment Docker Smart Dryer Hanjeli di Ubuntu
 
-Deployment production **manual**. Workflow `.github/workflows/deploy.yml` mempertahankan Composer install, frontend build, manifest check dan Laravel tests, lalu membangun serta menguji stack Docker terisolasi. Job SSH non-Docker dihapus agar tidak ada dua jalur CD aktif. Panduan ini tidak memasang/mengubah Nginx host secara otomatis.
+Deployment production **manual**. Workflow `.github/workflows/deploy.yml` mempertahankan Composer install, frontend build, manifest check dan Laravel tests, lalu membangun serta menguji stack Docker terisolasi. Job deploy Docker hanya berjalan melalui `workflow_dispatch` di branch `main` dengan `deploy_to_vps=true`, setelah kedua job CI/Docker berhasil. Job SSH non-Docker dihapus agar tidak ada dua jalur CD aktif. Panduan ini tidak memasang/mengubah Nginx host secara otomatis.
 
 ## Arsitektur dan prasyarat
 
@@ -149,17 +149,19 @@ bash docker/deploy.sh "$previous_tag" --existing
 
 `--existing` memakai image lokal tanpa rebuild/pull. Script tetap melakukan preflight, backup, `migrate --force` dari image lama (tidak menurunkan schema), healthcheck dan smoke. Bila image berasal registry, pull **kedua tag** sebelum menjalankan script. Bila konfigurasi VITE berubah, sesuaikan konfigurasi public ke release lama terlebih dahulu tanpa mengganti APP_KEY/secret sembarangan. Simpan commit Compose/config yang sesuai untuk pemulihan; jangan `git reset --hard` otomatis. Volume database/upload tetap dipakai.
 
-## Rancangan CD Docker selanjutnya (belum diaktifkan)
+## CD Docker manual melalui GitHub Actions
 
-Setelah validasi server, pertahankan tepat satu workflow deployment: `push main → CI → Docker build app/web → push immutable tags/digests → SSH deploy → Compose/migration gate → health + smoke`. Jobs production memakai protected GitHub Environment `production` dengan reviewer, concurrency tunggal dan `needs` CI/Docker. Jangan menghidupkan kembali job non-Docker.
+Alur workflow: `Run workflow (main, deploy_to_vps=true) → ci → docker (Buildx + bash docker/validate.sh) → approval production jika dikonfigurasi → deploy via SSH → migration/health/smoke → HTTPS /up`. Push dan pull request hanya menjalankan CI/Docker; tidak melakukan deployment. Jangan menghidupkan kembali job non-Docker.
 
-- Registry: gunakan GHCR `GITHUB_TOKEN` dengan `packages: write` di build job, read-only pull credential pada VPS bila private. Bangun untuk platform VPS (biasanya linux/amd64), atau amd64+arm64 jika diperlukan. Semua pengujian lokal yang dicatat terpisah dari platform server.
-- Public build vars: GitHub Actions Variables untuk VITE host/port/scheme/API dan Google client ID. Public Reverb key dapat berasal Actions Secret/Variable; jangan kirim server secret atau `.env` sebagai build context/arg.
-- SSH: Actions Secrets `SSH_HOST`, `SSH_USER`, `SSH_KEY`, `SSH_PORT`, `DEPLOY_PATH`; pin host fingerprint melalui known_hosts/secret yang diverifikasi, bukan menonaktifkan host checking. Registry token hanya secret, jangan inline dalam script/log.
-- Deploy hanya pasangan image dari commit yang sama, simpan tag release sebelumnya. Sinkronkan Compose/scripts dari commit yang sesuai tanpa menimpa `.env`, pull tag, lalu panggil `docker/deploy.sh TAG --existing` via SSH. APP_IMAGE/WEB_IMAGE di `.env` menunjuk registry images.
-- Deploy job harus gagal bila SSH, migration exit code, `compose --wait`, smoke test, atau HTTPS `/up` gagal. Lakukan recovery image secara eksplisit, tidak melakukan schema rollback otomatis.
+Gunakan Repository Secrets existing dengan nama **tetap**: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_PORT`, `VPS_DEPLOY_PATH`. Tambahkan `VPS_KNOWN_HOSTS` berisi public host key yang **sudah diverifikasi operator** melalui jalur terpercaya. Untuk port non-22 gunakan format `[hostname]:port` pada known_hosts. Workflow tidak melakukan `ssh-keyscan` atau mematikan StrictHostKeyChecking. Key SSH harus dapat digunakan tanpa prompt passphrase oleh runner.
 
-Tidak ada SSH job, push image production, secret production, atau automatic deployment yang diaktifkan oleh perubahan ini.
+Di Settings → Environments → `production`, aktifkan required reviewers dan pembatasan deployment branch `main` bila tersedia. Job menggunakan environment ini sehingga approval/protection yang dikonfigurasi harus dipenuhi. Ketersediaan dan konfigurasi approval tidak dapat dijamin hanya dari YAML; tidak ada perubahan otomatis pada pengaturan repository.
+
+`VPS_DEPLOY_PATH` harus path absolut ke root clone repository di VPS. Clone harus bersih dari perubahan lokal/untracked, `.env` production existing harus ada dan diabaikan Git, serta Git di VPS harus memiliki akses read ke origin. Workflow mem-fetch **SHA dari run yang sudah diuji**, checkout detached ke SHA tersebut, memverifikasi `.env` tetap sama tanpa mencetak isinya, lalu memanggil `bash docker/deploy.sh SHA`. Kedua image dibangun di VPS menggunakan konfigurasi public VITE dari existing `.env` dengan tag SHA lengkap. Tidak ada `.env` production yang dikirim melalui GitHub atau image.
+
+Setelah release, workflow menjalankan `docker compose ps -a`, `docker/smoke.php` dalam container app, lalu memeriksa HTTPS `/up` dari runner dengan verifikasi sertifikat TLS dan status tepat 200. Kegagalan SSH, script deployment, migrasi, healthcheck, smoke, atau HTTPS menggagalkan job. Tidak ada rollback schema otomatis. Container/volume MySQL lama dan project Docker lain tetap tidak disentuh.
+
+Karena checkout server menjadi detached HEAD, update melalui workflow menggunakan SHA berikutnya, bukan `git pull` pada detached HEAD. Jika memilih prosedur CLI manual, pindah kembali ke branch `main` secara eksplisit setelah memastikan checkout bersih. Tetap simpan tag release lama dan ikuti prosedur rollback image di atas. Build/push registry dan deployment otomatis pada setiap push belum diaktifkan.
 
 ## Troubleshooting
 
