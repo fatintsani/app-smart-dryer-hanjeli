@@ -52,7 +52,12 @@ fi
 echo 'PASS: unsafe production configuration rejected'
 dc exec -T app php docker/smoke.php --persist-write
 dc exec -T scheduler php artisan schedule:list
-dc logs --no-color mqtt | rg -q 'Connected to MQTT Broker successfully'
+if ! dc logs --no-color mqtt 2>&1 | grep -F 'Connected to MQTT Broker successfully' > /dev/null; then
+    echo 'FAIL: MQTT worker did not report successful broker connection' >&2
+    dc logs --no-color --tail=100 mqtt >&2 || true
+    exit 1
+fi
+
 echo 'PASS: MQTT worker connected and subscribed to isolated broker'
 dc stop web app queue mqtt reverb scheduler
 validation_backup_dir=$(mktemp -d /tmp/hanjeli-backup-validation.XXXXXX)
