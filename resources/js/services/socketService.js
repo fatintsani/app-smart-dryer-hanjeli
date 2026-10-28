@@ -1,6 +1,7 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import api from './api';
+import { reverbConnectionOptions } from './reverbOptions';
 
 // Make Pusher globally available for Laravel Echo
 window.Pusher = Pusher;
@@ -27,19 +28,17 @@ class SocketService {
 
     // 2. Initialize Laravel Reverb / Echo
     try {
-      const reverbKey = import.meta.env.VITE_REVERB_APP_KEY || 'uw8wsconrradblzfklgo';
-      const reverbHost = import.meta.env.VITE_REVERB_HOST || window.location.hostname || 'localhost';
-      const reverbPort = import.meta.env.VITE_REVERB_PORT ? parseInt(import.meta.env.VITE_REVERB_PORT, 10) : 8080;
-      const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || (window.location.protocol === 'https:' ? 'https' : 'http');
+      const reverbKey = import.meta.env.VITE_REVERB_APP_KEY;
+      if (!reverbKey) throw new Error('VITE_REVERB_APP_KEY is required for realtime updates');
 
       this.echo = new Echo({
         broadcaster: 'reverb',
         key: reverbKey,
-        wsHost: reverbHost,
-        wsPort: reverbPort,
-        wssPort: reverbPort,
-        forceTLS: reverbScheme === 'https',
-        enabledTransports: ['ws', 'wss'],
+        ...reverbConnectionOptions(window.location, {
+          VITE_REVERB_HOST: import.meta.env.VITE_REVERB_HOST,
+          VITE_REVERB_PORT: import.meta.env.VITE_REVERB_PORT,
+          VITE_REVERB_SCHEME: import.meta.env.VITE_REVERB_SCHEME,
+        }),
       });
 
       // Bind connection lifecycle events

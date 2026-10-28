@@ -1,6 +1,7 @@
 name: hanjeli-dryer
 
 x-build-args: &frontend-args
+  APP_BUILD_REVISION: ${IMAGE_TAG:-local}
   VITE_APP_NAME: ${VITE_APP_NAME:-Smart_Dryer_Hanjeli}
   VITE_REVERB_APP_KEY: ${VITE_REVERB_APP_KEY:?Set VITE_REVERB_APP_KEY in existing .env}
   VITE_REVERB_HOST: ${VITE_REVERB_HOST:-hanjeli-dryer.stas-rg.com}

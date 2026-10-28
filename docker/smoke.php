@@ -15,32 +15,59 @@ function verify(bool $condition, string $name): void
 
 function request(string $path): array
 {
+    $headers = [];
     $curl = curl_init('http://web'.$path);
     curl_setopt_array($curl, [
         CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15,
         CURLOPT_HTTPHEADER => ['Host: hanjeli-dryer.stas-rg.com', 'X-Forwarded-Proto: https'],
+        CURLOPT_HEADERFUNCTION => static function ($curl, string $line) use (&$headers): int {
+            if (str_contains($line, ':')) {
+                [$name, $value] = explode(':', $line, 2);
+                $headers[strtolower(trim($name))] = trim($value);
+            }
+            return strlen($line);
+        },
     ]);
     $body = curl_exec($curl);
     $status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
     curl_close($curl);
-    return [$status, $body];
+    return [$status, $body, $headers];
 }
 
 verify(Illuminate\Support\Facades\DB::select('SELECT 1') !== [], 'MySQL connection');
 verify(config('app.timezone') === 'Asia/Jakarta', 'Laravel timezone Asia/Jakarta');
 [$status, $body] = request('/up');
 verify($status === 200, 'Laravel /up via Nginx/FPM');
-[$status, $body] = request('/');
+[$status, $body, $headers] = request('/');
 verify($status === 200 && str_contains($body, '/build/assets/'), 'Vue HTML and Vite references');
+verify(str_contains($headers['cache-control'] ?? '', 'no-store'), 'Application HTML is not cached');
 [$status] = request('/monitoring');
 verify($status === 200, 'Vue history fallback');
 [$status, $body] = request('/api/batches');
 verify($status === 200 && json_decode($body, true) !== null, 'Laravel API with MySQL');
 $manifest = json_decode(file_get_contents(__DIR__.'/../public/build/manifest.json'), true, flags: JSON_THROW_ON_ERROR);
 foreach ($manifest as $asset) {
-    [$status] = request('/build/'.$asset['file']);
+    [$status, , $headers] = request('/build/'.$asset['file']);
     verify($status === 200, 'Vite asset '.$asset['file']);
+    if (str_starts_with($asset['file'], 'assets/')) {
+        verify(str_contains($headers['cache-control'] ?? '', 'immutable'), 'Hashed Vite assets are immutable');
+    }
 }
+foreach (['/assets/icons/profile/cs.png', '/assets/img/ai_profile.jpg', '/assets/icons/hero/hero.png'] as $path) {
+    [$status, $body, $headers] = request($path);
+    verify($status === 200 && str_starts_with($headers['content-type'] ?? '', 'image/'), 'Image HTTP 200 '.$path);
+}
+foreach (['/pwa-192x192.png' => 192, '/pwa-512x512.png' => 512, '/apple-touch-icon.png' => 180] as $path => $size) {
+    [$status, $body] = request($path);
+    $dimensions = strlen($body) >= 24 ? unpack('Nwidth/Nheight', substr($body, 16, 8)) : [];
+    verify($status === 200 && ($dimensions['width'] ?? 0) === $size && ($dimensions['height'] ?? 0) === $size, 'PWA icon dimensions '.$path);
+}
+[$status, $body, $headers] = request('/sw.js');
+verify($status === 200 && !str_contains($body, '__SMART_DRYER_BUILD__') && str_contains($headers['cache-control'] ?? '', 'no-store'), 'Versioned Service Worker bypasses HTTP cache');
+verify(($headers['service-worker-allowed'] ?? '') === '/', 'Service Worker root scope');
+[$status, $body, $headers] = request('/build/version.json');
+$localVersion = file_get_contents(__DIR__.'/../public/build/version.json');
+verify($status === 200 && json_decode($body, true) === json_decode($localVersion, true) && str_contains($headers['cache-control'] ?? '', 'no-store'), 'Web and application frontend versions match');
 foreach (['/.env', '/composer.json', '/storage/probe.php'] as $path) {
     [$status] = request($path);
     verify($status === 404, 'Deny '.$path);

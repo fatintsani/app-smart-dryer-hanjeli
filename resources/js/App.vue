@@ -171,6 +171,8 @@
       </button>
     </div>
 
+    <PwaUpdatePrompt />
+
     <!-- Global AI Copilot Contextual Assistant Drawer -->
     <AiCopilotDrawer 
       :is-open="isAiCopilotOpen" 
@@ -191,6 +193,7 @@ import EditProfileModal from './components/EditProfileModal.vue'
 import AlertNotificationToast from './components/AlertNotificationToast.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
 import PwaInstallPrompt from './components/PwaInstallPrompt.vue'
+import PwaUpdatePrompt from './components/PwaUpdatePrompt.vue'
 import AiCopilotDrawer from './components/AiCopilotDrawer.vue'
 
 import { authService } from './services/authService'

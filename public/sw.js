@@ -1,85 +1,61 @@
-const CACHE_NAME = 'smart-dryer-v1.0.0';
-const OFFLINE_URL = '/';
+// Version injected by Vite; Docker serves public/build/sw.js at the stable /sw.js URL.
+const BUILD_ID = '__SMART_DRYER_BUILD__';
+const CACHE_PREFIX = 'smart-dryer-';
+const CACHE_NAME = `${CACHE_PREFIX}${BUILD_ID}`;
+const OFFLINE_URL = '/offline.html';
+const PRECACHE_ASSETS = [OFFLINE_URL, '/pwa-192x192.png', '/pwa-512x512.png', '/apple-touch-icon.png'];
 
-const PRECACHE_ASSETS = [
-  '/',
-  '/manifest.webmanifest',
-  '/pwa-192x192.png',
-  '/pwa-512x512.png',
-  '/apple-touch-icon.png',
-  '/favicon.svg',
-  '/assets/img/hanjeli.png'
-];
-
-// Install Event
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
-        console.warn('[SW] Pre-caching partial failed:', err);
-      });
-    }).then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(PRECACHE_ASSETS.map((url) => new Request(url, { cache: 'reload' })));
+    await self.skipWaiting();
+  })());
 });
 
-// Activate Event - Clean Old Caches
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME).map((name) => caches.delete(name)));
+    await self.clients.claim();
+  })());
 });
 
-// Fetch Event - Network First with Cache Fallback for navigation, Stale-While-Revalidate for static
 self.addEventListener('fetch', (event) => {
-  // Ignore non-GET or cross-origin / API calls from aggressive caching
-  if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
+  const request = event.request;
+  const url = new URL(request.url);
+  // API, authentication, external requests and unversioned assets use the network.
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
-  // Skip caching for backend API requests to always have realtime data
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/sanctum/')) {
-    return;
-  }
-
-  // Static assets: cache-first or stale-while-revalidate
-  if (
-    url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|woff2?|ttf|css|js)$/) ||
-    url.pathname.startsWith('/build/') ||
-    url.pathname.startsWith('/assets/')
-  ) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async (cache) => {
-        const cachedResponse = await cache.match(event.request);
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        }).catch(() => cachedResponse);
-
-        return cachedResponse || fetchPromise;
-      })
-    );
-    return;
-  }
-
-  // HTML navigation: Network first, fallback to cached offline page
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(async () => {
+  if (request.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        // Never return old application HTML referencing a previous Vite bundle.
+        return await fetch(new Request(request, { cache: 'no-store' }));
+      } catch {
         const cache = await caches.open(CACHE_NAME);
-        const cachedResponse = await cache.match(event.request);
-        return cachedResponse || (await cache.match(OFFLINE_URL));
-      })
-    );
+        return await cache.match(OFFLINE_URL) || new Response('Offline', { status: 503 });
+      }
+    })());
+    return;
+  }
+
+  // Only content-hashed Vite assets are immutable. Never cache API data or /sw.js.
+  if (url.pathname.startsWith('/build/assets/')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      try {
+        const response = await fetch(request);
+        if (response.ok && response.type === 'basic') {
+          await cache.put(request, response.clone());
+        }
+        return response;
+      } catch {
+        return new Response('Asset unavailable offline', { status: 503 });
+      }
+    })());
   }
 });
 

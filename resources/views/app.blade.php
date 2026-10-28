@@ -16,7 +16,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Dryer" />
     <meta name="application-name" content="Smart Room Dryer Hanjeli" />
     <meta name="description" content="Sistem IoT Cerdas Monitoring & Pengeringan Hanjeli - Desa Wisata Hanjeli Waluran & CoE STAS-RG" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
     
     <!-- Google Fonts: Plus Jakarta Sans -->

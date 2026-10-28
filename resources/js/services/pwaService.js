@@ -7,6 +7,8 @@ const isIOS = ref(false);
 const isDismissed = ref(false);
 const notificationPermission = ref(typeof Notification !== 'undefined' ? Notification.permission : 'default');
 let swRegistration = null;
+let initialized = false;
+const updateAvailable = ref(false);
 
 export const pwaState = reactive({
   isInstallable,
@@ -14,10 +16,12 @@ export const pwaState = reactive({
   isIOS,
   isDismissed,
   notificationPermission,
+  updateAvailable,
 });
 
 export function initPwa() {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || initialized) return;
+  initialized = true;
 
   // Check if running as installed standalone PWA
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -34,16 +38,36 @@ export function initPwa() {
 
   // Register Service Worker
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
+    let previouslyControlled = Boolean(navigator.serviceWorker.controller);
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // Never reload an active form automatically when a release takes control.
+      if (previouslyControlled) updateAvailable.value = true;
+      previouslyControlled = true;
+    });
+    const registerWorker = async () => {
       try {
-        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' });
         swRegistration = reg;
-        console.log('[PWA] Service Worker registered successfully:', reg.scope);
+        let lastUpdateCheck = 0;
+        const checkForUpdate = () => {
+          if (document.visibilityState !== 'visible' || !navigator.onLine || Date.now() - lastUpdateCheck < 60_000) return;
+          lastUpdateCheck = Date.now();
+          reg.update().catch((err) => console.warn('[PWA] Update check failed:', err));
+        };
+        document.addEventListener('visibilitychange', checkForUpdate);
+        window.addEventListener('online', checkForUpdate);
+        window.addEventListener('focus', checkForUpdate);
+        window.setInterval(checkForUpdate, 15 * 60_000);
+        checkForUpdate();
       } catch (err) {
         console.warn('[PWA] Service Worker registration failed:', err);
       }
-    });
+    };
+    if (document.readyState === 'complete') registerWorker();
+    else window.addEventListener('load', registerWorker, { once: true });
   }
+
+  window.addEventListener('vite:preloadError', () => { updateAvailable.value = true; });
 
   // Intercept beforeinstallprompt event (Android / Chromium)
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -60,6 +84,10 @@ export function initPwa() {
     deferredPrompt.value = null;
     console.log('[PWA] App was installed successfully');
   });
+}
+
+export function reloadForUpdate() {
+  window.location.reload();
 }
 
 export async function promptInstall() {

@@ -6,7 +6,8 @@
         "start": "concurrently -n \"LARAVEL,VITE\" -c \"bgBlue.bold,bgGreen.bold\" \"php artisan serve\" \"vite\"",
         "dev": "vite",
         "serve": "php artisan serve",
-        "build": "vite build"
+        "build": "vite build",
+        "test:frontend": "node --test tests/frontend/*.test.js"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

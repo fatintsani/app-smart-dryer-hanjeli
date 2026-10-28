@@ -624,33 +624,9 @@
                     </div>
                 </div>
 
-                <!-- Hero Right Column: 3D Illustration with Interactive Parallax -->
+                <!-- Image-only hero; operational charts remain on monitoring pages. -->
                 <div class="hero-right">
-                    <div 
-                        class="hero-illustration-wrap"
-                        ref="hero3dRef"
-                        @mousemove="handleHeroMouseMove"
-                        @mouseleave="handleHeroMouseLeave"
-                        @mouseenter="handleHeroMouseEnter"
-                        :style="hero3dStyle"
-                    >
-                        <!-- Ambient 3D Depth Glow -->
-                        <div class="hero-3d-ambient-glow"></div>
-                        
-                        <!-- Main 3D Hero Graphic -->
-                        <img
-                            src="/assets/icons/hero/hero.png"
-                            alt="Smart Dryer Greenhouse Hanjeli"
-                            class="hero-main-img"
-                            :style="heroImg3dStyle"
-                        />
-
-                        <!-- Dynamic Specular Glare / Lighting Reflection -->
-                        <div 
-                            class="hero-3d-glare"
-                            :style="heroGlareStyle"
-                        ></div>
-                    </div>
+                    <LandingHeroPhoto />
                 </div>
             </div>
         </section>
@@ -1854,10 +1830,8 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { animate, inView, stagger } from "motion";
 import FlagIcon from "../../components/FlagIcon.vue";
+import LandingHeroPhoto from "../../components/LandingHeroPhoto.vue";
 import { authService } from "../../services/authService";
-import { telemetryService } from "../../services/telemetryService";
-import { batchService } from "../../services/batchService";
-import { socketService } from "../../services/socketService";
 import { isDark, toggleTheme } from "../../services/themeService";
 import { currentLang, setLanguage } from "../../i18n";
 
@@ -1889,300 +1863,6 @@ function handleClickOutside(e) {
     }
     if (navbarRef.value && !navbarRef.value.contains(e.target)) {
         isMobileMenuOpen.value = false;
-    }
-}
-
-// 3D Hero Tilt & Parallax Interactive Logic
-const hero3dRef = ref(null);
-const heroTiltX = ref(0);
-const heroTiltY = ref(0);
-const isHeroHovered = ref(false);
-const glareX = ref(50);
-const glareY = ref(50);
-const glareOpacity = ref(0);
-
-function handleHeroMouseEnter() {
-    isHeroHovered.value = true;
-    glareOpacity.value = 0.55;
-}
-
-function handleHeroMouseMove(e) {
-    if (!hero3dRef.value) return;
-    const rect = hero3dRef.value.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    
-    // Smooth 3D tilt angles up to ±16 degrees
-    const rotateY = ((x - centerX) / centerX) * 16;
-    const rotateX = -((y - centerY) / centerY) * 16;
-    
-    heroTiltX.value = rotateX;
-    heroTiltY.value = rotateY;
-    
-    glareX.value = (x / rect.width) * 100;
-    glareY.value = (y / rect.height) * 100;
-}
-
-function handleHeroMouseLeave() {
-    isHeroHovered.value = false;
-    heroTiltX.value = 0;
-    heroTiltY.value = 0;
-    glareOpacity.value = 0;
-}
-
-const hero3dStyle = computed(() => {
-    if (!isHeroHovered.value) {
-        return {
-            transform: 'perspective(1100px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
-            transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
-        };
-    }
-    return {
-        transform: `perspective(1100px) rotateX(${heroTiltX.value.toFixed(2)}deg) rotateY(${heroTiltY.value.toFixed(2)}deg) scale3d(1.06, 1.06, 1.06)`,
-        transition: 'transform 0.08s ease-out',
-    };
-});
-
-const heroImg3dStyle = computed(() => {
-    if (!isHeroHovered.value) {
-        return {
-            transform: 'translateZ(0px)',
-            filter: 'drop-shadow(0 20px 38px rgba(13, 99, 27, 0.22)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.1))',
-            transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.65s ease',
-        };
-    }
-    const shadowX = (-heroTiltY.value * 2.2).toFixed(1);
-    const shadowY = (heroTiltX.value * 2.2 + 28).toFixed(1);
-    return {
-        transform: 'translateZ(36px)',
-        filter: `drop-shadow(${shadowX}px ${shadowY}px 48px rgba(13, 99, 27, 0.35)) drop-shadow(${Number(shadowX) * 0.5}px ${Number(shadowY) * 0.5}px 18px rgba(0, 0, 0, 0.18))`,
-        transition: 'transform 0.08s ease-out, filter 0.08s ease-out',
-    };
-});
-
-const heroGlareStyle = computed(() => ({
-    background: `radial-gradient(circle at ${glareX.value}% ${glareY.value}%, rgba(255, 255, 255, 0.45) 0%, rgba(203, 255, 194, 0.2) 30%, transparent 65%)`,
-    opacity: glareOpacity.value,
-    transition: isHeroHovered.value ? 'opacity 0.2s ease' : 'opacity 0.5s ease',
-}));
-
-// Real Database & IoT States
-const telemetry = ref({
-    tempInternal: 39.4,
-    humidityInternal: 42.0,
-    tempExternal: 28.5,
-    grainMoisture: 14.2,
-    hasData: false,
-});
-
-const actuators = ref({
-    exhaustFanStatus: true,
-    exhaustFanSpeed: 100,
-    circFanStatus: true,
-    circFanSpeed: 100,
-    auxHeaterStatus: false,
-});
-
-const activeBatch = ref(null);
-const latestBatch = ref(null);
-const telemetryHistory = ref([]);
-let pollInterval = null;
-
-const isActiveCycle = computed(() => {
-    return !!(
-        activeBatch.value &&
-        (activeBatch.value.status === "ACTIVE" ||
-            activeBatch.value.status === "RUNNING" ||
-            activeBatch.value.status === "PAUSED")
-    );
-});
-
-const currentTempDisplay = computed(() => {
-    if (
-        telemetry.value.hasData &&
-        typeof telemetry.value.tempInternal === "number"
-    ) {
-        return telemetry.value.tempInternal.toFixed(1);
-    }
-    return "39.4";
-});
-
-const currentHumidityDisplay = computed(() => {
-    if (
-        telemetry.value.hasData &&
-        typeof telemetry.value.humidityInternal === "number"
-    ) {
-        return Math.round(telemetry.value.humidityInternal);
-    }
-    return "42";
-});
-
-const tempStatusClass = computed(() => {
-    const t = parseFloat(currentTempDisplay.value);
-    if (t >= 38.0 && t <= 40.5) return "status-good";
-    if (t > 40.5) return "status-warn";
-    return "status-info";
-});
-
-const tempStatusText = computed(() => {
-    const t = parseFloat(currentTempDisplay.value);
-    if (currentLang.value === "id") {
-        if (t >= 38.0 && t <= 40.5) return "Optimal (38-40°C)";
-        if (t > 40.5) return "Suhu Tinggi (>40°C)";
-        return "Meningkat ke Target";
-    } else {
-        if (t >= 38.0 && t <= 40.5) return "Optimal (38-40°C)";
-        if (t > 40.5) return "High Temp (>40°C)";
-        return "Rising to Target";
-    }
-});
-
-const humidityStatusClass = computed(() => {
-    const h = parseFloat(currentHumidityDisplay.value);
-    if (h <= 45) return "status-good";
-    return "status-trend";
-});
-
-const humidityStatusText = computed(() => {
-    const h = parseFloat(currentHumidityDisplay.value);
-    if (currentLang.value === "id") {
-        if (h <= 14) return "Kadar Kering Standar";
-        if (h <= 45) return "Menurun stabil";
-        return "Proses Penguapan";
-    } else {
-        if (h <= 14) return "Dry Grain Standard";
-        if (h <= 45) return "Decreasing steadily";
-        return "Evaporation Phase";
-    }
-});
-
-const isBlowerActive = computed(() => {
-    return !!(
-        actuators.value.circFanStatus || actuators.value.exhaustFanStatus
-    );
-});
-
-const blowerSpeedDisplay = computed(() => {
-    return (
-        actuators.value.circFanSpeed || actuators.value.exhaustFanSpeed || 100
-    );
-});
-
-const displayBatchCrop = computed(() => {
-    return (
-        activeBatch.value?.cropVariety ||
-        latestBatch.value?.cropVariety ||
-        "Hanjeli Ketan Sukabumi"
-    );
-});
-
-const displayBatchCode = computed(() => {
-    return (
-        activeBatch.value?.batchCode ||
-        activeBatch.value?.id ||
-        latestBatch.value?.batchCode ||
-        latestBatch.value?.id ||
-        "HJ-2026-005"
-    );
-});
-
-const displayBatchWeight = computed(() => {
-    const w =
-        activeBatch.value?.initialWeightKg ||
-        activeBatch.value?.currentWeightKg ||
-        latestBatch.value?.initialWeightKg ||
-        25;
-    return typeof w === "number" ? w.toFixed(0) : w;
-});
-
-// Dynamic SVG Sparkline generator based on real database telemetry history
-const sparklinePoints = computed(() => {
-    if (!telemetryHistory.value || telemetryHistory.value.length < 2) {
-        return [
-            { x: 0, y: 45 },
-            { x: 50, y: 34 },
-            { x: 100, y: 38 },
-            { x: 160, y: 25 },
-            { x: 220, y: 22 },
-            { x: 280, y: 27 },
-            { x: 330, y: 23 },
-            { x: 380, y: 22 },
-        ];
-    }
-
-    const values = telemetryHistory.value.map((t) =>
-        typeof t.tempInternal === "number" ? t.tempInternal : 38,
-    );
-    const minVal = Math.min(...values, 30);
-    const maxVal = Math.max(...values, 45);
-    const range = maxVal - minVal || 1;
-
-    return values.map((val, idx) => {
-        const x = (idx / (values.length - 1)) * 380;
-        const normalized = (val - minVal) / range;
-        const y = 50 - normalized * 38;
-        return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
-    });
-});
-
-const sparklineLinePath = computed(() => {
-    const pts = sparklinePoints.value;
-    if (!pts.length) return "M 0 45 L 380 22";
-    return `M ${pts.map((p) => `${p.x} ${p.y}`).join(" L ")}`;
-});
-
-const sparklineAreaPath = computed(() => {
-    return `${sparklineLinePath.value} L 380 60 L 0 60 Z`;
-});
-
-async function fetchLiveData() {
-    try {
-        const res = await telemetryService.getCurrent();
-        if (res?.telemetry) {
-            telemetry.value = {
-                ...telemetry.value,
-                ...res.telemetry,
-                hasData: res.telemetry.hasData !== false,
-            };
-        }
-        if (res?.actuators) {
-            actuators.value = { ...actuators.value, ...res.actuators };
-        }
-    } catch (err) {
-        console.warn("Landing telemetry fetch:", err);
-    }
-
-    try {
-        const batchRes = await batchService.getActiveBatch();
-        const active =
-            batchRes?.activeBatch || (batchRes?.id ? batchRes : null);
-        if (active && active.id) {
-            activeBatch.value = active;
-        } else {
-            activeBatch.value = null;
-            const allBatches = await batchService.getAll();
-            const list = Array.isArray(allBatches)
-                ? allBatches
-                : allBatches?.data || [];
-            if (list.length > 0) {
-                latestBatch.value = list[0];
-            }
-        }
-    } catch (err) {
-        console.warn("Landing active batch fetch:", err);
-    }
-
-    try {
-        const histRes = await telemetryService.getHistory(6);
-        const list = Array.isArray(histRes) ? histRes : histRes?.data || [];
-        if (list.length >= 2) {
-            telemetryHistory.value = list.slice(-15);
-        }
-    } catch (err) {
-        console.warn("Landing telemetry history fetch:", err);
     }
 }
 
@@ -2450,31 +2130,11 @@ onMounted(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     document.addEventListener("click", handleClickOutside);
 
-    // 1. Fetch initial live telemetry & batch from MySQL database
-    fetchLiveData();
-
-    // 2. Real-time WebSocket connection
-    socketService.connect();
-    socketService.on("telemetry_new", (data) => {
-        if (data) {
-            telemetry.value = {
-                ...telemetry.value,
-                ...data,
-                hasData: true,
-            };
-        }
-    });
-    socketService.on("batch_update", () => {
-        fetchLiveData();
-    });
-
-    // 3. Initialize Framer Motion animations
+    // Initialize Framer Motion animations
     nextTick(() => {
         initFramerMotion();
     });
 
-    // 4. Fallback polling every 4 seconds to guarantee fresh data
-    pollInterval = setInterval(fetchLiveData, 4000);
 });
 
 onUnmounted(() => {
@@ -2484,7 +2144,6 @@ onUnmounted(() => {
     }
     window.removeEventListener("scroll", handleScroll);
     document.removeEventListener("click", handleClickOutside);
-    if (pollInterval) clearInterval(pollInterval);
     if (scrollTimeout) clearTimeout(scrollTimeout);
 });
 </script>
@@ -3222,410 +2881,6 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     perspective: 1200px;
-}
-
-.hero-illustration-wrap {
-    width: 100%;
-    max-width: 520px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    transform-style: preserve-3d;
-    cursor: grab;
-    user-select: none;
-    padding: 12px;
-    box-sizing: border-box;
-    will-change: transform;
-}
-
-.hero-illustration-wrap:active {
-    cursor: grabbing;
-}
-
-.hero-3d-ambient-glow {
-    position: absolute;
-    width: 360px;
-    height: 360px;
-    background: radial-gradient(circle, rgba(46, 125, 50, 0.32) 0%, rgba(203, 255, 194, 0.18) 45%, transparent 70%);
-    border-radius: 50%;
-    filter: blur(42px);
-    pointer-events: none;
-    z-index: 1;
-    transform: translateZ(-25px);
-    animation: heroGlowPulse 5s ease-in-out infinite alternate;
-}
-
-@keyframes heroGlowPulse {
-    0% { transform: scale(0.92) translateZ(-25px); opacity: 0.6; }
-    100% { transform: scale(1.18) translateZ(-25px); opacity: 0.95; }
-}
-
-.hero-main-img {
-    width: 100%;
-    max-height: 480px;
-    object-fit: contain;
-    display: block;
-    position: relative;
-    z-index: 2;
-    transform-style: preserve-3d;
-    pointer-events: none;
-    will-change: transform, filter;
-}
-
-.hero-3d-glare {
-    position: absolute;
-    inset: 10px;
-    border-radius: 30px;
-    pointer-events: none;
-    z-index: 3;
-    mix-blend-mode: overlay;
-    transform: translateZ(40px);
-}
-
-.hero-floating-badge {
-    position: absolute;
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-    border: 1.5px solid rgba(13, 99, 27, 0.2);
-    border-radius: 100px;
-    box-shadow: 0 10px 25px rgba(13, 99, 27, 0.15), 0 2px 6px rgba(0, 0, 0, 0.05);
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #0D631B;
-    pointer-events: none;
-    transform-style: preserve-3d;
-    will-change: transform;
-}
-
-.badge-iot {
-    top: 24px;
-    left: -10px;
-    animation: floatBadge1 4s ease-in-out infinite alternate;
-}
-
-.badge-greenhouse {
-    bottom: 24px;
-    right: -10px;
-    animation: floatBadge2 4.5s ease-in-out infinite alternate;
-}
-
-.badge-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #16A34A;
-}
-
-.pulse-green {
-    box-shadow: 0 0 0 rgba(22, 163, 74, 0.6);
-    animation: pulseDot 2s infinite;
-}
-
-@keyframes pulseDot {
-    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-    70% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
-}
-
-@keyframes floatBadge1 {
-    0% { transform: translateY(0px); }
-    100% { transform: translateY(-7px); }
-}
-
-@keyframes floatBadge2 {
-    0% { transform: translateY(0px); }
-    100% { transform: translateY(7px); }
-}
-
-@media (max-width: 768px) {
-    .hero-floating-badge {
-        display: none;
-    }
-    .hero-3d-ambient-glow {
-        width: 250px;
-        height: 250px;
-    }
-}
-
-.live-preview-card {
-    width: 100%;
-    max-width: 440px;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 14px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    transition:
-        transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow 0.35s ease,
-        border-color 0.3s ease;
-}
-
-.live-preview-card:hover {
-    transform: translateY(-5px);
-    box-shadow:
-        0 24px 48px -12px rgba(13, 99, 27, 0.18),
-        0 8px 24px -6px rgba(0, 0, 0, 0.06);
-    border-color: rgba(13, 99, 27, 0.35);
-}
-
-.preview-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.preview-room-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.live-pulse-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-}
-
-.pulse-idle {
-    background: #005db7 !important;
-    box-shadow: 0 0 0 3px rgba(0, 93, 183, 0.2) !important;
-}
-
-.preview-room-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #111d23;
-}
-
-.badge-status-running {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 10px;
-    background: #e8f5e9;
-    color: #0d631b;
-    border-radius: 9999px;
-    border: 1px solid #c8e6c9;
-}
-
-.badge-status-idle {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 10px;
-    background: #e3f0f8;
-    color: #005db7;
-    border-radius: 9999px;
-    border: 1px solid #cbd5e1;
-}
-
-.preview-metrics-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.metric-box {
-    background: #e9f6fd;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    transition:
-        transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-        box-shadow 0.28s ease,
-        border-color 0.2s ease;
-    cursor: default;
-}
-
-.metric-box:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 10px 22px -4px rgba(0, 93, 183, 0.16);
-    border-color: #005db7;
-}
-
-.metric-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.metric-label {
-    font-size: 11.5px;
-    font-weight: 600;
-    color: #40493d;
-}
-
-.metric-number-row {
-    display: flex;
-    align-items: baseline;
-    gap: 3px;
-}
-
-.metric-val {
-    font-size: 34px;
-    font-weight: 800;
-    color: #111d23;
-    line-height: 1;
-}
-
-.metric-unit {
-    font-size: 16px;
-    font-weight: 700;
-    color: #111d23;
-}
-
-.metric-badge-status {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.status-good {
-    color: #0d631b;
-}
-
-.status-trend {
-    color: #005db7;
-}
-
-.status-warn {
-    color: #ba1a1a;
-}
-
-.status-info {
-    color: #005db7;
-}
-
-.preview-chart-box {
-    background: #e3f0f8;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    transition: all 0.2s ease;
-}
-
-.chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.chart-title {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #111d23;
-}
-
-.chart-sub {
-    font-size: 11px;
-    font-weight: 500;
-    color: #40493d;
-}
-
-.chart-svg-container {
-    width: 100%;
-    height: 60px;
-}
-
-.sparkline-svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-}
-
-.preview-actuator-row {
-    background: #ddeaf2;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 10px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.2s ease;
-}
-
-.actuator-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #111d23;
-}
-
-.actuator-status-on {
-    font-size: 12px;
-    font-weight: 700;
-    color: #0d631b;
-}
-
-.actuator-status-off {
-    font-size: 12px;
-    font-weight: 700;
-    color: #707a6c;
-}
-
-.preview-batch-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-top: 4px;
-}
-
-.batch-avatar-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    background: #e3f0f8;
-    border: 1px solid #cbd5e1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.batch-seed-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.batch-details {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.batch-crop-name {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: #111d23;
-}
-
-.batch-code-weight {
-    font-size: 11.5px;
-    font-weight: 500;
-    color: #40493d;
 }
 
 /* 3. Reusable Section Layout */
@@ -4614,10 +3869,6 @@ a.contact-value:hover {
 }
 
 .dark-landing .brand-icon-box,
-.dark-landing .batch-avatar-icon {
-    background: #152c20 !important;
-    border-color: #1e3a2b !important;
-}
 
 .dark-landing .brand-title,
 .dark-landing .hero-title,
@@ -4627,14 +3878,8 @@ a.contact-value:hover {
 .dark-landing .step-title,
 .dark-landing .footer-brand-title,
 .dark-landing .footer-col-title,
-.dark-landing .preview-room-title,
-.dark-landing .chart-title,
-.dark-landing .batch-crop-name,
-.dark-landing .metric-val,
-.dark-landing .metric-unit,
 .dark-landing .mini-card-title,
 .dark-landing .assembly-title,
-.dark-landing .actuator-left,
 .dark-landing .lang-option {
     color: #f1f5f9 !important;
 }
@@ -4650,9 +3895,6 @@ a.contact-value:hover {
 .dark-landing .footer-link-item,
 .dark-landing .footer-bottom-row,
 .dark-landing .section-subtext,
-.dark-landing .metric-label,
-.dark-landing .chart-sub,
-.dark-landing .batch-code-weight,
 .dark-landing .assembly-desc,
 .dark-landing .hw-spec-tag,
 .dark-landing .footer-copy {
@@ -4746,24 +3988,17 @@ a.contact-value:hover {
 .dark-landing .feature-card,
 .dark-landing .step-card,
 .dark-landing .hw-card,
-.dark-landing .live-preview-card,
 .dark-landing .assembly-banner-card {
     background: #13271c !important;
     border-color: #1e3a2b !important;
 }
 
-.dark-landing .preview-header,
 .dark-landing .hw-card-footer,
 .dark-landing .feature-footer,
 .dark-landing .footer-bottom-row {
     border-color: #1e3a2b !important;
 }
 
-.dark-landing .metric-box,
-.dark-landing .preview-actuator-row {
-    background: #183324 !important;
-    border-color: #1e3a2b !important;
-}
 
 .dark-landing .feature-icon-box,
 .dark-landing .hw-icon-box,
@@ -4778,10 +4013,6 @@ a.contact-value:hover {
     border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
 }
 
-.dark-landing .preview-chart-box {
-    background: #152c20 !important;
-    border-color: #1e3a2b !important;
-}
 
 .dark-landing .bg-soft-blue {
     background-color: #0e1f16 !important;
@@ -4886,17 +4117,7 @@ a.contact-value:hover {
     color: #64748b !important;
 }
 
-.dark-landing .badge-status-running {
-    background: rgba(13, 99, 27, 0.35);
-    color: #4ade80;
-    border-color: rgba(74, 222, 128, 0.3);
-}
 
-.dark-landing .badge-status-idle {
-    background: rgba(0, 93, 183, 0.25);
-    color: #60a5fa;
-    border-color: rgba(96, 165, 250, 0.3);
-}
 
 /* Responsive Media Queries */
 @media (max-width: 1024px) {
