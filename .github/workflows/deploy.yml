@@ -1,4 +1,4 @@
-name: Laravel CI & Docker Validation + Manual VPS CD
+name: Laravel CI & Docker Validation + Automatic VPS CD
 
 on:
   push:
