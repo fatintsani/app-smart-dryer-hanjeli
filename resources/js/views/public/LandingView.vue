@@ -247,9 +247,10 @@
                     <!-- Mobile Hamburger Toggle -->
                     <button
                         class="mobile-menu-btn mobile-only"
-                        @click="isMobileMenuOpen = !isMobileMenuOpen"
+                        @click.stop="toggleMobileMenu"
                         :aria-expanded="isMobileMenuOpen"
                         :title="isMobileMenuOpen ? 'Tutup Menu' : 'Buka Menu'"
+                        aria-label="Menu"
                     >
                         <svg
                             v-if="!isMobileMenuOpen"
@@ -259,6 +260,8 @@
                             fill="none"
                             stroke="currentColor"
                             stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
                         >
                             <line x1="3" y1="12" x2="21" y2="12"></line>
                             <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -272,6 +275,8 @@
                             fill="none"
                             stroke="currentColor"
                             stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
                         >
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -282,7 +287,7 @@
 
             <!-- Mobile Dropdown / Drawer Menu -->
             <transition name="mobile-nav-expand">
-                <div v-if="isMobileMenuOpen" class="landing-mobile-drawer">
+                <div v-if="isMobileMenuOpen" class="landing-mobile-drawer" @click.stop>
                     <div class="mobile-drawer-inner">
                         <nav class="mobile-drawer-links">
                             <a
@@ -473,6 +478,15 @@
                 </div>
             </transition>
         </header>
+
+        <!-- Backdrop Overlay for Mobile Drawer -->
+        <transition name="mobile-backdrop">
+            <div
+                v-if="isMobileMenuOpen"
+                class="mobile-drawer-backdrop"
+                @click="isMobileMenuOpen = false"
+            ></div>
+        </transition>
 
         <!-- 2. HERO SECTION -->
         <section class="hero-section" id="tentang">
@@ -1857,16 +1871,30 @@ function selectLang(lang) {
     isLangOpen.value = false;
 }
 
+function toggleMobileMenu() {
+    isMobileMenuOpen.value = !isMobileMenuOpen.value;
+    if (isMobileMenuOpen.value) {
+        isLangOpen.value = false;
+    }
+}
+
 function handleClickOutside(e) {
     if (langDropdownRef.value && !langDropdownRef.value.contains(e.target)) {
         isLangOpen.value = false;
     }
-    if (navbarRef.value && !navbarRef.value.contains(e.target)) {
+    if (
+        isMobileMenuOpen.value &&
+        e.target &&
+        e.target.isConnected &&
+        navbarRef.value &&
+        !navbarRef.value.contains(e.target)
+    ) {
         isMobileMenuOpen.value = false;
     }
 }
 
 function goToApp() {
+    isMobileMenuOpen.value = false;
     if (isAuth.value) {
         if (currentUser.value?.role === "ADMIN") {
             router.push("/admin");
@@ -2422,6 +2450,89 @@ onUnmounted(() => {
     transform: scale(0.98);
 }
 
+/* Mobile Menu Toggle Button */
+.mobile-menu-btn {
+    width: 38px;
+    height: 38px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.mobile-menu-btn svg,
+.mobile-menu-btn svg * {
+    pointer-events: none;
+}
+
+.mobile-menu-btn:hover {
+    background: rgba(13, 99, 27, 0.08);
+    color: #0d631b;
+}
+
+.mobile-menu-btn:active {
+    background: rgba(13, 99, 27, 0.16);
+    transform: scale(0.94);
+}
+
+.dark-landing .mobile-menu-btn {
+    color: #f1f5f9;
+}
+
+.dark-landing .mobile-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #4ade80;
+}
+
+.dark-landing .mobile-menu-btn:active {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.landing-navbar.mobile-menu-active {
+    background: rgba(244, 250, 255, 0.98);
+    box-shadow: 0 4px 20px -2px rgba(13, 99, 27, 0.08);
+}
+
+.dark-landing .landing-navbar.mobile-menu-active {
+    background: rgba(11, 25, 17, 0.98);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile Drawer Backdrop */
+.mobile-drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 998;
+}
+
+.mobile-backdrop-enter-active,
+.mobile-backdrop-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.mobile-backdrop-enter-from,
+.mobile-backdrop-leave-to {
+    opacity: 0;
+}
+
 /* Mobile Drawer & Dropdown */
 .landing-mobile-drawer {
     position: absolute;
@@ -2429,14 +2540,21 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     width: 100%;
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
     background: rgba(244, 250, 255, 0.98);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     border-bottom: 1px solid #cbd5e1;
     box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.12);
     box-sizing: border-box;
-    overflow: hidden;
     z-index: 999;
+}
+
+.dark-landing .landing-mobile-drawer {
+    background: rgba(11, 25, 17, 0.98);
+    border-bottom-color: #1e3a2b;
+    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.45);
 }
 
 .mobile-drawer-inner {
@@ -2468,6 +2586,10 @@ onUnmounted(() => {
     transition: all 0.2s ease;
 }
 
+.dark-landing .mobile-drawer-links a {
+    color: #f1f5f9;
+}
+
 .mobile-drawer-links a .link-icon-chip {
     width: 32px;
     height: 32px;
@@ -2481,10 +2603,21 @@ onUnmounted(() => {
     flex-shrink: 0;
 }
 
+.dark-landing .mobile-drawer-links a .link-icon-chip {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+}
+
 .mobile-drawer-links a:hover,
 .mobile-drawer-links a.active {
     background: rgba(13, 99, 27, 0.08);
     color: #0d631b;
+}
+
+.dark-landing .mobile-drawer-links a:hover,
+.dark-landing .mobile-drawer-links a.active {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ade80;
 }
 
 .mobile-drawer-links a.active .link-icon-chip {
@@ -2492,9 +2625,18 @@ onUnmounted(() => {
     color: #ffffff;
 }
 
+.dark-landing .mobile-drawer-links a.active .link-icon-chip {
+    background: #0d631b;
+    color: #ffffff;
+}
+
 .mobile-drawer-cta {
     padding-top: 10px;
     border-top: 1px solid rgba(203, 213, 225, 0.8);
+}
+
+.dark-landing .mobile-drawer-cta {
+    border-top-color: rgba(30, 58, 43, 0.8);
 }
 
 .btn-mobile-login {
@@ -4148,7 +4290,7 @@ a.contact-value:hover {
     }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
     .desktop-only {
         display: none !important;
     }

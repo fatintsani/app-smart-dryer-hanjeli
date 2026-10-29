@@ -116,9 +116,10 @@
           <!-- Mobile Hamburger Toggle -->
           <button 
             class="mobile-menu-btn mobile-only" 
-            @click="isMobileMenuOpen = !isMobileMenuOpen"
+            @click.stop="isMobileMenuOpen = !isMobileMenuOpen"
             :aria-expanded="isMobileMenuOpen"
             :title="isMobileMenuOpen ? 'Tutup Menu' : 'Buka Menu'"
+            aria-label="Menu"
           >
             <svg v-if="!isMobileMenuOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -135,7 +136,7 @@
 
       <!-- Mobile Dropdown / Drawer Menu -->
       <transition name="mobile-nav-expand">
-        <div v-if="isMobileMenuOpen" class="landing-mobile-drawer">
+        <div v-if="isMobileMenuOpen" class="landing-mobile-drawer" @click.stop>
           <div class="mobile-drawer-inner">
             <nav class="mobile-drawer-links">
               <a href="/#tentang" @click.prevent="navigateToLanding('tentang')">
@@ -198,6 +199,15 @@
         </div>
       </transition>
     </header>
+
+    <!-- Backdrop Overlay for Mobile Drawer -->
+    <transition name="mobile-backdrop">
+      <div
+        v-if="isMobileMenuOpen"
+        class="mobile-drawer-backdrop"
+        @click="isMobileMenuOpen = false"
+      ></div>
+    </transition>
 
     <!-- Main Content Container -->
     <main class="verify-main-container">
@@ -1035,6 +1045,15 @@ function navigateToLanding(sectionId) {
 function handleClickOutside(event) {
   if (langDropdownRef.value && !langDropdownRef.value.contains(event.target)) {
     isLangOpen.value = false
+  }
+  if (
+    isMobileMenuOpen.value &&
+    event.target &&
+    event.target.isConnected &&
+    navbarRef.value &&
+    !navbarRef.value.contains(event.target)
+  ) {
+    isMobileMenuOpen.value = false
   }
 }
 
@@ -1956,6 +1975,38 @@ async function printCertificate() {
   color: #111D23;
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-menu-btn svg,
+.mobile-menu-btn svg * {
+  pointer-events: none;
+}
+
+/* Mobile Drawer Backdrop */
+.mobile-drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 998;
+}
+
+.mobile-backdrop-enter-active,
+.mobile-backdrop-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.mobile-backdrop-enter-from,
+.mobile-backdrop-leave-to {
+  opacity: 0;
 }
 
 .mobile-menu-btn:hover {

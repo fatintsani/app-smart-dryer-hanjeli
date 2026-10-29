@@ -114,9 +114,10 @@
           <!-- Mobile Hamburger Toggle -->
           <button 
             class="mobile-menu-btn mobile-only" 
-            @click="isMobileMenuOpen = !isMobileMenuOpen"
+            @click.stop="isMobileMenuOpen = !isMobileMenuOpen"
             :aria-expanded="isMobileMenuOpen"
             :title="isMobileMenuOpen ? 'Tutup Menu' : 'Buka Menu'"
+            aria-label="Menu"
           >
             <svg v-if="!isMobileMenuOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -133,7 +134,7 @@
 
       <!-- Mobile Dropdown / Drawer Menu -->
       <transition name="mobile-nav-expand">
-        <div v-if="isMobileMenuOpen" class="landing-mobile-drawer">
+        <div v-if="isMobileMenuOpen" class="landing-mobile-drawer" @click.stop>
           <div class="mobile-drawer-inner">
             <nav class="mobile-drawer-links">
               <a href="/#tentang" @click.prevent="navigateToLanding('tentang')">
