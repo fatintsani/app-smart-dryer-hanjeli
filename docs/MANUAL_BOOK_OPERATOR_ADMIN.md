@@ -87,20 +87,33 @@ Gunakan akun berikut untuk masuk ke dalam sistem:
 
 ---
 
-### 1.3. Panduan Masuk Sistem & Pemulihan Akun
+### 1.3. Panduan Masuk Sistem, Pendaftaran Akun & Persetujuan (ACC) Admin
 
-1. **Masuk Standar (Email & Sandi)**:
+1. **Pendaftaran Akun Mandiri (Registrasi Operator)**:
+   - Pada halaman login, klik **Belum punya akun? Daftar Sekarang**.
+   - Masukkan Nama Lengkap, Username unik, Alamat Email, Nomor WhatsApp aktif, serta Kata Sandi.
+   - Klik **Daftar Akun**.
+   - > [!IMPORTANT]
+     > **Aturan Keamanan Sistem**: Seluruh akun baru yang mendaftar mandiri otomatis berstatus default sebagai **OPERATOR** dengan status verifikasi **`PENDING` (Menunggu ACC Administrator)**. Akun belum dapat langsung digunakan untuk masuk demi mencegah akses ilegal ke kontrol aktuator greenhouse. Administrator akan memverifikasi identitas Anda dan memberikan persetujuan (ACC).
+
+2. **Masuk Standar (Email & Sandi)**:
    - Akses alamat sistem melalui peramban: `https://hanjeli-dryer.stas-rg.com/login` (atau `http://localhost:8000/login`).
    - Masukkan Email dan Kata Sandi terdaftar.
    - Centang **Ingat Saya** untuk menyimpan sesi di komputer kerja pribadi.
    - Klik **Masuk ke Sistem**.
-2. **Masuk 1-Klik dengan Akun Google (SSO)**:
+   - *Catatan*: Jika akun belum di-ACC oleh Admin, sistem akan menampilkan peringatan: *"Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat digunakan. Silakan hubungi admin greenhouse."*
+
+3. **Masuk 1-Klik dengan Akun Google (SSO)**:
    - Pada halaman login, klik tombol **Lanjutkan dengan Google**.
-   - Pilih akun Google Anda. Jika email sesuai dengan yang terdaftar di sistem, Anda akan langsung dialihkan ke dashboard.
-3. **Masuk Biometrik Modern (Passkeys / Sidik Jari / Wajah)**:
+   - Pilih akun Google Anda. Jika akun baru pertama kali menggunakan Google SSO, akun otomatis dibuat sebagai Operator berstatus `PENDING` dan menunggu persetujuan (ACC) dari Administrator.
+   - Jika akun Google Anda sudah disetujui sebelumnya, Anda akan langsung dialihkan ke dashboard.
+
+4. **Masuk Biometrik Modern (Passkeys / Sidik Jari / Wajah)**:
    - Jika Anda telah mendaftarkan perangkat di menu `/settings`, cukup klik **Masuk Cepat dengan Passkey / Biometrik**.
    - Sentuh sensor sidik jari perangkat atau hadapkan wajah ke kamera (FaceID/Windows Hello). Sistem akan langsung terotentikasi dalam $< 1\text{ detik}$.
-4. **Pemulihan Lupa Sandi dengan Kode OTP Email (6 Digit)**:
+   - *Catatan*: Hanya akun yang telah berstatus `APPROVED` yang diizinkan mengautentikasi Passkey.
+
+5. **Pemulihan Lupa Sandi dengan Kode OTP Email (6 Digit)**:
    - Klik tautan **Lupa Kata Sandi?** di halaman login (`/forgot-password`).
    - Masukkan email akun Anda, lalu klik **Kirim Kode Verifikasi**.
    - Buka inbox email Anda, temukan pesan resmi berisi **6 Digit Kode OTP** (berlaku 10 menit).
@@ -487,18 +500,26 @@ Pusat kendali perangkat keras terpadu mikrokontroler ESP32:
 
 ### 5.3. Menu 3: Manajemen Pengguna & Hak Akses (`/admin/users`)
 
-Modul pengelolaan akun seluruh staf:
-1. **Melihat Daftar Pengguna**: Tabel daftar seluruh pengguna, email, nomor WhatsApp, peran aktif (`ADMIN` atau `OPERATOR`), dan status akun.
-2. **Tambah Pengguna Baru**:
+Modul pengelolaan akun staf dan persetujuan (ACC) pendaftaran:
+1. **Pemberitahuan & Persetujuan Akun Pendaftar Baru (ACC / Setujui)**:
+   - Apabila ada pendaftar baru mandiri atau lewat Google OAuth, banner kuning akan muncul di bagian atas: *"Terdapat X Pendaftar Baru Menunggu Persetujuan (ACC)"*.
+   - Tab filter cepat tersedia: **Semua**, **Menunggu ACC (dengan badge merah)**, **Operator**, dan **Admin**.
+   - Pada baris pendaftar berstatus `⏳ Menunggu ACC`:
+     - Klik tombol hijau **`ACC / Setujui`** untuk menyetujui akun secara instan dengan 1-klik. Akun langsung aktif (`APPROVED`) dan pengguna dapat login.
+     - Klik tombol silang merah **`✕`** jika ingin menolak pendaftaran akun tersebut.
+   - Jika akun berstatus `✕ Ditolak (REJECTED)`, Admin dapat memulihkannya sewaktu-waktu dengan tombol **`Pulihkan (ACC)`**.
+2. **Melihat & Mencari Daftar Pengguna**: Tabel daftar seluruh pengguna, avatar, username, email, nomor WhatsApp, jumlah riwayat batch, tanggal terdaftar, status persetujuan, dan peran aktif (`ADMIN` atau `OPERATOR`).
+3. **Tambah Pengguna Baru Secara Manual**:
    - Klik tombol **Tambah Pengguna**.
    - Masukkan Nama Lengkap, Username, Email, Nomor WhatsApp, Kata Sandi Sementara, dan tentukan Peran (`OPERATOR` atau `ADMIN`).
-   - Klik **Simpan Pengguna**.
-3. **Ubah Peran (*Role Promotion/Demotion*)**:
-   - Administrator dapat menaikkan hak akses operator menjadi administrator atau sebaliknya kapan saja.
-4. **Reset Kata Sandi Manual**:
-   - Jika ada operator yang lupa kata sandi dan tidak memiliki akses email OTP, Administrator dapat mengklik tombol **Reset Sandi** pada baris pengguna tersebut dan memberikan kata sandi sementara baru.
-5. **Nonaktifkan / Hapus Pengguna**:
-   - Cabut akses pengguna yang sudah tidak bertugas demi menjaga kerahasiaan operasional.
+   - Akun yang ditambahkan langsung oleh Admin otomatis berstatus **`APPROVED` (Langsung Aktif)** tanpa perlu di-ACC lagi.
+4. **Ubah Data & Status Pengguna**:
+   - Klik ikon pensil (Edit) pada baris pengguna.
+   - Admin dapat memperbarui nama, username, email, nomor telepon, kata sandi baru, peran, serta status persetujuan (`APPROVED`, `PENDING`, `REJECTED`).
+5. **Ubah Peran Cepat (*Role Promotion/Demotion*)**:
+   - Melalui dropdown peran pada baris akun yang telah disetujui, Administrator dapat menaikkan hak akses operator menjadi administrator atau sebaliknya kapan saja.
+6. **Hapus Akun Pengguna**:
+   - Klik tombol ikon tempat sampah merah pada baris pengguna yang ingin dihapus. Sistem akan memunculkan dialog konfirmasi demi mencegah ketidaksengajaan. Akun yang sedang digunakan login oleh admin yang bersangkutan terlindungi dari penghapusan mandiri (*self-delete protection*).
 
 ---
 
@@ -552,3 +573,4 @@ Pengaturan nilai batas toleransi yang mengatur seluruh otomatisasi sistem:
 ---
 
 *Buku Panduan Penggunaan ini disusun secara khusus oleh Tim Peneliti CoE STAS-RG bersama Pengelola Smart Room Dryer Desa Wisata Hanjeli Waluran. Seluruh hak cipta dilindungi undang-undang.*
+

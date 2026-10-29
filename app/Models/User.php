@@ -23,6 +23,8 @@ class User extends Authenticatable
         'username',
         'email',
         'role',
+        'status',
+        'approved_at',
         'phone',
         'avatar',
         'google_id',
@@ -48,6 +50,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'approved_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -61,6 +64,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Helper to check if user is approved by Administrator
+     */
+    public function isApproved(): bool
+    {
+        return strtoupper($this->status ?? 'PENDING') === 'APPROVED';
+    }
+
+    /**
+     * Helper to check if user is waiting for approval
+     */
+    public function isPending(): bool
+    {
+        return strtoupper($this->status ?? 'PENDING') === 'PENDING';
+    }
+
+    /**
+     * Helper to check if user registration was rejected
+     */
+    public function isRejected(): bool
+    {
+        return strtoupper($this->status ?? '') === 'REJECTED';
+    }
+
+    /**
      * Format user payload for Frontend responses
      */
     public function toAuthPayload(): array
@@ -71,6 +98,9 @@ class User extends Authenticatable
             'username' => $this->username ?: (explode('@', $this->email)[0] ?? ''),
             'email' => $this->email,
             'role' => strtoupper($this->role ?: 'OPERATOR'),
+            'status' => strtoupper($this->status ?: 'PENDING'),
+            'isApproved' => $this->isApproved(),
+            'approvedAt' => $this->approved_at?->toISOString(),
             'phone' => $this->phone,
             'avatarUrl' => $this->avatar,
             'googleId' => $this->google_id,

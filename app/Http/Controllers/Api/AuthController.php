@@ -54,6 +54,19 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Check Admin Approval Status
+        if (! $user->isApproved()) {
+            if ($user->isRejected()) {
+                return response()->json([
+                    'message' => 'Akun Anda telah ditolak atau dinonaktifkan oleh Administrator. Silakan hubungi admin.',
+                ], 403);
+            }
+
+            return response()->json([
+                'message' => 'Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat digunakan. Silakan hubungi admin greenhouse.',
+            ], 403);
+        }
+
         $token = $user->createToken('smart-dryer-token')->plainTextToken;
 
         return response()->json([
@@ -106,11 +119,11 @@ class AuthController extends Controller
             'username' => $username,
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
-            'role' => strtoupper($validated['role'] ?? 'OPERATOR'),
+            'role' => 'OPERATOR',
+            'status' => 'PENDING',
+            'approved_at' => null,
             'password' => Hash::make($validated['password']),
         ]);
-
-        $token = $user->createToken('smart-dryer-token')->plainTextToken;
 
         try {
             Mail::to($user->email)->send(new \App\Mail\WelcomeUserMail($user->name, $user->email, $user->role, $user->username));
@@ -119,8 +132,8 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => 'Pendaftaran akun berhasil.',
-            'accessToken' => $token,
+            'message' => 'Pendaftaran akun berhasil! Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat digunakan.',
+            'status' => 'PENDING',
             'user' => $user->toAuthPayload(),
         ], 201);
     }
@@ -174,6 +187,14 @@ class AuthController extends Controller
                 'google_id' => $googleId ?? $user->google_id,
                 'avatar' => $avatarUrl ?? $user->avatar,
             ]);
+
+            if (! $user->isApproved()) {
+                $msg = $user->isRejected()
+                    ? 'Akun Anda telah ditolak atau dinonaktifkan oleh Administrator.'
+                    : 'Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat masuk.';
+
+                return response()->json(['message' => $msg], 403);
+            }
         } else {
             $user = User::create([
                 'name' => $name,
@@ -181,8 +202,16 @@ class AuthController extends Controller
                 'google_id' => $googleId,
                 'avatar' => $avatarUrl,
                 'role' => 'OPERATOR',
+                'status' => 'PENDING',
+                'approved_at' => null,
                 'password' => Hash::make(Str::random(24)),
             ]);
+
+            return response()->json([
+                'message' => 'Pendaftaran akun via Google berhasil. Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat digunakan.',
+                'status' => 'PENDING',
+                'user' => $user->toAuthPayload(),
+            ], 201);
         }
 
         $token = $user->createToken('smart-dryer-google-token')->plainTextToken;
@@ -271,6 +300,14 @@ class AuthController extends Controller
                     'google_id' => $googleId ?? $user->google_id,
                     'avatar' => $avatar ?? $user->avatar,
                 ]);
+
+                if (! $user->isApproved()) {
+                    $msg = $user->isRejected()
+                        ? 'Akun Anda telah ditolak atau dinonaktifkan oleh Administrator.'
+                        : 'Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat masuk.';
+
+                    return redirect('/login?error='.urlencode($msg));
+                }
             } else {
                 $user = User::create([
                     'name' => $name,
@@ -278,8 +315,12 @@ class AuthController extends Controller
                     'google_id' => $googleId,
                     'avatar' => $avatar,
                     'role' => 'OPERATOR',
+                    'status' => 'PENDING',
+                    'approved_at' => null,
                     'password' => Hash::make(Str::random(24)),
                 ]);
+
+                return redirect('/login?pending='.urlencode('Pendaftaran akun Google berhasil. Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat masuk.'));
             }
 
             $token = $user->createToken('smart-dryer-google-token')->plainTextToken;
@@ -573,6 +614,20 @@ class AuthController extends Controller
         }
 
         $user = $passkey->user;
+
+        // Check Admin Approval Status
+        if (! $user->isApproved()) {
+            if ($user->isRejected()) {
+                return response()->json([
+                    'message' => 'Akun Anda telah ditolak atau dinonaktifkan oleh Administrator.',
+                ], 403);
+            }
+
+            return response()->json([
+                'message' => 'Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat digunakan.',
+            ], 403);
+        }
+
         $passkey->increment('counter');
 
         $token = $user->createToken('smart-dryer-passkey-token')->plainTextToken;

@@ -27,6 +27,12 @@ export function formatAuthError(err) {
   
   const msg = (err.message || String(err)).toLowerCase();
 
+  if (msg.includes('menunggu persetujuan') || msg.includes('acc') || msg.includes('pending') || msg.includes('approval')) {
+    return 'Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat masuk. Silakan hubungi admin greenhouse.';
+  }
+  if (msg.includes('ditolak') || msg.includes('rejected')) {
+    return 'Akun Anda telah ditolak atau dinonaktifkan oleh Administrator.';
+  }
   if (msg.includes('invalid email or password') || msg.includes('salah') || msg.includes('unauthorized') || msg.includes('401')) {
     return 'Email atau kata sandi yang Anda masukkan salah. Silakan periksa kembali.';
   }
@@ -274,6 +280,18 @@ export const authService = {
 
   async updateUserRole(userId, role) {
     return api.put(`/auth/users/${userId}/role`, { role });
+  },
+
+  async approveUser(userId) {
+    return api.patch(`/auth/users/${userId}/approve`);
+  },
+
+  async rejectUser(userId) {
+    return api.patch(`/auth/users/${userId}/reject`);
+  },
+
+  async updateUserStatus(userId, status) {
+    return api.patch(`/auth/users/${userId}/status`, { status });
   },
 
   async deleteUser(userId) {

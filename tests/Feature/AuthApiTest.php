@@ -61,14 +61,71 @@ class AuthApiTest extends TestCase
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'message',
-                'accessToken',
-                'user' => ['id', 'name', 'email', 'role'],
+                'status',
+                'user' => ['id', 'name', 'email', 'role', 'status'],
             ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'petanibaru@hanjeli.id',
             'role' => 'OPERATOR',
+            'status' => 'PENDING',
         ]);
+    }
+
+    public function test_unapproved_user_cannot_login(): void
+    {
+        $user = User::factory()->pending()->create([
+            'email' => 'operator.pending@hanjeli.id',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'operator.pending@hanjeli.id',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonFragment([
+                'message' => 'Akun Anda sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat digunakan. Silakan hubungi admin greenhouse.',
+            ]);
+    }
+
+    public function test_admin_can_approve_pending_user(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'ADMIN',
+            'status' => 'APPROVED',
+        ]);
+
+        $pendingUser = User::factory()->pending()->create([
+            'email' => 'calon.operator@hanjeli.id',
+            'password' => bcrypt('secret123'),
+            'role' => 'OPERATOR',
+        ]);
+
+        // Attempt login before approval (fails)
+        $this->postJson('/api/auth/login', [
+            'email' => 'calon.operator@hanjeli.id',
+            'password' => 'secret123',
+        ])->assertStatus(403);
+
+        // Admin approves the user
+        $approveResponse = $this->actingAs($admin)->patchJson("/api/auth/users/{$pendingUser->id}/approve");
+        $approveResponse->assertStatus(200);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $pendingUser->id,
+            'status' => 'APPROVED',
+        ]);
+
+        // Now user can log in successfully
+        $loginResponse = $this->postJson('/api/auth/login', [
+            'email' => 'calon.operator@hanjeli.id',
+            'password' => 'secret123',
+        ]);
+
+        $loginResponse->assertStatus(200)
+            ->assertJsonStructure(['accessToken', 'user']);
     }
 
     public function test_forgot_password_sends_otp_email(): void

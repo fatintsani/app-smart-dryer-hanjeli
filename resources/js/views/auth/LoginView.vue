@@ -706,14 +706,25 @@ async function handleRegister() {
       username: regUsername.value ? regUsername.value.toLowerCase().trim() : undefined,
       email: regEmail.value,
       phone: regPhone.value || undefined,
-      role: regRole.value,
+      role: 'OPERATOR',
       password: regPassword.value,
     })
 
-    successMessage.value = t('auth.registerSuccess')
-    setTimeout(() => {
-      emit('login-success', res.user)
-    }, 600)
+    if (res.status === 'PENDING' || !res.accessToken) {
+      regPassword.value = ''
+      successMessage.value = currentLang.value === 'id'
+        ? 'Pendaftaran akun berhasil! Akun Anda telah terdaftar sebagai Operator dan saat ini sedang menunggu persetujuan (ACC) dari Administrator sebelum dapat masuk.'
+        : 'Registration successful! Your Operator account is pending Administrator approval before you can log in.'
+      
+      setTimeout(() => {
+        isRegisterMode.value = false
+      }, 3000)
+    } else {
+      successMessage.value = t('auth.registerSuccess')
+      setTimeout(() => {
+        emit('login-success', res.user)
+      }, 600)
+    }
   } catch (err) {
     console.error('Register error:', err)
     errorMessage.value = formatAuthError(err)
@@ -831,9 +842,12 @@ onMounted(() => {
   const oauthToken = urlParams.get('token')
   const oauthUser = urlParams.get('user')
   const oauthError = urlParams.get('error')
+  const oauthPending = urlParams.get('pending')
 
   if (oauthError) {
     errorMessage.value = decodeURIComponent(oauthError)
+  } else if (oauthPending) {
+    successMessage.value = decodeURIComponent(oauthPending)
   } else if (oauthToken && oauthUser) {
     try {
       const user = JSON.parse(decodeURIComponent(oauthUser))

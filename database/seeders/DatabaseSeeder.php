@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
                 'username' => 'admin',
                 'password' => Hash::make('admin123'),
                 'role' => 'ADMIN',
+                'status' => 'APPROVED',
+                'approved_at' => now(),
                 'phone' => '081234567890',
             ]
         );
@@ -33,6 +35,8 @@ class DatabaseSeeder extends Seeder
                 'username' => 'operator',
                 'password' => Hash::make('operator123'),
                 'role' => 'OPERATOR',
+                'status' => 'APPROVED',
+                'approved_at' => now(),
                 'phone' => '089876543210',
             ]
         );
@@ -45,6 +49,8 @@ class DatabaseSeeder extends Seeder
                 'username' => 'petani',
                 'password' => Hash::make('petani123'),
                 'role' => 'OPERATOR',
+                'status' => 'APPROVED',
+                'approved_at' => now(),
                 'phone' => '081345678901',
             ]
         );

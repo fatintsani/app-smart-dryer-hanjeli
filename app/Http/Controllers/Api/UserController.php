@@ -59,6 +59,8 @@ class UserController extends Controller
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'role' => strtoupper($validated['role'] ?? 'OPERATOR'),
+            'status' => 'APPROVED',
+            'approved_at' => now(),
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -80,6 +82,7 @@ class UserController extends Controller
             'username' => 'nullable|string|min:3|max:50|alpha_dash|unique:users,username,' . $user->id,
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|string|in:ADMIN,OPERATOR',
+            'status' => 'nullable|string|in:APPROVED,PENDING,REJECTED',
             'phone' => 'nullable|string|max:30',
             'password' => 'nullable|string|min:6',
         ], [
@@ -94,6 +97,13 @@ class UserController extends Controller
             'role' => strtoupper($validated['role']),
         ];
 
+        if (!empty($validated['status'])) {
+            $updateData['status'] = strtoupper($validated['status']);
+            if ($updateData['status'] === 'APPROVED' && empty($user->approved_at)) {
+                $updateData['approved_at'] = now();
+            }
+        }
+
         if (isset($validated['username'])) {
             $updateData['username'] = strtolower(trim($validated['username']));
         }
@@ -106,6 +116,64 @@ class UserController extends Controller
 
         return response()->json([
             'message' => "Data pengguna '{$user->name}' berhasil diperbarui.",
+            'user' => $user->toAuthPayload(),
+        ]);
+    }
+
+    /**
+     * Approve user registration (ACC)
+     */
+    public function approve(Request $request, $id): JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $user->update([
+            'status' => 'APPROVED',
+            'approved_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => "Akun '{$user->name}' berhasil disetujui (ACC). Pengguna kini dapat masuk sebagai {$user->role}.",
+            'user' => $user->toAuthPayload(),
+        ]);
+    }
+
+    /**
+     * Reject user registration
+     */
+    public function reject(Request $request, $id): JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $user->update([
+            'status' => 'REJECTED',
+        ]);
+
+        return response()->json([
+            'message' => "Akun '{$user->name}' telah ditolak.",
+            'user' => $user->toAuthPayload(),
+        ]);
+    }
+
+    /**
+     * Update user approval status
+     */
+    public function updateStatus(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:APPROVED,PENDING,REJECTED',
+        ]);
+
+        $user = User::findOrFail($id);
+        $newStatus = strtoupper($validated['status']);
+        $updateData = ['status' => $newStatus];
+
+        if ($newStatus === 'APPROVED' && empty($user->approved_at)) {
+            $updateData['approved_at'] = now();
+        }
+
+        $user->update($updateData);
+
+        return response()->json([
+            'message' => "Status akun '{$user->name}' berhasil diubah menjadi {$newStatus}.",
             'user' => $user->toAuthPayload(),
         ]);
     }

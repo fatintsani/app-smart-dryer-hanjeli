@@ -135,6 +135,9 @@ $smartDryerApi = function () {
         Route::post('/auth/users', [UserController::class, 'store']);
         Route::put('/auth/users/{id}', [UserController::class, 'update']);
         Route::put('/auth/users/{id}/role', [UserController::class, 'updateRole']);
+        Route::match(['put', 'patch'], '/auth/users/{id}/approve', [UserController::class, 'approve']);
+        Route::match(['put', 'patch'], '/auth/users/{id}/reject', [UserController::class, 'reject']);
+        Route::match(['put', 'patch'], '/auth/users/{id}/status', [UserController::class, 'updateStatus']);
         Route::delete('/auth/users/{id}', [UserController::class, 'destroy']);
     });
 };

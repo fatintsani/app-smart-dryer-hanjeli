@@ -41,9 +41,59 @@
         </button>
       </div>
 
+      <!-- Pending Approval Alert Notice Banner -->
+      <div v-if="pendingCount > 0" class="pending-notice-banner">
+        <div class="pending-banner-left">
+          <div class="pending-icon-wrap">⏳</div>
+          <div class="pending-banner-text">
+            <strong>Terdapat {{ pendingCount }} Pendaftar Baru Menunggu Persetujuan (ACC)</strong>
+            <p>Akun baru dengan role Operator membutuhkan persetujuan Administrator sebelum dapat masuk ke sistem.</p>
+          </div>
+        </div>
+        <button class="btn-filter-pending" @click="currentTab = currentTab === 'PENDING' ? 'ALL' : 'PENDING'">
+          {{ currentTab === 'PENDING' ? 'Tampilkan Semua Akun' : `Lihat Pendaftar Pending (${pendingCount})` }}
+        </button>
+      </div>
+
       <!-- Users Management Content Card -->
       <div class="content-card">
         <div class="card-toolbar">
+          <div class="user-filter-tabs">
+            <button 
+              type="button" 
+              class="filter-tab-pill" 
+              :class="{ active: currentTab === 'ALL' }" 
+              @click="currentTab = 'ALL'"
+            >
+              Semua ({{ usersList.length }})
+            </button>
+            <button 
+              type="button" 
+              class="filter-tab-pill pending-pill" 
+              :class="{ active: currentTab === 'PENDING', 'has-pending': pendingCount > 0 }" 
+              @click="currentTab = 'PENDING'"
+            >
+              Menunggu ACC ({{ pendingCount }})
+              <span v-if="pendingCount > 0" class="tab-pulse-badge">{{ pendingCount }}</span>
+            </button>
+            <button 
+              type="button" 
+              class="filter-tab-pill" 
+              :class="{ active: currentTab === 'OPERATOR' }" 
+              @click="currentTab = 'OPERATOR'"
+            >
+              Operator ({{ operatorCount }})
+            </button>
+            <button 
+              type="button" 
+              class="filter-tab-pill" 
+              :class="{ active: currentTab === 'ADMIN' }" 
+              @click="currentTab = 'ADMIN'"
+            >
+              Admin ({{ adminCount }})
+            </button>
+          </div>
+
           <div class="search-input-box">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"></circle>
@@ -56,10 +106,6 @@
               class="search-text-field"
             />
           </div>
-
-          <div class="filter-count-badge">
-            <span>Menampilkan {{ filteredUsers.length }} Pengguna ({{ operatorCount }} Operator, {{ usersList.length - operatorCount }} Admin)</span>
-          </div>
         </div>
 
         <div class="table-responsive">
@@ -67,7 +113,8 @@
             <thead>
               <tr>
                 <th>Pengguna</th>
-                <th>Role / Hak Akses</th>
+                <th>Role</th>
+                <th>Status Akun</th>
                 <th>Kontak / WhatsApp</th>
                 <th>Sesi Batch</th>
                 <th>Terdaftar Sejak</th>
@@ -75,7 +122,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="u in filteredUsers" :key="u.id">
+              <tr v-for="u in filteredUsers" :key="u.id" :class="{ 'row-pending': u.status === 'PENDING' }">
                 <td>
                   <div class="user-cell">
                     <div class="user-avatar" :class="`avatar-${(u.role || 'OPERATOR').toLowerCase()}`">
@@ -97,6 +144,17 @@
                   </span>
                 </td>
                 <td>
+                  <span v-if="u.status === 'PENDING'" class="badge-pill bg-yellow-subtle text-yellow font-bold pulse-badge" title="Menunggu persetujuan Administrator sebelum dapat masuk">
+                    ⏳ Menunggu ACC
+                  </span>
+                  <span v-else-if="u.status === 'REJECTED'" class="badge-pill bg-red-subtle text-red font-bold" title="Pendaftaran akun ditolak">
+                    ✕ Ditolak
+                  </span>
+                  <span v-else class="badge-pill bg-green-subtle text-green-dark" title="Akun aktif & disetujui">
+                    ✓ Disetujui
+                  </span>
+                </td>
+                <td>
                   <span class="phone-text">{{ u.phone || '-' }}</span>
                 </td>
                 <td>
@@ -107,7 +165,48 @@
                 </td>
                 <td class="text-right">
                   <div class="table-actions-row">
+                    <!-- Tombol Persetujuan (ACC) jika akun masih PENDING -->
+                    <template v-if="u.status === 'PENDING'">
+                      <button 
+                        class="btn-acc-action" 
+                        @click="handleApproveUser(u)"
+                        title="Setujui (ACC) pendaftaran akun ini"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>ACC / Setujui</span>
+                      </button>
+
+                      <button 
+                        class="btn-reject-action" 
+                        @click="handleRejectUser(u)"
+                        title="Tolak pendaftaran akun ini"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </template>
+
+                    <!-- Tombol Pulihkan jika akun berstatus REJECTED -->
+                    <template v-else-if="u.status === 'REJECTED'">
+                      <button 
+                        class="btn-acc-action btn-acc-reapprove" 
+                        @click="handleApproveUser(u)"
+                        title="Pulihkan dan setujui kembali akun ini"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Pulihkan (ACC)</span>
+                      </button>
+                    </template>
+
+                    <!-- Dropdown role untuk akun yang sudah disetujui -->
                     <select 
+                      v-if="u.status === 'APPROVED'"
                       class="role-select" 
                       :value="u.role" 
                       @change="handleRoleChange(u, $event.target.value)"
@@ -144,7 +243,7 @@
               </tr>
 
               <tr v-if="filteredUsers.length === 0">
-                <td colspan="6" class="empty-table-cell">
+                <td colspan="7" class="empty-table-cell">
                   Tidak ditemukan data pengguna yang cocok.
                 </td>
               </tr>
@@ -250,6 +349,15 @@
           </div>
 
           <div class="form-field-group">
+            <label class="form-label">Status Persetujuan Akun</label>
+            <select v-model="editUser.status" class="modern-input">
+              <option value="APPROVED">✓ Disetujui (APPROVED - Akses Diberikan)</option>
+              <option value="PENDING">⏳ Menunggu ACC (PENDING - Akses Ditahan)</option>
+              <option value="REJECTED">✕ Ditolak (REJECTED - Akses Ditolak)</option>
+            </select>
+          </div>
+
+          <div class="form-field-group">
             <label class="form-label">Nomor WhatsApp (Opsional)</label>
             <input type="tel" v-model="editUser.phone" placeholder="+62 812-3456-7890" class="modern-input" />
           </div>
@@ -284,6 +392,7 @@ const isInitialLoading = ref(true)
 
 const usersList = ref([])
 const userSearchQuery = ref('')
+const currentTab = ref('ALL')
 const isCreateUserModalOpen = ref(false)
 const isCreatingUser = ref(false)
 const isEditUserModalOpen = ref(false)
@@ -295,6 +404,7 @@ const editUser = reactive({
   username: '',
   email: '',
   role: 'OPERATOR',
+  status: 'APPROVED',
   phone: '',
   password: ''
 })
@@ -325,14 +435,33 @@ const operatorCount = computed(() => {
   return usersList.value.filter(u => u.role === 'OPERATOR').length
 })
 
+const adminCount = computed(() => {
+  return usersList.value.filter(u => u.role === 'ADMIN').length
+})
+
+const pendingCount = computed(() => {
+  return usersList.value.filter(u => u.status === 'PENDING').length
+})
+
 const filteredUsers = computed(() => {
-  if (!userSearchQuery.value) return usersList.value
+  let list = usersList.value
+
+  if (currentTab.value === 'PENDING') {
+    list = list.filter(u => u.status === 'PENDING')
+  } else if (currentTab.value === 'OPERATOR') {
+    list = list.filter(u => u.role === 'OPERATOR')
+  } else if (currentTab.value === 'ADMIN') {
+    list = list.filter(u => u.role === 'ADMIN')
+  }
+
+  if (!userSearchQuery.value) return list
   const q = userSearchQuery.value.toLowerCase()
-  return usersList.value.filter(u => 
+  return list.filter(u => 
     u.name?.toLowerCase().includes(q) || 
     u.username?.toLowerCase().includes(q) || 
     u.email?.toLowerCase().includes(q) || 
-    u.role?.toLowerCase().includes(q)
+    u.role?.toLowerCase().includes(q) ||
+    u.status?.toLowerCase().includes(q)
   )
 })
 
@@ -397,6 +526,7 @@ function openEditUserModal(userObj) {
   editUser.username = userObj.username || ''
   editUser.email = userObj.email || ''
   editUser.role = userObj.role || 'OPERATOR'
+  editUser.status = userObj.status || 'APPROVED'
   editUser.phone = userObj.phone || ''
   editUser.password = ''
   isEditUserModalOpen.value = true
@@ -411,6 +541,7 @@ async function handleUpdateUser() {
       username: editUser.username,
       email: editUser.email,
       role: editUser.role,
+      status: editUser.status,
       phone: editUser.phone || null
     }
     if (editUser.password) {
@@ -424,6 +555,39 @@ async function handleUpdateUser() {
     showAlert(err.message || 'Gagal memperbarui data pengguna.', 'error')
   } finally {
     isUpdatingUser.value = false
+  }
+}
+
+async function handleApproveUser(userObj) {
+  try {
+    await authService.approveUser(userObj.id)
+    userObj.status = 'APPROVED'
+    showAlert(`Akun '${userObj.name}' berhasil disetujui (ACC)! Pengguna sekarang dapat masuk ke sistem.`)
+    fetchUsers()
+  } catch (err) {
+    showAlert(err.message || 'Gagal menyetujui akun.', 'error')
+  }
+}
+
+async function handleRejectUser(userObj) {
+  const confirmed = await confirmDialog({
+    title: 'Tolak Pendaftaran Akun?',
+    message: `Apakah Anda yakin ingin menolak permohonan pendaftaran dari ${userObj.name}?`,
+    details: `Email: ${userObj.email} • Akun tidak akan dapat login kecuali disetujui kembali nanti.`,
+    type: 'danger',
+    confirmText: 'Ya, Tolak Akun',
+    cancelText: 'Batal',
+  })
+
+  if (confirmed) {
+    try {
+      await authService.rejectUser(userObj.id)
+      userObj.status = 'REJECTED'
+      showAlert(`Pendaftaran akun '${userObj.name}' telah ditolak.`)
+      fetchUsers()
+    } catch (err) {
+      showAlert(err.message || 'Gagal menolak akun.', 'error')
+    }
   }
 }
 
@@ -798,6 +962,185 @@ onMounted(() => {
 .text-orange { color: #B45000; }
 .bg-gray-subtle { background: rgba(112, 122, 108, 0.12); }
 .text-muted { color: var(--color-text-muted); }
+.bg-yellow-subtle { background: rgba(245, 158, 11, 0.15); }
+.text-yellow { color: #B45309; }
+.bg-red-subtle { background: rgba(220, 38, 38, 0.12); }
+.text-red { color: #DC2626; }
+
+/* Pending Approval Banner */
+.pending-notice-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: #92400E;
+}
+
+.pending-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pending-icon-wrap {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.pending-banner-text strong {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #92400E;
+  margin-bottom: 2px;
+}
+
+.pending-banner-text p {
+  margin: 0;
+  font-size: 13px;
+  color: #B45309;
+}
+
+.btn-filter-pending {
+  padding: 8px 16px;
+  background: #D97706;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.btn-filter-pending:hover {
+  background: #B45309;
+}
+
+/* User Filter Tabs */
+.user-filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-tab-pill:hover {
+  border-color: #0D631B;
+  color: #0D631B;
+}
+
+.filter-tab-pill.active {
+  background: #0D631B;
+  border-color: #0D631B;
+  color: #FFFFFF;
+}
+
+.filter-tab-pill.pending-pill.has-pending {
+  border-color: #F59E0B;
+  color: #D97706;
+}
+
+.filter-tab-pill.pending-pill.active {
+  background: #D97706;
+  border-color: #D97706;
+  color: #FFFFFF;
+}
+
+.tab-pulse-badge {
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  line-height: 1;
+}
+
+/* Table Row Highlights & Status */
+.row-pending {
+  background-color: rgba(245, 158, 11, 0.05);
+}
+
+.pulse-badge {
+  animation: pulse-border 2s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0);
+  }
+}
+
+/* Action Buttons for ACC / Reject */
+.btn-acc-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #0D631B;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-acc-action:hover {
+  background: #15803D;
+}
+
+.btn-acc-reapprove {
+  background: #2563EB;
+}
+
+.btn-acc-reapprove:hover {
+  background: #1D4ED8;
+}
+
+.btn-reject-action {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.08);
+  color: #DC2626;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reject-action:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+}
 
 /* Modal */
 .modal-backdrop {
