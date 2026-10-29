@@ -429,7 +429,7 @@
                                         height="18"
                                         viewBox="0 0 24 24"
                                         fill="none"
-                                        stroke="#0D631B"
+                                        stroke="currentColor"
                                         stroke-width="2"
                                     >
                                         <path
@@ -2603,6 +2603,11 @@ onUnmounted(() => {
     flex-shrink: 0;
 }
 
+.mobile-drawer-links a .link-icon-chip svg {
+    stroke: currentColor;
+    transition: stroke 0.2s ease;
+}
+
 .dark-landing .mobile-drawer-links a .link-icon-chip {
     background: rgba(74, 222, 128, 0.15);
     color: #4ade80;
@@ -2625,9 +2630,17 @@ onUnmounted(() => {
     color: #ffffff;
 }
 
+.mobile-drawer-links a.active .link-icon-chip svg {
+    stroke: #ffffff !important;
+}
+
 .dark-landing .mobile-drawer-links a.active .link-icon-chip {
     background: #0d631b;
     color: #ffffff;
+}
+
+.dark-landing .mobile-drawer-links a.active .link-icon-chip svg {
+    stroke: #ffffff !important;
 }
 
 .mobile-drawer-cta {
