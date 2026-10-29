@@ -107,9 +107,9 @@ jobs:
         run: bash docker/validate.sh
 
   deploy:
-    name: Deploy Tested Commit to Production VPS (Manual)
+    name: Deploy Tested Commit to Production VPS (Automatic)
     needs: [ci, docker]
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_to_vps == true && github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_to_vps == true)) }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     # Required reviewers are managed in repository Settings > Environments.
