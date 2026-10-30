@@ -214,21 +214,23 @@
       <!-- Search / Batch Selector Bar -->
       <section class="search-bar-section">
         <div class="search-bar-card">
-          <div class="search-icon-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
+          <div class="search-input-wrapper">
+            <div class="search-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </div>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              :placeholder="$t('verify.searchPlaceholder')" 
+              class="search-input"
+              @keyup.enter="handleSearchBatch"
+            />
           </div>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            :placeholder="$t('verify.searchPlaceholder')" 
-            class="search-input"
-            @keyup.enter="handleSearchBatch"
-          />
           <button class="btn-search" :disabled="isLoading" @click="handleSearchBatch">
             <span v-if="!isLoading">{{ $t('verify.verifyBtn') }}</span>
             <span v-else>{{ $t('verify.verifying') }}</span>
@@ -752,13 +754,15 @@
               <div class="stage-icon-wrap">
                 <img src="/assets/icons/alur/step1.png" alt="Panen Segar di Kebun" class="stage-3d-img" />
               </div>
-              <h3 class="stage-title">{{ currentLang === 'id' ? '1. Panen Segar di Kebun' : '1. Fresh Field Harvest' }}</h3>
-              <p class="stage-desc">
-                {{ currentLang === 'id' 
-                  ? 'Dipanen manual oleh petani mitra Waluran pada tingkat kematangan optimal.' 
-                  : 'Manually hand-harvested by Waluran partner growers at peak maturity.' 
-                }}
-              </p>
+              <div class="stage-content">
+                <h3 class="stage-title">{{ currentLang === 'id' ? '1. Panen Segar di Kebun' : '1. Fresh Field Harvest' }}</h3>
+                <p class="stage-desc">
+                  {{ currentLang === 'id' 
+                    ? 'Dipanen manual oleh petani mitra Waluran pada tingkat kematangan optimal.' 
+                    : 'Manually hand-harvested by Waluran partner growers at peak maturity.' 
+                  }}
+                </p>
+              </div>
             </div>
 
             <!-- Stage 2 -->
@@ -766,13 +770,15 @@
               <div class="stage-icon-wrap">
                 <img src="/assets/icons/alur/step2.png" alt="Pengeringan Cerdas IoT" class="stage-3d-img" />
               </div>
-              <h3 class="stage-title">{{ currentLang === 'id' ? '2. Pengeringan Cerdas IoT' : '2. Smart IoT Drying' }}</h3>
-              <p class="stage-desc">
-                {{ currentLang === 'id' 
-                  ? 'Dikeringkan pada Smart Room Greenhouse dengan regulasi suhu aman < 45°C.' 
-                  : 'Dried in Smart Room Greenhouse with controlled safe temperature < 45°C.' 
-                }}
-              </p>
+              <div class="stage-content">
+                <h3 class="stage-title">{{ currentLang === 'id' ? '2. Pengeringan Cerdas IoT' : '2. Smart IoT Drying' }}</h3>
+                <p class="stage-desc">
+                  {{ currentLang === 'id' 
+                    ? 'Dikeringkan pada Smart Room Greenhouse dengan regulasi suhu aman < 45°C.' 
+                    : 'Dried in Smart Room Greenhouse with controlled safe temperature < 45°C.' 
+                  }}
+                </p>
+              </div>
             </div>
 
             <!-- Stage 3 -->
@@ -780,13 +786,15 @@
               <div class="stage-icon-wrap">
                 <img src="/assets/icons/alur/step3.png" alt="Audit Mutu & Sensor" class="stage-3d-img" />
               </div>
-              <h3 class="stage-title">{{ currentLang === 'id' ? '3. Audit Mutu & Sensor' : '3. Quality & Sensor Audit' }}</h3>
-              <p class="stage-desc">
-                {{ currentLang === 'id' 
-                  ? 'Kadar air presisi 12% dengan sterilisasi UV-C pencegah kapang.' 
-                  : 'Precision 12% moisture with UV-C germicidal sterilization.' 
-                }}
-              </p>
+              <div class="stage-content">
+                <h3 class="stage-title">{{ currentLang === 'id' ? '3. Audit Mutu & Sensor' : '3. Quality & Sensor Audit' }}</h3>
+                <p class="stage-desc">
+                  {{ currentLang === 'id' 
+                    ? 'Kadar air presisi 12% dengan sterilisasi UV-C pencegah kapang.' 
+                    : 'Precision 12% moisture with UV-C germicidal sterilization.' 
+                  }}
+                </p>
+              </div>
             </div>
 
             <!-- Stage 4 -->
@@ -794,13 +802,15 @@
               <div class="stage-icon-wrap">
                 <img src="/assets/icons/alur/step4.png" alt="Pengemasan & QR Label" class="stage-3d-img" />
               </div>
-              <h3 class="stage-title">{{ currentLang === 'id' ? '4. Pengemasan & QR Label' : '4. Packaging & QR Label' }}</h3>
-              <p class="stage-desc">
-                {{ currentLang === 'id' 
-                  ? 'Disegel kedap udara dengan kode verifikasi unik siap distribusi.' 
-                  : 'Airtight sealed with unique batch traceability QR code.' 
-                }}
-              </p>
+              <div class="stage-content">
+                <h3 class="stage-title">{{ currentLang === 'id' ? '4. Pengemasan & QR Label' : '4. Packaging & QR Label' }}</h3>
+                <p class="stage-desc">
+                  {{ currentLang === 'id' 
+                    ? 'Disegel kedap udara dengan kode verifikasi unik siap distribusi.' 
+                    : 'Airtight sealed with unique batch traceability QR code.' 
+                  }}
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -2165,6 +2175,7 @@ async function printCertificate() {
 
 .mobile-drawer-links a .link-icon-chip svg {
   stroke: currentColor;
+  fill: none !important;
   transition: stroke 0.2s ease;
 }
 
@@ -2186,21 +2197,23 @@ async function printCertificate() {
 }
 
 .mobile-drawer-links a.active .link-icon-chip {
-  background: #0D631B;
-  color: #FFFFFF;
+  background: #0D631B !important;
+  color: #FFFFFF !important;
 }
 
 .mobile-drawer-links a.active .link-icon-chip svg {
   stroke: #FFFFFF !important;
+  fill: none !important;
 }
 
 .dark-landing .mobile-drawer-links a.active .link-icon-chip {
-  background: #0D631B;
-  color: #FFFFFF;
+  background: #0D631B !important;
+  color: #FFFFFF !important;
 }
 
 .dark-landing .mobile-drawer-links a.active .link-icon-chip svg {
   stroke: #FFFFFF !important;
+  fill: none !important;
 }
 
 .mobile-drawer-cta {
@@ -2397,11 +2410,20 @@ async function printCertificate() {
   padding: 8px 12px;
 }
 
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
 .search-icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
   padding-left: 6px;
+  flex-shrink: 0;
 }
 
 .search-input {
@@ -2860,17 +2882,6 @@ async function printCertificate() {
 
 :global(.dark-theme) .submetric-badge {
   color: #4ADE80;
-}
-
-@media (max-width: 640px) {
-  .quality-submetrics-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .grade-banner-flex {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 }
 
 /* Origin Grid */
@@ -3377,6 +3388,12 @@ async function printCertificate() {
   margin: 0;
 }
 
+.stage-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 /* 7. Footer (Hanjeli Green Theme with CoE STAS-RG Layout) */
 .landing-footer {
   background: #e9f6fd;
@@ -3663,24 +3680,6 @@ a.contact-value:hover {
   color: #0d631b;
 }
 
-/* Responsive Footer */
-@media (max-width: 1024px) {
-  .footer-top-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .footer-top-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-
-  .landing-footer {
-    padding: 40px 16px 24px;
-  }
-}
-
 /* Dark Mode Overrides for Verification & Portal Cards */
 .dark-landing .search-bar-card {
   background: #11261B;
@@ -3922,6 +3921,552 @@ a.contact-value:hover {
 .dark-landing .footer-copy,
 .dark-landing .footer-tagline {
   color: #64748b;
+}
+
+/* ==============================================================================
+   RESPONSIVE DESIGN MEDIA QUERIES (TABLET & MOBILE)
+   ============================================================================== */
+@media (max-width: 1024px) {
+  .footer-top-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Layout & Container */
+  .verify-main-container {
+    padding: 16px 16px 40px 16px;
+  }
+
+  .verified-content-grid,
+  .portal-welcome-grid {
+    gap: 16px;
+  }
+
+  /* Search Bar */
+  .search-bar-section {
+    margin-bottom: 16px;
+  }
+
+  .search-bar-card {
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  /* Portal Welcome (No Batch) */
+  .portal-hero-card {
+    padding: 24px 18px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .portal-hero-badge {
+    padding: 5px 12px;
+    font-size: 11.5px;
+  }
+
+  .portal-hero-title {
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 800;
+  }
+
+  .portal-hero-desc {
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  .portal-section-title {
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .portal-section-sub {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .stages-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stage-card {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 14px 16px;
+    gap: 14px;
+    border-radius: 14px;
+  }
+
+  .stage-icon-wrap {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .stage-3d-img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .stage-content {
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+  }
+
+  .stage-title {
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  .stage-desc {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Certificate Banner */
+  .certificate-banner-card {
+    padding: 18px 16px;
+    border-radius: 14px;
+    gap: 14px;
+  }
+
+  .certificate-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .cert-partner-logo {
+    height: 32px;
+  }
+
+  .cert-seal-badge {
+    padding: 5px 12px;
+    font-size: 11.5px;
+  }
+
+  .cert-subheading {
+    font-size: 11px;
+  }
+
+  .cert-main-title {
+    font-size: 21px;
+    line-height: 1.25;
+  }
+
+  .cert-meta-row {
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .font-mono {
+    word-break: break-all;
+  }
+
+  .quality-badges-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .quality-score-pill,
+  .quality-grade-pill,
+  .moisture-status-pill {
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .pill-label {
+    font-size: 10.5px;
+  }
+
+  .pill-value {
+    font-size: 15px;
+  }
+
+  /* Info Cards General */
+  .info-card {
+    padding: 18px 16px;
+    border-radius: 14px;
+    gap: 14px;
+  }
+
+  .card-header-flex {
+    gap: 10px;
+  }
+
+  .card-header-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .card-title {
+    font-size: 15.5px;
+    line-height: 1.35;
+  }
+
+  .card-subtitle {
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  /* Origin Card */
+  .origin-details-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .origin-item {
+    padding: 12px 14px;
+    border-radius: 10px;
+    gap: 2px;
+  }
+
+  .origin-label {
+    font-size: 10.5px;
+  }
+
+  .origin-value {
+    font-size: 14.5px;
+    font-weight: 700;
+  }
+
+  .origin-desc {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* Quality Scoring Card */
+  .card-title-badge-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .quality-score-badge {
+    font-size: 11.5px;
+    padding: 4px 10px;
+  }
+
+  .quality-grade-hero-box {
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-top: 12px;
+  }
+
+  .grade-banner-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .grade-letter-avatar {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    font-size: 22px;
+    border-radius: 12px;
+  }
+
+  .grade-main-title {
+    font-size: 15.5px;
+  }
+
+  .grade-desc-text {
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  .market-rec-card {
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .quality-submetrics-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .submetric-card {
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .submetric-label {
+    font-size: 10px;
+  }
+
+  .submetric-value {
+    font-size: 15px;
+  }
+
+  .submetric-badge {
+    font-size: 11px;
+  }
+
+  /* Key Drying Metrics (2x2 grid on mobile) */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .metric-box {
+    padding: 12px 12px;
+    border-radius: 10px;
+    gap: 3px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .metric-number {
+    font-size: 1.625rem;
+    line-height: 1;
+  }
+
+  .metric-unit {
+    font-size: 0.875rem;
+  }
+
+  .metric-foot {
+    font-size: 11px;
+    line-height: 1.35;
+    margin-top: 2px;
+  }
+
+  .hygiene-statement-box {
+    padding: 14px 12px;
+    border-radius: 10px;
+    gap: 10px;
+  }
+
+  .hygiene-title {
+    font-size: 13.5px;
+  }
+
+  .hygiene-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  /* Chart Card */
+  .chart-legends-row {
+    gap: 8px 12px;
+    font-size: 11.5px;
+  }
+
+  .svg-chart-wrapper {
+    padding: 8px 6px;
+    border-radius: 10px;
+  }
+
+  .telemetry-svg {
+    min-height: 160px;
+    max-height: 200px;
+  }
+
+  .time-axis-labels {
+    padding: 0 10px;
+    font-size: 10px;
+  }
+
+  /* Nutrition Card (2x2 grid on mobile) */
+  .nutrition-card .origin-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .nutrition-card .origin-item {
+    padding: 12px 10px;
+  }
+
+  /* Consumer Action Bar (Full width buttons on mobile) */
+  .consumer-action-bar {
+    padding: 14px;
+    border-radius: 14px;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .share-actions-group {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .btn-action-outline,
+  .consumer-action-bar .btn-primary {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+    font-size: 13.5px;
+    padding: 12px 16px;
+    border-radius: 10px;
+  }
+
+  /* State Card */
+  .state-card {
+    padding: 32px 16px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .error-title {
+    font-size: 18px;
+  }
+
+  .error-message {
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .error-actions {
+    width: 100%;
+  }
+
+  .error-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+  }
+
+  /* Footer */
+  .landing-footer {
+    padding: 36px 16px 20px;
+  }
+
+  .footer-top-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .footer-brand-title {
+    font-size: 16px;
+  }
+
+  .footer-desc {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .footer-heading {
+    font-size: 14px;
+  }
+
+  .contact-value {
+    font-size: 13px;
+  }
+
+  .footer-social-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .footer-map-iframe-box iframe {
+    height: 130px;
+  }
+
+  .footer-bottom-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-top: 16px;
+  }
+}
+
+@media (max-width: 540px) {
+  /* Search Bar Card Stacks Vertically on Small Mobile */
+  .search-bar-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .search-input-wrapper {
+    width: 100%;
+    padding: 2px 0;
+  }
+
+  .search-input {
+    font-size: 14px;
+  }
+
+  .btn-search {
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+  }
+
+  .landing-navbar {
+    padding: 0 14px;
+  }
+
+  .brand-title {
+    font-size: 14px;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+  }
+
+  .brand-logo-img {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (max-width: 400px) {
+  .verify-main-container {
+    padding: 12px 12px 32px 12px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .metric-box {
+    padding: 10px 8px;
+  }
+
+  .metric-number {
+    font-size: 1.45rem;
+  }
+
+  .nutrition-card .origin-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .nutrition-card .origin-item {
+    padding: 10px 8px;
+  }
 }
 
 /* Print Rules for Fallback Ctrl+P */
