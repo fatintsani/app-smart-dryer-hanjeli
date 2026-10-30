@@ -3,6 +3,7 @@
 #include <DHT.h>
 #include <BH1750.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
@@ -792,7 +793,19 @@ bool sendHttpTelemetry() {
   HTTPClient http;
   http.setTimeout(3500);
 
-  if (!http.begin(serverUrl)) {
+  WiFiClientSecure secureClient;
+  WiFiClient standardClient;
+  bool beginOk = false;
+
+  // Mendukung HTTPS (port 443) dengan bypass validasi SSL root CA, atau HTTP biasa (port 80)
+  if (String(serverUrl).startsWith("https://")) {
+    secureClient.setInsecure(); // Kompatibel dengan semua core ESP32 tanpa sertifikat root CA lokal
+    beginOk = http.begin(secureClient, serverUrl);
+  } else {
+    beginOk = http.begin(standardClient, serverUrl);
+  }
+
+  if (!beginOk) {
     lastHttpPublishOk = false;
     hasHttpPublishResult = true;
     lastHttpPublishMillis = millis();
