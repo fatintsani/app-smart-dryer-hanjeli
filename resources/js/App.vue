@@ -446,7 +446,7 @@ function handleMobileBack() {
 <style>
 /* CSS Variables & Global Tokens */
 :root {
-  --color-primary: #0D631B;
+  --color-primary: #1B5E20;
   --color-primary-hover: #15803D;
   --color-primary-light: #E8F5E9;
   --color-accent: #0284C7;
@@ -662,7 +662,7 @@ html, body {
   align-items: center;
   gap: 10px;
   padding: 6px 16px 6px 8px;
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 9999px;
@@ -703,7 +703,7 @@ html, body {
   height: 8px;
   border-radius: 50%;
   background: #34d399;
-  border: 1.5px solid #0D631B;
+  border: 1.5px solid #1B5E20;
   box-shadow: 0 0 6px #34d399;
   animation: pulseDot 2s infinite;
 }

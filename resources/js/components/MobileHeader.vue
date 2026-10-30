@@ -253,18 +253,60 @@ const notifFilter = ref('all')
 const notifications = ref([])
 let alertSyncTimer = null
 
+function simplifyAlert(title = '', message = '') {
+  let cleanTitle = title || 'Pemberitahuan Sistem'
+  let cleanMsg = message || ''
+
+  // Bersihkan prefix teknis pada judul
+  cleanTitle = cleanTitle
+    .replace(/^Anomali Termal:\s*/i, '')
+    .replace(/^Anomali Sensor:\s*/i, '')
+    .replace(/^Anomali Kadar Air:\s*/i, '')
+    .replace(/^Anomali Suhu:\s*/i, '')
+    .replace(/^Peringatan:\s*/i, '')
+    .trim()
+
+  if (cleanTitle.toLowerCase().includes('pintu greenhouse terbuka') || cleanTitle.toLowerCase().includes('drop suhu')) {
+    cleanTitle = 'Pintu Terbuka / Suhu Drop'
+  } else if (cleanTitle.toLowerCase().includes('penurunan suhu mendadak')) {
+    cleanTitle = 'Suhu Ruangan Turun'
+  } else if (cleanTitle.toLowerCase().includes('lonjakan kelembaban') || cleanTitle.toLowerCase().includes('lonjakan kadar air')) {
+    cleanTitle = 'Kadar Air Biji Naik'
+  } else if (cleanTitle.toLowerCase().includes('pembacaan macet') || cleanTitle.toLowerCase().includes('flatline')) {
+    cleanTitle = 'Koneksi Sensor Macet'
+  }
+
+  // Sederhanakan pesan menjadi bahasa petani yang jelas dan ringkas
+  if (cleanMsg.includes('Auxiliary Heater') || cleanMsg.includes('LEBIH RENDAH')) {
+    const tempMatch = cleanMsg.match(/Suhu ruang pengering \(([^)]+)\)/i)
+    const temp = tempMatch ? tempMatch[1] : 'ruangan'
+    cleanMsg = `Suhu ${temp} lebih dingin dari luar saat pemanas aktif. Mohon periksa apakah pintu greenhouse tertutup rapat.`
+  } else if (cleanMsg.toLowerCase().includes('flatline') || cleanMsg.toLowerCase().includes('tidak berubah sama sekali')) {
+    cleanMsg = 'Data sensor tidak bergerak. Periksa sambungan kabel sensor atau catu daya alat.'
+  } else if (cleanMsg.toLowerCase().includes('melonjak naik') || cleanMsg.toLowerCase().includes('kebocoran atap')) {
+    cleanMsg = 'Kadar air biji naik mendadak. Periksa apakah ada tetesan air atau atap bocor di atas rak.'
+  } else if (cleanMsg.includes('Rekomendasi Aksi:')) {
+    const parts = cleanMsg.split(/Rekomendasi Aksi:\s*/i)
+    cleanMsg = parts[1] ? parts[1].trim() : parts[0].trim()
+  }
+
+  return { title: cleanTitle, message: cleanMsg }
+}
+
 function transformAlert(a) {
   const type = a.type === 'DANGER' || a.level === 'CRITICAL' ? 'critical' : a.type === 'WARNING' || a.level === 'WARNING' ? 'warning' : a.type === 'SUCCESS' || a.level === 'SUCCESS' ? 'success' : 'info'
   const timeStr = a.time || (a.createdAt ? new Date(a.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Baru saja')
   const timeEnStr = a.timeEn || timeStr
 
+  const simplified = simplifyAlert(a.title, a.message)
+
   return {
     id: a.id,
     type,
-    title: a.title,
-    titleEn: a.titleEn || a.title,
-    message: a.message,
-    messageEn: a.messageEn || a.message,
+    title: simplified.title,
+    titleEn: a.titleEn || simplified.title,
+    message: simplified.message,
+    messageEn: a.messageEn || simplified.message,
     time: timeStr,
     timeEn: timeEnStr,
     unread: !a.isRead && !a.is_read,
@@ -274,11 +316,26 @@ function transformAlert(a) {
   }
 }
 
+function deduplicateNotifications(items) {
+  if (!Array.isArray(items)) return []
+  const seen = new Set()
+  const result = []
+  for (const item of items) {
+    if (!item) continue
+    const key = `${(item.title || '').trim().toLowerCase()}_${item.unread ? 'u' : 'r'}`
+    if (!seen.has(key)) {
+      seen.add(key)
+      result.push(item)
+    }
+  }
+  return result
+}
+
 async function loadAlerts() {
   try {
     const res = await alertService.getAll()
     const list = Array.isArray(res) ? res : res?.alerts || []
-    notifications.value = list.map(transformAlert)
+    notifications.value = deduplicateNotifications(list.map(transformAlert))
   } catch (err) {
     console.warn('Could not load alerts from DB:', err.message)
   }
@@ -291,7 +348,11 @@ onMounted(() => {
   alertSyncTimer = setInterval(loadAlerts, 5000)
 
   socketService.on('alert_new', (newAlert) => {
-    notifications.value.unshift(transformAlert(newAlert))
+    if (!newAlert) return
+    const transformed = transformAlert(newAlert)
+    const key = (transformed.title || '').trim().toLowerCase()
+    const filtered = notifications.value.filter(n => (n.title || '').trim().toLowerCase() !== key)
+    notifications.value = [transformed, ...filtered]
   })
   document.addEventListener('click', handleClickOutside)
 })
@@ -424,13 +485,13 @@ onUnmounted(() => {
 .brand-text {
   font-size: 19px;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .mobile-version-tag {
   font-size: 9px;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
   background: #E8F5E9;
   border: 1px solid #C8E6C9;
   padding: 1px 5px;
@@ -527,7 +588,7 @@ onUnmounted(() => {
 .mn-count {
   font-size: 10px;
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 10px;
@@ -537,7 +598,7 @@ onUnmounted(() => {
   background: transparent;
   font-size: 11px;
   font-weight: 600;
-  color: #0D631B;
+  color: #1B5E20;
   cursor: pointer;
 }
 
@@ -557,41 +618,37 @@ onUnmounted(() => {
 }
 
 .mn-chip.active {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
 }
 
 .mn-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 260px;
+  gap: 8px;
+  max-height: 280px;
   overflow-y: auto;
 }
 
 .mn-card {
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
   border: 1px solid #E2E8F0;
   background: #FFFFFF;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .mn-card.unread {
   background: #F8FAFC;
-  border-color: #CBD5E1;
+  border-color: #E2E8F0;
 }
 
-.mn-card.type-critical {
-  border-left: 3px solid #BA1A1A;
-}
-.mn-card.type-warning {
-  border-left: 3px solid #D97706;
-}
-.mn-card.type-success {
-  border-left: 3px solid #0D631B;
+.mn-card:active {
+  background: #F1F5F9;
 }
 
 .mn-card-lead {
@@ -601,26 +658,54 @@ onUnmounted(() => {
 }
 
 .mn-badge-type {
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  background: #F1F5F9;
   color: #64748B;
 }
 
+.mn-card.type-critical .mn-badge-type {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.mn-card.type-warning .mn-badge-type {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.mn-card.type-success .mn-badge-type {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.mn-card.type-info .mn-badge-type {
+  background: #E0F2FE;
+  color: #0284C7;
+}
+
 .mn-time {
-  font-size: 9px;
+  font-size: 10px;
   color: #94A3B8;
+  font-weight: 500;
 }
 
 .mn-item-title {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #0F172A;
+  line-height: 1.35;
+  margin: 0;
 }
 
 .mn-item-msg {
-  font-size: 11px;
+  font-size: 11.5px;
   color: #475569;
-  line-height: 14px;
+  line-height: 1.45;
+  margin: 0;
 }
 
 .mn-action-row {
@@ -628,12 +713,21 @@ onUnmounted(() => {
 }
 
 .mn-action-btn {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: #0D631B;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1B5E20;
   background: #E8F5E9;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.mn-action-btn:active {
+  background: #1B5E20;
+  color: #FFFFFF;
 }
 
 .mobile-profile-wrapper {
@@ -644,7 +738,7 @@ onUnmounted(() => {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2E7D32 0%, #0D631B 100%);
+  background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
   color: #FFFFFF;
   font-size: 12px;
   font-weight: 700;
@@ -660,7 +754,7 @@ onUnmounted(() => {
 
 .mobile-avatar-btn.active {
   transform: scale(0.96);
-  box-shadow: 0 0 0 2px #0D631B;
+  box-shadow: 0 0 0 2px #1B5E20;
 }
 
 .mobile-avatar-img {
@@ -694,7 +788,7 @@ onUnmounted(() => {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2E7D32 0%, #0D631B 100%);
+  background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
   color: white;
   font-size: 13px;
   font-weight: 700;
@@ -730,7 +824,7 @@ onUnmounted(() => {
 
 .mp-role {
   font-size: 10px !important;
-  color: #0D631B !important;
+  color: #1B5E20 !important;
   font-weight: 600;
 }
 

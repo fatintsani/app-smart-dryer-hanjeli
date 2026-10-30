@@ -119,7 +119,7 @@
           <!-- Microclimate Live Telemetry Banner Strip (Seamless, No Scrollbar) -->
           <div class="telemetry-micro-strip" v-if="contextSnapshot">
             <div class="telemetry-chip">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                 <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
               </svg>
               <span class="chip-label">{{ t('aiCopilot.chipTempIn') }}</span>
@@ -195,7 +195,7 @@
                   </div>
                   <div class="msg-bubble ai-bubble welcome-card">
                     <div class="welcome-header">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="16" x2="12" y2="12"></line>
                         <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -244,7 +244,7 @@
                           <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
-                        <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
+                        <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5">
                           <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                         <span>{{ copiedIndex === index ? t('aiCopilot.copied') : t('aiCopilot.copyAnswer') }}</span>
@@ -908,7 +908,7 @@ onMounted(() => {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #0D631B;
+  background: #1B5E20;
   border: 2px solid #FFFFFF;
 }
 
@@ -960,7 +960,7 @@ onMounted(() => {
 
 .badge-batch {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
   border: 1px solid #C8E6C9;
 }
 
@@ -1014,7 +1014,7 @@ onMounted(() => {
 .icon-action-btn:hover,
 .icon-action-btn.btn-active {
   background: rgba(0, 0, 0, 0.05);
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .icon-action-btn {
@@ -1069,14 +1069,14 @@ onMounted(() => {
 }
 
 .copilot-tab-btn:hover {
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   background: rgba(0, 0, 0, 0.03);
 }
 
 .copilot-tab-btn.active {
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   background: var(--color-white, #FFFFFF);
-  border-bottom: 2px solid var(--color-primary-dark, #0D631B);
+  border-bottom: 2px solid var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .copilot-tab-btn.active {
@@ -1138,7 +1138,7 @@ onMounted(() => {
 }
 
 .chip-val {
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   font-weight: 700;
 }
 
@@ -1168,7 +1168,7 @@ onMounted(() => {
 
 .inspector-title {
   font-weight: 700;
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .inspector-title {
@@ -1294,11 +1294,11 @@ onMounted(() => {
 }
 
 .user-avatar {
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .user-avatar {
-  background: #0D631B !important;
+  background: #1B5E20 !important;
 }
 
 .msg-body-wrapper {
@@ -1348,7 +1348,7 @@ onMounted(() => {
 }
 
 .user-bubble {
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
   color: #FFFFFF;
   border-top-right-radius: 2px;
 }
@@ -1381,7 +1381,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   margin-bottom: 4px;
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   font-size: 13.5px;
 }
 
@@ -1428,7 +1428,7 @@ onMounted(() => {
 
 .copy-msg-btn:hover {
   background: rgba(0, 0, 0, 0.05);
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .copy-msg-btn {
@@ -1456,7 +1456,7 @@ onMounted(() => {
   padding: 4px 10px;
   border-radius: 16px;
   background: var(--color-primary-bg, rgba(46, 125, 50, 0.1));
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   border: 1px solid var(--color-primary-badge, rgba(46, 125, 50, 0.2));
   cursor: pointer;
   transition: all 0.2s;
@@ -1464,7 +1464,7 @@ onMounted(() => {
 }
 
 .followup-pill-btn:hover {
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
   color: #FFFFFF;
 }
 
@@ -1475,7 +1475,7 @@ onMounted(() => {
 }
 
 :global(.dark-theme) .followup-pill-btn:hover {
-  background: #0D631B !important;
+  background: #1B5E20 !important;
   color: #FFFFFF !important;
 }
 
@@ -1497,7 +1497,7 @@ onMounted(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
   animation: bounce 1.4s infinite ease-in-out both;
 }
 
@@ -1586,8 +1586,8 @@ onMounted(() => {
 
 .quick-pill-btn:hover {
   background: var(--color-primary-bg, rgba(46, 125, 50, 0.1));
-  border-color: var(--color-primary-dark, #0D631B);
-  color: var(--color-primary-dark, #0D631B);
+  border-color: var(--color-primary-dark, #1B5E20);
+  color: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .quick-pill-btn:hover {
@@ -1625,7 +1625,7 @@ onMounted(() => {
 }
 
 .copilot-input-form:focus-within {
-  border-color: var(--color-primary-dark, #0D631B);
+  border-color: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .copilot-input-form:focus-within {
@@ -1649,7 +1649,7 @@ onMounted(() => {
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
   color: #FFFFFF;
   border: none;
   display: flex;
@@ -1739,7 +1739,7 @@ onMounted(() => {
   height: 60px;
   border-radius: 50%;
   background: #E8F5E9;
-  border: 3px solid #0D631B;
+  border: 3px solid #1B5E20;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1755,7 +1755,7 @@ onMounted(() => {
 .score-val {
   font-size: 16px;
   font-weight: 800;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 :global(.dark-theme) .score-val {
@@ -1855,11 +1855,11 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.dm-good { background: #E8F5E9; color: #0D631B; }
+.dm-good { background: #E8F5E9; color: #1B5E20; }
 .dm-warn { background: #FFF3E0; color: #B45000; }
 .dm-danger { background: #FFEBEE; color: #BA1A1A; }
 .dm-info { background: #E3F2FD; color: #005DB7; }
-.dm-success { background: #E8F5E9; color: #0D631B; }
+.dm-success { background: #E8F5E9; color: #1B5E20; }
 
 :global(.dark-theme) .dm-good { background: rgba(74, 222, 128, 0.15) !important; color: #4ADE80 !important; }
 :global(.dark-theme) .dm-warn { background: rgba(245, 158, 11, 0.15) !important; color: #FBBF24 !important; }
@@ -1892,7 +1892,7 @@ onMounted(() => {
   justify-content: center;
   gap: 8px;
   padding: 10px;
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -1999,7 +1999,7 @@ onMounted(() => {
 }
 
 .calc-input:focus {
-  border-color: var(--color-primary-dark, #0D631B);
+  border-color: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .calc-input:focus {
@@ -2047,7 +2047,7 @@ onMounted(() => {
 }
 
 .cr-val.highlight {
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   font-size: 14px;
 }
 
@@ -2061,7 +2061,7 @@ onMounted(() => {
   font-weight: 700;
   margin-top: 6px;
   margin-bottom: 3px;
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) :deep(.md-h4) {

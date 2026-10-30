@@ -64,7 +64,7 @@
           <div class="stat-card-header">
             <span class="stat-label">TOTAL NODE TERDAFTAR</span>
             <div class="icon-circle icon-green-light">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                 <rect x="2" y="2" width="20" height="20" rx="4"></rect>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
@@ -265,7 +265,7 @@
             >
               <div class="dsc-header">
                 <div class="dsc-icon-box">
-                  <svg v-if="d.icon === 'microchip'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
+                  <svg v-if="d.icon === 'microchip'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2">
                     <rect x="2" y="2" width="20" height="20" rx="4"></rect>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
@@ -455,7 +455,7 @@
                   <td>
                     <div class="node-cell-flex">
                       <div class="mini-icon-box">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2">
                           <rect x="2" y="2" width="20" height="20" rx="4"></rect>
                           <circle cx="12" cy="12" r="3"></circle>
                         </svg>
@@ -902,7 +902,7 @@
             <!-- Upload Guide Card -->
             <div class="flashing-guide-card" style="margin-top: 20px;">
               <h4 class="guide-steps-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2">
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="12" y1="16" x2="12" y2="12"></line>
                   <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -1641,12 +1641,13 @@ onUnmounted(() => {
 }
 
 .admin-content {
-  padding: 32px 40px 60px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 1280px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .header-action-row {
@@ -1686,7 +1687,7 @@ onUnmounted(() => {
   border-radius: 20px;
   background: #E8F5E9;
   border: 1px solid #86EFAC;
-  color: #0D631B;
+  color: #1B5E20;
   font-size: 11.5px;
   font-weight: 700;
 }
@@ -1719,7 +1720,7 @@ onUnmounted(() => {
 .admin-feedback-toast.success {
   background: #E8F5E9;
   border: 1px solid #86EFAC;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .admin-feedback-toast.error {
@@ -1806,7 +1807,7 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
-.trend-up-green { color: #0D631B; }
+.trend-up-green { color: #1B5E20; }
 .trend-down-blue { color: #005DB7; }
 .trend-purple { color: #7C3AED; }
 .trend-orange { color: #B45000; }
@@ -1846,7 +1847,7 @@ onUnmounted(() => {
 
 .subnav-btn.active {
   background: var(--color-white, #FFFFFF);
-  color: #0D631B;
+  color: #1B5E20;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -1990,7 +1991,7 @@ onUnmounted(() => {
 }
 
 .device-switch-toggle input:checked + .toggle-slider {
-  background-color: #0D631B;
+  background-color: #1B5E20;
 }
 
 .device-switch-toggle input:checked + .toggle-slider:before {
@@ -2013,7 +2014,7 @@ onUnmounted(() => {
 
 .dot-online {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .dot-offline {
@@ -2071,13 +2072,13 @@ onUnmounted(() => {
   font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .token-status-pill {
   font-size: 10px;
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
   padding: 1px 6px;
   border-radius: 4px;
   font-weight: 700;
@@ -2116,7 +2117,7 @@ onUnmounted(() => {
 }
 
 .btn-token-icon:hover {
-  color: #0D631B;
+  color: #1B5E20;
   background: #F1F5F9;
 }
 
@@ -2155,7 +2156,7 @@ onUnmounted(() => {
   gap: 6px;
   font-size: 11.5px;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
   background: #E8F5E9;
   border: 1px solid #86EFAC;
   padding: 6px 12px;
@@ -2309,7 +2310,7 @@ onUnmounted(() => {
 
 .fw-latest {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
   border: 1px solid #86EFAC;
 }
 
@@ -2322,7 +2323,7 @@ onUnmounted(() => {
 .fw-tag-latest {
   font-size: 10.5px;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .fw-tag-update {
@@ -2361,7 +2362,7 @@ onUnmounted(() => {
 
 .ota-success {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
 }
 .ota-success .ota-status-dot { background: #10B981; }
 
@@ -2370,7 +2371,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 7px 14px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -2438,7 +2439,7 @@ onUnmounted(() => {
   font-size: 11px;
   font-weight: 700;
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
   border: 1px solid #86EFAC;
   padding: 2px 8px;
   border-radius: 12px;
@@ -2636,7 +2637,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 9px 18px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -2677,7 +2678,7 @@ onUnmounted(() => {
   padding: 8px 14px;
   background: #F0FDF4;
   border: 1px solid #86EFAC;
-  color: #0D631B;
+  color: #1B5E20;
   border-radius: 8px;
   font-size: 12.5px;
   font-weight: 700;
@@ -2816,7 +2817,7 @@ onUnmounted(() => {
 }
 
 .form-input:focus, .form-select:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
 }
 
 .field-helper {
@@ -2912,7 +2913,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   background: rgba(13, 99, 27, 0.08);
-  color: #0D631B;
+  color: #1B5E20;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 12.5px;
@@ -2968,7 +2969,7 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
 }
-.icon-green-subtle { background: #ECFDF5; color: #0D631B; }
+.icon-green-subtle { background: #ECFDF5; color: #1B5E20; }
 .icon-blue-subtle  { background: #EFF6FF; color: #1D4ED8; }
 .icon-amber-subtle { background: #FFFBEB; color: #B45309; }
 .icon-orange-subtle{ background: #FFF7ED; color: #C2410C; }
@@ -3050,7 +3051,7 @@ onUnmounted(() => {
 }
 .hw-pin-tag {
   background: #F1F5F9;
-  color: #0D631B;
+  color: #1B5E20;
   padding: 2px 6px;
   border-radius: 4px;
   font-weight: 700;
@@ -3085,14 +3086,14 @@ onUnmounted(() => {
 }
 .program-card:hover {
   transform: translateY(-2px);
-  border-color: #0D631B;
+  border-color: #1B5E20;
   box-shadow: 0 6px 16px rgba(13, 99, 27, 0.08);
 }
 :global(.dark-theme) .program-card:hover {
   border-color: #4ADE80;
 }
 .program-card.active {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   background: #F0FDF4;
   box-shadow: 0 4px 14px rgba(13, 99, 27, 0.12);
 }
@@ -3160,7 +3161,7 @@ onUnmounted(() => {
 .program-select-indicator {
   font-size: 12px;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -3255,7 +3256,7 @@ onUnmounted(() => {
 }
 .action-btn-copy {
   background: rgba(13, 99, 27, 0.08);
-  color: #0D631B;
+  color: #1B5E20;
 }
 :global(.dark-theme) .action-btn-copy {
   background: rgba(74, 222, 128, 0.15);
@@ -3265,11 +3266,11 @@ onUnmounted(() => {
   background: rgba(13, 99, 27, 0.15);
 }
 .action-btn-copy.copied {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
 }
 .action-btn-download {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
 }
 .action-btn-download:hover {
@@ -3395,7 +3396,7 @@ onUnmounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   font-weight: 800;
   font-size: 12px;

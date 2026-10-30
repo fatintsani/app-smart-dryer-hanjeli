@@ -2,27 +2,23 @@
   <Teleport to="body">
     <div v-if="isOpen" class="qr-modal-overlay" @click.self="$emit('close')">
       <div class="qr-modal-card" role="dialog" aria-modal="true">
-        <!-- Modal Header -->
+        <!-- 1. Header Sederhana -->
         <div class="qr-modal-header">
           <div class="header-title-flex">
             <div class="header-icon-box">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
                 <rect x="14" y="14" width="7" height="7"></rect>
                 <rect x="3" y="14" width="7" height="7"></rect>
-                <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                <line x1="17" y1="7" x2="17.01" y2="7"></line>
-                <line x1="7" y1="17" x2="7.01" y2="17"></line>
-                <line x1="17" y1="17" x2="17.01" y2="17"></line>
               </svg>
             </div>
             <div>
-              <h2 class="qr-modal-title">Label Maker & Cetak QR Stiker Kemasan</h2>
-              <p class="qr-modal-subtitle">Template label siap cetak (Printer Thermal / Lembaran Stiker PDF A4) untuk produk UMKM Hanjeli</p>
+              <h2 class="qr-modal-title">Cetak Label & QR Kemasan</h2>
+              <p class="qr-modal-subtitle">Pilih jenis stiker untuk ditempel pada kemasan gabah / beras hanjeli.</p>
             </div>
           </div>
-          <button class="close-btn" @click="$emit('close')" :title="$t('common.close')">
+          <button class="close-btn" @click="$emit('close')" title="Tutup">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -30,7 +26,7 @@
           </button>
         </div>
 
-        <!-- Mode Selector Navigation Tabs -->
+        <!-- 2. Pilihan Format Cetak (Tabs Sederhana) -->
         <div class="label-mode-tabs">
           <button 
             type="button" 
@@ -38,12 +34,8 @@
             :class="{ active: activeTemplate === 'retail' }"
             @click="activeTemplate = 'retail'"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-              <line x1="7" y1="8" x2="17" y2="8"></line>
-              <line x1="7" y1="12" x2="12" y2="12"></line>
-            </svg>
-            <span>1. Stiker Retail (70x50mm)</span>
+            <span class="tab-emoji">🏷️</span>
+            <span>Stiker Satuan</span>
           </button>
 
           <button 
@@ -52,12 +44,8 @@
             :class="{ active: activeTemplate === 'thermal' }"
             @click="activeTemplate = 'thermal'"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 6 2 18 2 18 9"></polyline>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-              <rect x="6" y="14" width="12" height="8"></rect>
-            </svg>
-            <span>2. Printer Thermal (58/80mm)</span>
+            <span class="tab-emoji">🧾</span>
+            <span>Printer Kasir (Thermal)</span>
           </button>
 
           <button 
@@ -66,26 +54,20 @@
             :class="{ active: activeTemplate === 'a4_grid' }"
             @click="activeTemplate = 'a4_grid'"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-            <span>3. Lembar Stiker A4 Grid</span>
+            <span class="tab-emoji">📄</span>
+            <span>Kertas A4 (Banyak Stiker)</span>
           </button>
         </div>
 
-        <!-- Modal Body -->
+        <!-- 3. Konten Modal: Preview di Kiri, Pengaturan Sederhana di Kanan -->
         <div class="qr-modal-body custom-scrollbar">
           <div class="label-workspace-grid">
-            <!-- Left Panel: Live Sticker Preview -->
+            <!-- Left: Preview Stiker -->
             <div class="preview-section">
               <div class="preview-header-bar">
                 <span class="preview-tag">
-                  Live Preview: <strong>{{ templateTitle }}</strong>
+                  Pratinjau: <strong>{{ templateTitle }}</strong>
                 </span>
-                <span class="scale-hint font-mono">Resolusi 300 DPI Ready</span>
               </div>
 
               <div class="label-preview-stage">
@@ -117,13 +99,11 @@
 
                   <!-- Main Content -->
                   <div class="sticker-main-content">
-                    <!-- QR Code Box -->
                     <div class="sticker-qr-box">
                       <canvas ref="qrCanvasRetail" class="qr-canvas"></canvas>
                       <span class="sticker-scan-hint">SCAN TRACEABILITY</span>
                     </div>
 
-                    <!-- Batch & Product Details -->
                     <div class="sticker-details">
                       <div class="sticker-product-name">
                         {{ formCustom.productName || batch?.cropVariety || 'Biji Hanjeli Pilihan Super' }}
@@ -161,7 +141,7 @@
                   <!-- Footer -->
                   <div class="sticker-footer">
                     <div class="cert-guarantee">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                         <polyline points="9 12 11 14 15 10"></polyline>
                       </svg>
@@ -213,7 +193,7 @@
                   class="a4-sheet-preview-frame"
                 >
                   <div class="a4-grid-info-bar">
-                    <span>Layout Lembaran A4: <strong>{{ a4GridCount }} Stiker</strong> (Format Siap Potong / Lembaran Stiker)</span>
+                    <span>Layout Lembaran A4: <strong>{{ a4GridCount }} Stiker per Halaman</strong></span>
                   </div>
                   <div class="a4-mini-grid" :class="`cols-${a4GridCols}`">
                     <div 
@@ -246,57 +226,57 @@
               </div>
             </div>
 
-            <!-- Right Panel: Label Customizer Controls -->
+            <!-- Right: Panel Pengaturan Sederhana -->
             <div class="customizer-panel">
-              <h3 class="panel-section-title">Kustomisasi Informasi Label Produk</h3>
+              <div class="panel-header-simple">
+                <h3 class="panel-section-title">Isi Data Stiker</h3>
+                <p class="panel-section-sub">Atur berat dan masa simpan gabah sebelum dicetak.</p>
+              </div>
               
               <div class="form-fields-stack">
+                <!-- Pilihan Cepat Berat Kemasan (Netto) -->
                 <div class="field-item">
-                  <label>Nama Produk / Komoditas Kemasan</label>
-                  <input 
-                    type="text" 
-                    v-model="formCustom.productName" 
-                    placeholder="Contoh: Hanjeli Ketan Sukabumi (Grade A)"
-                    class="settings-input" 
-                  />
+                  <label class="field-lbl">Pilihan Berat Kemasan (Netto)</label>
+                  <div class="netto-pills-row">
+                    <button 
+                      type="button" 
+                      v-for="opt in ['250g', '500g', '1 kg', '5 kg', '10 kg']" 
+                      :key="opt"
+                      class="netto-pill-btn"
+                      :class="{ active: formCustom.netto.startsWith(opt.replace('g', ' gram')) || formCustom.netto.startsWith(opt) }"
+                      @click="formCustom.netto = opt.includes('g') && !opt.includes('kg') ? opt.replace('g', ' gram') : opt"
+                    >
+                      {{ opt }}
+                    </button>
+                  </div>
                 </div>
 
+                <!-- Nama Produk & Masa Simpan -->
                 <div class="grid-2-fields">
                   <div class="field-item">
-                    <label>Berat Bersih (Netto)</label>
-                    <select v-model="formCustom.netto" class="settings-select">
-                      <option value="250 gram">250 gram</option>
-                      <option value="500 gram">500 gram (Retail)</option>
-                      <option value="1 kg">1 kg (Pouch)</option>
-                      <option value="5 kg">5 kg (Karung)</option>
-                      <option value="10 kg (Grosir)">10 kg (Grosir)</option>
-                    </select>
+                    <label class="field-lbl">Nama Produk</label>
+                    <input 
+                      type="text" 
+                      v-model="formCustom.productName" 
+                      placeholder="Nama varietas"
+                      class="settings-input" 
+                    />
                   </div>
 
                   <div class="field-item">
-                    <label>Masa Simpan (Best Before)</label>
+                    <label class="field-lbl">Baik Digunakan Hingga</label>
                     <input 
                       type="text" 
                       v-model="formCustom.expiryDate" 
-                      placeholder="Contoh: Sep 2027" 
+                      placeholder="Contoh: Okt 2027" 
                       class="settings-input" 
                     />
                   </div>
                 </div>
 
-                <div class="field-item">
-                  <label>Nomor P-IRT / Izin Usaha Kelompok Tani</label>
-                  <input 
-                    type="text" 
-                    v-model="formCustom.pirt" 
-                    placeholder="Contoh: P-IRT No. 2153202010482-26" 
-                    class="settings-input" 
-                  />
-                </div>
-
                 <!-- Template Specific Configs for A4 Grid -->
                 <div v-if="activeTemplate === 'a4_grid'" class="field-item a4-settings-card">
-                  <label class="a4-settings-label">Pengaturan Lembaran A4:</label>
+                  <label class="field-lbl">Jumlah Stiker per Lembar A4:</label>
                   <div class="a4-buttons-group">
                     <button 
                       type="button" 
@@ -325,37 +305,72 @@
                   </div>
                 </div>
 
-                <!-- Toggles Checklist -->
-                <div class="field-item">
-                  <label class="field-label-toggle">Elemen Label yang Ditampilkan:</label>
-                  <div class="checkbox-options-stack">
-                    <label class="checkbox-label-row">
-                      <input type="checkbox" v-model="formCustom.showGrade" class="custom-chk" />
-                      <span>Sertakan Badge Mutu (Grade A / B / C)</span>
-                    </label>
-                    <label class="checkbox-label-row">
-                      <input type="checkbox" v-model="formCustom.showMoisture" class="custom-chk" />
-                      <span>Sertakan Kadar Air Akhir (Standar SNI)</span>
-                    </label>
+                <!-- Pengaturan Tambahan (P-IRT, Mutu & Link) - Collapsible -->
+                <div class="advanced-collapsible-box">
+                  <button 
+                    type="button" 
+                    class="btn-toggle-advanced-opts"
+                    @click="isAdvancedOpen = !isAdvancedOpen"
+                  >
+                    <div class="adv-left">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                      </svg>
+                      <span>Opsi Tambahan (P-IRT, Mutu & Link)</span>
+                    </div>
+                    <svg 
+                      class="adv-arrow" 
+                      :class="{ 'is-rotated': isAdvancedOpen }"
+                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    >
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+
+                  <div v-if="isAdvancedOpen" class="advanced-content-body">
+                    <div class="field-item">
+                      <label class="field-lbl">Nomor P-IRT / Izin Usaha</label>
+                      <input 
+                        type="text" 
+                        v-model="formCustom.pirt" 
+                        placeholder="Nomor izin P-IRT" 
+                        class="settings-input" 
+                      />
+                    </div>
+
+                    <div class="field-item">
+                      <label class="field-lbl">Tampilkan di Stiker:</label>
+                      <div class="checkbox-options-stack">
+                        <label class="checkbox-label-row">
+                          <input type="checkbox" v-model="formCustom.showGrade" class="custom-chk" />
+                          <span>Sertakan Badge Mutu (Grade)</span>
+                        </label>
+                        <label class="checkbox-label-row">
+                          <input type="checkbox" v-model="formCustom.showMoisture" class="custom-chk" />
+                          <span>Sertakan Kadar Air (SNI)</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="url-copy-box">
+                      <span class="url-label">Link Verifikasi Pembeli:</span>
+                      <div class="url-input-group">
+                        <input type="text" readonly :value="verificationUrl" class="url-input" />
+                        <button type="button" class="btn-copy" @click="copyVerificationUrl">
+                          <span>{{ isCopied ? 'Tersalin!' : 'Salin' }}</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <!-- Verification URL helper -->
-                <div class="url-copy-box">
-                  <span class="url-label">Link Ketertelusuran Konsumen:</span>
-                  <div class="url-input-group">
-                    <input type="text" readonly :value="verificationUrl" class="url-input" />
-                    <button type="button" class="btn-copy" @click="copyVerificationUrl">
-                      <span>{{ isCopied ? 'Tersalin!' : 'Salin' }}</span>
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Modal Footer Actions -->
+        <!-- 4. Footer Tindakan Cepat -->
         <div class="qr-modal-footer">
           <button type="button" class="btn-secondary" @click="openPublicVerificationTab">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -363,7 +378,7 @@
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
             </svg>
-            <span>Uji Halaman Verifikasi</span>
+            <span>Buka Web Verifikasi</span>
           </button>
 
           <div class="footer-primary-group">
@@ -373,52 +388,20 @@
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
-              <span>Unduh PNG HD</span>
+              <span>Unduh Gambar</span>
             </button>
 
-            <!-- Print Thermal Button -->
             <button 
-              v-if="activeTemplate === 'thermal'"
               type="button" 
-              class="btn-primary btn-print btn-print-dark" 
-              @click="printThermal"
+              class="btn-primary btn-print-main" 
+              @click="handleMainPrint"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 6 2 18 2 18 9"></polyline>
                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                 <rect x="6" y="14" width="12" height="8"></rect>
               </svg>
-              <span>Cetak Thermal Stiker</span>
-            </button>
-
-            <!-- Print A4 Button -->
-            <button 
-              v-else-if="activeTemplate === 'a4_grid'"
-              type="button" 
-              class="btn-primary btn-print btn-print-green" 
-              @click="printA4Grid"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                <rect x="6" y="14" width="12" height="8"></rect>
-              </svg>
-              <span>Cetak Lembar A4 ({{ a4GridCount }} Label)</span>
-            </button>
-
-            <!-- Print Retail Single Button -->
-            <button 
-              v-else
-              type="button" 
-              class="btn-primary btn-print btn-print-green" 
-              @click="printRetailLabel"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                <rect x="6" y="14" width="12" height="8"></rect>
-              </svg>
-              <span>Cetak Label Stiker</span>
+              <span>{{ printButtonLabel }}</span>
             </button>
           </div>
         </div>
@@ -446,6 +429,7 @@ const emit = defineEmits(['close'])
 
 const activeTemplate = ref('retail') // 'retail', 'thermal', 'a4_grid'
 const isCopied = ref(false)
+const isAdvancedOpen = ref(false)
 const qrDataUrl = ref('')
 
 const qrCanvasRetail = ref(null)
@@ -461,7 +445,7 @@ function setA4Grid(count, cols) {
 
 const formCustom = reactive({
   productName: '',
-  netto: '10 kg (Grosir)',
+  netto: '1 kg',
   expiryDate: '',
   pirt: 'P-IRT No. 2153202010482-26',
   showGrade: true,
@@ -511,9 +495,25 @@ const gradeBadgeClass = computed(() => {
 })
 
 const templateTitle = computed(() => {
-  if (activeTemplate.value === 'thermal') return 'Printer Thermal 58/80mm Monochrome'
-  if (activeTemplate.value === 'a4_grid') return `Lembar Stiker A4 (${a4GridCount.value} Stiker)`
-  return 'Stiker Retail Warna (70x50mm)'
+  if (activeTemplate.value === 'thermal') return 'Struk Thermal Kasir (58/80mm)'
+  if (activeTemplate.value === 'a4_grid') return `Lembaran Kertas A4 (${a4GridCount.value} Stiker)`
+  return 'Stiker Satuan Warna'
+})
+
+function handleMainPrint() {
+  if (activeTemplate.value === 'thermal') {
+    printThermal()
+  } else if (activeTemplate.value === 'a4_grid') {
+    printA4Grid()
+  } else {
+    printRetailLabel()
+  }
+}
+
+const printButtonLabel = computed(() => {
+  if (activeTemplate.value === 'thermal') return 'Cetak Struk Kasir'
+  if (activeTemplate.value === 'a4_grid') return `Cetak Lembar A4 (${a4GridCount.value} Label)`
+  return 'Cetak Label Stiker'
 })
 
 // Initialize form defaults when batch changes
@@ -599,7 +599,7 @@ function printRetailLabel() {
     <html>
     <head>
       <title>Cetak Label Stiker Retail - ${batchCode.value}</title>
-      <style>
+      ${'<' + 'style>'}
         @page { size: 70mm 50mm; margin: 0; }
         * { box-sizing: border-box; }
         body { 
@@ -624,9 +624,9 @@ function printRetailLabel() {
         .sticker-logos { display: flex; align-items: center; gap: 6px; }
         .sticker-logo-img { width: 22px; height: 22px; object-fit: contain; }
         .sticker-brand-info { display: flex; flex-direction: column; }
-        .sticker-org { font-size: 8.5px; font-weight: 800; color: #0D631B; letter-spacing: 0.3px; }
+        .sticker-org { font-size: 8.5px; font-weight: 800; color: #1B5E20; letter-spacing: 0.3px; }
         .sticker-sub { font-size: 6.5px; color: #64748B; font-weight: 600; }
-        .sticker-badge-grade { background: #E8F5E9; color: #0D631B; border: 1.2px solid #0D631B; font-weight: 800; font-size: 7.5px; padding: 1px 5px; border-radius: 4px; }
+        .sticker-badge-grade { background: #E8F5E9; color: #1B5E20; border: 1.2px solid #1B5E20; font-weight: 800; font-size: 7.5px; padding: 1px 5px; border-radius: 4px; }
         .sticker-divider { height: 1px; background: #E2E8F0; margin: 2px 0; }
         .sticker-main-content { display: flex; gap: 8px; align-items: center; }
         .sticker-qr-box { width: 56px; text-align: center; flex-shrink: 0; }
@@ -634,13 +634,13 @@ function printRetailLabel() {
         .sticker-scan-hint { font-size: 6px; font-weight: 800; color: #64748B; display: block; margin-top: 2px; }
         .sticker-details { flex: 1; min-width: 0; }
         .sticker-product-name { font-weight: 800; font-size: 9px; color: #071E27; line-height: 1.2; }
-        .sticker-netto-badge { display: inline-block; font-size: 7px; font-weight: 700; color: #0D631B; background: #E8F5E9; padding: 1px 4px; border-radius: 3px; margin-top: 2px; }
+        .sticker-netto-badge { display: inline-block; font-size: 7px; font-weight: 700; color: #1B5E20; background: #E8F5E9; padding: 1px 4px; border-radius: 3px; margin-top: 2px; }
         .sticker-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 6px; margin-top: 3px; font-size: 7px; }
         .meta-label { color: #64748B; font-weight: 700; font-size: 6.5px; display: block; }
         .meta-value { color: #071E27; font-weight: 700; font-size: 7.5px; }
         .sticker-footer { display: flex; justify-content: space-between; align-items: center; font-size: 7px; color: #64748B; margin-top: auto; padding-top: 2px; }
-        .cert-guarantee { color: #0D631B; font-weight: 700; }
-      </style>
+        .cert-guarantee { color: #1B5E20; font-weight: 700; }
+      ${'<' + '/style>'}
     </head>
     <body>
       <div class="retail-card">
@@ -670,7 +670,7 @@ function printRetailLabel() {
                 <span class="meta-label">NO. BATCH:</span>
                 <span class="meta-value">${batchCode.value}</span>
               </div>
-              ${formCustom.showMoisture ? `<div><span class="meta-label">KADAR AIR:</span><span class="meta-value" style="color:#0D631B;">${finalMoisture.value}% (SNI)</span></div>` : ''}
+              ${formCustom.showMoisture ? `<div><span class="meta-label">KADAR AIR:</span><span class="meta-value" style="color:#1B5E20;">${finalMoisture.value}% (SNI)</span></div>` : ''}
               <div>
                 <span class="meta-label">TGL KERING:</span>
                 <span class="meta-value">${formattedDate.value}</span>
@@ -687,9 +687,9 @@ function printRetailLabel() {
           <span style="font-family: monospace;">${certificateNumber.value}</span>
         </div>
       </div>
-      <script>
+      ${'<' + 'script>'}
         window.onload = function() { window.print(); window.close(); }
-      <\/script>
+      ${'<' + '/script>'}
     </body>
     </html>
   `)
@@ -703,7 +703,7 @@ function printThermal() {
     <html>
     <head>
       <title>Cetak Thermal - ${batchCode.value}</title>
-      <style>
+      ${'<' + 'style>'}
         @page { size: 58mm auto; margin: 0; }
         * { box-sizing: border-box; }
         body { 
@@ -724,7 +724,7 @@ function printThermal() {
         .thermal-qr-img { width: 26mm; height: 26mm; object-fit: contain; }
         .thermal-specs { text-align: left; font-size: 8.5px; }
         .thermal-foot { font-size: 8px; margin-top: 3px; }
-      </style>
+      ${'<' + '/style>'}
     </head>
     <body>
       <div class="thermal-wrap">
@@ -750,9 +750,9 @@ function printThermal() {
           <div style="font-weight: bold; margin-top: 2px;">${certificateNumber.value}</div>
         </div>
       </div>
-      <script>
+      ${'<' + 'script>'}
         window.onload = function() { window.print(); window.close(); }
-      <\/script>
+      ${'<' + '/script>'}
     </body>
     </html>
   `)
@@ -796,7 +796,7 @@ function printA4Grid() {
     <html>
     <head>
       <title>Lembar Stiker A4 (${a4GridCount.value} Label) - ${batchCode.value}</title>
-      <style>
+      ${'<' + 'style>'}
         @page { size: A4 portrait; margin: 8mm 8mm; }
         * { box-sizing: border-box; }
         body { 
@@ -828,13 +828,13 @@ function printA4Grid() {
           display: flex; 
           justify-content: space-between; 
           align-items: flex-start; 
-          border-bottom: 1px solid #0D631B; 
+          border-bottom: 1px solid #1B5E20; 
           padding-bottom: 1.5mm; 
         }
         .a4-brand-col { display: flex; flex-direction: column; }
-        .a4-brand-title { font-size: 6.5px; font-weight: 800; color: #0D631B; letter-spacing: 0.4px; }
+        .a4-brand-title { font-size: 6.5px; font-weight: 800; color: #1B5E20; letter-spacing: 0.4px; }
         .a4-product-title { font-size: 8.5px; font-weight: 800; color: #071E27; line-height: 1.15; }
-        .a4-grade-chip { background: #E8F5E9; color: #0D631B; border: 1px solid #0D631B; padding: 1px 4px; font-weight: 800; border-radius: 3px; font-size: 7px; }
+        .a4-grade-chip { background: #E8F5E9; color: #1B5E20; border: 1px solid #1B5E20; padding: 1px 4px; font-weight: 800; border-radius: 3px; font-size: 7px; }
         .a4-card-body { display: flex; gap: 3mm; align-items: center; margin: 1.5mm 0; }
         .a4-qr-img { width: 17mm; height: 17mm; object-fit: contain; flex-shrink: 0; border: 0.5px solid #CBD5E1; border-radius: 2px; }
         .a4-details-col { display: flex; flex-direction: column; gap: 0.8mm; font-size: 7px; font-family: monospace; }
@@ -843,15 +843,15 @@ function printA4Grid() {
         .a4-row strong { color: #071E27; font-weight: 800; }
         .a4-card-foot { display: flex; justify-content: space-between; font-size: 6px; color: #64748B; border-top: 1px solid #E2E8F0; padding-top: 1mm; margin-top: auto; }
         .a4-cert-num { font-family: monospace; font-weight: 700; }
-      </style>
+      ${'<' + '/style>'}
     </head>
     <body>
       <div class="a4-grid-container">
         ${stickersHtml}
       </div>
-      <script>
+      ${'<' + 'script>'}
         window.onload = function() { window.print(); window.close(); }
-      <\/script>
+      ${'<' + '/script>'}
     </body>
     </html>
   `)
@@ -875,7 +875,7 @@ function printA4Grid() {
 
 .qr-modal-card {
   width: 100%;
-  max-width: 960px;
+  max-width: 940px;
   background: #FFFFFF;
   border: 1px solid #CBD5E1;
   border-radius: 20px;
@@ -888,8 +888,8 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .qr-modal-card {
-  background: #0B1E14;
-  border-color: rgba(30, 58, 43, 0.7);
+  background: #0B242F;
+  border-color: #1E4E61;
 }
 
 .qr-modal-header {
@@ -902,8 +902,8 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .qr-modal-header {
-  background: #0B1E14;
-  border-bottom-color: rgba(30, 58, 43, 0.6);
+  background: #0B242F;
+  border-bottom-color: #1E4E61;
 }
 
 .header-title-flex {
@@ -932,7 +932,7 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .qr-modal-title {
-  color: #F1F5F9;
+  color: #F8FAFC;
 }
 
 .qr-modal-subtitle {
@@ -965,8 +965,13 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .close-btn {
-  border-color: rgba(30, 58, 43, 0.8);
+  border-color: #1E4E61;
   color: #94A3B8;
+}
+
+:global(.dark-theme) .close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
 }
 
 /* Mode Tabs */
@@ -980,8 +985,8 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .label-mode-tabs {
-  background: #07160E;
-  border-bottom-color: rgba(30, 58, 43, 0.6);
+  background: #071E27;
+  border-bottom-color: #1E4E61;
 }
 
 .mode-tab-btn {
@@ -1000,13 +1005,17 @@ function printA4Grid() {
   white-space: nowrap;
 }
 
+.tab-emoji {
+  font-size: 14px;
+}
+
 :global(.dark-theme) .mode-tab-btn {
   color: #94A3B8;
 }
 
 .mode-tab-btn.active {
-  color: #0D631B;
-  border-bottom-color: #0D631B;
+  color: #1B5E20;
+  border-bottom-color: #1B5E20;
   font-weight: 700;
 }
 
@@ -1054,17 +1063,12 @@ function printA4Grid() {
   color: #94A3B8;
 }
 
-.scale-hint {
-  font-size: 11px;
-  color: #94A3B8;
-}
-
 .label-preview-stage {
   display: flex;
   align-items: center;
   justify-content: center;
   background: #F8FAFC;
-  border: 1.5px dashed #CBD5E1;
+  border: 1px solid #E2E8F0;
   border-radius: 14px;
   padding: 20px;
   min-height: 280px;
@@ -1072,8 +1076,8 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .label-preview-stage {
-  background: #07160E;
-  border-color: rgba(30, 58, 43, 0.8);
+  background: #071E27;
+  border-color: #1E4E61;
 }
 
 /* Retail Sticker Styling */
@@ -1118,7 +1122,7 @@ function printA4Grid() {
 .sticker-org {
   font-size: 11.5px;
   font-weight: 800;
-  color: #0D631B;
+  color: #1B5E20;
   letter-spacing: 0.5px;
 }
 
@@ -1138,8 +1142,8 @@ function printA4Grid() {
 
 .badge-grade-a {
   background: #E8F5E9;
-  color: #0D631B;
-  border: 1.5px solid #0D631B;
+  color: #1B5E20;
+  border: 1.5px solid #1B5E20;
 }
 
 .badge-grade-b {
@@ -1206,7 +1210,7 @@ function printA4Grid() {
   display: inline-block;
   font-size: 9.5px;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
   background: #E8F5E9;
   padding: 2px 6px;
   border-radius: 4px;
@@ -1239,7 +1243,7 @@ function printA4Grid() {
 }
 
 .text-green {
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .sticker-footer {
@@ -1255,7 +1259,7 @@ function printA4Grid() {
   align-items: center;
   gap: 4px;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 /* Thermal Sticker Theme */
@@ -1422,7 +1426,7 @@ function printA4Grid() {
   align-items: center;
   font-size: 8.5px;
   font-weight: 800;
-  color: #0D631B;
+  color: #1B5E20;
   border-bottom: 0.5px solid #E2E8F0;
   padding-bottom: 2px;
 }
@@ -1441,7 +1445,7 @@ function printA4Grid() {
 
 .mini-ka {
   font-size: 8px;
-  color: #0D631B;
+  color: #1B5E20;
   font-weight: 700;
 }
 
@@ -1538,46 +1542,113 @@ function printA4Grid() {
 .customizer-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+}
+
+.panel-header-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .panel-section-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
   color: #071E27;
   margin: 0;
 }
 
 :global(.dark-theme) .panel-section-title {
-  color: #F1F5F9;
+  color: #F8FAFC;
+}
+
+.panel-section-sub {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0;
+}
+
+:global(.dark-theme) .panel-section-sub {
+  color: #94A3B8;
 }
 
 .form-fields-stack {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .field-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
-.field-item label {
-  font-size: 11.5px;
+.field-lbl {
+  font-size: 12px;
   font-weight: 700;
-  color: #071E27;
+  color: #1E293B;
 }
 
-:global(.dark-theme) .field-item label {
-  color: #E2E8F0;
+:global(.dark-theme) .field-lbl {
+  color: #CBD5E1;
+}
+
+/* Quick Netto Pills */
+.netto-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.netto-pill-btn {
+  padding: 6px 13px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.netto-pill-btn:hover {
+  border-color: #1B5E20;
+  color: #1B5E20;
+  background: #F0FDF4;
+}
+
+.netto-pill-btn.active {
+  background: #1B5E20;
+  color: #FFFFFF;
+  border-color: #1B5E20;
+  box-shadow: 0 2px 4px rgba(27, 94, 32, 0.2);
+}
+
+:global(.dark-theme) .netto-pill-btn {
+  background: #071E27;
+  border-color: #1E4E61;
+  color: #CBD5E1;
+}
+
+:global(.dark-theme) .netto-pill-btn:hover {
+  border-color: #16A34A;
+  color: #4ADE80;
+  background: rgba(22, 101, 52, 0.2);
+}
+
+:global(.dark-theme) .netto-pill-btn.active {
+  background: #16A34A;
+  border-color: #16A34A;
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .grid-2-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 .settings-input,
@@ -1595,14 +1666,84 @@ function printA4Grid() {
 
 :global(.dark-theme) .settings-input,
 :global(.dark-theme) .settings-select {
-  background: #07160E;
-  border-color: rgba(30, 58, 43, 0.8);
-  color: #F1F5F9;
+  background: #071E27;
+  border-color: #1E4E61;
+  color: #F8FAFC;
 }
 
 .settings-input:focus,
 .settings-select:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
+}
+
+/* Collapsible Advanced Options */
+.advanced-collapsible-box {
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+:global(.dark-theme) .advanced-collapsible-box {
+  border-color: #1E4E61;
+}
+
+.btn-toggle-advanced-opts {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  background: #F8FAFC;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-toggle-advanced-opts:hover {
+  background: #F1F5F9;
+  color: #1B5E20;
+}
+
+:global(.dark-theme) .btn-toggle-advanced-opts {
+  background: #0B242F;
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .btn-toggle-advanced-opts:hover {
+  background: #113847;
+  color: #4ADE80;
+}
+
+.adv-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adv-arrow {
+  transition: transform 0.2s ease;
+}
+
+.adv-arrow.is-rotated {
+  transform: rotate(180deg);
+}
+
+.advanced-content-body {
+  padding: 12px;
+  background: #FFFFFF;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+:global(.dark-theme) .advanced-content-body {
+  background: #071E27;
+  border-top-color: #1E4E61;
 }
 
 .a4-settings-card {
@@ -1613,20 +1754,8 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .a4-settings-card {
-  background: #07160E;
-  border-color: rgba(30, 58, 43, 0.8);
-}
-
-.a4-settings-label {
-  font-size: 11.5px;
-  font-weight: 800;
-  color: #071E27;
-  margin-bottom: 6px;
-  display: block;
-}
-
-:global(.dark-theme) .a4-settings-label {
-  color: #F1F5F9;
+  background: #071E27;
+  border-color: #1E4E61;
 }
 
 .a4-buttons-group {
@@ -1649,28 +1778,21 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .size-btn {
-  background: #0B1E14;
-  border-color: rgba(30, 58, 43, 0.8);
+  background: #0B242F;
+  border-color: #1E4E61;
   color: #94A3B8;
 }
 
 .size-btn.active {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
-  border-color: #0D631B;
+  border-color: #1B5E20;
 }
 
 :global(.dark-theme) .size-btn.active {
-  background: #0D631B;
+  background: #16A34A;
   color: #FFFFFF;
-  border-color: #4ADE80;
-}
-
-.field-label-toggle {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #071E27;
-  margin-bottom: 2px;
+  border-color: #16A34A;
 }
 
 .checkbox-options-stack {
@@ -1696,7 +1818,7 @@ function printA4Grid() {
 .custom-chk {
   width: 15px;
   height: 15px;
-  accent-color: #0D631B;
+  accent-color: #1B5E20;
   cursor: pointer;
 }
 
@@ -1734,8 +1856,8 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .url-input {
-  background: #07160E;
-  border-color: rgba(30, 58, 43, 0.8);
+  background: #0B242F;
+  border-color: #1E4E61;
   color: #CBD5E1;
 }
 
@@ -1743,7 +1865,7 @@ function printA4Grid() {
   padding: 6px 14px;
   font-size: 11.5px;
   font-weight: 700;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border: none;
   border-radius: 6px;
@@ -1766,8 +1888,8 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .qr-modal-footer {
-  background: #0B1E14;
-  border-top-color: rgba(30, 58, 43, 0.6);
+  background: #0B242F;
+  border-top-color: #1E4E61;
 }
 
 .footer-primary-group {
@@ -1777,7 +1899,8 @@ function printA4Grid() {
 
 .btn-secondary,
 .btn-outline,
-.btn-primary {
+.btn-primary,
+.btn-print-main {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1800,15 +1923,20 @@ function printA4Grid() {
 }
 
 :global(.dark-theme) .btn-secondary {
-  background: #07160E;
-  border-color: rgba(30, 58, 43, 0.8);
+  background: #113847;
+  border-color: #1E4E61;
   color: #CBD5E1;
+}
+
+:global(.dark-theme) .btn-secondary:hover {
+  background: #164657;
+  color: #FFFFFF;
 }
 
 .btn-outline {
   background: transparent;
-  color: #0D631B;
-  border: 1.5px solid #0D631B;
+  color: #1B5E20;
+  border: 1.5px solid #1B5E20;
 }
 
 .btn-outline:hover {
@@ -1820,26 +1948,24 @@ function printA4Grid() {
   border-color: #4ADE80;
 }
 
-.btn-primary {
+.btn-print-main {
+  background: #1B5E20;
+  color: #FFFFFF;
   border: none;
-  box-shadow: 0 4px 12px rgba(13, 99, 27, 0.2);
+  box-shadow: 0 3px 10px rgba(27, 94, 32, 0.3);
 }
 
-.btn-print-green {
-  background: #0D631B;
-  color: #FFFFFF;
+.btn-print-main:hover {
+  background: #144919;
+  transform: translateY(-1px);
 }
 
-.btn-print-green:hover {
-  background: #0A4F15;
+:global(.dark-theme) .btn-print-main {
+  background: #16A34A;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
 
-.btn-print-dark {
-  background: #0F172A;
-  color: #FFFFFF;
-}
-
-.btn-print-dark:hover {
-  background: #1E293B;
+:global(.dark-theme) .btn-print-main:hover {
+  background: #15803D;
 }
 </style>

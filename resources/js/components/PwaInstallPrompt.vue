@@ -184,7 +184,7 @@ const handleInstallClick = async () => {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #0D631B, #16A34A);
+  background: linear-gradient(135deg, #1B5E20, #16A34A);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -296,7 +296,7 @@ const handleInstallClick = async () => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: linear-gradient(135deg, #0D631B, #16A34A);
+  background: linear-gradient(135deg, #1B5E20, #16A34A);
   color: #FFFFFF;
   border: none;
   border-radius: 9px;
@@ -396,7 +396,7 @@ const handleInstallClick = async () => {
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #0D631B, #16A34A);
+  background: linear-gradient(135deg, #1B5E20, #16A34A);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -500,7 +500,7 @@ const handleInstallClick = async () => {
 
 .ios-btn-confirm {
   width: 100%;
-  background: linear-gradient(135deg, #0D631B, #16A34A);
+  background: linear-gradient(135deg, #1B5E20, #16A34A);
   color: #FFFFFF;
   border: none;
   border-radius: 12px;

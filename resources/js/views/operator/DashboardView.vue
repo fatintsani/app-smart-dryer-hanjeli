@@ -1,155 +1,177 @@
 <template>
   <div class="dashboard-page">
     <Transition name="fade-dashboard" mode="out-in">
-      <!-- High-Fidelity Shimmer Skeleton Loading State -->
+      <!-- Loading State -->
       <DashboardSkeleton v-if="isInitialLoading" :is-mobile="isMobile" key="skeleton" />
 
-      <!-- Loaded Dashboard Content -->
+      <!-- Loaded Farmer-Friendly Dashboard -->
       <div v-else class="dashboard-loaded-container" key="content">
-        <!-- Unified Full Dashboard Layout (Responsive Desktop, Tablet & Mobile) -->
         <div class="dashboard-main-content">
-          <!-- Top Title & Action Bar -->
-          <div class="header-action-row">
-            <div class="title-group">
-              <div class="title-with-badge">
-                <h1 class="page-title">{{ $t('dashboard.title') }}</h1>
+          
+          <!-- 1. Header Bar: Status Alat & Tombol Utama -->
+          <div class="dash-welcome-card">
+            <div class="welcome-left">
+              <div class="welcome-status-pill" :class="isConnected ? 'status-online' : 'status-offline'">
+                <span class="status-dot"></span>
+                <span>{{ isConnected ? 'Alat Pengering Terhubung' : 'Alat Sedang Terputus' }}</span>
               </div>
-              <p class="page-subtitle">{{ $t('dashboard.subtitle') }}</p>
+              <h1 class="welcome-title">Kondisi Ruang Pengering Hanjeli</h1>
+              <p class="welcome-desc">
+                Pantau kondisi suhu, udara, dan proses pengeringan gabah dengan mudah.
+              </p>
             </div>
-            <button 
-              v-if="activeBatch"
-              class="btn-primary" 
-              style="background: linear-gradient(135deg, #D97706 0%, #B45309 100%);"
-              @click="router.push('/drying/active')"
-              :title="'Sesi batch ' + activeBatch.batchCode + ' sedang berjalan'"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-              <span>Pantau Sesi Aktif ({{ activeBatch.batchCode }})</span>
-            </button>
-            <button 
-              v-else
-              class="btn-primary" 
-              @click="$emit('start-drying')" 
-              :disabled="!systemState.isSystemActive"
-            >
-              <svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor">
-                <path d="M1.5 1.5L10.5 7L1.5 12.5V1.5Z"/>
-              </svg>
-              <span>{{ $t('dashboard.startNewBatch') }}</span>
-            </button>
+
+            <div class="welcome-right">
+              <!-- If active drying session exists -->
+              <button 
+                v-if="activeBatch"
+                class="btn-action-main btn-active-session"
+                @click="router.push('/drying/active')"
+              >
+                <div class="btn-icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                </div>
+                <div class="btn-text-wrap">
+                  <span class="btn-title">Lihat Pengeringan Aktif</span>
+                  <span class="btn-sub">{{ activeBatch.cropVariety }} ({{ activeBatch.batchCode }})</span>
+                </div>
+              </button>
+
+              <!-- If standby, start new batch -->
+              <button 
+                v-else
+                class="btn-action-main btn-start-new"
+                @click="$emit('start-drying')"
+                :disabled="!systemState.isSystemActive"
+              >
+                <div class="btn-icon-wrap">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </div>
+                <div class="btn-text-wrap">
+                  <span class="btn-title">Mulai Pengeringan Baru</span>
+                  <span class="btn-sub">Masukkan gabah & mulai proses</span>
+                </div>
+              </button>
+            </div>
           </div>
 
-          <!-- System Maintenance / Inactive Banner -->
+          <!-- Banner Jika Sistem Sedang Dinonaktifkan Admin -->
           <div v-if="!systemState.isSystemActive" class="system-offline-banner">
             <div class="offline-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
             </div>
             <div class="offline-text">
-              <strong>{{ $t('dashboard.systemInactiveTitle') }}</strong>
-              <p>{{ $t('dashboard.systemInactiveDesc') }}</p>
+              <strong>Sistem Sedang Dinonaktifkan</strong>
+              <p>Operasional pengeringan sedang ditangguhkan sementara untuk pemeliharaan.</p>
             </div>
           </div>
 
-          <!-- Dual Connectivity Status & Control Card -->
-          <ConnectionStatusCard @open-wifi-setup="isWifiSetupOpen = true" />
-
-          <!-- Sensor Anomaly Alert Banner (AI Diagnostics) -->
-          <div 
-            v-if="anomalyHealth && (anomalyHealth.anomalyCount > 0 || anomalyHealth.status === 'CRITICAL')" 
-            class="sensor-anomaly-banner"
-            :class="anomalyHealth.status === 'CRITICAL' ? 'banner-critical' : 'banner-warning'"
-          >
-            <div class="anomaly-banner-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
-            </div>
-            <div class="anomaly-banner-content">
-              <div class="anomaly-banner-title">
-                <strong>{{ anomalyHealth.anomalyCount }} {{ $t('dashboard.anomaliesDetected') }}</strong>
-                <span class="anomaly-score-tag">{{ $t('dashboard.sensorIntegrity') }}: {{ anomalyHealth.healthScore }}%</span>
+          <!-- Banner Pengeringan Aktif Ringkas (Jika Ada Batch Berjalan) -->
+          <div v-if="activeBatch" class="active-batch-banner" @click="router.push('/drying/active')">
+            <div class="ab-left">
+              <div class="ab-badge">
+                <span class="pulse-ring"></span>
+                <span>SEDANG MENGERINGKAN</span>
               </div>
-              <p class="anomaly-banner-desc">
-                {{ anomalyHealth.anomalies?.[0]?.description || $t('dashboard.sensorDeviationDefault') }}
-                <span v-if="anomalyHealth.anomalies?.[0]?.suggestedAction" class="anomaly-solution-hint">
-                  • {{ $t('dashboard.suggestedActionLabel') }}: {{ anomalyHealth.anomalies[0].suggestedAction }}
-                </span>
-              </p>
+              <h2 class="ab-crop-name">{{ activeBatch.cropVariety || 'Biji Hanjeli' }}</h2>
+              <div class="ab-meta-row">
+                <span>Kode: <strong>{{ activeBatch.batchCode }}</strong></span>
+                <span class="meta-dot">&bull;</span>
+                <span>Kadar Air Saat Ini: <strong class="text-green">{{ (isDataActive ? telemetry.grainMoisture : null) ?? activeBatch.currentMoisturePercent ?? 15 }}%</strong></span>
+                <span class="meta-dot">&bull;</span>
+                <span>Target: <strong>{{ activeBatch.targetMoisturePercent || 12 }}%</strong></span>
+              </div>
             </div>
-            <router-link to="/operator/monitoring" class="btn-check-telemetry">
-              <span>{{ $t('dashboard.checkTelemetry') }}</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </router-link>
+            <div class="ab-right">
+              <div class="ab-progress-box">
+                <div class="ab-progress-text">
+                  <span>Progres Pengeringan</span>
+                  <strong>{{ dryingProgressPercent }}%</strong>
+                </div>
+                <div class="ab-progress-bar">
+                  <div class="ab-progress-fill" :style="{ width: dryingProgressPercent + '%' }"></div>
+                </div>
+              </div>
+              <div class="ab-arrow">
+                <span>Pantau &rarr;</span>
+              </div>
+            </div>
           </div>
 
-          <!-- 5 Stat Cards Grid (Sensors: DHT22, BH1750, Rain Sensor + Dual PTC Heater & 3 LED Panel) -->
-          <div class="stats-grid-5">
-            <!-- 1. Suhu Ruang (DHT22 - Pin 25) -->
-            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-              <div class="stat-card-header">
-                <span class="stat-label">{{ $t('dashboard.tempInternal') }} (DHT22)</span>
-                <div class="icon-circle icon-orange">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- 2. Empat Informasi Utama Ruang Pengering (Hero Indicator Cards) -->
+          <div class="hero-indicators-grid">
+            
+            <!-- 1. Suhu Ruangan -->
+            <div class="indicator-card card-temp">
+              <div class="card-top">
+                <div class="card-icon-wrap icon-temp">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2">
                     <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
                   </svg>
                 </div>
-              </div>
-              <div class="stat-value-row">
-                <span class="stat-number text-red">{{ isDataActive ? telemetry.tempInternal.toFixed(1) : '--' }}</span>
-                <span class="stat-unit">°C</span>
-                <span v-if="isDataActive" class="delta-chip" :style="telemetry.tempInternal >= 50 ? 'background:#FEE2E2; color:#DC2626;' : 'background:#DCFCE7; color:#166534;'">
-                  {{ telemetry.tempInternal >= 50 ? 'Cut-off ≥50°C' : (telemetry.tempInternal <= 48 ? 'Heater Re-arm ≤48°C' : 'Optimal (48-50°C)') }}
+                <span class="card-tag" :class="tempStatusClass">
+                  {{ tempStatusLabel }}
                 </span>
               </div>
-              <div class="stat-trend" :class="isDataActive ? 'trend-up-green' : 'text-muted'">
-                <svg v-if="isDataActive" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                  <polyline points="17 6 23 6 23 12"></polyline>
-                </svg>
-                <span>{{ isDataActive ? (telemetry.dhtOk === false ? 'DHT22: ERROR SENSOR' : 'Sensor DHT22 (GPIO 25) • Normal') : $t('dashboard.waitingEsp32') }}</span>
+
+              <div class="card-body">
+                <span class="card-title">Suhu Ruangan</span>
+                <div class="card-number-row">
+                  <span class="card-big-number">{{ isDataActive ? telemetry.tempInternal.toFixed(1) : '--' }}</span>
+                  <span class="card-unit">°C</span>
+                </div>
+                <p class="card-hint">
+                  {{ tempHintText }}
+                </p>
               </div>
             </div>
 
-            <!-- 2. Kelembapan Ruang (DHT22 - Pin 25) -->
-            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-              <div class="stat-card-header">
-                <span class="stat-label">{{ $t('dashboard.humidityInternal') }} (DHT22)</span>
-                <div class="icon-circle icon-blue">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- 2. Kelembapan Udara -->
+            <div class="indicator-card card-hum">
+              <div class="card-top">
+                <div class="card-icon-wrap icon-hum">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2.2">
                     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
                   </svg>
                 </div>
+                <span class="card-tag" :class="humidityStatusClass">
+                  {{ humidityStatusLabel }}
+                </span>
               </div>
-              <div class="stat-value-row">
-                <span class="stat-number text-blue">{{ isDataActive ? telemetry.humidityInternal.toFixed(0) : '--' }}</span>
-                <span class="stat-unit">% RH</span>
-                <span v-if="isDataActive" class="delta-chip-blue">Ambang Subuh: &gt;70%</span>
-              </div>
-              <div class="stat-trend" :class="isDataActive ? 'trend-down-blue' : 'text-muted'">
-                <svg v-if="isDataActive" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.5">
-                  <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
-                  <polyline points="17 18 23 18 23 12"></polyline>
-                </svg>
-                <span>{{ isDataActive ? (telemetry.humidityInternal >= 70 ? 'Kelembapan Tinggi (Perlu Heater)' : 'Kelembapan Terkendali') : $t('dashboard.waitingEsp32') }}</span>
+
+              <div class="card-body">
+                <span class="card-title">Kelembapan Udara</span>
+                <div class="card-number-row">
+                  <span class="card-big-number">{{ isDataActive ? telemetry.humidityInternal.toFixed(0) : '--' }}</span>
+                  <span class="card-unit">%</span>
+                </div>
+                <p class="card-hint">
+                  {{ humidityHintText }}
+                </p>
               </div>
             </div>
 
-            <!-- 3. Intensitas Radiasi Cahaya (BH1750 - I2C 21/22) -->
-            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-              <div class="stat-card-header">
-                <span class="stat-label">Cahaya / Radiasi (BH1750)</span>
-                <div class="icon-circle icon-amber">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- 3. Cuaca & Kondisi Luar -->
+            <div class="indicator-card card-weather">
+              <div class="card-top">
+                <div class="card-icon-wrap icon-weather">
+                  <!-- Rain Icon -->
+                  <svg v-if="telemetry.isRaining" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2.2">
+                    <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+                    <line x1="8" y1="19" x2="8" y2="21"></line>
+                    <line x1="16" y1="19" x2="16" y2="21"></line>
+                  </svg>
+                  <!-- Sunny Icon -->
+                  <svg v-else-if="telemetry.solarRadiation >= 150" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2">
                     <circle cx="12" cy="12" r="5"></circle>
                     <line x1="12" y1="1" x2="12" y2="3"></line>
                     <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -158,378 +180,394 @@
                     <line x1="1" y1="12" x2="3" y2="12"></line>
                     <line x1="21" y1="12" x2="23" y2="12"></line>
                   </svg>
-                </div>
-              </div>
-              <div class="stat-value-row">
-                <span class="stat-number text-amber">{{ isDataActive ? telemetry.solarRadiation.toFixed(0) : '--' }}</span>
-                <span class="stat-unit">Lux</span>
-                <span v-if="isDataActive" class="delta-chip-amber">
-                  <span>{{ telemetry.solarRadiation >= 200 ? '☀️ SIANG' : (telemetry.solarRadiation >= 50 ? '⛅ SUBUH' : '🌙 MALAM') }}</span>
-                </span>
-              </div>
-              <div class="stat-trend">
-                <span class="badge-pill" :class="isDataActive ? 'bg-amber-subtle text-amber-dark' : 'bg-gray-subtle text-muted'">
-                  <span>{{ isDataActive ? (telemetry.bh1750Ok === false ? 'BH1750: ERROR' : 'I2C SDA:21 SCL:22 (0x23)') : $t('dashboard.standbyUpper') }}</span>
-                </span>
-              </div>
-            </div>
-
-            <!-- 4. Sensor Hujan & Presipitasi (Pin 34) -->
-            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-              <div class="stat-card-header">
-                <span class="stat-label">Sensor Hujan (Rain Sensor)</span>
-                <div class="icon-circle icon-blue-subtle">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#005DB7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
-                    <line x1="8" y1="19" x2="8" y2="21"></line>
-                    <line x1="16" y1="19" x2="16" y2="21"></line>
+                  <!-- Cloudy / Night Icon -->
+                  <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.2">
+                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
                   </svg>
                 </div>
-              </div>
-              <div class="stat-value-row">
-                <span class="stat-number" :class="telemetry.isRaining ? 'text-blue' : 'text-green-dark'">
-                  {{ isDataActive ? (telemetry.isRaining ? 'HUJAN' : 'KERING') : '--' }}
-                </span>
-                <span v-if="isDataActive" class="delta-chip" :style="telemetry.isRaining ? 'background:#DBEAFE; color:#1D4ED8;' : 'background:#DCFCE7; color:#166534;'">
-                  ADC: {{ telemetry.rainAdc || (telemetry.isRaining ? 1200 : 3800) }}
+                <span class="card-tag" :class="weatherTagClass">
+                  {{ weatherTagLabel }}
                 </span>
               </div>
-              <div class="stat-trend">
-                <span class="badge-pill" :class="isDataActive && telemetry.isRaining ? 'bg-blue-subtle text-blue' : 'bg-green-subtle text-green-dark'">
-                  <span>{{ isDataActive ? (telemetry.isRaining ? 'Pemanas PTC Otomatis Aktif' : 'GPIO 34 • Ambang < 2000 ADC') : $t('dashboard.waitingEsp32Connection') }}</span>
-                </span>
+
+              <div class="card-body">
+                <span class="card-title">Cuaca & Cahaya</span>
+                <div class="card-number-row">
+                  <span class="card-text-large">{{ weatherConditionLabel }}</span>
+                </div>
+                <p class="card-hint">
+                  {{ weatherHintText }}
+                </p>
               </div>
             </div>
 
-            <!-- 5. Pemanas PTC Dual-Channel & 3 LED Panel Fisik -->
-            <div class="stat-card" :class="{ 'stat-card-standby': !isDataActive }">
-              <div class="stat-card-header">
-                <span class="stat-label">Pemanas PTC & 3 LED Panel</span>
-                <div class="icon-circle" :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'icon-orange' : 'icon-green-subtle'">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" :stroke="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? '#D97706' : '#0D631B'" stroke-width="2.2">
+            <!-- 4. Alat Pemanas Tambahan (Heater) -->
+            <div class="indicator-card card-heater">
+              <div class="card-top">
+                <div class="card-icon-wrap" :class="isHeaterOn ? 'icon-heater-on' : 'icon-heater-off'">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                   </svg>
                 </div>
-              </div>
-              <div class="stat-value-row">
-                <span class="stat-number" :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'text-orange' : 'text-green-dark'">
-                  {{ isDataActive ? ((telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'HEATER ON' : 'HEATER OFF') : '--' }}
-                </span>
-                <span class="status-chip" :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'chip-on' : 'chip-off'">
-                  {{ (telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'Relai 26 & 27 AKTIF' : 'STANDBY' }}
-                </span>
-              </div>
-              <div class="stat-footer-badge" style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px;">
-                <div style="display: flex; gap: 4px; align-items: center;">
-                  <span :style="`display:inline-block; width:10px; height:10px; border-radius:50%; background:${isDataActive && !telemetry.heaterStatus && !actuators.auxHeaterStatus && telemetry.tempInternal < 50 ? '#22C55E; box-shadow:0 0 6px #22C55E;' : '#D1D5DB;'}`" title="LED Hijau: Standby / Normal"></span>
-                  <span :style="`display:inline-block; width:10px; height:10px; border-radius:50%; background:${isDataActive && (telemetry.heaterStatus || actuators.auxHeaterStatus) && telemetry.tempInternal < 50 ? '#EAB308; box-shadow:0 0 6px #EAB308;' : '#D1D5DB;'}`" title="LED Kuning: PTC Memanaskan"></span>
-                  <span :style="`display:inline-block; width:10px; height:10px; border-radius:50%; background:${isDataActive && telemetry.tempInternal >= 50 ? '#EF4444; box-shadow:0 0 6px #EF4444;' : '#D1D5DB;'}`" title="LED Merah: Overheat / Proteksi ≥50°C"></span>
-                </div>
-                <span class="badge-pill" :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'bg-orange-subtle text-orange' : 'bg-green-subtle text-green-dark'" style="font-size: 11px;">
-                  {{ !isDataActive ? 'OFF' : (telemetry.tempInternal >= 50 ? '🔴 Overheat (≥50°)' : ((telemetry.heaterStatus || actuators.auxHeaterStatus) ? '🟡 Memanaskan' : '🟢 Normal')) }}
+                <span class="card-tag" :class="isHeaterOn ? 'tag-warning' : 'tag-neutral'">
+                  {{ isHeaterOn ? 'SEDANG MEMANASKAN' : 'STANDBY' }}
                 </span>
               </div>
 
-              <!-- Quick Relay Control on Dashboard -->
-              <div class="dash-heater-ctrl-row">
-                <button 
-                  class="btn-dash-heater-toggle"
-                  :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'btn-dash-heater-off' : 'btn-dash-heater-on'"
-                  :disabled="isTogglingHeater || (telemetry.tempInternal >= 50 && !(telemetry.heaterStatus || actuators.auxHeaterStatus))"
-                  @click.stop="toggleDashboardHeater"
-                  :title="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'Klik untuk mematikan heater' : 'Klik untuk menyalakan heater'"
-                >
-                  <span v-if="!isTogglingHeater">
-                    {{ (telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'Matikan Heater' : 'Nyalakan Heater' }}
+              <div class="card-body">
+                <span class="card-title">Pemanas Tambahan</span>
+                <div class="card-number-row">
+                  <span class="card-text-large" :class="isHeaterOn ? 'text-amber' : 'text-neutral'">
+                    {{ isHeaterOn ? 'Pemanas Nyala' : 'Pemanas Mati' }}
                   </span>
-                  <span v-else>Memproses...</span>
-                </button>
-                <router-link to="/monitoring" class="link-dash-monitoring" title="Buka Kontrol Penuh Aktuator di Monitoring">
-                  <span>Kontrol Relai &rarr;</span>
-                </router-link>
+                </div>
+                
+                <!-- Tombol Sakelar Pemanas Langsung -->
+                <div class="card-heater-btn-box">
+                  <button 
+                    class="btn-heater-toggle"
+                    :class="isHeaterOn ? 'btn-heater-stop' : 'btn-heater-start'"
+                    :disabled="isTogglingHeater || (telemetry.tempInternal >= 50 && !isHeaterOn)"
+                    @click="handleToggleHeater"
+                  >
+                    <span>{{ isTogglingHeater ? 'Memproses...' : (isHeaterOn ? 'Matikan Pemanas' : 'Nyalakan Pemanas') }}</span>
+                  </button>
+                </div>
               </div>
             </div>
+
           </div>
 
-          <!-- ========================================================================= -->
-          <!-- MASTER REAL-TIME DUAL-AXIS WAVEFORM CHART -->
-          <!-- ========================================================================= -->
-          <div class="master-chart-card">
-            <div class="master-chart-header">
-              <div class="header-title-box">
-                <div class="chart-badge-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          <!-- 3. Analisis Statistik Suhu & Kelembapan (1 Hari, 1 Minggu, 1 Bulan, Semua) -->
+          <div class="simple-chart-card analysis-chart-card">
+            <!-- Header: Title, Period Badge, Filter Tabs, and Export Button -->
+            <div class="chart-header">
+              <div class="chart-header-left">
+                <div class="chart-title-row">
+                  <h2 class="chart-title">Analisis Perkembangan Suhu & Kelembapan</h2>
+                  <span class="period-active-chip">{{ periodLabel }}</span>
+                </div>
+                <p class="chart-subtitle">
+                  Pantau kestabilan mikroklimat ruang pengering, evaluasi pemenuhan standar SNI (40°C – 50°C), dan tren kelembapan gabah.
+                </p>
+              </div>
+
+              <!-- Timeframe Selector Tabs & Export Action -->
+              <div class="chart-actions-toolbar">
+                <div class="timeframe-pill-selector">
+                  <button 
+                    type="button" 
+                    class="timeframe-btn" 
+                    :class="{ active: selectedPeriod === '1d' }"
+                    @click="setPeriod('1d')"
+                  >
+                    1 Hari
+                  </button>
+                  <button 
+                    type="button" 
+                    class="timeframe-btn" 
+                    :class="{ active: selectedPeriod === '1w' }"
+                    @click="setPeriod('1w')"
+                  >
+                    1 Minggu
+                  </button>
+                  <button 
+                    type="button" 
+                    class="timeframe-btn" 
+                    :class="{ active: selectedPeriod === '1m' }"
+                    @click="setPeriod('1m')"
+                  >
+                    1 Bulan
+                  </button>
+                  <button 
+                    type="button" 
+                    class="timeframe-btn" 
+                    :class="{ active: selectedPeriod === 'all' }"
+                    @click="setPeriod('all')"
+                  >
+                    Semua
+                  </button>
+                </div>
+
+                <button 
+                  type="button" 
+                  class="btn-chart-export" 
+                  @click="exportPeriodCsv" 
+                  :title="`Unduh data analisis format CSV (${periodLabel})`"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Unduh CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Analytical Summary KPI Cards -->
+            <div class="chart-analytics-summary-grid">
+              <!-- KPI 1: Rata-Rata Suhu -->
+              <div class="analytic-stat-card">
+                <div class="stat-card-icon-box icon-red">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
                   </svg>
                 </div>
-                <div>
-                  <h2 class="master-chart-heading">{{ $t('dashboard.chartHeading') }}</h2>
-                  <p class="master-chart-sub">{{ $t('dashboard.chartSub') }}</p>
+                <div class="stat-card-info">
+                  <span class="stat-card-lbl">RATA-RATA SUHU</span>
+                  <div class="stat-card-main-val">
+                    <span class="stat-num text-red">{{ analyticsData.avgTemp }}</span>
+                    <span class="stat-unit">°C</span>
+                  </div>
+                  <span class="stat-card-sub">Min {{ analyticsData.minTemp }}°C • Max {{ analyticsData.maxTemp }}°C</span>
                 </div>
               </div>
 
-              <div class="time-window-selector">
-                <span class="live-points-indicator">
-                  <span class="live-blink-dot"></span> {{ liveHistoryPoints.length }} {{ $t('dashboard.liveDataPoints') }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Series Toggles -->
-            <div class="series-toggle-toolbar">
-              <button 
-                type="button" 
-                class="series-btn" 
-                :class="{ active: visibleSeries.tempInternal }"
-                @click="visibleSeries.tempInternal = !visibleSeries.tempInternal"
-              >
-                <span class="legend-color-dot" style="background: #E11D48;"></span>
-                <span>{{ $t('dashboard.seriesTempInternal') }} (DHT22)</span>
-              </button>
-
-              <button 
-                type="button" 
-                class="series-btn" 
-                :class="{ active: visibleSeries.humidity }"
-                @click="visibleSeries.humidity = !visibleSeries.humidity"
-              >
-                <span class="legend-color-dot" style="background: #0284C7;"></span>
-                <span>{{ $t('dashboard.seriesHumidity') }} (DHT22)</span>
-              </button>
-
-              <button 
-                type="button" 
-                class="series-btn" 
-                :class="{ active: visibleSeries.solarRadiation }"
-                @click="visibleSeries.solarRadiation = !visibleSeries.solarRadiation"
-              >
-                <span class="legend-color-dot" style="background: #F59E0B;"></span>
-                <span>{{ $t('dashboard.seriesSolarRadiation') }} (BH1750)</span>
-              </button>
-            </div>
-
-            <!-- Master SVG Canvas -->
-            <div 
-              class="master-svg-chart-wrapper"
-              @mousemove="handleChartMouseMove"
-              @mouseleave="handleChartMouseLeave"
-            >
-              <svg viewBox="0 0 1000 300" class="master-svg" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="dashTempGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#E11D48" stop-opacity="0.22"/>
-                    <stop offset="100%" stop-color="#E11D48" stop-opacity="0.0"/>
-                  </linearGradient>
-                  <linearGradient id="dashMoistureGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#9333EA" stop-opacity="0.20"/>
-                    <stop offset="100%" stop-color="#9333EA" stop-opacity="0.0"/>
-                  </linearGradient>
-                  <linearGradient id="dashSolarGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.15"/>
-                    <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.0"/>
-                  </linearGradient>
-                </defs>
-
-                <!-- Safety Zone Band (40°C - 50°C) -->
-                <rect x="60" y="130" width="880" height="24" fill="#10B981" fill-opacity="0.08" />
-                <text x="65" y="145" font-size="9.5" fill="#059669" font-weight="600">{{ $t('dashboard.idealTempZone') }}</text>
-
-                <!-- Critical Threshold (55°C) -->
-                <line x1="60" y1="118" x2="940" y2="118" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6"/>
-                <text x="830" y="113" font-size="9" fill="#DC2626" font-weight="600">{{ $t('dashboard.criticalThreshold') }}</text>
-
-                <!-- Target Moisture (12.0%) -->
-                <line x1="60" y1="221" x2="940" y2="221" stroke="#9333EA" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6"/>
-                <text x="820" y="216" font-size="9" fill="#7E22CE" font-weight="600">{{ $t('dashboard.storageTarget') }}</text>
-
-                <!-- Grid Lines -->
-                <g v-for="g in yGridLines" :key="g.val">
-                  <line x1="60" :y1="g.y" x2="940" :y2="g.y" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="2 2"/>
-                  <text x="20" :y="g.y + 4" font-size="10.5" fill="#64748B" font-weight="600">{{ g.val }}</text>
-                  <text x="948" :y="g.y + 4" font-size="10.5" fill="#D97706" font-weight="600">{{ g.solarVal }}</text>
-                </g>
-
-                <text x="948" y="14" font-size="9" fill="#D97706" font-weight="700">W/m²</text>
-                <text x="20" y="14" font-size="9" fill="#64748B" font-weight="700">°C / %</text>
-
-                <!-- Area Fills -->
-                <path v-if="visibleSeries.tempInternal && tempAreaPath" :d="tempAreaPath" fill="url(#dashTempGrad)" />
-                <path v-if="visibleSeries.grainMoisture && moistureAreaPath" :d="moistureAreaPath" fill="url(#dashMoistureGrad)" />
-                <path v-if="visibleSeries.solarRadiation && solarAreaPath" :d="solarAreaPath" fill="url(#dashSolarGrad)" />
-
-                <!-- Curves -->
-                <path v-if="visibleSeries.solarRadiation && solarCurvePath" :d="solarCurvePath" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
-                <path v-if="visibleSeries.humidity && humidityCurvePath" :d="humidityCurvePath" fill="none" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round"/>
-                <path v-if="visibleSeries.tempInternal && tempCurvePath" :d="tempCurvePath" fill="none" stroke="#E11D48" stroke-width="3.5" stroke-linecap="round"/>
-
-                <!-- X-Axis Line -->
-                <line x1="60" y1="250" x2="940" y2="250" stroke="#94A3B8" stroke-width="1.5"/>
-
-                <!-- X-Axis Labels -->
-                <g v-for="(lbl, idx) in xTimeLabels" :key="idx">
-                  <line :x1="lbl.x" y1="250" :x2="lbl.x" y2="256" stroke="#64748B" stroke-width="1.5"/>
-                  <text :x="lbl.x" y="272" font-size="10" fill="#64748B" text-anchor="middle" font-weight="500">{{ lbl.time }}</text>
-                </g>
-
-                <!-- Crosshair -->
-                <g v-if="hoverData">
-                  <line :x1="hoverData.svgX" y1="20" :x2="hoverData.svgX" y2="250" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="3 3"/>
-                  <circle v-if="visibleSeries.tempInternal" :cx="hoverData.svgX" :cy="hoverData.yTemp" r="5" fill="#E11D48" stroke="#FFFFFF" stroke-width="2"/>
-                  <circle v-if="visibleSeries.humidity" :cx="hoverData.svgX" :cy="hoverData.yHum" r="4.5" fill="#0284C7" stroke="#FFFFFF" stroke-width="2"/>
-                  <circle v-if="visibleSeries.solarRadiation" :cx="hoverData.svgX" :cy="hoverData.ySolar" r="4.5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2"/>
-                </g>
-              </svg>
-
-              <!-- Floating Tooltip -->
-              <div 
-                v-if="hoverData" 
-                class="floating-chart-tooltip"
-                :style="{ left: `${hoverData.domPercentX}%` }"
-              >
-                <div class="tooltip-header">
-                  <span class="tooltip-time-icon">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                  </span>
-                  <strong>{{ hoverData.item.timeFormatted || hoverData.item.time }}</strong>
+              <!-- KPI 2: Rata-Rata Kelembapan -->
+              <div class="analytic-stat-card">
+                <div class="stat-card-icon-box icon-blue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                  </svg>
                 </div>
-                <div class="tooltip-grid">
-                  <div class="tooltip-item" v-if="visibleSeries.tempInternal">
-                    <span class="tt-dot" style="background: #E11D48;"></span>
-                    <span class="tt-label">{{ $t('dashboard.tooltipTempInternal') }} (DHT22):</span>
-                    <span class="tt-val">{{ hoverData.item.tempInternal.toFixed(1) }}°C</span>
+                <div class="stat-card-info">
+                  <span class="stat-card-lbl">RATA-RATA KELEMBAPAN</span>
+                  <div class="stat-card-main-val">
+                    <span class="stat-num text-blue">{{ analyticsData.avgHumidity }}</span>
+                    <span class="stat-unit">% RH</span>
                   </div>
-                  <div class="tooltip-item" v-if="visibleSeries.humidity">
-                    <span class="tt-dot" style="background: #0284C7;"></span>
-                    <span class="tt-label">{{ $t('dashboard.tooltipHumidity') }} (DHT22):</span>
-                    <span class="tt-val">{{ hoverData.item.humidityInternal.toFixed(0) }}% RH</span>
+                  <span class="stat-card-sub">Min {{ analyticsData.minHumidity }}% • Max {{ analyticsData.maxHumidity }}%</span>
+                </div>
+              </div>
+
+              <!-- KPI 3: Kepatuhan Standar SNI 40-50°C -->
+              <div class="analytic-stat-card">
+                <div class="stat-card-icon-box icon-green">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+                <div class="stat-card-info">
+                  <span class="stat-card-lbl">KUALITAS SUHU SNI</span>
+                  <div class="stat-card-main-val">
+                    <span class="stat-num text-green">{{ analyticsData.idealRatioPercent }}</span>
+                    <span class="stat-unit">% Waktu</span>
                   </div>
-                  <div class="tooltip-item" v-if="visibleSeries.solarRadiation">
-                    <span class="tt-dot" style="background: #F59E0B;"></span>
-                    <span class="tt-label">{{ $t('dashboard.tooltipSolarRadiation') }} (BH1750):</span>
-                    <span class="tt-val">{{ hoverData.item.solarRadiation.toFixed(0) }} Lux</span>
+                  <span class="stat-card-sub text-green-bold">{{ analyticsData.stabilityLabel }}</span>
+                </div>
+              </div>
+
+              <!-- KPI 4: Aktivitas Pemanas Tambahan -->
+              <div class="analytic-stat-card">
+                <div class="stat-card-icon-box icon-amber">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                </div>
+                <div class="stat-card-info">
+                  <span class="stat-card-lbl">AKTIVITAS PEMANAS PTC</span>
+                  <div class="stat-card-main-val">
+                    <span class="stat-num text-amber">{{ analyticsData.heaterActivePercent }}</span>
+                    <span class="stat-unit">% Sesi</span>
                   </div>
+                  <span class="stat-card-sub">Bekerja otomatis saat dingin</span>
                 </div>
               </div>
             </div>
 
-            <!-- 4 Quick Analytics Strip -->
-            <div class="chart-quick-analytics-strip">
-              <div class="strip-item">
-                <span class="strip-lbl">{{ $t('dashboard.highestRecordedTemp') }}</span>
-                <span class="strip-val text-red">{{ maxRecordedTemp }}°C</span>
-              </div>
-              <div class="strip-item">
-                <span class="strip-lbl">{{ $t('dashboard.avgRecordedTemp') }}</span>
-                <span class="strip-val text-orange">{{ avgRecordedTemp }}°C</span>
-              </div>
-              <div class="strip-item">
-                <span class="strip-lbl">{{ $t('dashboard.peakDifferential') }}</span>
-                <span class="strip-val text-green-dark">+{{ maxRecordedDeltaT }}°C</span>
-              </div>
-              <div class="strip-item">
-                <span class="strip-lbl">{{ $t('dashboard.peakSolar') }}</span>
-                <span class="strip-val text-amber">{{ maxRecordedSolar }} W/m²</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Status Sistem Card -->
-          <div class="system-status-card">
-            <div class="system-status-left">
-              <div class="icon-circle-lg" :class="activeBatch ? 'icon-green-light' : 'icon-gray-light'">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" :stroke="activeBatch ? '#0D631B' : '#707A6C'" stroke-width="2.2">
-                  <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                  <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-                  <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            <!-- Farmer-Friendly Insight Banner -->
+            <div class="analytics-insight-banner">
+              <div class="insight-banner-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
               </div>
-              <div class="system-info">
-                <h2 class="system-title">{{ activeBatch ? $t('common.systemActive') : $t('dashboard.systemStandby') }}</h2>
-                <div class="badge-group">
-                  <span class="badge-pill" :class="isConnected ? 'bg-green-subtle text-green-dark' : 'bg-gray-subtle text-muted'">
-                    <span class="dot-green" :style="{ background: isConnected ? '#0D631B' : '#707A6C' }"></span> {{ isConnected ? $t('common.online') : $t('common.offline') }}
-                  </span>
-                  <span class="badge-pill bg-blue-subtle text-blue">
-                    {{ actuators.controlMode === 'AUTOMATIC' ? $t('dashboard.autoMode') : $t('dashboard.manualMode') }}
-                  </span>
-                  <span v-if="activeBatch" class="badge-pill bg-orange-subtle text-orange">
-                    {{ activeBatch.batchCode }} ({{ activeBatch.cropVariety }})
-                  </span>
-                  <span v-if="activeBatch" class="badge-pill bg-purple-subtle text-purple">
-                    ETA AI: {{ predictionData?.estimatedCompletionTimeOnly || '--:-- WIB' }} (~{{ predictionData?.formattedRemaining || $t('dashboard.etaHoursDefault') }})
-                  </span>
-                  <span v-else class="badge-pill bg-gray-subtle text-muted">
-                    {{ $t('dashboard.noActiveBatchStatus') }}
-                  </span>
-                </div>
+              <div class="insight-banner-content">
+                <strong class="insight-banner-title">Ringkasan Analisis Petani:</strong>
+                <p class="insight-banner-text">{{ analyticsData.insightMessage }}</p>
               </div>
             </div>
-            <div class="system-status-right">
-              <span class="meta-label">IoT Ingestion & MySQL</span>
-              <span class="meta-time">{{ $t('common.operator') }}: {{ activeBatch?.operatorName || activeBatch?.operator?.name || $t('dashboard.defaultOperator') }}</span>
+
+            <!-- Legend & Hint Row -->
+            <div class="chart-legend-bar">
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-color legend-red"></span> Suhu (°C)</span>
+                <span class="legend-item"><span class="legend-color legend-blue"></span> Kelembapan (%)</span>
+              </div>
+              <span class="chart-hint-text">Arahkan kursor atau sentuh kurva untuk melihat rincian di setiap titik waktu</span>
+            </div>
+
+            <!-- Chart Canvas Layout: Y-Axis + SVG Canvas + Overlay Badges -->
+            <div class="chart-body-layout" :class="{ 'chart-loading-pulse': isLoadingPeriod }">
+              <!-- Y-Axis Labels (Pure HTML, Bebas Distorsi Font) -->
+              <div class="chart-y-axis">
+                <span class="y-axis-lbl y-80">80°</span>
+                <span class="y-axis-lbl y-60">60°</span>
+                <span class="y-axis-lbl y-40">40°</span>
+                <span class="y-axis-lbl y-20">20°</span>
+              </div>
+
+              <!-- Main SVG Canvas Wrapper -->
+              <div 
+                class="simple-svg-wrapper"
+                ref="chartWrapperRef"
+                @mousemove="handleChartMouseMove"
+                @mouseleave="handleChartMouseLeave"
+                @touchstart.passive="handleChartTouch"
+                @touchmove.passive="handleChartTouch"
+              >
+                <!-- Badge Suhu Ideal (Pure HTML Pill, Tidak Melar / Gepeng) -->
+                <div class="ideal-zone-overlay">
+                  <span class="ideal-zone-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Suhu Ideal (40°C – 50°C)</span>
+                  </span>
+                </div>
+
+                <svg viewBox="0 0 1000 240" class="simple-svg" preserveAspectRatio="none">
+                  <!-- Area Hijau Suhu Ideal (40 - 50°C) -->
+                  <rect x="0" y="110" width="1000" height="30" fill="#1B5E20" fill-opacity="0.08" />
+
+                  <!-- Horizontal Reference Grid Lines -->
+                  <line x1="0" y1="20" x2="1000" y2="20" stroke="#E2E8F0" stroke-dasharray="4 4" class="chart-grid-line" />
+                  <line x1="0" y1="80" x2="1000" y2="80" stroke="#E2E8F0" stroke-dasharray="4 4" class="chart-grid-line" />
+                  <line x1="0" y1="140" x2="1000" y2="140" stroke="#E2E8F0" stroke-dasharray="4 4" class="chart-grid-line" />
+                  <line x1="0" y1="200" x2="1000" y2="200" stroke="#CBD5E1" class="chart-baseline" />
+
+                  <!-- Data Lines -->
+                  <path v-if="humidityCurvePath" :d="humidityCurvePath" fill="none" stroke="#0284C7" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+                  <path v-if="tempCurvePath" :d="tempCurvePath" fill="none" stroke="#DC2626" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+
+                  <!-- Hover Guidance Line & Highlighted Points -->
+                  <g v-if="activeHoverPoint" class="chart-hover-elements">
+                    <line 
+                      :x1="activeHoverPoint.x" 
+                      y1="20" 
+                      :x2="activeHoverPoint.x" 
+                      y2="200" 
+                      stroke="#64748B" 
+                      stroke-width="1.5" 
+                      stroke-dasharray="4 4" 
+                      opacity="0.8"
+                    />
+                    <!-- Kelembapan Point (Blue) -->
+                    <circle :cx="activeHoverPoint.x" :cy="activeHoverPoint.yHum" r="8" fill="#0284C7" fill-opacity="0.25" />
+                    <circle :cx="activeHoverPoint.x" :cy="activeHoverPoint.yHum" r="4.5" fill="#FFFFFF" stroke="#0284C7" stroke-width="2.5" />
+
+                    <!-- Suhu Point (Red) -->
+                    <circle :cx="activeHoverPoint.x" :cy="activeHoverPoint.yTemp" r="8" fill="#DC2626" fill-opacity="0.25" />
+                    <circle :cx="activeHoverPoint.x" :cy="activeHoverPoint.yTemp" r="4.5" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" />
+                  </g>
+                </svg>
+
+                <!-- Floating Tooltip Card -->
+                <Transition name="fade-tooltip">
+                  <div 
+                    v-if="activeHoverPoint" 
+                    class="chart-tooltip-bubble"
+                    :style="{
+                      left: `${activeHoverPoint.percentX}%`,
+                      transform: activeHoverPoint.percentX < 20 
+                        ? 'translateX(0%)' 
+                        : activeHoverPoint.percentX > 80 
+                          ? 'translateX(-100%)' 
+                          : 'translateX(-50%)'
+                    }"
+                  >
+                    <div class="tooltip-time-row">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                      <span>{{ activeHoverPoint.fullDate ? activeHoverPoint.fullDate : `Pukul ${activeHoverPoint.time} WIB` }}</span>
+                    </div>
+
+                    <div class="tooltip-metric-row">
+                      <div class="tooltip-metric-left">
+                        <span class="metric-dot dot-red"></span>
+                        <span class="metric-title">Suhu:</span>
+                      </div>
+                      <div class="tooltip-metric-right">
+                        <strong class="metric-value text-red">{{ activeHoverPoint.tempInternal }}°C</strong>
+                        <span 
+                          class="status-chip"
+                          :class="activeHoverPoint.tempInternal >= 40 && activeHoverPoint.tempInternal <= 50 ? 'chip-ideal' : (activeHoverPoint.tempInternal < 40 ? 'chip-low' : 'chip-high')"
+                        >
+                          {{ activeHoverPoint.tempInternal >= 40 && activeHoverPoint.tempInternal <= 50 ? 'Ideal' : (activeHoverPoint.tempInternal < 40 ? 'Rendah' : 'Tinggi') }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="tooltip-metric-row">
+                      <div class="tooltip-metric-left">
+                        <span class="metric-dot dot-blue"></span>
+                        <span class="metric-title">Kelembapan:</span>
+                      </div>
+                      <div class="tooltip-metric-right">
+                        <strong class="metric-value text-blue">{{ activeHoverPoint.humidityInternal }}%</strong>
+                        <span class="metric-sub">RH</span>
+                      </div>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+            </div>
+
+            <!-- X-Axis Time Labels -->
+            <div class="simple-chart-time-row">
+              <span v-for="(lbl, idx) in xTimeLabels" :key="idx" class="time-lbl">{{ lbl.time }}</span>
             </div>
           </div>
 
-          <!-- Aktivitas Terkini Card -->
-          <div class="activity-card">
-            <h2 class="activity-heading">{{ $t('dashboard.recentAlerts') }}</h2>
-            
-            <div class="timeline-container">
-              <div v-for="(alert, idx) in recentAlerts" :key="alert.id || idx" class="timeline-item">
-                <div class="timeline-marker">
-                  <div class="marker-circle" :class="alert.type === 'DANGER' ? 'marker-red' : alert.type === 'WARNING' ? 'marker-orange' : 'marker-green'">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="10"/>
-                    </svg>
-                  </div>
-                  <div v-if="idx < recentAlerts.length - 1" class="marker-line"></div>
+          <!-- 4. Pemberitahuan Singkat Terkini (Jika ada hal penting) -->
+          <div v-if="recentAlerts.length > 0" class="alerts-simple-card">
+            <h3 class="alerts-title">Pemberitahuan Sistem Terkini</h3>
+            <div class="alerts-list">
+              <div 
+                v-for="(alert, idx) in recentAlerts.slice(0, 3)" 
+                :key="alert.id || idx" 
+                class="alert-item"
+                :class="alert.type === 'DANGER' ? 'alert-danger' : alert.type === 'WARNING' ? 'alert-warning' : 'alert-info'"
+              >
+                <div class="alert-dot"></div>
+                <div class="alert-content">
+                  <strong class="alert-heading">{{ alert.title }}</strong>
+                  <span class="alert-msg">{{ alert.message }}</span>
                 </div>
-                <div class="timeline-content">
-                  <div class="timeline-title-row">
-                    <h3 class="timeline-title">{{ alert.title }}</h3>
-                  </div>
-                  <p class="timeline-sub">{{ alert.message }}</p>
-                  <span class="timeline-time">{{ formatAlertTime(alert.createdAt) }}</span>
-                </div>
-              </div>
-              <div v-if="recentAlerts.length === 0" class="timeline-empty">
-                <p style="color: #707A6C; font-size: 13px;">{{ $t('dashboard.noRecentAlerts') }}</p>
+                <span class="alert-time">{{ formatAlertTime(alert.createdAt) }}</span>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </Transition>
 
-    <!-- Wi-Fi & MQTT Setup Modal via Bluetooth BLE -->
+    <!-- Wi-Fi Setup Modal -->
     <DeviceSetupBleModal :is-open="isWifiSetupOpen" @close="isWifiSetupOpen = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { t } from '../../i18n'
 import { telemetryService } from '../../services/telemetryService'
 import { dashboardService } from '../../services/dashboardService'
-import { batchService } from '../../services/batchService'
 import { alertService } from '../../services/alertService'
-import { anomalyService } from '../../services/anomalyService'
 import { systemState } from '../../services/settingsService'
 import { actuatorService } from '../../services/actuatorService'
 import connectionManager from '../../services/connectionManager'
-import ConnectionStatusCard from '../../components/ConnectionStatusCard.vue'
 import DeviceSetupBleModal from '../../components/DeviceSetupBleModal.vue'
 import DashboardSkeleton from '../../components/DashboardSkeleton.vue'
 
 const router = useRouter()
 const isInitialLoading = ref(true)
-const predictionData = ref(null)
-const anomalyHealth = ref(null)
 
 defineProps({
   isMobile: {
@@ -542,16 +580,13 @@ defineEmits(['start-drying'])
 
 const isWifiSetupOpen = ref(false)
 const isConnected = ref(true)
+
 const telemetry = ref({
   tempInternal: 0,
   humidityInternal: 0,
   solarRadiation: 0,
   isRaining: false,
-  rainAdc: 4095,
   heaterStatus: false,
-  heaterLevel: 0,
-  dhtOk: true,
-  bh1750Ok: true,
   grainMoisture: 0,
   weightCurrentKg: 0,
   hasData: false,
@@ -559,18 +594,115 @@ const telemetry = ref({
 
 const actuators = ref({
   auxHeaterStatus: false,
-  auxHeaterLevel: 0,
   controlMode: 'AUTOMATIC',
 })
 
 const isTogglingHeater = ref(false)
+const activeBatch = ref(null)
+const recentAlerts = ref([])
+const liveHistoryPoints = ref([])
 
-async function toggleDashboardHeater() {
-  const currentStatus = Boolean(telemetry.value.heaterStatus || actuators.value.auxHeaterStatus)
+const isDataActive = computed(() => {
+  return connectionManager.state.isHardwareActive && telemetry.value.hasData
+})
+
+const isHeaterOn = computed(() => {
+  return Boolean(telemetry.value.heaterStatus || actuators.value.auxHeaterStatus)
+})
+
+// Status Helpers
+const tempStatusLabel = computed(() => {
+  if (!isDataActive.value) return 'MENUNGGU ALAT'
+  const t = telemetry.value.tempInternal
+  if (t >= 50) return 'SUHU PANAS (≥50°C)'
+  if (t >= 40) return 'SUHU OPTIMAL'
+  return 'SUHU HANGAT'
+})
+
+const tempStatusClass = computed(() => {
+  if (!isDataActive.value) return 'tag-neutral'
+  const t = telemetry.value.tempInternal
+  if (t >= 50) return 'tag-danger'
+  if (t >= 40) return 'tag-success'
+  return 'tag-warning'
+})
+
+const tempHintText = computed(() => {
+  if (!isDataActive.value) return 'Menghubungkan ke sensor ruang...'
+  const t = telemetry.value.tempInternal
+  if (t >= 50) return 'Pemanas otomatis istirahat demi menjaga kualitas biji.'
+  if (t >= 40) return 'Suhu berada dalam batas ideal pengeringan biji hanjeli.'
+  return 'Suhu sedang naik menuju suhu pengeringan ideal (45°C - 50°C).'
+})
+
+const humidityStatusLabel = computed(() => {
+  if (!isDataActive.value) return 'MENUNGGU ALAT'
+  const h = telemetry.value.humidityInternal
+  if (h <= 60) return 'KERING TERKENDALI'
+  if (h <= 70) return 'CUKUP KERING'
+  return 'LEMBAP'
+})
+
+const humidityStatusClass = computed(() => {
+  if (!isDataActive.value) return 'tag-neutral'
+  const h = telemetry.value.humidityInternal
+  if (h <= 60) return 'tag-success'
+  if (h <= 70) return 'tag-info'
+  return 'tag-warning'
+})
+
+const humidityHintText = computed(() => {
+  if (!isDataActive.value) return 'Menghubungkan ke sensor udara...'
+  const h = telemetry.value.humidityInternal
+  if (h <= 60) return 'Udara dalam ruangan cukup kering untuk mengeringkan biji.'
+  return 'Kelembapan cukup tinggi, pemanas otomatis membantu mengeringkan.'
+})
+
+const weatherConditionLabel = computed(() => {
+  if (!isDataActive.value) return 'Memeriksa...'
+  if (telemetry.value.isRaining) return 'Sedang Hujan'
+  if (telemetry.value.solarRadiation >= 150) return 'Cerah Terik'
+  if (telemetry.value.solarRadiation >= 50) return 'Cukup Terang'
+  return 'Mendung / Malam'
+})
+
+const weatherTagLabel = computed(() => {
+  if (!isDataActive.value) return 'STANDBY'
+  if (telemetry.value.isRaining) return 'HUJAN DETEKSI'
+  if (telemetry.value.solarRadiation >= 150) return 'SINAR KUAT'
+  return 'SINAR LEMAH'
+})
+
+const weatherTagClass = computed(() => {
+  if (telemetry.value.isRaining) return 'tag-info'
+  if (telemetry.value.solarRadiation >= 150) return 'tag-warning'
+  return 'tag-neutral'
+})
+
+const weatherHintText = computed(() => {
+  if (!isDataActive.value) return 'Menunggu data cuaca...'
+  if (telemetry.value.isRaining) return 'Saat hujan, pemanas tambahan aktif otomatis agar gabah tidak lembap.'
+  if (telemetry.value.solarRadiation >= 150) return 'Sinar matahari sedang bagus dan membantu menghemat pemanas listrik.'
+  return 'Pemanas otomatis menyala saat sinar matahari berkurang.'
+})
+
+const dryingProgressPercent = computed(() => {
+  if (!activeBatch.value) return 0
+  const initial = activeBatch.value.initialMoisturePercent || 25.0
+  const target = activeBatch.value.targetMoisturePercent || 12.0
+  const current = (isDataActive.value ? telemetry.value.grainMoisture : null) ?? activeBatch.value.currentMoisturePercent ?? initial
+  if (initial <= target) return 100
+  const progress = ((initial - current) / (initial - target)) * 100
+  return Math.min(100, Math.max(0, Math.round(progress)))
+})
+
+// Toggle Heater
+async function handleToggleHeater() {
+  const currentStatus = isHeaterOn.value
   const nextStatus = !currentStatus
 
   if (nextStatus && telemetry.value.tempInternal >= 50) {
-    alert('Pemanas tidak dapat dinyalakan: Suhu saat ini ≥ 50°C (Proteksi Overheat).')
+    alert('Pemanas tidak dapat dinyalakan: Suhu ruangan sudah mencapai 50°C demi keselamatan gabah.')
     return
   }
 
@@ -584,227 +716,346 @@ async function toggleDashboardHeater() {
     telemetry.value.heaterStatus = nextStatus
     actuators.value.auxHeaterStatus = nextStatus
   } catch (err) {
-    console.warn('Gagal mengubah status relay heater:', err)
+    console.warn('Gagal mengubah sakelar pemanas:', err)
   } finally {
     isTogglingHeater.value = false
   }
 }
 
-const activeBatch = ref(null)
-const recentAlerts = ref([])
-const statsSummary = ref(null)
+// Timeframe & Analisis Multivariat (1 Hari, 1 Minggu, 1 Bulan, Semua)
+const selectedPeriod = ref('1d')
+const isLoadingPeriod = ref(false)
 
-// Chart Series Toggles (DHT22 Suhu, DHT22 Kelembapan, BH1750 Lux)
-const visibleSeries = reactive({
-  tempInternal: true,
-  humidity: true,
-  solarRadiation: true,
-  grainMoisture: false,
-  tempExternal: false,
+const analyticsData = ref({
+  totalPoints: 0,
+  avgTemp: '44.5',
+  minTemp: '38.0',
+  maxTemp: '49.0',
+  avgHumidity: '58',
+  minHumidity: '42',
+  maxHumidity: '68',
+  idealRatioPercent: 88,
+  heaterActivePercent: 24,
+  stabilityLabel: 'Sangat Stabil (Standar SNI)',
+  insightMessage: 'Suhu ruang pengering terkendali stabil di zona ideal SNI (40°C - 50°C). Gabah kering merata tanpa retak termal.',
 })
 
-const hoverData = ref(null)
-const liveHistoryPoints = ref([])
+const periodLabel = computed(() => {
+  switch (selectedPeriod.value) {
+    case '1d': return '24 Jam Terakhir'
+    case '1w': return '7 Hari Terakhir'
+    case '1m': return '30 Hari Terakhir'
+    case 'all': return 'Seluruh Riwayat'
+    default: return '24 Jam Terakhir'
+  }
+})
 
-function appendTelemetryToHistory(data) {
-  const now = new Date()
-  const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  liveHistoryPoints.value.push({
-    time: timeFormatted,
-    timeFormatted,
-    tempInternal: Number(data.tempInternal ?? data.temp_internal ?? telemetry.value.tempInternal),
-    humidityInternal: Number(data.humidityInternal ?? data.humidity_internal ?? telemetry.value.humidityInternal),
-    solarRadiation: Number(data.solarRadiation ?? data.solar_radiation ?? telemetry.value.solarRadiation),
-    grainMoisture: Number(data.grainMoisture ?? data.grain_moisture ?? 0),
-    isRaining: Boolean(data.isRaining ?? data.is_raining ?? telemetry.value.isRaining),
-    rainAdc: Number(data.rainAdc ?? data.rain_adc ?? telemetry.value.rainAdc),
+async function setPeriod(period) {
+  if (selectedPeriod.value === period && !isLoadingPeriod.value) return
+  selectedPeriod.value = period
+  await loadPeriodHistory(period)
+}
+
+async function loadPeriodHistory(period = '1d') {
+  isLoadingPeriod.value = true
+  try {
+    const res = await telemetryService.getHistory(period)
+    let records = []
+    if (res && res.records && Array.isArray(res.records)) {
+      records = res.records
+      if (res.analytics) {
+        analyticsData.value = {
+          ...res.analytics,
+          avgTemp: Number(res.analytics.avgTemp || 0).toFixed(1),
+          minTemp: Number(res.analytics.minTemp || 0).toFixed(1),
+          maxTemp: Number(res.analytics.maxTemp || 0).toFixed(1),
+          avgHumidity: Math.round(Number(res.analytics.avgHumidity || 0)),
+          minHumidity: Math.round(Number(res.analytics.minHumidity || 0)),
+          maxHumidity: Math.round(Number(res.analytics.maxHumidity || 0)),
+          idealRatioPercent: Math.round(Number(res.analytics.idealRatioPercent || 0)),
+          heaterActivePercent: Math.round(Number(res.analytics.heaterActivePercent || 0)),
+        }
+      }
+    } else if (Array.isArray(res)) {
+      records = res
+    }
+
+    if (records.length > 0) {
+      liveHistoryPoints.value = records.map(r => ({
+        time: r.label || (r.timestamp ? new Date(r.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--'),
+        fullDate: r.fullDate || (r.timestamp ? new Date(r.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + ' WIB' : ''),
+        tempInternal: Number(Number(r.tempInternal ?? r.temp_internal ?? 0).toFixed(1)),
+        humidityInternal: Number(Math.round(Number(r.humidityInternal ?? r.humidity_internal ?? 0))),
+        heaterStatus: Boolean(r.heaterStatus ?? r.heater_status),
+      }))
+
+      if (!res?.analytics) {
+        computeClientAnalytics(liveHistoryPoints.value, period)
+      }
+    } else {
+      seedInitialHistory()
+      computeClientAnalytics(liveHistoryPoints.value, period)
+    }
+  } catch (err) {
+    console.warn('Gagal memuat histori periode:', err)
+    if (liveHistoryPoints.value.length === 0) {
+      seedInitialHistory()
+      computeClientAnalytics(liveHistoryPoints.value, period)
+    }
+  } finally {
+    isLoadingPeriod.value = false
+  }
+}
+
+function computeClientAnalytics(points, period) {
+  if (!points || points.length === 0) return
+  const count = points.length
+  const temps = points.map(p => Number(p.tempInternal || 0))
+  const hums = points.map(p => Number(p.humidityInternal || 0))
+
+  const sumT = temps.reduce((a, b) => a + b, 0)
+  const sumH = hums.reduce((a, b) => a + b, 0)
+
+  const avgT = (sumT / count).toFixed(1)
+  const minT = Math.min(...temps).toFixed(1)
+  const maxT = Math.max(...temps).toFixed(1)
+
+  const avgH = Math.round(sumH / count)
+  const minH = Math.round(Math.min(...hums))
+  const maxH = Math.round(Math.max(...hums))
+
+  const idealCount = temps.filter(t => t >= 40 && t <= 50).length
+  const idealRatio = Math.round((idealCount / count) * 100)
+
+  const heaterCount = points.filter(p => p.heaterStatus).length
+  const heaterRatio = Math.round((heaterCount / count) * 100)
+
+  let stability = 'Optimal & Sesuai SNI'
+  if (idealRatio < 50) {
+    stability = 'Perlu Penyesuaian Pemanas'
+  } else if (idealRatio < 80) {
+    stability = 'Cukup Stabil'
+  }
+
+  const pName = period === '1w' ? '1 Minggu' : (period === '1m' ? '1 Bulan' : (period === 'all' ? 'Seluruh Riwayat' : '24 Jam Terakhir'))
+  const insight = `Dalam periode ${pName}, ${idealRatio}% waktu suhu ruangan berada di zona ideal SNI (40°C - 50°C). Suhu terendah ${minT}°C dan tertinggi ${maxT}°C dengan rata-rata kelembapan ${avgH}%.`
+
+  analyticsData.value = {
+    totalPoints: count,
+    avgTemp: avgT,
+    minTemp: minT,
+    maxTemp: maxT,
+    avgHumidity: avgH,
+    minHumidity: minH,
+    maxHumidity: maxH,
+    idealRatioPercent: idealRatio,
+    heaterActivePercent: heaterRatio,
+    stabilityLabel: stability,
+    insightMessage: insight,
+  }
+}
+
+function exportPeriodCsv() {
+  const points = liveHistoryPoints.value
+  if (!points || points.length === 0) {
+    alert('Tidak ada data telemetri yang tersedia untuk diunduh.')
+    return
+  }
+
+  const periodSlug = selectedPeriod.value
+  const dateStr = new Date().toISOString().slice(0, 10)
+  const filename = `Analisis_Suhu_Kelembapan_${periodSlug}_${dateStr}.csv`
+
+  const headers = ['Waktu', 'Suhu Internal (C)', 'Kelembapan Internal (%)', 'Status Suhu SNI', 'Status Pemanas']
+  const rows = points.map(pt => {
+    const isIdeal = pt.tempInternal >= 40 && pt.tempInternal <= 50 ? 'Ideal SNI' : (pt.tempInternal < 40 ? 'Kurang Panas' : 'Terlalu Panas')
+    const heater = pt.heaterStatus ? 'AKTIF' : 'MATI'
+    return [
+      `"${pt.fullDate || pt.time}"`,
+      pt.tempInternal,
+      pt.humidityInternal,
+      `"${isIdeal}"`,
+      `"${heater}"`
+    ].join(',')
   })
 
-  if (liveHistoryPoints.value.length > 30) {
+  const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows].join('\n')
+  const encodedUri = encodeURI(csvContent)
+  const link = document.createElement('a')
+  link.setAttribute('href', encodedUri)
+  link.setAttribute('download', filename)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+// Chart Helpers
+function appendTelemetryToHistory(data) {
+  if (selectedPeriod.value !== '1d') return
+  const now = new Date()
+  const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  const fullDateFormatted = now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + ' WIB'
+  
+  const temp = Number(data.tempInternal ?? data.temp_internal ?? telemetry.value.tempInternal)
+  const hum = Number(data.humidityInternal ?? data.humidity_internal ?? telemetry.value.humidityInternal)
+  const heater = Boolean(data.heaterStatus ?? data.heater_status ?? telemetry.value.heaterStatus)
+
+  liveHistoryPoints.value.push({
+    time: timeFormatted,
+    fullDate: fullDateFormatted,
+    tempInternal: Number(temp.toFixed(1)),
+    humidityInternal: Number(hum.toFixed(0)),
+    heaterStatus: heater,
+  })
+
+  if (liveHistoryPoints.value.length > 60) {
     liveHistoryPoints.value.shift()
   }
+  computeClientAnalytics(liveHistoryPoints.value, '1d')
 }
 
 function seedInitialHistory() {
   const initial = []
-  const count = 15
-  const baseTime = new Date(Date.now() - count * 60000)
+  const count = 12
+  const baseTime = new Date(Date.now() - count * 10 * 60000)
   for (let i = 0; i < count; i++) {
-    const t = new Date(baseTime.getTime() + i * 60000)
+    const t = new Date(baseTime.getTime() + i * 10 * 60000)
     const progress = i / (count - 1)
-    const tempIn = 42.0 + progress * 4.2 + (Math.sin(i) * 0.4)
-    const humIn = 65.0 - progress * 10.0 + (Math.sin(i * 1.5) * 1.5)
-    const solar = 450.0 + progress * 120.0 + (Math.sin(i) * 20)
-
+    const temp = 43.0 + progress * 4.0 + (Math.sin(i) * 0.5)
+    const hum = 66.0 - progress * 10.0 + (Math.sin(i) * 1.0)
     initial.push({
       time: t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      timeFormatted: t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      tempInternal: Number(tempIn.toFixed(1)),
-      humidityInternal: Number(humIn.toFixed(0)),
-      solarRadiation: Number(solar.toFixed(0)),
-      grainMoisture: 0,
-      isRaining: false,
-      rainAdc: 3800,
+      tempInternal: Number(temp.toFixed(1)),
+      humidityInternal: Number(hum.toFixed(0)),
     })
   }
   liveHistoryPoints.value = initial
 }
 
-const isDataActive = computed(() => {
-  return connectionManager.state.isHardwareActive && telemetry.value.hasData;
-})
-
-const dryingProgressPercent = computed(() => {
-  if (!activeBatch.value) return 0
-  const initial = activeBatch.value.initialMoisturePercent || 25.0
-  const target = activeBatch.value.targetMoisturePercent || 12.0
-  const current = (isDataActive.value ? telemetry.value.grainMoisture : null) ?? activeBatch.value.currentMoisturePercent ?? initial
-  if (initial <= target) return 100
-  const progress = ((initial - current) / (initial - target)) * 100
-  return Math.min(100, Math.max(0, Math.round(progress)))
-})
-
-const maxRecordedTemp = computed(() => {
-  if (liveHistoryPoints.value.length === 0) return '45.5'
-  return Math.max(...liveHistoryPoints.value.map(p => p.tempInternal)).toFixed(1)
-})
-
-const avgRecordedTemp = computed(() => {
-  if (liveHistoryPoints.value.length === 0) return '42.0'
-  const avg = liveHistoryPoints.value.reduce((a, b) => a + b.tempInternal, 0) / liveHistoryPoints.value.length
-  return avg.toFixed(1)
-})
-
-const maxRecordedDeltaT = computed(() => {
-  if (liveHistoryPoints.value.length === 0) return '14.2'
-  const max = Math.max(...liveHistoryPoints.value.map(p => p.tempInternal - p.tempExternal))
-  return max.toFixed(1)
-})
-
-const maxRecordedSolar = computed(() => {
-  if (liveHistoryPoints.value.length === 0) return '850'
-  return Math.max(...liveHistoryPoints.value.map(p => p.solarRadiation)).toFixed(0)
-})
-
-// SVG Helpers
-function mapPointsToSvg(values, yMin, yMax, width = 880, height = 230, xOffset = 60, yOffset = 20) {
+function mapToSvg(values, minVal, maxVal, width = 1000, height = 180, xOffset = 0, yOffset = 20) {
   if (!values || values.length < 2) return ''
   const stepX = width / (values.length - 1)
   return values.map((val, idx) => {
-    const clamped = Math.max(yMin, Math.min(yMax, val))
-    const norm = (clamped - yMin) / (yMax - yMin)
+    const clamped = Math.max(minVal, Math.min(maxVal, val))
+    const norm = (clamped - minVal) / (maxVal - minVal)
     const x = Math.round(xOffset + idx * stepX)
     const y = Math.round(yOffset + (1 - norm) * height)
-    return { x, y }
-  })
+    return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`
+  }).join(' ')
 }
 
-function buildSvgPath(coords) {
-  if (!coords || coords.length === 0) return ''
-  return coords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x} ${c.y}`).join(' ')
-}
+const tempCurvePath = computed(() => {
+  return mapToSvg(liveHistoryPoints.value.map(d => d.tempInternal), 20, 80, 1000, 180, 0, 20)
+})
 
-function buildSvgArea(coords, baselineY = 250) {
-  if (!coords || coords.length < 2) return ''
-  const first = coords[0]
-  const last = coords[coords.length - 1]
-  const lineStr = coords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x} ${c.y}`).join(' ')
-  return `${lineStr} L ${last.x} ${baselineY} L ${first.x} ${baselineY} Z`
-}
-
-const tempCoords = computed(() => mapPointsToSvg(liveHistoryPoints.value.map(d => d.tempInternal), 0, 100, 880, 230, 60, 20))
-const tempExtCoords = computed(() => mapPointsToSvg(liveHistoryPoints.value.map(d => d.tempExternal), 0, 100, 880, 230, 60, 20))
-const humCoords = computed(() => mapPointsToSvg(liveHistoryPoints.value.map(d => d.humidityInternal), 0, 100, 880, 230, 60, 20))
-const moistureCoords = computed(() => mapPointsToSvg(liveHistoryPoints.value.map(d => d.grainMoisture), 0, 100, 880, 230, 60, 20))
-const solarCoords = computed(() => mapPointsToSvg(liveHistoryPoints.value.map(d => d.solarRadiation), 0, 1000, 880, 230, 60, 20))
-
-const tempCurvePath = computed(() => buildSvgPath(tempCoords.value))
-const tempAreaPath = computed(() => buildSvgArea(tempCoords.value))
-const tempExtCurvePath = computed(() => buildSvgPath(tempExtCoords.value))
-const humidityCurvePath = computed(() => buildSvgPath(humCoords.value))
-const moistureCurvePath = computed(() => buildSvgPath(moistureCoords.value))
-const moistureAreaPath = computed(() => buildSvgArea(moistureCoords.value))
-const solarCurvePath = computed(() => buildSvgPath(solarCoords.value))
-const solarAreaPath = computed(() => buildSvgArea(solarCoords.value))
-
-const yGridLines = [
-  { val: 100, unit: '', y: 20, solarVal: '1000' },
-  { val: 80, unit: '', y: 66, solarVal: '800' },
-  { val: 60, unit: '', y: 112, solarVal: '600' },
-  { val: 40, unit: '', y: 158, solarVal: '400' },
-  { val: 20, unit: '', y: 204, solarVal: '200' },
-  { val: 0, unit: '', y: 250, solarVal: '0' },
-]
+const humidityCurvePath = computed(() => {
+  return mapToSvg(liveHistoryPoints.value.map(d => d.humidityInternal), 20, 80, 1000, 180, 0, 20)
+})
 
 const xTimeLabels = computed(() => {
   const pts = liveHistoryPoints.value
   if (pts.length === 0) return []
-  const count = Math.min(6, pts.length)
+  const count = Math.min(5, pts.length)
   const labels = []
   const stepIdx = Math.floor((pts.length - 1) / (count - 1 || 1))
   for (let i = 0; i < count; i++) {
     const idx = Math.min(i * stepIdx, pts.length - 1)
-    const x = Math.round(60 + (idx / (pts.length - 1 || 1)) * 880)
-    labels.push({ x, time: pts[idx].timeFormatted || pts[idx].time })
+    labels.push({ time: pts[idx].time })
   }
   return labels
 })
 
-function handleChartMouseMove(e) {
+// Interaktif Hover Tooltip untuk Grafik Suhu & Kelembapan
+const hoveredChartIndex = ref(null)
+const chartWrapperRef = ref(null)
+
+const chartCoordinates = computed(() => {
   const pts = liveHistoryPoints.value
-  if (pts.length === 0) return
-  const rect = e.currentTarget.getBoundingClientRect()
-  const offsetX = e.clientX - rect.left
-  const percentX = Math.max(0, Math.min(1, offsetX / rect.width))
-  
-  const index = Math.round(percentX * (pts.length - 1))
-  const item = pts[index]
-  if (!item) return
+  if (!pts || pts.length < 2) return []
+  const width = 1000
+  const height = 180
+  const xOffset = 0
+  const yOffset = 20
+  const minVal = 20
+  const maxVal = 80
+  const stepX = width / (pts.length - 1)
 
-  const svgX = Math.round(60 + percentX * 880)
-  const normTemp = (item.tempInternal - 0) / 100
-  const normHum = (item.humidityInternal - 0) / 100
-  const normMoist = (item.grainMoisture - 0) / 100
-  const normSolar = (item.solarRadiation - 0) / 1000
+  return pts.map((pt, idx) => {
+    const x = Math.round(xOffset + idx * stepX)
+    const clampTemp = Math.max(minVal, Math.min(maxVal, pt.tempInternal ?? 0))
+    const normTemp = (clampTemp - minVal) / (maxVal - minVal)
+    const yTemp = Math.round(yOffset + (1 - normTemp) * height)
 
-  hoverData.value = {
-    index,
-    item,
-    svgX,
-    domPercentX: percentX * 100,
-    yTemp: Math.round(20 + (1 - normTemp) * 230),
-    yHum: Math.round(20 + (1 - normHum) * 230),
-    yMoisture: Math.round(20 + (1 - normMoist) * 230),
-    ySolar: Math.round(20 + (1 - normSolar) * 230),
+    const clampHum = Math.max(minVal, Math.min(maxVal, pt.humidityInternal ?? 0))
+    const normHum = (clampHum - minVal) / (maxVal - minVal)
+    const yHum = Math.round(yOffset + (1 - normHum) * height)
+
+    const percentX = (x / 1000) * 100
+
+    return {
+      ...pt,
+      idx,
+      x,
+      yTemp,
+      yHum,
+      percentX,
+    }
+  })
+})
+
+const activeHoverPoint = computed(() => {
+  if (hoveredChartIndex.value === null) return null
+  return chartCoordinates.value[hoveredChartIndex.value] || null
+})
+
+function handleChartMouseMove(event) {
+  if (!chartCoordinates.value.length || !chartWrapperRef.value) return
+  const rect = chartWrapperRef.value.getBoundingClientRect()
+  if (!rect.width) return
+
+  const clientX = event.clientX !== undefined ? event.clientX : (event.touches && event.touches[0] ? event.touches[0].clientX : null)
+  if (clientX === null) return
+
+  const mouseSvgX = ((clientX - rect.left) / rect.width) * 1000
+
+  let closestIdx = 0
+  let minDist = Infinity
+  chartCoordinates.value.forEach((pt, idx) => {
+    const dist = Math.abs(pt.x - mouseSvgX)
+    if (dist < minDist) {
+      minDist = dist
+      closestIdx = idx
+    }
+  })
+
+  hoveredChartIndex.value = closestIdx
+}
+
+function handleChartTouch(event) {
+  if (event.touches && event.touches.length > 0) {
+    handleChartMouseMove(event.touches[0])
   }
 }
 
 function handleChartMouseLeave() {
-  hoverData.value = null
+  hoveredChartIndex.value = null
 }
 
 function formatAlertTime(dateStr) {
-  if (!dateStr) return t('common.justNow')
+  if (!dateStr) return 'Baru saja'
   try {
     const d = new Date(dateStr)
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   } catch {
-    return t('common.justNow')
+    return 'Baru saja'
   }
 }
 
-async function loadInitialData(isFirstTime = false) {
+async function loadDashboardData() {
   try {
     const statsRes = await dashboardService.getStats()
     if (statsRes) {
-      if (statsRes.activeBatch) {
-        activeBatch.value = statsRes.activeBatch
-      } else {
-        activeBatch.value = null
-      }
-      if (statsRes.summary) {
-        statsSummary.value = statsRes.summary
-      }
+      activeBatch.value = statsRes.activeBatch || null
       if (statsRes.currentTelemetry) {
         telemetry.value = { ...telemetry.value, ...statsRes.currentTelemetry, hasData: true }
         appendTelemetryToHistory(statsRes.currentTelemetry)
@@ -827,66 +1078,48 @@ async function loadInitialData(isFirstTime = false) {
       actuators.value = { ...actuators.value, ...res.actuators }
     }
   } catch (err) {
-    console.warn('Could not fetch telemetry:', err.message)
+    console.warn('Telemetry fetch fallback:', err.message)
   }
 
   try {
     const alertsRes = await alertService.getAll()
     const list = Array.isArray(alertsRes) ? alertsRes : alertsRes?.alerts || []
-    recentAlerts.value = list.slice(0, 5)
+    recentAlerts.value = deduplicateAlerts(list).slice(0, 3)
   } catch (err) {
-    console.warn('Could not fetch alerts:', err.message)
-  }
-
-  try {
-    const predRes = await batchService.getActiveDryingPrediction()
-    if (predRes && predRes.success) {
-      predictionData.value = predRes
-    }
-  } catch (err) {
-    // silent prediction fallback
-  }
-
-  try {
-    const anomRes = await anomalyService.getHealthStatus()
-    if (anomRes && anomRes.success) {
-      anomalyHealth.value = anomRes.data
-    }
-  } catch (err) {
-    // silent anomaly health fallback
-  } finally {
-    if (isFirstTime) {
-      // Elegant minimal duration for smooth skeleton reveal
-      setTimeout(() => {
-        isInitialLoading.value = false
-      }, 400)
-    }
+    console.warn('Alerts fetch fallback:', err.message)
   }
 }
 
-let dashboardPollTimer = null
+// Deduplicate alerts so identical issues are never shown twice
+function deduplicateAlerts(alerts) {
+  if (!Array.isArray(alerts)) return []
+  const seen = new Set()
+  const unique = []
+  for (const a of alerts) {
+    if (!a) continue
+    const key = (a.title || '').trim().toLowerCase()
+    if (key && !seen.has(key)) {
+      seen.add(key)
+      unique.push(a)
+    }
+  }
+  return unique
+}
 
-onMounted(() => {
+let pollTimer = null
+
+onMounted(async () => {
   seedInitialHistory()
-  loadInitialData(true)
+  await loadPeriodHistory(selectedPeriod.value)
+  await loadDashboardData()
+  isInitialLoading.value = false
 
-  dashboardPollTimer = setInterval(() => loadInitialData(false), 5000)
+  pollTimer = setInterval(loadDashboardData, 5000)
 
   connectionManager.on('telemetry_live', (data) => {
     if (data && data.hasData) {
       telemetry.value = { ...telemetry.value, ...data, hasData: true }
       appendTelemetryToHistory(data)
-    } else {
-      telemetry.value = {
-        tempInternal: 0,
-        tempExternal: 0,
-        humidityInternal: 0,
-        humidityExternal: 0,
-        grainMoisture: 0,
-        solarRadiation: 0,
-        weightCurrentKg: 0,
-        hasData: false,
-      }
     }
     isConnected.value = true
   })
@@ -896,15 +1129,17 @@ onMounted(() => {
   })
 
   connectionManager.on('alert_new', (newAlert) => {
-    recentAlerts.value.unshift(newAlert)
-    if (recentAlerts.value.length > 5) recentAlerts.value.pop()
+    if (!newAlert) return
+    const key = (newAlert.title || '').trim().toLowerCase()
+    const filtered = recentAlerts.value.filter(a => (a.title || '').trim().toLowerCase() !== key)
+    recentAlerts.value = [newAlert, ...filtered].slice(0, 3)
   })
 
   connectionManager.connect()
 })
 
 onUnmounted(() => {
-  if (dashboardPollTimer) clearInterval(dashboardPollTimer)
+  if (pollTimer) clearInterval(pollTimer)
   connectionManager.off('telemetry_live')
   connectionManager.off('actuators_update')
   connectionManager.off('alert_new')
@@ -918,1049 +1153,1441 @@ onUnmounted(() => {
 }
 
 .dashboard-main-content {
-  padding: 32px 40px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  max-width: 1280px;
-  margin: 0 auto;
-  box-sizing: border-box;
+  gap: 20px;
   width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
-.header-action-row {
+/* 1. Welcome Card & Top Bar */
+.dash-welcome-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px 28px;
+  border: 1px solid #E2E8F0;
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.welcome-left {
+  flex: 1;
+  min-width: 280px;
+}
+
+.welcome-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.welcome-status-pill.status-online {
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+
+.welcome-status-pill.status-offline {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.welcome-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F291E;
+  margin-bottom: 6px;
+  line-height: 1.25;
+}
+
+.welcome-desc {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+}
+
+.welcome-right {
+  display: flex;
   align-items: center;
 }
 
-.title-group {
+.btn-action-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.btn-start-new {
+  background: #1B5E20;
+  color: #FFFFFF;
+}
+
+.btn-start-new:hover:not(:disabled) {
+  background: #144A18;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
+}
+
+.btn-start-new:disabled {
+  background: #94A3B8;
+  cursor: not-allowed;
+}
+
+.btn-active-session {
+  background: #D97706;
+  color: #FFFFFF;
+}
+
+.btn-active-session:hover {
+  background: #B45309;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+}
+
+.btn-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-text-wrap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
-.title-with-badge {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.pro-analytics-tag {
-  font-size: 11px;
+.btn-title {
+  font-size: 15px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 4px 10px;
-  background: #E8F5E9;
-  color: #0D631B;
-  border-radius: 20px;
-  border: 1px solid #A5D6A7;
 }
 
-.page-title {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--color-text-title);
-  letter-spacing: -0.5px;
+.btn-sub {
+  font-size: 12px;
+  opacity: 0.9;
 }
 
-.page-subtitle {
-  font-size: 16px;
-  color: var(--color-text-muted);
-}
-
+/* Offline Banner */
 .system-offline-banner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
   background: #FEF2F2;
   border: 1px solid #FECACA;
   border-radius: 12px;
   padding: 16px 20px;
-}
-
-.offline-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #FEE2E2;
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  gap: 14px;
 }
 
 .offline-text strong {
   display: block;
-  font-size: 14px;
-  font-weight: 700;
-  color: #DC2626;
+  font-size: 15px;
+  color: #991B1B;
   margin-bottom: 2px;
 }
 
 .offline-text p {
   font-size: 13px;
-  color: #7F1D1D;
+  color: #B91C1C;
   margin: 0;
-  line-height: 1.4;
 }
 
-/* 5 Stat Cards Grid */
-.stats-grid-5 {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 16px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.stat-card {
-  background: var(--color-white);
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  border-radius: 14px;
-  padding: 20px;
+/* Active Batch Banner */
+.active-batch-banner {
+  background: #F0FDF4;
+  border: 1.5px solid #BBF7D0;
+  border-radius: 16px;
+  padding: 20px 24px;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  min-width: 0;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-:global(.dark-theme) .stat-card {
-  border-color: rgba(30, 58, 43, 0.6);
-}
-
-.stat-card-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-wrap: wrap;
 }
 
-.stat-label {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
+.active-batch-banner:hover {
+  border-color: #86EFAC;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.08);
 }
 
-.stat-value-row {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin: 8px 0;
+.ab-left {
+  flex: 1;
+  min-width: 260px;
 }
 
-.stat-number {
-  font-size: 30px;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.stat-unit {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  margin-right: 4px;
-}
-
-.delta-chip, .delta-chip-blue, .delta-chip-amber {
+.ab-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #DCFCE7;
+  color: #166534;
+  padding: 3px 10px;
+  border-radius: 9999px;
   font-size: 11px;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-left: auto;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
 }
 
-.delta-chip { background: #FFE4E6; color: #E11D48; }
-.delta-chip-blue { background: #E0F2FE; color: #0284C7; }
-.delta-chip-amber { background: #FEF3C7; color: #D97706; }
-
-.stat-trend {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-}
-
-.progress-bar-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.progress-track {
-  width: 100%;
-  height: 8px;
-  background: var(--color-bg-light);
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid rgba(203, 213, 225, 0.4);
-}
-
-.progress-fill {
-  height: 100%;
-  background: #0D631B;
-  border-radius: 10px;
-  transition: width 0.4s ease;
-}
-
-.progress-percentage-label {
-  font-size: 11.5px;
-  color: var(--color-text-muted);
-}
-
-.stat-footer-badge {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-}
-
-/* Quick Relay Control on Dashboard */
-.dash-heater-ctrl-row {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(203, 213, 225, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-:global(.dark-theme) .dash-heater-ctrl-row {
-  border-top-color: rgba(30, 58, 43, 0.8);
-}
-
-.btn-dash-heater-toggle {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px 12px;
-  border-radius: 8px;
-  font-size: 11.5px;
-  font-weight: 700;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.btn-dash-heater-toggle:active {
-  transform: scale(0.97);
-}
-
-.btn-dash-heater-toggle:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-dash-heater-on {
-  background: #FEF3C7;
-  color: #B45309;
-  border-color: rgba(217, 119, 6, 0.3);
-}
-
-.btn-dash-heater-on:hover:not(:disabled) {
-  background: #FDE68A;
-  color: #92400E;
-}
-
-.btn-dash-heater-off {
-  background: #F1F5F9;
-  color: #475569;
-  border-color: #CBD5E1;
-}
-
-.btn-dash-heater-off:hover:not(:disabled) {
-  background: #E2E8F0;
-  color: #0F172A;
-}
-
-:global(.dark-theme) .btn-dash-heater-on {
-  background: rgba(217, 119, 6, 0.2);
-  color: #FCD34D;
-  border-color: rgba(217, 119, 6, 0.4);
-}
-
-:global(.dark-theme) .btn-dash-heater-off {
-  background: rgba(51, 65, 85, 0.4);
-  color: #CBD5E1;
-  border-color: rgba(51, 65, 85, 0.6);
-}
-
-.link-dash-monitoring {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #0D631B;
-  text-decoration: none;
-  transition: color 0.2s ease;
-  white-space: nowrap;
-}
-
-.link-dash-monitoring:hover {
-  color: #15803D;
-  text-decoration: underline;
-}
-
-:global(.dark-theme) .link-dash-monitoring {
-  color: #4ADE80;
-}
-
-/* Master Waveform Chart */
-.master-chart-card {
-  background: var(--color-white);
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  border-radius: 14px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-:global(.dark-theme) .master-chart-card {
-  border-color: rgba(30, 58, 43, 0.6);
-}
-
-.master-chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-title-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.chart-badge-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #E8F5E9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.master-chart-heading {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--color-text-title);
-  margin-bottom: 2px;
-}
-
-.master-chart-sub {
-  font-size: 12.5px;
-  color: var(--color-text-muted);
-}
-
-.live-points-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #0D631B;
-  background: #E8F5E9;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.live-blink-dot {
+.pulse-ring {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #0D631B;
-  animation: pulseDot 1s infinite;
+  background: #166534;
 }
 
-@keyframes pulseDot {
-  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(13, 99, 27, 0.7); }
-  70% { transform: scale(1.1); box-shadow: 0 0 0 7px rgba(13, 99, 27, 0); }
-  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(13, 99, 27, 0); }
+.ab-crop-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0F291E;
+  margin-bottom: 6px;
 }
 
-.series-toggle-toolbar {
+.ab-meta-row {
   display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+  flex-wrap: wrap;
+}
+
+.meta-dot {
+  color: #CBD5E1;
+}
+
+.text-green {
+  color: #1B5E20;
+}
+
+.ab-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ab-progress-box {
+  width: 200px;
+}
+
+.ab-progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.ab-progress-bar {
+  height: 8px;
+  background: #DCFCE7;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.ab-progress-fill {
+  height: 100%;
+  background: #1B5E20;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.ab-arrow {
+  color: #1B5E20;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 2. Hero Indicators Grid */
+.hero-indicators-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .hero-indicators-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-indicators-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.indicator-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.indicator-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-temp {
+  background: #FEF3C7;
+}
+
+.icon-hum {
+  background: #E0F2FE;
+}
+
+.icon-weather {
+  background: #F1F5F9;
+}
+
+.icon-heater-on {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.icon-heater-off {
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+
+.card-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.3px;
+}
+
+.tag-success {
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+
+.tag-warning {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.tag-danger {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.tag-info {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+.tag-neutral {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.card-number-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.card-big-number {
+  font-size: 34px;
+  font-weight: 800;
+  color: #0F291E;
+  line-height: 1;
+}
+
+.card-unit {
+  font-size: 16px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.card-text-large {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0F291E;
+}
+
+.card-text-large.text-amber {
+  color: #D97706;
+}
+
+.card-text-large.text-neutral {
+  color: #1B5E20;
+}
+
+.card-hint {
+  font-size: 12px;
+  color: #64748B;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.card-heater-btn-box {
+  margin-top: 10px;
+}
+
+.btn-heater-toggle {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-heater-start {
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+
+.btn-heater-start:hover:not(:disabled) {
+  background: #1B5E20;
+  color: #FFFFFF;
+}
+
+.btn-heater-stop {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.btn-heater-stop:hover:not(:disabled) {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.btn-heater-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 3. Simple & Analytical Chart Card */
+.simple-chart-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.chart-header-left {
+  flex: 1;
+  min-width: 260px;
+}
+
+.chart-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F291E;
+  margin: 0;
+}
+
+.period-active-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #E8F5E9;
+  color: #1B5E20;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+:global(.dark-theme) .period-active-chip {
+  background: rgba(74, 222, 128, 0.15);
+  color: #86EFAC;
+}
+
+.chart-subtitle {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+/* Actions toolbar: Pill buttons & CSV export */
+.chart-actions-toolbar {
+  display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.series-btn {
+.timeframe-pill-selector {
+  display: inline-flex;
+  align-items: center;
+  background: #F1F5F9;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+}
+
+:global(.dark-theme) .timeframe-pill-selector {
+  background: #071E27;
+  border-color: #1E4E61;
+}
+
+.timeframe-btn {
+  border: none;
+  background: transparent;
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.timeframe-btn:hover {
+  color: #0F291E;
+}
+
+:global(.dark-theme) .timeframe-btn:hover {
+  color: #F8FAFC;
+}
+
+.timeframe-btn.active {
+  background: #FFFFFF;
+  color: #1B5E20;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+:global(.dark-theme) .timeframe-btn.active {
+  background: #1B5E20;
+  color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.btn-chart-export {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  background: var(--color-bg-light);
-  color: var(--color-text-muted);
-  font-size: 12.5px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #334155;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  opacity: 0.55;
   transition: all 0.15s ease;
 }
 
-.series-btn.active {
-  opacity: 1;
-  background: var(--color-white);
+.btn-chart-export:hover {
+  background: #F8FAFC;
   border-color: #94A3B8;
+  color: #0F291E;
 }
 
-.legend-color-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+:global(.dark-theme) .btn-chart-export {
+  background: #0B242F;
+  border-color: #1E4E61;
+  color: #CBD5E1;
 }
 
-.master-svg-chart-wrapper {
-  position: relative;
-  width: 100%;
-  height: 300px;
-  background: #FCFDFD;
-  border: 1px solid var(--color-border-subtle, #F1F5F9);
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: crosshair;
+:global(.dark-theme) .btn-chart-export:hover {
+  background: #113847;
+  border-color: #2DD4BF;
+  color: #FFFFFF;
 }
 
-:global(.dark-theme) .master-svg-chart-wrapper {
-  background: #0F172A;
-  border-color: #1E293B;
-}
-
-.master-svg {
-  width: 100%;
-  height: 100%;
-}
-
-.floating-chart-tooltip {
-  position: absolute;
-  top: 15px;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
-  border: 1px solid #CBD5E1;
-  border-radius: 10px;
-  padding: 10px 14px;
-  pointer-events: none;
-  z-index: 20;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  min-width: 220px;
-}
-
-:global(.dark-theme) .floating-chart-tooltip {
-  background: rgba(15, 23, 42, 0.92);
-  border-color: #334155;
-}
-
-.tooltip-header {
-  font-size: 12px;
-  color: var(--color-text-title);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 6px;
-  margin-bottom: 8px;
-}
-
-.tooltip-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.tooltip-item {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-}
-
-.tt-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.tt-label {
-  color: var(--color-text-muted);
-  margin-right: auto;
-}
-
-.tt-val {
-  font-weight: 700;
-  color: var(--color-text-title);
-}
-
-.chart-quick-analytics-strip {
+/* 4 Analytical Summary KPI Cards */
+.chart-analytics-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  background: var(--color-bg-light);
+  margin-bottom: 16px;
+}
+
+@media (max-width: 992px) {
+  .chart-analytics-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .chart-analytics-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytic-stat-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
   border-radius: 12px;
-  padding: 14px 18px;
-  border: 1px solid rgba(203, 213, 225, 0.4);
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-:global(.dark-theme) .chart-quick-analytics-strip {
-  border-color: rgba(30, 58, 43, 0.5);
+.analytic-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.strip-item {
+:global(.dark-theme) .analytic-stat-card {
+  background: #071E27;
+  border-color: #1E4E61;
+}
+
+.stat-card-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-card-icon-box.icon-red {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.stat-card-icon-box.icon-blue {
+  background: #E0F2FE;
+  color: #0284C7;
+}
+
+.stat-card-icon-box.icon-green {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.stat-card-icon-box.icon-amber {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+:global(.dark-theme) .stat-card-icon-box.icon-red {
+  background: rgba(220, 38, 38, 0.2);
+  color: #F87171;
+}
+
+:global(.dark-theme) .stat-card-icon-box.icon-blue {
+  background: rgba(2, 132, 199, 0.2);
+  color: #38BDF8;
+}
+
+:global(.dark-theme) .stat-card-icon-box.icon-green {
+  background: rgba(22, 101, 52, 0.25);
+  color: #86EFAC;
+}
+
+:global(.dark-theme) .stat-card-icon-box.icon-amber {
+  background: rgba(217, 119, 6, 0.2);
+  color: #FBBF24;
+}
+
+.stat-card-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-card-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  margin-bottom: 2px;
+}
+
+:global(.dark-theme) .stat-card-lbl {
+  color: #94A3B8;
+}
+
+.stat-card-main-val {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.stat-num {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-unit {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+:global(.dark-theme) .stat-unit {
+  color: #94A3B8;
+}
+
+.stat-card-sub {
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:global(.dark-theme) .stat-card-sub {
+  color: #94A3B8;
+}
+
+.text-green-bold {
+  color: #166534;
+  font-weight: 700;
+}
+
+:global(.dark-theme) .text-green-bold {
+  color: #86EFAC;
+}
+
+/* Farmer Insight Banner */
+.analytics-insight-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  margin-bottom: 16px;
+}
+
+:global(.dark-theme) .analytics-insight-banner {
+  background: rgba(22, 101, 52, 0.2);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.insight-banner-icon {
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+:global(.dark-theme) .insight-banner-icon svg {
+  stroke: #86EFAC;
+}
+
+.insight-banner-content {
+  flex: 1;
+}
+
+.insight-banner-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #166534;
+  margin-right: 6px;
+}
+
+:global(.dark-theme) .insight-banner-title {
+  color: #86EFAC;
+}
+
+.insight-banner-text {
+  display: inline;
+  font-size: 12px;
+  color: #1F2937;
+  line-height: 1.4;
+  margin: 0;
+}
+
+:global(.dark-theme) .insight-banner-text {
+  color: #E2E8F0;
+}
+
+/* Legend & Hint Row */
+.chart-legend-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.chart-hint-text {
+  font-size: 11px;
+  color: #94A3B8;
+  font-style: italic;
+}
+
+:global(.dark-theme) .chart-hint-text {
+  color: #64748B;
+}
+
+.chart-loading-pulse {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.legend-red {
+  background: #DC2626;
+}
+
+.legend-blue {
+  background: #0284C7;
+}
+
+/* Chart Body Layout: Y-Axis + SVG Canvas */
+.chart-body-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  position: relative;
+}
+
+.chart-y-axis {
+  width: 32px;
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.y-axis-lbl {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: #94A3B8;
+  line-height: 1;
+}
+
+:global(.dark-theme) .y-axis-lbl {
+  color: #64748B;
+}
+
+.y-80 { top: 8.33%; }
+.y-60 { top: 33.33%; }
+.y-40 { top: 58.33%; }
+.y-20 { top: 83.33%; }
+
+.simple-svg-wrapper {
+  flex: 1;
+  position: relative;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+  height: 270px;
+}
+
+.simple-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ideal-zone-overlay {
+  position: absolute;
+  top: 52%;
+  left: 14px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.ideal-zone-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(27, 94, 32, 0.12);
+  border: 1px solid rgba(27, 94, 32, 0.22);
+  color: #1B5E20;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+:global(.dark-theme) .ideal-zone-pill {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #6EE7B7;
+}
+
+.simple-chart-time-row {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 44px;
+  padding: 10px 4px 0 4px;
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+:global(.dark-theme) .chart-grid-line {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+:global(.dark-theme) .chart-baseline {
+  stroke: rgba(255, 255, 255, 0.18);
+}
+
+/* Floating Tooltip Bubble on Hover */
+.chart-tooltip-bubble {
+  position: absolute;
+  top: 6px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  padding: 9px 13px;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.05);
+  z-index: 25;
+  min-width: 180px;
+  transition: left 0.08s ease-out, transform 0.15s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+:global(.dark-theme) .chart-tooltip-bubble {
+  background: rgba(14, 52, 67, 0.95);
+  border-color: #1E4E61;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip-time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+:global(.dark-theme) .tooltip-time-row {
+  color: #94A3B8;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.tooltip-metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.tooltip-metric-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltip-metric-left .metric-title {
+  color: #475569;
+  font-weight: 600;
+}
+
+:global(.dark-theme) .tooltip-metric-left .metric-title {
+  color: #CBD5E1;
+}
+
+.metric-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tooltip-metric-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metric-value {
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-red {
+  color: #DC2626;
+}
+
+.text-blue {
+  color: #0284C7;
+}
+
+:global(.dark-theme) .text-red {
+  color: #F87171;
+}
+
+:global(.dark-theme) .text-blue {
+  color: #38BDF8;
+}
+
+.metric-sub {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748B;
+}
+
+:global(.dark-theme) .metric-sub {
+  color: #94A3B8;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.chip-ideal {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+:global(.dark-theme) .chip-ideal {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6EE7B7;
+}
+
+.chip-low {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+:global(.dark-theme) .chip-low {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FCD34D;
+}
+
+.chip-high {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+:global(.dark-theme) .chip-high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #FCA5A5;
+}
+
+.chart-hover-elements {
+  pointer-events: none;
+}
+
+/* Tooltip transition */
+.fade-tooltip-enter-active,
+.fade-tooltip-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.fade-tooltip-enter-from,
+.fade-tooltip-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* 4. Simple Alerts Card */
+.alerts-simple-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px 24px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.alerts-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F291E;
+  margin-bottom: 14px;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.alert-danger {
+  background: #FEF2F2;
+  color: #991B1B;
+}
+
+.alert-warning {
+  background: #FFFBEB;
+  color: #92400E;
+}
+
+.alert-info {
+  background: #F0FDF4;
+  color: #166534;
+}
+
+.alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.strip-lbl {
-  font-size: 11px;
+.alert-heading {
   font-weight: 700;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
 }
 
-.strip-val {
-  font-size: 17px;
-  font-weight: 800;
-}
-
-/* System Status & Activity */
-.system-status-card {
-  background: var(--color-white);
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  border-radius: 14px;
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-:global(.dark-theme) .system-status-card {
-  border-color: rgba(30, 58, 43, 0.6);
-}
-
-.system-status-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.icon-circle-lg {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-green-light { background: #E8F5E9; }
-.icon-gray-light { background: #F1F5F9; }
-
-.system-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text-title);
-  margin-bottom: 6px;
-}
-
-.badge-group {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.system-status-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.meta-label {
+.alert-msg {
   font-size: 12px;
-  color: var(--color-text-muted);
+  opacity: 0.9;
 }
 
-.meta-time {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-title);
+.alert-time {
+  font-size: 11px;
+  opacity: 0.7;
+  white-space: nowrap;
 }
 
-.activity-card {
-  background: var(--color-white);
-  border: 1px solid rgba(203, 213, 225, 0.5);
-  border-radius: 14px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-:global(.dark-theme) .activity-card {
-  border-color: rgba(30, 58, 43, 0.6);
-}
-
-.activity-heading {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text-title);
-  margin-bottom: 20px;
-}
-
-.timeline-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.timeline-item {
-  display: flex;
-  gap: 14px;
-}
-
-.timeline-marker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.marker-circle {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.marker-green { background: #E8F5E9; color: #0D631B; }
-.marker-orange { background: #FFEDD5; color: #EA580C; }
-.marker-red { background: #FEE2E2; color: #DC2626; }
-
-.marker-line {
-  width: 2px;
-  flex: 1;
-  background: rgba(203, 213, 225, 0.4);
-  margin-top: 4px;
-}
-
-.timeline-content {
-  flex: 1;
-}
-
-.timeline-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-text-title);
-}
-
-.timeline-sub {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  margin: 2px 0 4px;
-}
-
-.timeline-time {
-  font-size: 11.5px;
-  color: var(--color-text-muted);
-}
-
-/* Mobile Responsive Rules for Dashboard */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .dashboard-main-content {
-    padding: 0;
+    padding: 16px;
     gap: 16px;
   }
 
-  .header-action-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+  .dash-welcome-card {
+    padding: 18px 20px;
   }
 
-  .page-title {
-    font-size: 22px;
+  .welcome-title {
+    font-size: 20px;
   }
 
-  .page-subtitle {
-    font-size: 13px;
-  }
-
-  .btn-primary {
+  .btn-action-main {
     width: 100%;
     justify-content: center;
-    padding: 12px 16px;
-    font-size: 14px;
   }
 
-  .master-chart-card {
-    padding: 14px;
-    border-radius: 14px;
-  }
-
-  .master-chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .master-chart-heading {
-    font-size: 16px;
-  }
-
-  .series-toggle-toolbar {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .series-btn {
-    padding: 5px 8px;
-    font-size: 11px;
-  }
-
-  .chart-quick-analytics-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    padding: 10px;
-  }
-
-  .system-status-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
+  .active-batch-banner {
     padding: 16px;
   }
 
-  .system-status-left {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  .ab-right {
     width: 100%;
-  }
-
-  .system-status-right {
-    width: 100%;
-    border-top: 1px solid rgba(203, 213, 225, 0.4);
-    padding-top: 10px;
-    display: flex;
     justify-content: space-between;
-    align-items: center;
   }
 
-  :global(.dark-theme) .system-status-right {
-    border-top-color: #1E4E61;
-  }
-
-  .activity-card {
-    padding: 16px;
-  }
-
-  .sensor-anomaly-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .btn-check-telemetry {
+  .ab-progress-box {
     width: 100%;
-    justify-content: center;
   }
-}
 
-@media (max-width: 580px) {
-  .stats-grid-5 {
-    grid-template-columns: 1fr;
-    gap: 12px;
+  .simple-svg-wrapper {
+    height: 220px;
   }
-}
 
-/* Global utility */
-.icon-circle {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
-  max-width: 36px;
-  max-height: 36px;
-  aspect-ratio: 1 / 1;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.icon-orange { background: #FFEDD5; }
-.icon-blue { background: #E0F2FE; }
-.icon-amber { background: #FEF3C7; }
-.icon-purple-subtle { background: #F3E8FF; }
-.icon-green-subtle { background: #E8F5E9; }
-
-.text-red { color: #E11D48; }
-.text-blue { color: #0284C7; }
-.text-amber { color: #D97706; }
-.text-purple { color: #9333EA; }
-.text-orange { color: #EA580C; }
-.text-green-dark { color: #0D631B; }
-
-.status-chip {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.chip-on { background: #FEE2E2; color: #DC2626; }
-.chip-off { background: #F1F5F9; color: #64748B; }
-
-.bg-amber-subtle { background: #FEF3C7; }
-.text-amber-dark { color: #B45309; }
-.bg-green-subtle { background: #E8F5E9; }
-.bg-blue-subtle { background: #E0F2FE; }
-.bg-orange-subtle { background: #FFEDD5; }
-.bg-gray-subtle { background: #F1F5F9; }
-
-.dot-green {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #0D631B;
-  color: #FFFFFF;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-@media (max-width: 1280px) {
-  .stats-grid-5 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .ideal-zone-pill {
+    font-size: 10px;
+    padding: 2px 7px;
   }
-}
-
-@media (max-width: 860px) {
-  .stats-grid-5 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .chart-quick-analytics-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* Dashboard Skeleton / Loaded Fade Transition */
-.fade-dashboard-enter-active,
-/* Dashboard AI ETA Pill Styling */
-.dash-eta-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.dash-ai-eta-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: #F3E8FF;
-  color: #7E22CE;
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 12px;
-  border: 1px solid #E9D5FF;
-  white-space: nowrap;
-}
-
-.ai-spark-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #9333EA;
-  box-shadow: 0 0 6px #9333EA;
-  animation: pulse-dot 1.8s infinite ease-in-out;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.4); opacity: 1; }
 }
 
 /* ==========================================================================
-   Sensor Anomaly Alert Banner
+   DARK THEME OVERRIDES FOR OPERATOR DASHBOARD
    ========================================================================== */
-.sensor-anomaly-banner {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 18px;
-  border-radius: 14px;
-  margin-bottom: 18px;
-  border-width: 1px;
-  border-style: solid;
-  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+:global(.dark-theme) .dash-welcome-card,
+:global(.dark-theme) .indicator-card,
+:global(.dark-theme) .simple-chart-card,
+:global(.dark-theme) .alerts-simple-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.sensor-anomaly-banner.banner-warning {
-  background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.04) 100%);
-  border-color: rgba(217, 119, 6, 0.35);
-}
-
-.sensor-anomaly-banner.banner-critical {
-  background: linear-gradient(135deg, rgba(186, 26, 26, 0.12) 0%, rgba(186, 26, 26, 0.04) 100%);
-  border-color: rgba(186, 26, 26, 0.4);
-}
-
-:global(.dark-theme) .sensor-anomaly-banner.banner-warning {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(15, 23, 42, 0.7) 100%);
-  border-color: rgba(245, 158, 11, 0.4);
-}
-
-:global(.dark-theme) .sensor-anomaly-banner.banner-critical {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(15, 23, 42, 0.7) 100%);
-  border-color: rgba(239, 68, 68, 0.45);
-}
-
-.anomaly-banner-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.banner-warning .anomaly-banner-icon {
-  background: rgba(217, 119, 6, 0.18);
-  color: #D97706;
-}
-
-.banner-critical .anomaly-banner-icon {
-  background: rgba(186, 26, 26, 0.18);
-  color: #BA1A1A;
-}
-
-:global(.dark-theme) .banner-warning .anomaly-banner-icon {
-  background: rgba(245, 158, 11, 0.25);
-  color: #FBBF24;
-}
-
-:global(.dark-theme) .banner-critical .anomaly-banner-icon {
-  background: rgba(239, 68, 68, 0.25);
-  color: #F87171;
-}
-
-.anomaly-banner-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.anomaly-banner-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-
-.anomaly-banner-title strong {
-  font-size: 13.5px;
-  color: #0F172A;
-}
-
-:global(.dark-theme) .anomaly-banner-title strong {
+:global(.dark-theme) .welcome-title,
+:global(.dark-theme) .card-big-number,
+:global(.dark-theme) .card-text-large,
+:global(.dark-theme) .chart-title,
+:global(.dark-theme) .alerts-title,
+:global(.dark-theme) .ab-crop-name {
   color: #F8FAFC;
 }
 
-.anomaly-score-tag {
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.06);
-  color: #475569;
-}
-
-:global(.dark-theme) .anomaly-score-tag {
-  background: rgba(255, 255, 255, 0.1);
-  color: #CBD5E1;
-}
-
-.anomaly-banner-desc {
-  font-size: 12px;
-  color: #475569;
-  margin: 0;
-  line-height: 1.4;
-}
-
-:global(.dark-theme) .anomaly-banner-desc {
+:global(.dark-theme) .welcome-desc,
+:global(.dark-theme) .card-title,
+:global(.dark-theme) .card-unit,
+:global(.dark-theme) .card-hint,
+:global(.dark-theme) .chart-subtitle,
+:global(.dark-theme) .ab-meta-row,
+:global(.dark-theme) .ab-progress-text,
+:global(.dark-theme) .simple-chart-time-row {
   color: #94A3B8;
 }
 
-.anomaly-solution-hint {
-  color: #0D631B;
-  font-weight: 600;
-  margin-left: 4px;
+:global(.dark-theme) .chart-legend {
+  color: #CBD5E1;
 }
 
-:global(.dark-theme) .anomaly-solution-hint {
-  color: #34D399;
+:global(.dark-theme) .active-batch-banner {
+  background: #071E27;
+  border-color: #166534;
 }
 
-.btn-check-telemetry {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  background: #0F172A;
+:global(.dark-theme) .ab-badge {
+  background: rgba(22, 101, 52, 0.35);
+  color: #86EFAC;
+}
+
+:global(.dark-theme) .pulse-ring {
+  background: #4ADE80;
+}
+
+:global(.dark-theme) .ab-progress-bar {
+  background: #113847;
+}
+
+:global(.dark-theme) .ab-arrow {
+  color: #4ADE80;
+}
+
+:global(.dark-theme) .icon-temp {
+  background: rgba(217, 119, 6, 0.18);
+}
+
+:global(.dark-theme) .icon-hum {
+  background: rgba(2, 132, 199, 0.18);
+}
+
+:global(.dark-theme) .icon-weather {
+  background: rgba(148, 163, 184, 0.18);
+}
+
+:global(.dark-theme) .icon-heater-on {
+  background: rgba(217, 119, 6, 0.25);
+  color: #FBBF24;
+}
+
+:global(.dark-theme) .icon-heater-off {
+  background: rgba(27, 94, 32, 0.25);
+  color: #4ADE80;
+}
+
+:global(.dark-theme) .btn-heater-start {
+  background: rgba(27, 94, 32, 0.25);
+  color: #4ADE80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+:global(.dark-theme) .btn-heater-start:hover:not(:disabled) {
+  background: #1B5E20;
   color: #FFFFFF;
-  font-size: 11.5px;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
 }
 
-.btn-check-telemetry:hover {
-  background: #1E293B;
-  transform: translateY(-1px);
+:global(.dark-theme) .btn-heater-stop {
+  background: rgba(217, 119, 6, 0.25);
+  color: #FBBF24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
-:global(.dark-theme) .btn-check-telemetry {
-  background: #334155;
-  color: #F8FAFC;
+:global(.dark-theme) .tag-neutral {
+  background: #113847;
+  color: #CBD5E1;
 }
 
-:global(.dark-theme) .btn-check-telemetry:hover {
-  background: #475569;
+:global(.dark-theme) .tag-success {
+  background: rgba(27, 94, 32, 0.25);
+  color: #4ADE80;
+}
+
+:global(.dark-theme) .tag-warning {
+  background: rgba(217, 119, 6, 0.25);
+  color: #FBBF24;
+}
+
+:global(.dark-theme) .tag-danger {
+  background: rgba(220, 38, 38, 0.25);
+  color: #F87171;
+}
+
+:global(.dark-theme) .tag-info {
+  background: rgba(2, 132, 199, 0.25);
+  color: #38BDF8;
+}
+
+:global(.dark-theme) .alert-item {
+  border: 1px solid transparent;
+}
+
+:global(.dark-theme) .alert-danger {
+  background: rgba(220, 38, 38, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #FCA5A5 !important;
+}
+
+:global(.dark-theme) .alert-warning {
+  background: rgba(217, 119, 6, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #FDE68A !important;
+}
+
+:global(.dark-theme) .alert-info {
+  background: rgba(22, 101, 52, 0.25) !important;
+  border-color: rgba(34, 197, 94, 0.25) !important;
+  color: #86EFAC !important;
+}
+
+:global(.dark-theme) .alert-heading {
+  color: #F8FAFC !important;
+}
+
+:global(.dark-theme) .alert-msg {
+  color: #CBD5E1 !important;
+}
+
+:global(.dark-theme) .alert-time {
+  color: #94A3B8 !important;
+}
+
+:global(.dark-theme) .card-text-large.text-neutral {
+  color: #4ADE80;
+}
+
+/* SVG Chart Elements in Dark Mode */
+:global(.dark-theme) .simple-svg line[stroke="#E2E8F0"] {
+  stroke: #1E4E61;
+}
+
+:global(.dark-theme) .simple-svg text[fill="#94A3B8"] {
+  fill: #64748B;
+}
+
+:global(.dark-theme) .simple-svg rect[fill="#DCFCE7"] {
+  fill: rgba(22, 101, 52, 0.25);
+}
+
+:global(.dark-theme) .simple-svg text[fill="#166534"] {
+  fill: #86EFAC;
 }
 </style>

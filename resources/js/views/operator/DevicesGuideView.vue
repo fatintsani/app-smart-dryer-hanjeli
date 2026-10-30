@@ -10,13 +10,35 @@
               <div class="page-title-wrap">
                 <div>
                   <h1 class="page-title">{{ $t('guide.title') }}</h1>
-              <p class="page-subtitle">{{ $t('guide.subtitle') }}</p>
+                  <p class="page-subtitle">{{ $t('guide.subtitle') }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="header-action-group">
+              <button 
+                type="button" 
+                class="btn-open-manual-pdf" 
+                @click="openPdfNewTab"
+                title="Buka Dokumen Manual Book PDF di Tab Baru"
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>{{ $t('guide.openManualPdf') || 'Buka Manual Book PDF' }}</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="icon-external">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </button>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Status Kesiapan SOP Pengeringan Hanjeli -->
+          <!-- Status Kesiapan SOP Pengeringan Hanjeli -->
       <div class="system-overview-banner banner-ready">
         <div class="banner-left">
           <div class="banner-status-icon">
@@ -59,7 +81,7 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs (Khusus Operator: SOP dan Panduan Kendala) -->
+      <!-- Navigation Tabs (Khusus Operator: SOP, Kendala, & Manual Book) -->
       <div class="guide-nav-tabs">
         <button 
           class="guide-tab-btn" 
@@ -87,6 +109,19 @@
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
           <span>{{ $t('guide.tabFaq') }}</span>
+        </button>
+
+        <button 
+          class="guide-tab-btn guide-tab-btn-manual" 
+          :class="{ active: activeTab === 'manual' }"
+          @click="activeTab = 'manual'"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>{{ $t('guide.tabManual') || 'Buku Panduan (Manual Book PDF)' }}</span>
+          <span class="manual-tab-badge">PDF</span>
         </button>
       </div>
 
@@ -273,13 +308,103 @@
           <!-- Help Contact Box -->
           <div class="faq-contact-card">
             <div class="contact-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
               </svg>
             </div>
             <div class="contact-info">
               <h4 class="contact-title">{{ $t('guide.contactTitle') }}</h4>
               <p class="contact-sub">{{ $t('guide.contactSub') }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: BUKU PANDUAN MANUAL BOOK PDF -->
+      <div v-if="activeTab === 'manual'" class="tab-pane">
+        <div class="manual-book-container">
+          <!-- Hero Card Manual Book -->
+          <div class="manual-hero-card">
+            <div class="manual-hero-left">
+              <div class="manual-icon-badge">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+              </div>
+              <div class="manual-hero-info">
+                <div class="manual-hero-meta">
+                  <span class="manual-tag">DOKUMEN RESMI ABDIMAS</span>
+                  <span class="manual-tag-sub">Format PDF • 18 Halaman • 1.05 MB</span>
+                </div>
+                <h3 class="manual-hero-title">MANUAL BOOK ABDIMAS DESA HANJELI - WEBSITE SMART DRYER</h3>
+                <p class="manual-hero-desc">
+                  Buku petunjuk operasional lengkap: tata cara login, konfigurasi konektivitas ESP32 (Wi-Fi, BLE, MQTT), navigasi dasbor, monitoring telemetri, pembuatan batch pengeringan, hingga pencetakan label QR ketertelusuran produk.
+                </p>
+              </div>
+            </div>
+            <div class="manual-hero-actions">
+              <button 
+                type="button" 
+                class="btn-manual-action btn-manual-open" 
+                @click="openPdfNewTab"
+                title="Buka dokumen di tab browser terpisah"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                <span>Buka di Tab Baru</span>
+              </button>
+              <a 
+                href="/manual-book/download" 
+                download="MANUAL-BOOK-WEBSITE-SMART-DRYER-HANJELI.pdf"
+                class="btn-manual-action btn-manual-download"
+                title="Unduh file PDF ke komputer / smartphone"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Unduh PDF</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Embedded PDF Viewer Card -->
+          <div class="manual-viewer-card">
+            <div class="manual-viewer-toolbar">
+              <div class="viewer-toolbar-left">
+                <span class="viewer-doc-indicator"></span>
+                <span class="viewer-doc-name">MANUAL BOOK ABDIMAS DESA HANJELI - WEBSITE SMART DRYER.pdf</span>
+              </div>
+              <div class="viewer-toolbar-right">
+                <span class="viewer-hint">Gunakan tombol zoom & navigasi halaman di toolbar PDF bawaan</span>
+                <button 
+                  type="button" 
+                  class="btn-viewer-fullscreen" 
+                  @click="openPdfNewTab" 
+                  title="Buka tampilan penuh dokumen di tab baru"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <polyline points="9 21 3 21 3 15"></polyline>
+                    <line x1="21" y1="3" x2="14" y2="10"></line>
+                    <line x1="3" y1="21" x2="10" y2="14"></line>
+                  </svg>
+                  <span>Layar Penuh</span>
+                </button>
+              </div>
+            </div>
+            <div class="viewer-frame-container">
+              <iframe 
+                src="/docs/manual-book.pdf#toolbar=1&navpanes=1" 
+                class="manual-pdf-iframe"
+                title="Manual Book Smart Dryer Hanjeli"
+                loading="lazy"
+              ></iframe>
             </div>
           </div>
         </div>
@@ -312,19 +437,35 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import HanjeliLogo from '../../components/HanjeliLogo.vue';
 import StasLogo from '../../components/StasLogo.vue';
 import GuideSkeleton from '../../components/GuideSkeleton.vue';
 import { useI18n } from '../../i18n';
 
+const route = useRoute();
 const { t } = useI18n();
 
 const isInitialLoading = ref(true);
-const activeTab = ref('sop');
+const initialTab = route?.query?.tab === 'manual' ? 'manual' : (route?.query?.tab === 'faq' ? 'faq' : 'sop');
+const activeTab = ref(initialTab);
 const openFaq = ref(1);
 
+watch(() => route?.query?.tab, (newTab) => {
+  if (newTab === 'manual' || newTab === 'faq' || newTab === 'sop') {
+    activeTab.value = newTab;
+  }
+});
+
+const openPdfNewTab = () => {
+  window.open('/docs/manual-book.pdf', '_blank');
+};
+
 onMounted(() => {
+  if (route?.query?.tab === 'manual') {
+    activeTab.value = 'manual';
+  }
   setTimeout(() => {
     isInitialLoading.value = false;
   }, 350);
@@ -340,8 +481,8 @@ onMounted(() => {
 }
 
 .guide-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -354,6 +495,52 @@ onMounted(() => {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
+}
+
+.header-action-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-open-manual-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #1B5E20;
+  color: #FFFFFF;
+  border: 1px solid #1B5E20;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(27, 94, 32, 0.2);
+}
+
+.btn-open-manual-pdf:hover {
+  background: #2E7D32;
+  border-color: #2E7D32;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.28);
+}
+
+.btn-open-manual-pdf .icon-external {
+  opacity: 0.85;
+}
+
+:global(.dark-theme) .btn-open-manual-pdf {
+  background: #10B981;
+  border-color: #10B981;
+  color: #052317;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+:global(.dark-theme) .btn-open-manual-pdf:hover {
+  background: #34D399;
+  border-color: #34D399;
+  color: #052317;
 }
 
 .page-title-wrap {
@@ -1784,6 +1971,351 @@ onMounted(() => {
 :global(.dark-theme) .step-desc code {
   background: rgba(255, 255, 255, 0.1);
   color: #93C5FD;
+}
+
+/* Tab 3 Badge */
+.manual-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(27, 94, 32, 0.12);
+  color: #1B5E20;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+}
+
+:global(.dark-theme) .manual-tab-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6EE7B7;
+}
+
+/* Manual Book Tab Styles */
+.manual-book-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.manual-hero-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:global(.dark-theme) .manual-hero-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+}
+
+.manual-hero-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  flex: 1;
+}
+
+.manual-icon-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+:global(.dark-theme) .manual-icon-badge {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+:global(.dark-theme) .manual-icon-badge svg {
+  stroke: #6EE7B7;
+}
+
+.manual-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.manual-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.manual-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #DCFCE7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+:global(.dark-theme) .manual-tag {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6EE7B7;
+}
+
+.manual-tag-sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+:global(.dark-theme) .manual-tag-sub {
+  color: #94A3B8;
+}
+
+.manual-hero-title {
+  margin: 2px 0 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.35;
+}
+
+:global(.dark-theme) .manual-hero-title {
+  color: #FFFFFF;
+}
+
+.manual-hero-desc {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.55;
+  max-width: 820px;
+}
+
+:global(.dark-theme) .manual-hero-desc {
+  color: #CBD5E1;
+}
+
+.manual-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btn-manual-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.btn-manual-open {
+  background: #1B5E20;
+  color: #FFFFFF;
+  border: 1px solid #1B5E20;
+  box-shadow: 0 2px 6px rgba(27, 94, 32, 0.18);
+}
+
+.btn-manual-open:hover {
+  background: #2E7D32;
+  border-color: #2E7D32;
+  transform: translateY(-1px);
+}
+
+:global(.dark-theme) .btn-manual-open {
+  background: #10B981;
+  border-color: #10B981;
+  color: #052317;
+}
+
+:global(.dark-theme) .btn-manual-open:hover {
+  background: #34D399;
+  border-color: #34D399;
+  color: #052317;
+}
+
+.btn-manual-download {
+  background: #F8FAFC;
+  color: #0F172A;
+  border: 1px solid #CBD5E1;
+}
+
+.btn-manual-download:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+  color: #0F172A;
+  transform: translateY(-1px);
+}
+
+:global(.dark-theme) .btn-manual-download {
+  background: #0E3443;
+  color: #E2E8F0;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .btn-manual-download:hover {
+  background: #164254;
+  color: #FFFFFF;
+  border-color: #25657E;
+}
+
+/* Embedded PDF Viewer Card */
+.manual-viewer-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+:global(.dark-theme) .manual-viewer-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+}
+
+.manual-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+:global(.dark-theme) .manual-viewer-toolbar {
+  background: #0E3443;
+  border-bottom-color: #1E4E61;
+}
+
+.viewer-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.viewer-doc-indicator {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.viewer-doc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+:global(.dark-theme) .viewer-doc-name {
+  color: #FFFFFF;
+}
+
+.viewer-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.viewer-hint {
+  font-size: 12px;
+  color: #64748B;
+}
+
+:global(.dark-theme) .viewer-hint {
+  color: #94A3B8;
+}
+
+.btn-viewer-fullscreen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-viewer-fullscreen:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-color: #94A3B8;
+}
+
+:global(.dark-theme) .btn-viewer-fullscreen {
+  background: #0B242F;
+  border-color: #1E4E61;
+  color: #CBD5E1;
+}
+
+:global(.dark-theme) .btn-viewer-fullscreen:hover {
+  background: #164254;
+  color: #FFFFFF;
+}
+
+.viewer-frame-container {
+  width: 100%;
+  background: #525659;
+  position: relative;
+  min-height: 820px;
+}
+
+.manual-pdf-iframe {
+  width: 100%;
+  height: 860px;
+  border: none;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .manual-hero-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px;
+  }
+  .manual-hero-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  .btn-manual-action {
+    width: 100%;
+    justify-content: center;
+  }
+  .manual-pdf-iframe {
+    height: 600px;
+  }
+  .viewer-hint {
+    display: none;
+  }
 }
 
 /* Page Transition for Skeleton */

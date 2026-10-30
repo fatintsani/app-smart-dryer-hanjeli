@@ -634,12 +634,13 @@ onMounted(() => {
 }
 
 .admin-content {
-  padding: 32px 40px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .header-action-row {
@@ -686,7 +687,7 @@ onMounted(() => {
 
 .admin-feedback-toast.success {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
   border: 1px solid #C8E6C9;
 }
 
@@ -856,7 +857,7 @@ onMounted(() => {
 
 .role-select:focus {
   outline: 2px solid rgba(13, 99, 27, 0.2) !important;
-  border-color: #0D631B;
+  border-color: #1B5E20;
 }
 
 .btn-icon-edit {
@@ -865,7 +866,7 @@ onMounted(() => {
   border-radius: 6px;
   border: 1px solid rgba(13, 99, 27, 0.25);
   background: rgba(13, 99, 27, 0.06);
-  color: #0D631B;
+  color: #1B5E20;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -874,7 +875,7 @@ onMounted(() => {
 }
 
 .btn-icon-edit:hover {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
 }
 
@@ -910,7 +911,7 @@ onMounted(() => {
 
 .btn-primary {
   padding: 10px 20px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -944,7 +945,7 @@ onMounted(() => {
 
 .btn-secondary-action:hover {
   background: var(--color-white);
-  border-color: #0D631B;
+  border-color: #1B5E20;
 }
 
 .badge-pill {
@@ -957,7 +958,7 @@ onMounted(() => {
 }
 
 .bg-green-subtle { background: rgba(46, 125, 50, 0.15); }
-.text-green-dark { color: #0D631B; }
+.text-green-dark { color: #1B5E20; }
 .bg-orange-subtle { background: rgba(180, 80, 0, 0.12); }
 .text-orange { color: #B45000; }
 .bg-gray-subtle { background: rgba(112, 122, 108, 0.12); }
@@ -1046,13 +1047,13 @@ onMounted(() => {
 }
 
 .filter-tab-pill:hover {
-  border-color: #0D631B;
-  color: #0D631B;
+  border-color: #1B5E20;
+  color: #1B5E20;
 }
 
 .filter-tab-pill.active {
-  background: #0D631B;
-  border-color: #0D631B;
+  background: #1B5E20;
+  border-color: #1B5E20;
   color: #FFFFFF;
 }
 
@@ -1101,7 +1102,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border: none;
   border-radius: 6px;
@@ -1228,7 +1229,7 @@ select.modern-input {
 }
 
 .modern-input:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   outline: 2px solid rgba(13, 99, 27, 0.2) !important;
   outline-offset: 1px;
 }

@@ -7,7 +7,7 @@
         <div class="nav-brand" @click="router.push('/')">
           <div class="brand-icon-box">
             <img v-if="logoSrc" :src="logoSrc" alt="Hanjeli Logo" class="brand-logo-img" />
-            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
             </svg>
           </div>
@@ -59,7 +59,7 @@
                   <FlagIcon code="id" :size="18" />
                   <span>Bahasa Indonesia</span>
                 </div>
-                <svg v-if="currentLang === 'id'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="3">
+                <svg v-if="currentLang === 'id'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="3">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               </button>
@@ -73,7 +73,7 @@
                   <FlagIcon code="en" :size="18" />
                   <span>English</span>
                 </div>
-                <svg v-if="currentLang === 'en'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="3">
+                <svg v-if="currentLang === 'en'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="3">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               </button>
@@ -216,7 +216,7 @@
         <div class="search-bar-card">
           <div class="search-input-wrapper">
             <div class="search-icon-box">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
                 <rect x="14" y="14" width="7" height="7"></rect>
@@ -273,7 +273,7 @@
               <img src="/assets/img/stas.png" alt="Logo STAS-RG" class="cert-partner-logo" />
             </div>
             <div class="cert-seal-badge">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 <polyline points="9 12 11 14 15 10"></polyline>
               </svg>
@@ -311,7 +311,7 @@
         <section class="info-card origin-card">
           <div class="card-header-flex">
             <div class="card-header-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
               </svg>
@@ -352,7 +352,7 @@
         <!-- 2.5. AUTOMATED QUALITY GRADING & SNI CERTIFICATION SCORE -->
         <section class="info-card quality-scoring-card">
           <div class="card-header-flex">
-            <div class="card-header-icon" style="background: rgba(13, 99, 27, 0.12); color: #0D631B;">
+            <div class="card-header-icon" style="background: rgba(13, 99, 27, 0.12); color: #1B5E20;">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <circle cx="12" cy="8" r="6"></circle>
                 <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
@@ -490,7 +490,7 @@
           <!-- Hygiene & Quality Statement -->
           <div class="hygiene-statement-box">
             <div class="hygiene-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
@@ -568,7 +568,7 @@
                 <polyline 
                   :points="generateChartPoints('grainMoisture', 50)" 
                   fill="none" 
-                  stroke="#0D631B" 
+                  stroke="#1B5E20" 
                   stroke-width="3" 
                   stroke-linecap="round"
                 />
@@ -687,7 +687,7 @@
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
-              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
+              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
               <span>{{ isCopied ? (currentLang === 'id' ? 'Tautan Tersalin!' : 'Link Copied!') : (currentLang === 'id' ? 'Salin Tautan Sertifikat' : 'Copy Certificate Link') }}</span>
@@ -711,7 +711,7 @@
         <!-- Hero Intro Card -->
         <section class="portal-hero-card">
           <div class="portal-hero-badge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               <polyline points="9 12 11 14 15 10"></polyline>
             </svg>
@@ -826,7 +826,7 @@
             <div class="footer-brand-header">
               <div class="footer-brand-logo-box">
                 <img v-if="logoSrc" :src="logoSrc" alt="Hanjeli Logo" class="footer-hanjeli-logo" />
-                <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                 </svg>
               </div>
@@ -969,7 +969,7 @@
                 ></iframe>
               </div>
               <div class="footer-map-address" title="Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                   <circle cx="12" cy="10" r="3"></circle>
                 </svg>
@@ -1300,7 +1300,7 @@ async function printCertificate() {
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-        <style>
+        ${'<' + 'style>'}
           @page {
             size: A4 portrait;
             margin: 8mm 10mm;
@@ -1320,7 +1320,7 @@ async function printCertificate() {
             line-height: 1.35;
           }
           .cert-outer-wrapper {
-            border: 3.5px solid #0D631B;
+            border: 3.5px solid #1B5E20;
             padding: 3.5px;
             border-radius: 8px;
             background: #FFFFFF;
@@ -1354,7 +1354,7 @@ async function printCertificate() {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 2px solid #0D631B;
+            border-bottom: 2px solid #1B5E20;
             padding-bottom: 8px;
             margin-bottom: 10px;
             position: relative;
@@ -1381,7 +1381,7 @@ async function printCertificate() {
           .kop-title-1 {
             font-size: 12px;
             font-weight: 900;
-            color: #0D631B;
+            color: #1B5E20;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             margin: 0;
@@ -1407,7 +1407,7 @@ async function printCertificate() {
             display: inline-block;
             background: #E8F5E9;
             border: 1px solid #86EFAC;
-            color: #0D631B;
+            color: #1B5E20;
             font-family: monospace;
             font-size: 9px;
             font-weight: 800;
@@ -1419,7 +1419,7 @@ async function printCertificate() {
           .cert-main-h1 {
             font-size: 14.5px;
             font-weight: 900;
-            color: #0D631B;
+            color: #1B5E20;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             margin: 0;
@@ -1437,7 +1437,7 @@ async function printCertificate() {
             margin-bottom: 9px;
             line-height: 1.4;
             background: #F8FAFC;
-            border-left: 3px solid #0D631B;
+            border-left: 3px solid #1B5E20;
             padding: 5px 8px;
             border-radius: 0 4px 4px 0;
           }
@@ -1469,7 +1469,7 @@ async function printCertificate() {
             margin-bottom: 9px;
           }
           .quality-grade-box {
-            border: 1.5px solid #0D631B;
+            border: 1.5px solid #1B5E20;
             background: #F4FBF5;
             border-radius: 6px;
             padding: 8px 10px;
@@ -1483,7 +1483,7 @@ async function printCertificate() {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #0D631B;
+            background: #1B5E20;
             color: #FFFFFF;
             font-size: 20px;
             font-weight: 900;
@@ -1496,7 +1496,7 @@ async function printCertificate() {
           .grade-title-txt {
             font-size: 9.5px;
             font-weight: 800;
-            color: #0D631B;
+            color: #1B5E20;
             margin: 0;
             line-height: 1.2;
           }
@@ -1509,7 +1509,7 @@ async function printCertificate() {
           .grade-sni-pill {
             font-size: 7.5px;
             font-weight: 800;
-            background: #0D631B;
+            background: #1B5E20;
             color: #FFFFFF;
             padding: 2px 6px;
             border-radius: 3px;
@@ -1548,7 +1548,7 @@ async function printCertificate() {
             display: flex;
             align-items: center;
             gap: 12px;
-            border: 1px solid #0D631B;
+            border: 1px solid #1B5E20;
             background: #F4F7F5;
             border-radius: 6px;
             padding: 7px 10px;
@@ -1569,7 +1569,7 @@ async function printCertificate() {
           .qr-title {
             font-size: 9.5px;
             font-weight: 800;
-            color: #0D631B;
+            color: #1B5E20;
             margin: 0 0 2px 0;
             letter-spacing: 0.3px;
           }
@@ -1611,8 +1611,8 @@ async function printCertificate() {
             top: 15px;
             left: 50%;
             transform: translateX(-50%);
-            border: 1.5px dashed #0D631B;
-            color: #0D631B;
+            border: 1.5px dashed #1B5E20;
+            color: #1B5E20;
             font-size: 7px;
             font-weight: 800;
             padding: 2px 5px;
@@ -1636,7 +1636,7 @@ async function printCertificate() {
             color: #94A3B8;
             font-style: italic;
           }
-        </style>
+        ${'<' + '/style>'}
       </head>
       <body>
         <div class="cert-outer-wrapper">
@@ -1671,7 +1671,7 @@ async function printCertificate() {
                   <td class="td-lbl">Varietas Biji</td>
                   <td class="td-val font-bold">${variety}</td>
                   <td class="td-lbl">Kode Batch Terdaftar</td>
-                  <td class="td-val" style="font-family: monospace; font-weight: 700; color: #0D631B;">${code}</td>
+                  <td class="td-val" style="font-family: monospace; font-weight: 700; color: #1B5E20;">${code}</td>
                 </tr>
                 <tr>
                   <td class="td-lbl">Asal Budidaya</td>
@@ -1711,7 +1711,7 @@ async function printCertificate() {
                 <div class="params-grid">
                   <div class="param-card">
                     <div class="param-title">1. Kadar Air Akhir (Moisture)</div>
-                    <div class="param-val" style="color: #0D631B;">${finalM}%</div>
+                    <div class="param-val" style="color: #1B5E20;">${finalM}%</div>
                     <div class="param-note">Awal: ${initialM}% (Turun ${moistureReduction}% • SNI &le;14%)</div>
                   </div>
 
@@ -1924,12 +1924,12 @@ async function printCertificate() {
 }
 
 .nav-links a:hover {
-  color: #0D631B;
+  color: #1B5E20;
   background: rgba(13, 99, 27, 0.06);
 }
 
 .nav-links a.active {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
 }
 
@@ -2021,7 +2021,7 @@ async function printCertificate() {
 
 .mobile-menu-btn:hover {
   background: rgba(13, 99, 27, 0.1);
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .theme-icon {
@@ -2068,12 +2068,12 @@ async function printCertificate() {
 
 .lang-option:hover {
   background: #F4F7F5;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .lang-option.active {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .lang-option-lead {
@@ -2088,7 +2088,7 @@ async function printCertificate() {
   align-items: center;
   gap: 8px;
   padding: 8px 18px;
-  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  background: linear-gradient(180deg, #15803D 0%, #1B5E20 55%, #094713 100%);
   color: #FFFFFF !important;
   font-size: 13.5px;
   font-weight: 700;
@@ -2103,13 +2103,13 @@ async function printCertificate() {
 }
 
 .btn-nav-login:hover {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 4px 14px rgba(13, 99, 27, 0.38) !important;
   transform: translateY(-1.5px);
 }
 
 .btn-nav-login:active {
-  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
   transform: scale(0.98);
 }
@@ -2165,7 +2165,7 @@ async function printCertificate() {
   height: 32px;
   border-radius: 8px;
   background: rgba(13, 99, 27, 0.08);
-  color: #0D631B;
+  color: #1B5E20;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2187,7 +2187,7 @@ async function printCertificate() {
 .mobile-drawer-links a:hover,
 .mobile-drawer-links a.active {
   background: rgba(13, 99, 27, 0.08);
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .dark-landing .mobile-drawer-links a:hover,
@@ -2198,11 +2198,11 @@ async function printCertificate() {
 
 .mobile-drawer-links a.active .link-icon-chip {
   background: rgba(13, 99, 27, 0.16) !important;
-  color: #0D631B !important;
+  color: #1B5E20 !important;
 }
 
 .mobile-drawer-links a.active .link-icon-chip svg {
-  stroke: #0D631B !important;
+  stroke: #1B5E20 !important;
   fill: none !important;
 }
 
@@ -2225,7 +2225,7 @@ async function printCertificate() {
   position: relative;
   width: 100%;
   padding: 12px 20px;
-  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  background: linear-gradient(180deg, #15803D 0%, #1B5E20 55%, #094713 100%);
   color: #FFFFFF !important;
   border: 1px solid rgba(13, 99, 27, 0.4);
   border-radius: 12px;
@@ -2243,13 +2243,13 @@ async function printCertificate() {
 }
 
 .btn-mobile-login:hover {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 6px 18px rgba(13, 99, 27, 0.38) !important;
   transform: translateY(-1.5px);
 }
 
 .btn-mobile-login:active {
-  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
   transform: scale(0.98);
 }
@@ -2299,7 +2299,7 @@ async function printCertificate() {
 }
 
 .dark-landing .nav-links a.active {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
 }
 
@@ -2441,7 +2441,7 @@ async function printCertificate() {
 
 .btn-search {
   position: relative;
-  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  background: linear-gradient(180deg, #15803D 0%, #1B5E20 55%, #094713 100%);
   color: #FFFFFF !important;
   border: 1px solid rgba(13, 99, 27, 0.4);
   border-radius: 10px;
@@ -2456,13 +2456,13 @@ async function printCertificate() {
 }
 
 .btn-search:hover {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 4px 14px rgba(13, 99, 27, 0.35) !important;
   transform: translateY(-1.5px);
 }
 
 .btn-search:active {
-  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
   transform: scale(0.98);
 }
@@ -2490,7 +2490,7 @@ async function printCertificate() {
   width: 40px;
   height: 40px;
   border: 3px solid rgba(13, 99, 27, 0.2);
-  border-top-color: #0D631B;
+  border-top-color: #1B5E20;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -2536,7 +2536,7 @@ async function printCertificate() {
 /* Certificate Banner */
 .certificate-banner-card {
   background: var(--color-card-bg, #FFFFFF);
-  border: 2px solid #0D631B;
+  border: 2px solid #1B5E20;
   border-radius: 14px;
   padding: 24px;
   display: flex;
@@ -2566,8 +2566,8 @@ async function printCertificate() {
   align-items: center;
   gap: 6px;
   background: rgba(13, 99, 27, 0.1);
-  color: #0D631B;
-  border: 1px solid #0D631B;
+  color: #1B5E20;
+  border: 1px solid #1B5E20;
   border-radius: 30px;
   padding: 6px 14px;
   font-size: 0.75rem;
@@ -2584,7 +2584,7 @@ async function printCertificate() {
 .cert-subheading {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -2637,7 +2637,7 @@ async function printCertificate() {
   font-weight: 800;
 }
 
-.text-green-dark { color: #0D631B; }
+.text-green-dark { color: #1B5E20; }
 .text-purple { color: #7C3AED; }
 
 /* Info Card */
@@ -2705,7 +2705,7 @@ async function printCertificate() {
 
 .badge-grade-a {
   background: rgba(13, 99, 27, 0.1);
-  color: #0D631B;
+  color: #1B5E20;
   border-color: rgba(13, 99, 27, 0.25);
 }
 
@@ -2828,7 +2828,7 @@ async function printCertificate() {
   gap: 5px;
   font-size: 11px;
   font-weight: 600;
-  color: #0D631B;
+  color: #1B5E20;
   margin-top: 2px;
 }
 
@@ -2986,7 +2986,7 @@ async function printCertificate() {
 
 .hygiene-icon {
   margin-top: 2px;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .hygiene-text {
@@ -2998,7 +2998,7 @@ async function printCertificate() {
 .hygiene-title {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .hygiene-desc {
@@ -3037,7 +3037,7 @@ async function printCertificate() {
 
 .bg-orange { background: #EA580C; }
 .bg-blue { background: #0284C7; }
-.bg-green { background: #0D631B; }
+.bg-green { background: #1B5E20; }
 
 .svg-chart-wrapper {
   background: var(--color-bg, #F4F7F5);
@@ -3108,8 +3108,8 @@ async function printCertificate() {
 }
 
 .btn-action-outline:hover {
-  border-color: #0D631B;
-  color: #0D631B;
+  border-color: #1B5E20;
+  color: #1B5E20;
   background: linear-gradient(180deg, #FFFFFF 0%, #E8F5E9 100%);
   transform: translateY(-1.5px);
   box-shadow:
@@ -3130,7 +3130,7 @@ async function printCertificate() {
   padding: 9px 18px;
   border: 1px solid rgba(13, 99, 27, 0.4);
   border-radius: 10px;
-  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  background: linear-gradient(180deg, #15803D 0%, #1B5E20 55%, #094713 100%);
   color: #FFFFFF !important;
   font-size: 0.8125rem;
   font-weight: 700;
@@ -3145,7 +3145,7 @@ async function printCertificate() {
 }
 
 .btn-primary:hover {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   border-color: rgba(13, 99, 27, 0.5);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
@@ -3155,7 +3155,7 @@ async function printCertificate() {
 }
 
 .btn-primary:active {
-  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
   transform: scale(0.98);
 }
@@ -3227,7 +3227,7 @@ async function printCertificate() {
 }
 
 .footer-social-btn:hover {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   border-color: rgba(13, 99, 27, 0.4);
   color: #FFFFFF !important;
   transform: translateY(-2px);
@@ -3267,7 +3267,7 @@ async function printCertificate() {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #0D631B 0%, #0284C7 100%);
+  background: linear-gradient(90deg, #1B5E20 0%, #0284C7 100%);
 }
 
 .portal-hero-badge {
@@ -3278,7 +3278,7 @@ async function printCertificate() {
   border: 1px solid rgba(13, 99, 27, 0.25);
   border-radius: 30px;
   padding: 6px 14px;
-  color: #0D631B;
+  color: #1B5E20;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.3px;
@@ -3346,7 +3346,7 @@ async function printCertificate() {
 }
 
 .stage-card:hover {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   transform: translateY(-5px);
   box-shadow: 0 14px 28px -6px rgba(13, 99, 27, 0.14);
 }
@@ -3467,7 +3467,7 @@ async function printCertificate() {
 .footer-brand-badge {
   font-size: 11.5px;
   font-weight: 700;
-  color: #0d631b;
+  color: #1B5E20;
   letter-spacing: 0.3px;
 }
 
@@ -3507,7 +3507,7 @@ async function printCertificate() {
 }
 
 .footer-social-btn:hover {
-  background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+  background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #1B5E20 100%);
   border-color: rgba(13, 99, 27, 0.4);
   color: #ffffff !important;
   transform: translateY(-2px);
@@ -3539,7 +3539,7 @@ async function printCertificate() {
 .footer-green-bar {
   width: 24px;
   height: 2.5px;
-  background: #0d631b;
+  background: #1B5E20;
   border-radius: 2px;
 }
 
@@ -3560,7 +3560,7 @@ async function printCertificate() {
 }
 
 .footer-nav-list a:hover {
-  color: #0d631b;
+  color: #1B5E20;
   transform: translateX(3px);
 }
 
@@ -3582,7 +3582,7 @@ async function printCertificate() {
   height: 22px;
   background: transparent;
   border: none;
-  color: #0d631b;
+  color: #1B5E20;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3616,7 +3616,7 @@ async function printCertificate() {
 }
 
 a.contact-value:hover {
-  color: #0d631b;
+  color: #1B5E20;
   text-decoration: underline;
 }
 
@@ -3677,7 +3677,7 @@ a.contact-value:hover {
 .footer-tagline {
   font-size: 11px;
   font-weight: 600;
-  color: #0d631b;
+  color: #1B5E20;
 }
 
 /* Dark Mode Overrides for Verification & Portal Cards */
@@ -3842,7 +3842,7 @@ a.contact-value:hover {
 }
 
 .dark-landing .footer-social-btn:hover {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   border-color: #4ADE80;
   color: #FFFFFF !important;
   box-shadow:
@@ -3875,7 +3875,7 @@ a.contact-value:hover {
 }
 
 .dark-landing .footer-social-btn:hover {
-  background: #0d631b;
+  background: #1B5E20;
   border-color: #4ade80;
   color: #ffffff;
 }
@@ -4502,7 +4502,7 @@ a.contact-value:hover {
   }
 
   .certificate-banner-card {
-    border: 2px solid #0D631B !important;
+    border: 2px solid #1B5E20 !important;
     page-break-inside: avoid;
     break-inside: avoid;
   }

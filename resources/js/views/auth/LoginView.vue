@@ -897,7 +897,7 @@ onMounted(() => {
 .login-banner {
   flex: 1;
   height: 100vh;
-  background: linear-gradient(135deg, #1B5E20 0%, #0D631B 50%, #073810 100%);
+  background: linear-gradient(135deg, #1B5E20 0%, #1B5E20 50%, #073810 100%);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1053,7 +1053,7 @@ onMounted(() => {
 .brand-title-green {
   font-size: 22px;
   font-weight: 800;
-  color: #0D631B;
+  color: #1B5E20;
   letter-spacing: -0.3px;
 }
 
@@ -1084,7 +1084,7 @@ onMounted(() => {
   background: transparent;
   border: none;
   padding: 0;
-  color: #0D631B;
+  color: #1B5E20;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -1170,8 +1170,8 @@ onMounted(() => {
 
 .google-auth-full-btn:hover:not(:disabled) {
   background: linear-gradient(180deg, #FFFFFF 0%, #E8F5E9 100%);
-  border-color: #0D631B;
-  color: #0D631B;
+  border-color: #1B5E20;
+  color: #1B5E20;
   transform: translateY(-1.5px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 1),
@@ -1222,7 +1222,7 @@ onMounted(() => {
 .passkey-auth-btn:hover:not(:disabled) {
   background: linear-gradient(180deg, #DCFCE7 0%, #BBF7D0 100%);
   border-color: #16A34A;
-  color: #0D631B;
+  color: #1B5E20;
   transform: translateY(-1.5px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
@@ -1247,7 +1247,7 @@ onMounted(() => {
 
 .passkey-auth-btn:hover .passkey-icon {
   transform: scale(1.1);
-  stroke: #0D631B;
+  stroke: #1B5E20;
 }
 
 .login-form {
@@ -1294,7 +1294,7 @@ onMounted(() => {
 }
 
 .input-field-wrapper:focus-within .field-icon {
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .text-input, .text-select {
@@ -1327,7 +1327,7 @@ onMounted(() => {
 }
 
 .text-input:focus, .text-select:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   background: #FFFFFF;
   box-shadow: 0 0 0 3.5px rgba(13, 99, 27, 0.12), 0 1px 2px rgba(0, 0, 0, 0.05);
 }
@@ -1361,7 +1361,7 @@ onMounted(() => {
 }
 
 .toggle-pwd-btn:hover {
-  color: #0D631B;
+  color: #1B5E20;
   background: #F1F5F9;
 }
 
@@ -1383,12 +1383,12 @@ onMounted(() => {
 }
 
 .remember-me input[type="checkbox"] {
-  accent-color: #0D631B;
+  accent-color: #1B5E20;
   cursor: pointer;
 }
 
 .forgot-link {
-  color: #0D631B;
+  color: #1B5E20;
   font-weight: 700;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -1403,7 +1403,7 @@ onMounted(() => {
   position: relative;
   width: 100%;
   padding: 12px 18px;
-  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  background: linear-gradient(180deg, #15803D 0%, #1B5E20 55%, #094713 100%);
   color: #FFFFFF !important;
   border: 1px solid rgba(13, 99, 27, 0.4);
   border-radius: 10px;
@@ -1424,7 +1424,7 @@ onMounted(() => {
 }
 
 .submit-login-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   border-color: rgba(13, 99, 27, 0.5);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
@@ -1434,7 +1434,7 @@ onMounted(() => {
 }
 
 .submit-login-btn:active:not(:disabled) {
-  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
   transform: scale(0.98);
 }
@@ -1501,7 +1501,7 @@ onMounted(() => {
 .mobile-brand-title {
   font-size: 19px;
   font-weight: 800;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .mobile-brand-sub {
@@ -1598,7 +1598,7 @@ onMounted(() => {
 
 .alert-modal-icon-badge.info {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .alert-modal-titles {
@@ -1673,7 +1673,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 9.5px 22px;
-  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  background: linear-gradient(180deg, #15803D 0%, #1B5E20 55%, #094713 100%);
   color: #FFFFFF !important;
   border: 1px solid rgba(13, 99, 27, 0.4);
   border-radius: 10px;
@@ -1690,7 +1690,7 @@ onMounted(() => {
 }
 
 .btn-alert-dismiss:hover {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   border-color: rgba(13, 99, 27, 0.5);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
@@ -1700,8 +1700,56 @@ onMounted(() => {
 }
 
 .btn-alert-dismiss:active {
-  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
   transform: scale(0.98);
+}
+
+/* ==========================================================================
+   DARK THEME OVERRIDES FOR LOGIN VIEW
+   ========================================================================== */
+:global(.dark-theme) .login-form-side,
+:global(.dark-theme) .mobile-login-card,
+:global(.dark-theme) .alert-modal-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .desktop-login-container,
+:global(.dark-theme) .mobile-login-container {
+  background: #071E27;
+}
+
+:global(.dark-theme) .welcome-sub,
+:global(.dark-theme) .input-label,
+:global(.dark-theme) .toggle-pwd-btn,
+:global(.dark-theme) .remember-label,
+:global(.dark-theme) .alert-modal-titles p,
+:global(.dark-theme) .alert-modal-message {
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .text-input {
+  background: #071E27;
+  border-color: #1E4E61;
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .text-input:focus {
+  background: #09202A;
+  border-color: #16A34A;
+}
+
+:global(.dark-theme) .forgot-link {
+  color: #4ADE80;
+}
+
+:global(.dark-theme) .alert-modal-titles h3 {
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .alert-modal-foot {
+  background: #09202A;
+  border-top-color: #1E4E61;
 }
 </style>

@@ -228,11 +228,11 @@ defineEmits(['update:activeTab'])
 }
 
 .nav-tab.active {
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .nav-tab.active .icon-container {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border-radius: 9999px;
   padding: 4px;

@@ -69,7 +69,7 @@
           <div class="stat-card-header">
             <span class="stat-label">{{ $t('admin.totalBatches') }}</span>
             <div class="icon-circle icon-green-light">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
               </svg>
@@ -228,7 +228,7 @@
       <div class="system-status-card">
         <div class="system-status-left">
           <div class="icon-circle-lg icon-green-light">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
               <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
               <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
               <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
@@ -609,12 +609,13 @@ onMounted(() => {
 }
 
 .admin-content {
-  padding: 32px 40px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .header-action-row {
@@ -661,7 +662,7 @@ onMounted(() => {
 
 .admin-feedback-toast.success {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
   border: 1px solid #C8E6C9;
 }
 
@@ -755,13 +756,13 @@ onMounted(() => {
 .status-indicator-dot {
   width: 14px;
   height: 14px;
-  background: #0D631B;
+  background: #1B5E20;
   border-radius: 9999px;
 }
 
 .status-text-green {
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .stat-trend {
@@ -772,7 +773,7 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.trend-up-green { color: #0D631B; }
+.trend-up-green { color: #1B5E20; }
 .trend-down-blue { color: #005DB7; }
 
 .system-status-card {
@@ -822,7 +823,7 @@ onMounted(() => {
 .dot-green {
   width: 8px;
   height: 8px;
-  background: #0D631B;
+  background: #1B5E20;
   border-radius: 50%;
   display: inline-block;
   margin-right: 4px;
@@ -894,7 +895,7 @@ onMounted(() => {
 }
 
 .actuator-tile.tile-active {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   background: rgba(13, 99, 27, 0.04);
 }
 
@@ -929,8 +930,8 @@ onMounted(() => {
 }
 
 .btn-toggle-switch.active {
-  background: #0D631B;
-  border-color: #0D631B;
+  background: #1B5E20;
+  border-color: #1B5E20;
   color: #FFFFFF;
 }
 
@@ -944,13 +945,13 @@ onMounted(() => {
 }
 
 .tile-slider-box input[type="range"] {
-  accent-color: #0D631B;
+  accent-color: #1B5E20;
 }
 
 .tile-meta {
   font-size: 12px;
   font-weight: 600;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .activity-card {
@@ -978,7 +979,7 @@ onMounted(() => {
 }
 
 .btn-text-link {
-  color: #0D631B;
+  color: #1B5E20;
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -1083,11 +1084,11 @@ onMounted(() => {
 
 .btn-secondary-action:hover {
   background: var(--color-white);
-  border-color: #0D631B;
+  border-color: #1B5E20;
 }
 
 .system-mode-control-card {
-  border-left: 4px solid #0D631B;
+  border-left: 4px solid #1B5E20;
 }
 
 .system-power-badge {
@@ -1271,7 +1272,7 @@ onMounted(() => {
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: #0D631B;
+  color: #1B5E20;
   background: rgba(13, 99, 27, 0.1);
   border: 1px solid rgba(13, 99, 27, 0.2);
   padding: 6px 12px;
@@ -1281,7 +1282,7 @@ onMounted(() => {
 }
 
 .btn-open-sim:hover {
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
 }
 
@@ -1295,7 +1296,7 @@ onMounted(() => {
 }
 
 .bg-green-subtle { background: rgba(46, 125, 50, 0.15); }
-.text-green-dark { color: #0D631B; }
+.text-green-dark { color: #1B5E20; }
 .bg-blue-subtle { background: rgba(0, 93, 183, 0.12); }
 .text-blue { color: #005DB7; }
 .bg-orange-subtle { background: rgba(180, 80, 0, 0.12); }

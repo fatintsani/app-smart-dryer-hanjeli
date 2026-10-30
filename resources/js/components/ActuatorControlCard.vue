@@ -1,6 +1,7 @@
 <template>
   <div class="actuator-control-card" :class="{ 'is-override': actuators.isOverrideActive }">
-    <!-- Card Header with Mode Toggle & Status -->
+    
+    <!-- Header: Judul & Sakelar Mode Otomatis vs Manual -->
     <div class="acc-header">
       <div class="acc-title-group">
         <div class="acc-icon-chip" :class="actuators.isOverrideActive ? 'chip-manual' : 'chip-auto'">
@@ -13,239 +14,178 @@
         </div>
         <div>
           <div class="acc-heading-row">
-            <h3 class="acc-title">{{ currentLang === 'id' ? 'Pusat Kontrol Aktuator & Relai Hardware' : 'Actuator & Hardware Relay Control' }}</h3>
+            <h3 class="acc-title">Kendali Sakelar Alat & Pemanas</h3>
             <span class="acc-mode-pill" :class="actuators.isOverrideActive ? 'mode-manual' : 'mode-auto'">
-              {{ actuators.isOverrideActive ? (currentLang === 'id' ? 'MANUAL OVERRIDE' : 'MANUAL OVERRIDE') : (currentLang === 'id' ? 'OTOMATIS (ON/OFF HISTESIS)' : 'AUTO (ON/OFF HYSTERESIS)') }}
+              {{ actuators.isOverrideActive ? 'MODE MANUAL' : 'MODE OTOMATIS (REKOMENDASI)' }}
             </span>
           </div>
           <p class="acc-subtitle">
             {{ actuators.isOverrideActive 
-              ? (currentLang === 'id' ? 'Kontrol manual aktif: Anda memiliki kendali langsung atas sakelar relai daya.' : 'Manual control active: You have direct control over power relays.') 
-              : (currentLang === 'id' ? 'Regulasi otomatis aktif: PTC Heater ON/OFF berbasis ambang cahaya lux (BH1750), hujan, dan histeresis suhu (48°C - 50°C).' : 'Automatic regulation active: PTC Heater ON/OFF based on BH1750 solar lux, rain detection, and temperature hysteresis (48°C - 50°C).') 
+              ? 'Anda sedang mengendalikan alat secara manual.' 
+              : 'Sistem otomatis mengatur pemanas sesuai suhu ideal (48°C - 50°C) dan kondisi cuaca.' 
             }}
           </p>
         </div>
       </div>
 
-      <!-- Override Mode Switch -->
-      <div class="acc-mode-switch-wrap">
-        <div class="mode-switch-container" @click="toggleOverrideMode" :title="currentLang === 'id' ? 'Beralih antara Mode Otomatis dan Manual Override' : 'Toggle between Auto and Manual Override'">
-          <span class="switch-label-auto" :class="{ active: !actuators.isOverrideActive }">AUTO</span>
-          <div class="mode-slider" :class="{ 'slider-manual': actuators.isOverrideActive }">
-            <div class="mode-slider-thumb"></div>
-          </div>
-          <span class="switch-label-manual" :class="{ active: actuators.isOverrideActive }">MANUAL</span>
-        </div>
+      <!-- Sakelar Mode Auto / Manual -->
+      <div class="acc-mode-toggle-box">
+        <button 
+          type="button" 
+          class="mode-btn" 
+          :class="{ active: !actuators.isOverrideActive }"
+          @click="setHeaterAuto()"
+        >
+          Otomatis
+        </button>
+        <button 
+          type="button" 
+          class="mode-btn" 
+          :class="{ active: actuators.isOverrideActive }"
+          @click="toggleOverrideMode()"
+        >
+          Manual
+        </button>
       </div>
     </div>
 
-    <!-- Master One-Click Heater Control Bar -->
-    <div class="master-heater-control-bar">
-      <div class="mhc-info">
-        <span class="mhc-label">{{ currentLang === 'id' ? 'Kendali Relay Heater (Pin 26 & 27)' : 'Master Heater Relay Control (Pin 26 & 27)' }}</span>
-        <span class="mhc-status" :class="actuators.auxHeaterStatus ? 'mhc-on' : 'mhc-off'">
-          {{ actuators.auxHeaterStatus 
-            ? (currentLang === 'id' ? 'HEATER ON (RELAY AKTIF MEMANASKAN)' : 'HEATER ON (RELAY ACTIVE)') 
-            : (currentLang === 'id' ? 'HEATER OFF (RELAY STANDBY / MATI)' : 'HEATER OFF (RELAY STANDBY)') 
-          }}
-        </span>
+    <!-- Tombol Kendali Cepat Pemanas -->
+    <div class="quick-heater-bar">
+      <div class="qh-status-info">
+        <span class="qh-label">Kondisi Pemanas:</span>
+        <strong class="qh-val" :class="actuators.auxHeaterStatus ? 'text-amber' : 'text-green'">
+          {{ actuators.auxHeaterStatus ? 'MENYALA (MEMANASKAN)' : 'MATI (STANDBY)' }}
+        </strong>
       </div>
-      <div class="mhc-buttons">
+
+      <div class="qh-buttons">
         <button 
-          class="btn-mhc btn-mhc-on" 
+          type="button"
+          class="btn-qh btn-qh-on"
           :class="{ active: actuators.isOverrideActive && actuators.auxHeaterStatus }"
           :disabled="isLedRedActive"
           @click="setHeaterManual(true)"
-          :title="isLedRedActive ? 'Dilarang menyalakan: Suhu >= 50°C' : 'Nyalakan Heater (Relay ON)'"
+          title="Nyalakan pemanas secara manual"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline>
           </svg>
-          <span>{{ currentLang === 'id' ? 'Nyalakan Heater (ON)' : 'Turn Heater ON' }}</span>
+          <span>Nyalakan Pemanas</span>
         </button>
 
         <button 
-          class="btn-mhc btn-mhc-off" 
+          type="button"
+          class="btn-qh btn-qh-off"
           :class="{ active: actuators.isOverrideActive && !actuators.auxHeaterStatus }"
           @click="setHeaterManual(false)"
-          title="Matikan Heater (Relay OFF)"
+          title="Matikan pemanas secara manual"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
-          <span>{{ currentLang === 'id' ? 'Matikan Heater (OFF)' : 'Turn Heater OFF' }}</span>
+          <span>Matikan Pemanas</span>
         </button>
 
         <button 
-          class="btn-mhc btn-mhc-auto" 
+          type="button"
+          class="btn-qh btn-qh-auto"
           :class="{ active: !actuators.isOverrideActive }"
           @click="setHeaterAuto()"
-          title="Kembalikan ke Mode Otomatis (Jadwal 18:00 - 05:00 WIB & Histeresis)"
+          title="Kembalikan ke pengaturan otomatis"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 14 14"></polyline>
+            <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          <span>{{ currentLang === 'id' ? 'Mode Otomatis (AUTO)' : 'Auto Mode' }}</span>
+          <span>Atur Otomatis</span>
         </button>
       </div>
     </div>
 
-    <!-- Feedback Toast Mini -->
+    <!-- Feedback Message Toast Mini -->
     <Transition name="fade">
-      <div v-if="feedbackMsg" class="acc-feedback-bar" :class="feedbackType">
+      <div v-if="feedbackMsg" class="acc-feedback-toast" :class="feedbackType">
         <span>{{ feedbackMsg }}</span>
       </div>
     </Transition>
 
-    <!-- Actuators Grid -->
-    <div class="actuators-grid">
-      <!-- 1. Relai Pemanas PTC Channel 1 -->
-      <div class="actuator-item-card is-active is-heater">
-        <div class="aic-top-row">
-          <div class="aic-icon-box heater-icon" :class="{ 'heat-pulse': actuators.auxHeaterStatus }">
+    <!-- Kartu Sakelar Alat Satuan -->
+    <div class="actuator-cards-grid">
+      
+      <!-- 1. Pemanas Listrik Tambahan -->
+      <div class="actuator-item">
+        <div class="ai-left">
+          <div class="ai-icon" :class="actuators.auxHeaterStatus ? 'icon-amber' : 'icon-neutral'">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M12 2v20"></path>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
           </div>
-          <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Relai Pemanas PTC - Channel 1' : 'PTC Heater Relay - Channel 1' }}</h4>
-            <span class="aic-pin">Pin GPIO 26 &bull; Beban Pemanas Utama (ON/OFF)</span>
+          <div>
+            <h4 class="ai-name">Pemanas Ruangan (Heater)</h4>
+            <p class="ai-desc">Menjaga panas ruang pengering tetap di 48°C - 50°C saat cuaca mendung/malam.</p>
           </div>
-          <label class="toggle-switch">
-            <input 
-              type="checkbox" 
-              v-model="actuators.auxHeaterStatus" 
-              @change="handleActuatorToggle('auxHeaterStatus', actuators.auxHeaterStatus)"
-            />
-            <span class="toggle-slider slider-orange"></span>
-          </label>
         </div>
-        <div class="aic-status-footer">
-          <span class="status-tag" :class="actuators.auxHeaterStatus ? 'tag-orange' : 'tag-off'">
-            {{ actuators.auxHeaterStatus 
-              ? (currentLang === 'id' ? 'RELAY CH1: AKTIF (ON)' : 'RELAY CH1: ON') 
-              : (currentLang === 'id' ? 'RELAY CH1: STANDBY (OFF)' : 'RELAY CH1: OFF') 
-            }}
-          </span>
-          <span class="status-desc">
-            {{ currentLang === 'id' ? 'Histeresis: Mati ≥50°C • Nyala ≤48°C' : 'Hysteresis: Cut-off ≥50°C • Restart ≤48°C' }}
-          </span>
-        </div>
+        <label class="switch-toggle">
+          <input 
+            type="checkbox" 
+            v-model="actuators.auxHeaterStatus" 
+            :disabled="isLedRedActive && !actuators.auxHeaterStatus"
+            @change="handleActuatorToggle('auxHeaterStatus', actuators.auxHeaterStatus)"
+          />
+          <span class="slider"></span>
+        </label>
       </div>
 
-      <!-- 2. Relai Pemanas PTC Channel 2 -->
-      <div class="actuator-item-card is-active is-heater">
-        <div class="aic-top-row">
-          <div class="aic-icon-box heater-icon" :class="{ 'heat-pulse': actuators.auxHeaterStatus }">
+      <!-- 2. Kipas Pembuang Udara Lembap (Exhaust Fan) -->
+      <div class="actuator-item">
+        <div class="ai-left">
+          <div class="ai-icon" :class="actuators.exhaustFanStatus ? 'icon-blue' : 'icon-neutral'">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M12 2v20"></path>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 12c2.5-3 6-3 6-3s0 3.5-3 6c-3 2.5-3 6-3 6s-3.5 0-6-3c-2.5-3-6-3-6-3s0-3.5 3-6c3-2.5 3-6 3-6s3.5 0 6 3z"></path>
             </svg>
           </div>
-          <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Relai Pemanas PTC - Channel 2' : 'PTC Heater Relay - Channel 2' }}</h4>
-            <span class="aic-pin">Pin GPIO 27 &bull; Beban Pemanas Sekunder (ON/OFF)</span>
+          <div>
+            <h4 class="ai-name">Kipas Pembuang Udara (Exhaust)</h4>
+            <p class="ai-desc">Membuang udara lembap dari dalam ruangan agar proses pengeringan lebih cepat.</p>
           </div>
-          <label class="toggle-switch">
-            <input 
-              type="checkbox" 
-              v-model="actuators.auxHeaterStatus" 
-              @change="handleActuatorToggle('auxHeaterStatus', actuators.auxHeaterStatus)"
-            />
-            <span class="toggle-slider slider-orange"></span>
-          </label>
         </div>
-        <div class="aic-status-footer">
-          <span class="status-tag" :class="actuators.auxHeaterStatus ? 'tag-orange' : 'tag-off'">
-            {{ actuators.auxHeaterStatus 
-              ? (currentLang === 'id' ? 'RELAY CH2: AKTIF (ON)' : 'RELAY CH2: ON') 
-              : (currentLang === 'id' ? 'RELAY CH2: STANDBY (OFF)' : 'RELAY CH2: OFF') 
-            }}
-          </span>
-          <span class="status-desc">
-            {{ currentLang === 'id' ? 'Sinkron Ganda: Menjaga kestabilan panas' : 'Dual-Synched Thermal Stage' }}
-          </span>
-        </div>
+        <label class="switch-toggle">
+          <input 
+            type="checkbox" 
+            v-model="actuators.exhaustFanStatus" 
+            @change="handleActuatorToggle('exhaustFanStatus', actuators.exhaustFanStatus)"
+          />
+          <span class="slider"></span>
+        </label>
       </div>
 
-      <!-- 3. Layar LCD 20x4 I2C -->
-      <div class="actuator-item-card is-active">
-        <div class="aic-top-row">
-          <div class="aic-icon-box" style="background:#0D631B; color:#FFFFFF; border-color:#0D631B;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-              <line x1="8" y1="21" x2="16" y2="21"></line>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-          </div>
-          <div class="aic-meta">
-            <h4 class="aic-name">{{ currentLang === 'id' ? 'Display Layar LCD 20x4 I2C' : 'LCD 20x4 I2C Display' }}</h4>
-            <span class="aic-pin">I2C (SDA 21, SCL 22) &bull; Addr: 0x27</span>
-          </div>
-          <div class="status-tag tag-on" style="font-size:11px;">
-            ONLINE
-          </div>
-        </div>
-        <div class="aic-status-footer">
-          <span class="status-tag tag-on">
-            {{ currentLang === 'id' ? 'AKTIF (HALAMAN 1 & 2)' : 'ACTIVE (PAGE 1 & 2)' }}
-          </span>
-          <span class="status-desc">
-            {{ currentLang === 'id' ? 'Tampil Suhu, Lembap, Lux, Rain, PTC' : 'Displaying T, H, Lux, Rain, PTC' }}
-          </span>
-        </div>
-      </div>
     </div>
 
-    <!-- 7. Panel Physical Indicator LEDs Widget -->
-    <div class="panel-led-indicator-bar">
-      <div class="pli-left">
-        <div class="pli-icon-box">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
-            <circle cx="8" cy="12" r="2.5" fill="currentColor"></circle>
-            <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
-            <circle cx="16" cy="12" r="2.5" fill="currentColor"></circle>
-          </svg>
-        </div>
-        <div>
-          <h4 class="pli-title">{{ currentLang === 'id' ? 'Status Lampu LED Indikator Panel Box Fisik' : 'Physical Box Panel LED Indicators' }}</h4>
-          <p class="pli-sub">{{ currentLang === 'id' ? 'Sinkron otomatis: Mengikuti status pemanas PTC & kondisi suhu proteksi sensor' : 'Auto-synced: Reflects PTC heater state & sensor thermal safety' }}</p>
-        </div>
+    <!-- Status Lampu Indikator di Kotak Alat Fisik -->
+    <div class="panel-led-bar">
+      <div class="led-title-box">
+        <strong>Lampu Indikator Kotak Alat:</strong>
+        <span>Sesuai dengan warna lampu di panel fisik alat</span>
       </div>
 
-      <div class="pli-led-group">
-        <!-- 1. LED HIJAU -->
-        <div class="pli-led-item" :class="{ 'is-lit-green': isLedGreenActive }">
+      <div class="led-items-row">
+        <div class="led-item" :class="{ active: isLedGreenActive }">
           <span class="led-bulb bulb-green"></span>
-          <div class="led-text-box">
-            <span class="led-color-title">{{ currentLang === 'id' ? 'HIJAU' : 'GREEN' }}</span>
-            <span class="led-condition">{{ isLedGreenActive ? (currentLang === 'id' ? 'NYALA (Standby/Normal)' : 'ON (Standby/Normal)') : (currentLang === 'id' ? 'MATI' : 'OFF') }}</span>
-          </div>
+          <span>Hijau: Normal / Siaga</span>
         </div>
-
-        <!-- 2. LED KUNING -->
-        <div class="pli-led-item" :class="{ 'is-lit-yellow': isLedYellowActive }">
+        <div class="led-item" :class="{ active: isLedYellowActive }">
           <span class="led-bulb bulb-yellow"></span>
-          <div class="led-text-box">
-            <span class="led-color-title">{{ currentLang === 'id' ? 'KUNING' : 'YELLOW' }}</span>
-            <span class="led-condition">{{ isLedYellowActive ? (currentLang === 'id' ? 'NYALA (PTC Aktif)' : 'ON (PTC Heating)') : (currentLang === 'id' ? 'MATI' : 'OFF') }}</span>
-          </div>
+          <span>Kuning: Sedang Memanaskan</span>
         </div>
-
-        <!-- 3. LED MERAH -->
-        <div class="pli-led-item" :class="{ 'is-lit-red': isLedRedActive }">
+        <div class="led-item" :class="{ active: isLedRedActive }">
           <span class="led-bulb bulb-red"></span>
-          <div class="led-text-box">
-            <span class="led-color-title">{{ currentLang === 'id' ? 'MERAH' : 'RED' }}</span>
-            <span class="led-condition">{{ isLedRedActive ? (currentLang === 'id' ? 'NYALA (Lockout ≥50°C)' : 'ON (Lockout ≥50°C)') : (currentLang === 'id' ? 'MATI (Aman)' : 'OFF (Safe)') }}</span>
-          </div>
+          <span>Merah: Panas Maksimal (≥50°C)</span>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -254,9 +194,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { actuatorService } from '../services/actuatorService'
 import { telemetryService } from '../services/telemetryService'
 import { socketService } from '../services/socketService'
-import connectionManager from '../services/connectionManager'
 
-const props = defineProps({
+defineProps({
   currentLang: {
     type: String,
     default: 'id'
@@ -267,19 +206,11 @@ const currentTemp = ref(32.0)
 
 const actuators = ref({
   exhaustFanStatus: true,
-  exhaustFanSpeed: 60,
-  intakeFanStatus: true,
-  circFanStatus: true,
-  auxHeaterStatus: true,
-  auxHeaterLevel: 45,
-  uvLightStatus: false,
-  rotaryTrayStatus: true,
-  dehumidifierStatus: true,
+  auxHeaterStatus: false,
   isOverrideActive: false,
   overrideMode: 'AUTO'
 })
 
-// Physical Box 3-LED Indicators Computed Status
 const isLedRedActive = computed(() => {
   return currentTemp.value >= 50.0
 })
@@ -302,7 +233,7 @@ function showFeedback(msg, type = 'success') {
   if (feedbackTimer) clearTimeout(feedbackTimer)
   feedbackTimer = setTimeout(() => {
     feedbackMsg.value = ''
-  }, 4000)
+  }, 3500)
 }
 
 async function fetchStatus() {
@@ -328,11 +259,11 @@ async function toggleOverrideMode() {
     })
     showFeedback(
       newOverride 
-        ? (props.currentLang === 'id' ? 'Mode Manual Override Aktif. Anda dapat mengontrol semua sakelar relai.' : 'Manual Override Active. Direct relay control enabled.')
-        : (props.currentLang === 'id' ? 'Mode Otomatis (ON/OFF Histeresis) Aktif. Relai dikendalikan cerdas oleh ESP32.' : 'Auto Mode Active. Smart ON/OFF Hysteresis regulation enabled.')
+        ? 'Mode Manual Aktif. Anda dapat mengontrol pemanas dan kipas.' 
+        : 'Mode Otomatis Aktif. Pemanas dikendalikan otomatis oleh sistem.'
     )
   } catch (err) {
-    showFeedback(props.currentLang === 'id' ? 'Gagal mengubah mode kontrol.' : 'Failed to switch mode.', 'error')
+    showFeedback('Gagal mengubah mode kendali.', 'error')
   }
 }
 
@@ -348,15 +279,15 @@ async function handleActuatorToggle(field, value) {
 
   try {
     await actuatorService.updateStatus(payload)
-    showFeedback(props.currentLang === 'id' ? 'Perintah sakelar berhasil dikirim ke mikrokontroler.' : 'Relay switch command transmitted.')
+    showFeedback('Perintah sakelar berhasil dikirim ke alat.')
   } catch (err) {
-    showFeedback(props.currentLang === 'id' ? 'Gagal memperbarui status relai.' : 'Failed to toggle relay.', 'error')
+    showFeedback('Gagal memperbarui status sakelar.', 'error')
   }
 }
 
 async function setHeaterManual(state) {
   if (state && isLedRedActive.value) {
-    showFeedback(props.currentLang === 'id' ? 'Pemanas ditolak: Proteksi Overheat aktif (Suhu ≥ 50°C).' : 'Heater rejected: Overheat protection active.', 'error')
+    showFeedback('Pemanas tidak dapat dinyalakan: Suhu ruangan sudah mencapai batas aman (≥50°C).', 'error')
     return
   }
   actuators.value.isOverrideActive = true
@@ -369,13 +300,9 @@ async function setHeaterManual(state) {
       isOverrideActive: true,
       overrideMode: 'MANUAL'
     })
-    showFeedback(
-      state 
-        ? (props.currentLang === 'id' ? 'Perintah ON terkirim! Relay pemanas (Pin 26 & 27) MENYALA.' : 'Command ON sent! Heater relay active.')
-        : (props.currentLang === 'id' ? 'Perintah OFF terkirim! Relay pemanas (Pin 26 & 27) DIMATIKAN.' : 'Command OFF sent! Heater relay standby.')
-    )
+    showFeedback(state ? 'Pemanas berhasil dinyalakan (ON).' : 'Pemanas berhasil dimatikan (OFF).')
   } catch (err) {
-    showFeedback(props.currentLang === 'id' ? 'Gagal mengirim perintah relay pemanas.' : 'Failed to send relay command.', 'error')
+    showFeedback('Gagal mengirim perintah pemanas.', 'error')
   }
 }
 
@@ -388,35 +315,23 @@ async function setHeaterAuto() {
       isOverrideActive: false,
       overrideMode: 'AUTO'
     })
-    showFeedback(props.currentLang === 'id' ? 'Sistem dikembalikan ke Mode Otomatis (Jadwal 18:00-05:00 WIB & Histeresis).' : 'System returned to Auto Mode.')
+    showFeedback('Sistem kembali ke Mode Otomatis.')
   } catch (err) {
-    showFeedback(props.currentLang === 'id' ? 'Gagal beralih ke Mode Otomatis.' : 'Failed to switch to Auto Mode.', 'error')
-  }
-}
-
-async function handleSpeedChange(field, val) {
-  try {
-    await actuatorService.updateStatus({ [field]: val })
-  } catch (err) {
-    console.warn('Failed to update speed/level:', err)
+    showFeedback('Gagal beralih ke Mode Otomatis.', 'error')
   }
 }
 
 onMounted(() => {
   fetchStatus()
 
-  // Get initial telemetry temperature for LED indicators
   telemetryService.getCurrent().then((res) => {
     if (res?.telemetry?.tempInternal !== undefined) {
       currentTemp.value = Number(res.telemetry.tempInternal)
     }
   }).catch(() => {})
 
-  // Real-time WebSocket sync
   socketService.on('actuator_update', (data) => {
-    if (data) {
-      actuators.value = { ...actuators.value, ...data }
-    }
+    if (data) actuators.value = { ...actuators.value, ...data }
   })
 
   socketService.on('telemetry_live', (data) => {
@@ -435,27 +350,24 @@ onUnmounted(() => {
 
 <style scoped>
 .actuator-control-card {
-  background: var(--color-surface, #FFFFFF);
-  border: 1px solid var(--color-border, #E2ECE2);
-  border-radius: 18px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
   padding: 22px 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 20px rgba(7, 30, 39, 0.04);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .actuator-control-card.is-override {
-  border-color: rgba(217, 119, 6, 0.4);
-  box-shadow: 0 4px 24px rgba(217, 119, 6, 0.08);
+  border-color: #FDE68A;
 }
 
+/* Header */
 .acc-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   gap: 16px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--color-border, #EDF5ED);
+  flex-wrap: wrap;
   margin-bottom: 20px;
 }
 
@@ -472,391 +384,237 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
-.acc-icon-chip.chip-auto {
-  background: #EAF8EB;
-  color: #0D631B;
+.chip-auto {
+  background: #E8F5E9;
+  color: #1B5E20;
 }
 
-.acc-icon-chip.chip-manual {
+.chip-manual {
   background: #FEF3C7;
-  color: #D97706;
+  color: #B45309;
 }
 
 .acc-heading-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 4px;
   flex-wrap: wrap;
+  margin-bottom: 2px;
 }
 
 .acc-title {
   font-size: 17px;
-  font-weight: 800;
-  color: var(--color-text-main, #071E27);
-  letter-spacing: -0.3px;
+  font-weight: 700;
+  color: #0F291E;
   margin: 0;
 }
 
 .acc-mode-pill {
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  padding: 3px 10px;
-  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
-.acc-mode-pill.mode-auto {
-  background: #EAF8EB;
-  color: #0D631B;
-  border: 1px solid #C8E6C9;
+.mode-auto {
+  background: #DCFCE7;
+  color: #166534;
 }
 
-.acc-mode-pill.mode-manual {
+.mode-manual {
   background: #FEF3C7;
-  color: #B45309;
-  border: 1px solid #FDE68A;
+  color: #92400E;
 }
 
 .acc-subtitle {
   font-size: 13px;
-  color: var(--color-text-muted, #64748B);
+  color: #64748B;
   margin: 0;
-  line-height: 1.4;
 }
 
-/* Mode Switch UI */
-.mode-switch-container {
+.acc-mode-toggle-box {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--color-surface-subtle, #F1F5F9);
-  padding: 6px 12px;
-  border-radius: 30px;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.mode-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #64748B;
   cursor: pointer;
-  border: 1px solid var(--color-border, #E2E8F0);
-  user-select: none;
   transition: all 0.2s ease;
 }
 
-.mode-switch-container:hover {
-  background: #E2E8F0;
-}
-
-.switch-label-auto, .switch-label-manual {
-  font-size: 11px;
-  font-weight: 700;
-  color: #94A3B8;
-  letter-spacing: 0.5px;
-  transition: color 0.2s ease;
-}
-
-.switch-label-auto.active {
-  color: #0D631B;
-}
-
-.switch-label-manual.active {
-  color: #D97706;
-}
-
-.mode-slider {
-  width: 38px;
-  height: 20px;
-  background: #10B981;
-  border-radius: 20px;
-  position: relative;
-  transition: background 0.3s ease;
-}
-
-.mode-slider.slider-manual {
-  background: #F59E0B;
-}
-
-.mode-slider-thumb {
-  width: 16px;
-  height: 16px;
+.mode-btn.active {
   background: #FFFFFF;
-  border-radius: 50%;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  color: #0F291E;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
-.mode-slider.slider-manual .mode-slider-thumb {
-  transform: translateX(18px);
-}
-
-/* Master One-Click Heater Control Bar */
-.master-heater-control-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  background: var(--color-bg, #F4F7F5);
-  border: 1px solid var(--color-border, #CBD5E1);
-  border-radius: 14px;
+/* Quick Heater Bar */
+.quick-heater-bar {
+  background: #F8FAFC;
+  border-radius: 12px;
   padding: 14px 18px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.mhc-info {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.mhc-label {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--color-text-muted, #707A6C);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.mhc-status {
-  font-size: 14px;
-  font-weight: 800;
-  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
-}
-
-.mhc-status.mhc-on {
-  color: #D97706;
-}
-
-.mhc-status.mhc-off {
-  color: #0D631B;
-}
-
-.mhc-buttons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  gap: 16px;
   flex-wrap: wrap;
+  margin-bottom: 18px;
 }
 
-.btn-mhc {
-  position: relative;
-  display: inline-flex;
+.qh-status-info {
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 16px;
-  border-radius: 10px;
   font-size: 13px;
+}
+
+.qh-label {
+  color: #64748B;
+}
+
+.qh-val {
   font-weight: 700;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  min-height: 42px;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
-.btn-mhc:active {
-  transform: scale(0.98);
+.text-green { color: #1B5E20; }
+.text-amber { color: #D97706; }
+
+.qh-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.btn-mhc:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-mhc-on {
+.btn-qh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #CBD5E1;
   background: #FFFFFF;
-  border-color: rgba(217, 119, 6, 0.3);
-  color: #B45309;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.btn-mhc-on:hover:not(:disabled) {
-  background: #FFFBEB;
+.btn-qh-on:hover:not(:disabled), .btn-qh-on.active {
+  background: #FEF3C7;
   border-color: #D97706;
   color: #92400E;
 }
 
-.btn-mhc-on.active {
-  background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
-  color: #FFFFFF !important;
-  border-color: #B45309;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
-}
-
-.btn-mhc-off {
-  background: #FFFFFF;
-  border-color: #CBD5E1;
-  color: #475569;
-}
-
-.btn-mhc-off:hover:not(:disabled) {
+.btn-qh-off:hover, .btn-qh-off.active {
   background: #F1F5F9;
-  color: #0F172A;
+  border-color: #64748B;
+  color: #334155;
 }
 
-.btn-mhc-off.active {
-  background: #334155;
-  color: #FFFFFF !important;
-  border-color: #1E293B;
-  box-shadow: 0 4px 12px rgba(51, 65, 85, 0.3);
-}
-
-.btn-mhc-auto {
-  background: #FFFFFF;
-  border-color: rgba(13, 99, 27, 0.3);
-  color: #0D631B;
-}
-
-.btn-mhc-auto:hover:not(:disabled) {
+.btn-qh-auto:hover, .btn-qh-auto.active {
   background: #E8F5E9;
-  border-color: #0D631B;
+  border-color: #1B5E20;
+  color: #1B5E20;
 }
 
-.btn-mhc-auto.active {
-  background: linear-gradient(180deg, #16A34A 0%, #0D631B 100%);
-  color: #FFFFFF !important;
-  border-color: #0D631B;
-  box-shadow: 0 4px 12px rgba(13, 99, 27, 0.3);
+.btn-qh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-@media (max-width: 640px) {
-  .master-heater-control-bar {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 12px 14px;
-    gap: 12px;
-  }
-  .mhc-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-  .btn-mhc {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* Feedback Bar */
-.acc-feedback-bar {
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 12.5px;
-  font-weight: 600;
+/* Toast */
+.acc-feedback-toast {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
   margin-bottom: 16px;
-  display: flex;
-  align-items: center;
 }
 
-.acc-feedback-bar.success {
+.acc-feedback-toast.success {
   background: #F0FDF4;
   color: #166534;
-  border: 1px solid #DCFCE7;
+  border: 1px solid #BBF7D0;
 }
 
-.acc-feedback-bar.error {
+.acc-feedback-toast.error {
   background: #FEF2F2;
   color: #991B1B;
-  border: 1px solid #FEE2E2;
+  border: 1px solid #FECACA;
 }
 
-/* Actuators Grid */
-.actuators-grid {
+/* Actuator Items */
+.actuator-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
-.actuator-item-card {
-  background: var(--color-surface-subtle, #F8FAFC);
-  border: 1px solid var(--color-border, #E2E8F0);
-  border-radius: 14px;
-  padding: 16px 18px;
-  transition: all 0.25s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+@media (max-width: 768px) {
+  .actuator-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.actuator-item-card.is-active {
-  background: #F4FAF5;
-  border-color: #A7F3D0;
-  box-shadow: 0 4px 14px rgba(13, 99, 27, 0.05);
-}
-
-.actuator-item-card.is-active.is-heater {
-  background: #FFFBEB;
-  border-color: #FDE68A;
-}
-
-.actuator-item-card.is-active.is-uv {
-  background: #FAF5FF;
-  border-color: #E9D5FF;
-}
-
-.aic-top-row {
+.actuator-item {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 14px;
 }
 
-.aic-icon-box {
-  width: 38px;
-  height: 38px;
+.ai-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-icon {
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748B;
   flex-shrink: 0;
-  transition: all 0.3s ease;
 }
 
-.actuator-item-card.is-active .aic-icon-box {
-  background: #0D631B;
-  color: #FFFFFF;
-  border-color: #0D631B;
-}
+.icon-amber { background: #FEF3C7; color: #D97706; }
+.icon-blue { background: #E0F2FE; color: #0284C7; }
+.icon-neutral { background: #F1F5F9; color: #64748B; }
 
-.actuator-item-card.is-active.is-heater .aic-icon-box {
-  background: #D97706;
-  color: #FFFFFF;
-  border-color: #D97706;
-}
-
-.actuator-item-card.is-active.is-uv .aic-icon-box {
-  background: #7C3AED;
-  color: #FFFFFF;
-  border-color: #7C3AED;
-}
-
-.aic-meta {
-  flex: 1;
-}
-
-.aic-name {
+.ai-name {
   font-size: 14px;
   font-weight: 700;
-  color: var(--color-text-main, #0F172A);
-  margin: 0 0 2px 0;
+  color: #0F291E;
+  margin-bottom: 2px;
 }
 
-.aic-pin {
-  font-size: 11px;
-  color: var(--color-text-muted, #94A3B8);
-  font-weight: 500;
+.ai-desc {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.35;
 }
 
-/* Toggle Switch UI */
-.toggle-switch {
+/* Toggle Switch */
+.switch-toggle {
   position: relative;
   display: inline-block;
   width: 44px;
@@ -864,25 +622,22 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.toggle-switch input {
+.switch-toggle input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.toggle-slider {
+.slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: #CBD5E1;
   transition: .3s;
   border-radius: 24px;
 }
 
-.toggle-slider:before {
+.slider:before {
   position: absolute;
   content: "";
   height: 18px;
@@ -890,338 +645,171 @@ onUnmounted(() => {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: .3s;
   border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-.toggle-switch input:checked + .toggle-slider {
-  background-color: #10B981;
+input:checked + .slider {
+  background-color: #1B5E20;
 }
 
-.toggle-switch input:checked + .toggle-slider.slider-orange {
-  background-color: #F59E0B;
-}
-
-.toggle-switch input:checked + .toggle-slider.slider-purple {
-  background-color: #8B5CF6;
-}
-
-.toggle-switch input:checked + .toggle-slider:before {
+input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-/* Slider Controls */
-.aic-slider-block {
-  margin-top: 6px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(0,0,0,0.06);
+/* Panel LED Bar */
+.panel-led-bar {
+  background: #F8FAFC;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.aic-slider-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
+.led-title-box strong {
+  display: block;
+  font-size: 13px;
+  color: #334155;
+}
+
+.led-title-box span {
   font-size: 12px;
-}
-
-.slider-caption {
-  color: var(--color-text-muted, #64748B);
-}
-
-.slider-val {
-  color: #0D631B;
-  font-weight: 700;
-}
-
-.slider-val.text-orange {
-  color: #D97706;
-}
-
-.aic-range-slider {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  outline: none;
-  accent-color: #0D631B;
-  cursor: pointer;
-}
-
-.slider-orange-track {
-  accent-color: #D97706;
-}
-
-/* Status Footers */
-.aic-status-footer {
-  margin-top: 6px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(0,0,0,0.06);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.status-tag {
-  font-size: 10px;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 6px;
-  letter-spacing: 0.5px;
-}
-
-.status-tag.tag-on {
-  background: #EAF8EB;
-  color: #0D631B;
-}
-
-.status-tag.tag-orange {
-  background: #FEF3C7;
-  color: #B45309;
-}
-
-.status-tag.tag-purple {
-  background: #F3E8FF;
-  color: #7E22CE;
-}
-
-.status-tag.tag-off {
-  background: #E2E8F0;
   color: #64748B;
 }
 
-.status-desc {
-  font-size: 11px;
-  color: var(--color-text-muted, #94A3B8);
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Animations */
-@keyframes spin-cw {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.spinning svg {
-  animation: spin-cw 2s linear infinite;
-}
-
-@keyframes pulse-heat {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px #F59E0B); }
-  50% { transform: scale(1.08); filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6)); }
-}
-
-.heat-pulse svg {
-  animation: pulse-heat 1.5s ease-in-out infinite;
-}
-
-@keyframes uv-glow {
-  0%, 100% { filter: drop-shadow(0 0 2px rgba(139, 92, 246, 0.4)); }
-  50% { filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.8)); }
-}
-
-.uv-glow svg {
-  animation: uv-glow 2s ease-in-out infinite;
-}
-
-/* Panel LED Indicator Widget */
-.panel-led-indicator-bar {
-  margin-top: 22px;
-  padding: 16px 20px;
-  background: var(--color-bg-light, #F8FAFC);
-  border: 1px solid var(--color-border, #E2E8F0);
-  border-radius: 14px;
+.led-items-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
-.pli-left {
+.led-item {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
+  font-size: 12px;
+  color: #94A3B8;
+  font-weight: 500;
 }
 
-.pli-icon-box {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #FFFFFF;
-  border: 1px solid #CBD5E1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #334155;
-  flex-shrink: 0;
-}
-
-.pli-title {
-  font-size: 14px;
+.led-item.active {
+  color: #0F291E;
   font-weight: 700;
-  color: var(--color-text-title, #0F172A);
-  margin: 0 0 2px 0;
-}
-
-.pli-sub {
-  font-size: 11.5px;
-  color: var(--color-text-muted, #64748B);
-  margin: 0;
-}
-
-.pli-led-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.pli-led-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
-  transition: all 0.25s ease;
 }
 
 .led-bulb {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #CBD5E1;
-  border: 1.5px solid rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-  flex-shrink: 0;
 }
 
-.led-text-box {
-  display: flex;
-  flex-direction: column;
-}
-
-.led-color-title {
-  font-size: 10.5px;
-  font-weight: 800;
-  color: #64748B;
-  letter-spacing: 0.5px;
-}
-
-.led-condition {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #334155;
-}
-
-/* Green Lit */
-.pli-led-item.is-lit-green {
-  background: #F0FDF4;
-  border-color: #86EFAC;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
-}
-
-.pli-led-item.is-lit-green .led-bulb {
+.led-item.active .bulb-green {
   background: #22C55E;
-  box-shadow: 0 0 10px #22C55E;
-  border-color: #16A34A;
+  box-shadow: 0 0 8px #22C55E;
 }
 
-.pli-led-item.is-lit-green .led-color-title {
-  color: #166534;
+.led-item.active .bulb-yellow {
+  background: #EAB308;
+  box-shadow: 0 0 8px #EAB308;
 }
 
-.pli-led-item.is-lit-green .led-condition {
-  color: #15803D;
-}
-
-/* Yellow Lit */
-.pli-led-item.is-lit-yellow {
-  background: #FFFBEB;
-  border-color: #FCD34D;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
-}
-
-.pli-led-item.is-lit-yellow .led-bulb {
-  background: #F59E0B;
-  box-shadow: 0 0 10px #F59E0B;
-  border-color: #D97706;
-}
-
-.pli-led-item.is-lit-yellow .led-color-title {
-  color: #92400E;
-}
-
-.pli-led-item.is-lit-yellow .led-condition {
-  color: #B45309;
-}
-
-/* Red Lit */
-.pli-led-item.is-lit-red {
-  background: #FEF2F2;
-  border-color: #FCA5A5;
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
-  animation: pulse-red-widget 1.5s infinite;
-}
-
-.pli-led-item.is-lit-red .led-bulb {
+.led-item.active .bulb-red {
   background: #EF4444;
-  box-shadow: 0 0 10px #EF4444;
-  border-color: #DC2626;
+  box-shadow: 0 0 8px #EF4444;
 }
 
-.pli-led-item.is-lit-red .led-color-title {
-  color: #991B1B;
+/* ==========================================================================
+   DARK THEME OVERRIDES FOR ACTUATOR CONTROL CARD
+   ========================================================================== */
+:global(.dark-theme) .actuator-control-card {
+  background: #0B242F;
+  border-color: #1E4E61;
 }
 
-.pli-led-item.is-lit-red .led-condition {
-  color: #DC2626;
+:global(.dark-theme) .actuator-control-card.is-override {
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
-@keyframes pulse-red-widget {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+:global(.dark-theme) .acc-title,
+:global(.dark-theme) .ai-name {
+  color: #F8FAFC;
 }
 
-@media (max-width: 640px) {
-  .actuator-control-card {
-    padding: 16px 14px;
-    border-radius: 14px;
-  }
-  
-  .acc-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+:global(.dark-theme) .acc-subtitle,
+:global(.dark-theme) .qh-label,
+:global(.dark-theme) .ai-desc {
+  color: #94A3B8;
+}
 
-  .acc-mode-switch-wrap {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-  }
+:global(.dark-theme) .acc-mode-toggle-box {
+  background: #071E27;
+}
 
-  .actuators-grid {
-    grid-template-columns: 1fr;
-  }
+:global(.dark-theme) .mode-btn {
+  color: #94A3B8;
+}
 
-  .panel-led-indicator-bar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+:global(.dark-theme) .mode-btn.active {
+  background: #113847;
+  color: #F8FAFC;
+}
 
-  .pli-led-group {
-    width: 100%;
-  }
+:global(.dark-theme) .quick-heater-bar {
+  background: #071E27;
+  border: 1px solid #1E4E61;
+}
 
-  .pli-led-item {
-    flex: 1;
-    min-width: 120px;
-  }
+:global(.dark-theme) .btn-qh {
+  background: #113847;
+  border-color: #1E4E61;
+  color: #CBD5E1;
+}
+
+:global(.dark-theme) .btn-qh-on:hover:not(:disabled),
+:global(.dark-theme) .btn-qh-on.active {
+  background: rgba(217, 119, 6, 0.25);
+  border-color: #D97706;
+  color: #FBBF24;
+}
+
+:global(.dark-theme) .btn-qh-off:hover,
+:global(.dark-theme) .btn-qh-off.active {
+  background: #164657;
+  border-color: #2D6B82;
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .btn-qh-auto:hover,
+:global(.dark-theme) .btn-qh-auto.active {
+  background: rgba(27, 94, 32, 0.25);
+  border-color: #1B5E20;
+  color: #4ADE80;
+}
+
+:global(.dark-theme) .actuator-item {
+  background: #071E27;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .icon-amber { background: rgba(217, 119, 6, 0.18); color: #FBBF24; }
+:global(.dark-theme) .icon-blue { background: rgba(2, 132, 199, 0.18); color: #38BDF8; }
+:global(.dark-theme) .icon-neutral { background: #113847; color: #94A3B8; }
+
+:global(.dark-theme) .mode-auto {
+  background: rgba(27, 94, 32, 0.25);
+  color: #4ADE80;
+}
+
+:global(.dark-theme) .mode-manual {
+  background: rgba(217, 119, 6, 0.25);
+  color: #FBBF24;
+}
+
+:global(.dark-theme) .led-item.active {
+  color: #F8FAFC;
 }
 </style>

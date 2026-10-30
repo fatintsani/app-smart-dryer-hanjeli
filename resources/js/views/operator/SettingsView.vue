@@ -145,7 +145,7 @@
                                             height="20"
                                             viewBox="0 0 24 24"
                                             fill="none"
-                                            stroke="#0D631B"
+                                            stroke="#1B5E20"
                                             stroke-width="2"
                                         >
                                             <path
@@ -410,7 +410,7 @@
                                                 height="20"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
-                                                stroke="#0D631B"
+                                                stroke="#1B5E20"
                                                 stroke-width="2"
                                             >
                                                 <path
@@ -912,7 +912,7 @@
                                                 height="20"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
-                                                stroke="#0D631B"
+                                                stroke="#1B5E20"
                                                 stroke-width="2"
                                             >
                                                 <circle
@@ -1339,7 +1339,7 @@
                                                 height="20"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
-                                                stroke="#0D631B"
+                                                stroke="#1B5E20"
                                                 stroke-width="2"
                                             >
                                                 <path
@@ -1989,7 +1989,7 @@
                                                 height="20"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
-                                                stroke="#0D631B"
+                                                stroke="#1B5E20"
                                                 stroke-width="2"
                                             >
                                                 <path
@@ -2161,7 +2161,7 @@
                                                 height="20"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
-                                                stroke="#0D631B"
+                                                stroke="#1B5E20"
                                                 stroke-width="2"
                                             >
                                                 <rect
@@ -2561,7 +2561,7 @@
                             height="20"
                             viewBox="0 0 24 24"
                             fill="none"
-                            stroke="#0D631B"
+                            stroke="#1B5E20"
                             stroke-width="2.5"
                         >
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -3129,13 +3129,12 @@ async function handleRegisterPasskey() {
 }
 
 .settings-main-content {
-    padding: 32px 40px;
+    padding: 24px 28px;
     display: flex;
     flex-direction: column;
     gap: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
     width: 100%;
+    margin: 0;
     box-sizing: border-box;
 }
 
@@ -3167,7 +3166,7 @@ async function handleRegisterPasskey() {
 
 .save-all-btn {
     padding: 10px 20px;
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
     border-radius: 8px;
     font-size: 14px;
@@ -3206,12 +3205,12 @@ async function handleRegisterPasskey() {
 }
 
 .tab-nav-btn:hover {
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .tab-nav-btn.active {
-    color: #0d631b;
-    border-bottom-color: #0d631b;
+    color: #1B5E20;
+    border-bottom-color: #1B5E20;
 }
 
 /* Settings Grid & Cards */
@@ -3256,12 +3255,12 @@ async function handleRegisterPasskey() {
 }
 
 .transport-option-card:hover {
-    border-color: #0d631b;
+    border-color: #1B5E20;
     transform: translateY(-2px);
 }
 
 .transport-option-card.active {
-    border-color: #0d631b;
+    border-color: #1B5E20;
     background: rgba(13, 99, 27, 0.04);
     box-shadow: 0 4px 12px rgba(13, 99, 27, 0.08);
 }
@@ -3293,7 +3292,7 @@ async function handleRegisterPasskey() {
 
 .wifi-color {
     background: rgba(13, 99, 27, 0.12);
-    color: #0d631b;
+    color: #1B5E20;
 }
 .ble-color {
     background: rgba(0, 93, 183, 0.12);
@@ -3327,7 +3326,7 @@ async function handleRegisterPasskey() {
 .tag-online {
     font-size: 11px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     background: rgba(13, 99, 27, 0.12);
     padding: 3px 8px;
     border-radius: 6px;
@@ -3414,7 +3413,7 @@ async function handleRegisterPasskey() {
 }
 
 .pulse-green {
-    background-color: #0d631b;
+    background-color: #1B5E20;
     animation: dotPulse 2s infinite;
 }
 
@@ -3432,7 +3431,7 @@ async function handleRegisterPasskey() {
 
 .badge-connected {
     background: rgba(13, 99, 27, 0.15);
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .badge-testing {
@@ -3473,7 +3472,7 @@ async function handleRegisterPasskey() {
 
 .val-tag {
     background: var(--color-primary-bg);
-    color: #0d631b;
+    color: #1B5E20;
     font-size: 12px;
     font-weight: 700;
     padding: 2px 8px;
@@ -3507,14 +3506,14 @@ async function handleRegisterPasskey() {
 
 .settings-input:focus,
 .settings-select:focus {
-    border-color: #0d631b;
+    border-color: #1B5E20;
     outline: 2px solid rgba(13, 99, 27, 0.2) !important;
     outline-offset: 1px;
 }
 
 .slider-input {
     width: 100%;
-    accent-color: #0d631b;
+    accent-color: #1B5E20;
     cursor: pointer;
 }
 
@@ -3571,8 +3570,8 @@ async function handleRegisterPasskey() {
 }
 
 .radio-btn.active {
-    background: #0d631b;
-    border-color: #0d631b;
+    background: #1B5E20;
+    border-color: #1B5E20;
     color: #ffffff;
 }
 
@@ -3644,7 +3643,7 @@ async function handleRegisterPasskey() {
 }
 
 input:checked + .slider {
-    background-color: #0d631b;
+    background-color: #1B5E20;
 }
 
 input:checked + .slider:before {
@@ -3659,7 +3658,7 @@ input:checked + .slider:before {
 
 .btn-primary-sm {
     padding: 10px 18px;
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
     border-radius: 8px;
     font-size: 13px;
@@ -3812,7 +3811,7 @@ input:checked + .slider:before {
 }
 
 .mobile-chip.active {
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
 }
 
@@ -3838,7 +3837,7 @@ input:checked + .slider:before {
 
 .m-status-pill {
     font-size: 11px;
-    color: #0d631b;
+    color: #1B5E20;
     font-weight: 700;
 }
 
@@ -3886,7 +3885,7 @@ input:checked + .slider:before {
 .m-save-btn,
 .mobile-save-all-btn {
     padding: 12px;
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
     border-radius: 8px;
     font-size: 14px;
@@ -3904,7 +3903,7 @@ input:checked + .slider:before {
     background: var(--color-primary-bg);
     border: 1px solid #a5d6a7;
     border-radius: 8px;
-    color: #0d631b;
+    color: #1B5E20;
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
@@ -3912,7 +3911,7 @@ input:checked + .slider:before {
 }
 
 .test-wa-btn:hover:not(:disabled) {
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
 }
 
@@ -3979,7 +3978,7 @@ input:checked + .slider:before {
     border: 1px solid rgba(203, 213, 225, 0.4);
     padding: 10px 12px;
     border-radius: 6px;
-    border-left: 3px solid #0d631b;
+    border-left: 3px solid #1B5E20;
 }
 
 .m-sub-section {
@@ -4008,7 +4007,7 @@ input:checked + .slider:before {
     right: 28px;
     background: var(--color-white);
     border: 1px solid rgba(203, 213, 225, 0.5);
-    border-left: 4px solid #0d631b;
+    border-left: 4px solid #1B5E20;
     border-radius: 12px;
     padding: 14px 20px;
     display: flex;
@@ -4137,7 +4136,7 @@ input:checked + .slider:before {
 }
 
 .btn-pwa-install {
-    background: #0D631B;
+    background: #1B5E20;
     color: #FFFFFF;
     box-shadow: 0 2px 6px rgba(13, 99, 27, 0.2);
 }
@@ -4160,7 +4159,7 @@ input:checked + .slider:before {
 
 .btn-setting-secondary {
     background: rgba(13, 99, 27, 0.08);
-    color: #0D631B;
+    color: #1B5E20;
     border-color: rgba(13, 99, 27, 0.22);
 }
 
@@ -4189,7 +4188,7 @@ input:checked + .slider:before {
 
 .btn-setting-outline:hover {
     background: var(--color-primary-bg, #ECFDF5);
-    color: #0D631B;
+    color: #1B5E20;
     border-color: #A7F3D0;
     transform: translateY(-1px);
 }

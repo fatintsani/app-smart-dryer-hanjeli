@@ -129,18 +129,18 @@ defineProps({
 
 /* Inner Variants */
 .inner-variant-primary {
-  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  background: linear-gradient(180deg, #15803D 0%, #1B5E20 55%, #094713 100%);
   color: #FFFFFF;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
 }
 
 .texture-btn-outer.variant-primary:hover .inner-variant-primary {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
 .texture-btn-outer.variant-primary:active .inner-variant-primary {
-  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
@@ -152,7 +152,7 @@ defineProps({
 
 .texture-btn-outer.variant-secondary:hover .inner-variant-secondary {
   background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 100%);
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .inner-variant-accent {

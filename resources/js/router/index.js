@@ -176,6 +176,14 @@ const routes = [
     meta: { requiresAuth: true, title: 'Panduan Hardware & Sistem' },
   },
   {
+    path: '/manual-book',
+    redirect: '/guide?tab=manual',
+  },
+  {
+    path: '/panduan',
+    redirect: '/guide?tab=manual',
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: SettingsView,

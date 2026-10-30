@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <transition name="modal-fade">
-      <div v-if="isOpen" class="ble-modal-overlay" @click.self="close">
+      <div v-if="isOpen" class="ble-modal-overlay" :class="{ 'dark-theme': isDark }" @click.self="close">
         <div class="ble-modal-container" role="dialog" aria-modal="true">
           <!-- Modal Header -->
           <div class="ble-modal-header">
@@ -12,14 +12,11 @@
                 </svg>
               </div>
               <div class="header-titles">
-                <div class="header-title-row">
-                  <h3 class="modal-title">{{ $t('modals.bleTitle') }}</h3>
-                  <span class="tech-pill">BLE Provisioning</span>
-                </div>
-                <p class="modal-subtitle">{{ $t('modals.bleSub') }}</p>
+                <h3 class="modal-title">{{ $t('modals.bleTitle') || 'Sambungkan Alat Pengering' }}</h3>
+                <p class="modal-subtitle">{{ $t('modals.bleSub') || 'Hubungkan alat ke Wi-Fi atau Hotspot HP melalui Bluetooth.' }}</p>
               </div>
             </div>
-            <button type="button" class="btn-close-modal" @click="close" :title="$t('common.close')">
+            <button type="button" class="btn-close-modal" @click="close" :title="$t('common.close') || 'Tutup'">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -29,69 +26,46 @@
 
           <!-- Modal Body -->
           <div class="ble-modal-body">
-            <!-- 1. Connection Status Card -->
-            <div v-if="!isBleConnected" class="status-card card-disconnected">
-              <div class="status-card-content">
-                <div class="status-icon-wrap warning-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline>
-                  </svg>
-                </div>
-                <div class="status-text-block">
-                  <div class="status-title-row">
-                    <h4 class="status-heading">{{ $t('modals.bleNotConnected') }}</h4>
-                  </div>
-                  <p class="status-desc">{{ currentLang === 'id' ? 'Hubungkan browser ke Bluetooth ESP32 untuk mulai mengirim pengaturan jaringan.' : 'Connect browser to ESP32 Bluetooth to start transmitting network parameters.' }}</p>
-                </div>
+            <!-- 1. Connection Status Bar -->
+            <div v-if="!isBleConnected" class="status-bar status-disconnected">
+              <div class="status-info">
+                <span class="status-dot dot-amber"></span>
+                <span class="status-text">Bluetooth belum terhubung ke alat</span>
               </div>
               <button 
                 type="button" 
-                class="btn-action-connect"
+                class="btn-status-action btn-status-amber"
                 :disabled="isConnecting"
                 @click="handleConnectBle"
               >
-                <svg v-if="!isConnecting" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
-                  <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline>
-                </svg>
-                <span v-if="isConnecting" class="spinner-sm"></span>
-                <span>{{ isConnecting ? $t('modals.bleScanning') : $t('modals.bleConnect') }}</span>
+                <span v-if="isConnecting" class="spinner-xs"></span>
+                <span v-else>{{ isConnecting ? 'Mencari...' : 'Sambungkan' }}</span>
               </button>
             </div>
 
-            <div v-else class="status-card card-connected">
-              <div class="status-card-content">
-                <div class="status-icon-wrap success-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </div>
-                <div class="status-text-block">
-                  <div class="status-title-row">
-                    <h4 class="status-heading">{{ currentLang === 'id' ? 'Terhubung ke' : 'Connected to' }} <strong>{{ currentDeviceId }}</strong></h4>
-                    <span class="pulse-tag-emerald">GATT Active</span>
-                  </div>
-                  <p class="status-desc">{{ currentLang === 'id' ? 'Saluran Bluetooth BLE aktif. Anda dapat mengirim SSID & Password ke ESP32.' : 'Bluetooth BLE channel is active. You can transmit SSID & Password to ESP32.' }}</p>
-                </div>
+            <div v-else class="status-bar status-connected">
+              <div class="status-info">
+                <span class="status-dot dot-green"></span>
+                <span class="status-text">Terhubung: <strong>{{ currentDeviceId }}</strong></span>
               </div>
               <button 
                 type="button" 
-                class="btn-action-disconnect"
+                class="btn-status-action btn-status-red"
                 @click="handleDisconnectBle"
-                :title="$t('modals.bleDisconnect')"
               >
-                {{ $t('modals.bleDisconnect') }}
+                Putuskan
               </button>
             </div>
 
             <!-- 2. Form Fields -->
-            <form @submit.prevent="submitConfig" class="ble-form-layout">
-              <!-- Device ID & Preset -->
+            <form @submit.prevent="submitConfig" class="ble-form">
+              <!-- Device ID -->
               <div class="form-group">
-                <label class="field-label">
-                  <span>DEVICE IDENTIFIER (DEVICE ID)</span>
-                  <span class="label-optional">Wajib</span>
-                </label>
-                <div class="input-container">
+                <div class="field-label-row">
+                  <label class="field-label">Nama Alat Pengering</label>
+                  <span class="field-hint">Bawaan: ESP32-GreenHouse</span>
+                </div>
+                <div class="input-wrap">
                   <div class="input-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
@@ -105,8 +79,8 @@
                   <input 
                     v-model="form.deviceId" 
                     type="text" 
-                    class="custom-input" 
-                    placeholder="Contoh: SRD-001"
+                    class="form-input" 
+                    placeholder="Contoh: ESP32-GreenHouse"
                     required
                   />
                 </div>
@@ -114,11 +88,11 @@
 
               <!-- Wi-Fi SSID -->
               <div class="form-group">
-                <label class="field-label">
-                  <span>NAMA WI-FI (SSID 2.4 GHz)</span>
-                  <span class="label-hint">Mendukung jaringan 2.4 GHz</span>
-                </label>
-                <div class="input-container">
+                <div class="field-label-row">
+                  <label class="field-label">Nama Wi-Fi / Hotspot HP</label>
+                  <span class="field-hint">Jaringan 2.4 GHz</span>
+                </div>
+                <div class="input-wrap">
                   <div class="input-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
@@ -130,8 +104,8 @@
                   <input 
                     v-model="form.ssid" 
                     type="text" 
-                    class="custom-input" 
-                    placeholder="Contoh: Greenhouse_Hanjeli_2.4G"
+                    class="form-input" 
+                    placeholder="Nama Wi-Fi atau Hotspot Anda"
                     required
                   />
                 </div>
@@ -139,10 +113,11 @@
 
               <!-- Wi-Fi Password -->
               <div class="form-group">
-                <label class="field-label">
-                  <span>PASSWORD WI-FI</span>
-                </label>
-                <div class="input-container">
+                <div class="field-label-row">
+                  <label class="field-label">Kata Sandi Wi-Fi</label>
+                  <span class="field-hint">Kosongkan jika tanpa sandi</span>
+                </div>
+                <div class="input-wrap">
                   <div class="input-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -152,15 +127,14 @@
                   <input 
                     v-model="form.password" 
                     :type="showPassword ? 'text' : 'password'" 
-                    class="custom-input with-toggle" 
+                    class="form-input with-toggle" 
                     placeholder="Masukkan kata sandi Wi-Fi"
-                    required
                   />
                   <button 
                     type="button" 
-                    class="btn-toggle-visibility"
+                    class="btn-toggle-eye"
                     @click="showPassword = !showPassword"
-                    :title="showPassword ? 'Sembunyikan password' : 'Lihat password'"
+                    :title="showPassword ? 'Sembunyikan sandi' : 'Tampilkan sandi'"
                   >
                     <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -174,39 +148,48 @@
                 </div>
               </div>
 
-              <!-- MQTT Broker Host & Port -->
-              <div class="form-row-grid">
-                <div class="form-group flex-2">
-                  <div class="field-label-row">
-                    <label class="field-label">MQTT BROKER HOST</label>
-                    <button type="button" class="btn-preset-link" @click="useDefaultBroker">Gunakan HiveMQ</button>
-                  </div>
-                  <div class="input-container">
-                    <div class="input-icon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                      </svg>
-                    </div>
-                    <input 
-                      v-model="form.mqttBroker" 
-                      type="text" 
-                      class="custom-input" 
-                      placeholder="broker.hivemq.com"
-                      required
-                    />
-                  </div>
-                </div>
+              <!-- Collapsible Advanced Settings (MQTT) -->
+              <div class="advanced-section">
+                <button 
+                  type="button" 
+                  class="btn-toggle-advanced"
+                  @click="showAdvanced = !showAdvanced"
+                >
+                  <span class="advanced-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="3"></circle>
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Pengaturan Lanjutan (Server MQTT)
+                  </span>
+                  <svg class="chevron-icon" :class="{ 'rotate-180': showAdvanced }" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
 
-                <div class="form-group flex-1">
-                  <label class="field-label">PORT</label>
-                  <div class="input-container">
-                    <input 
-                      v-model="form.mqttPort" 
-                      type="number" 
-                      class="custom-input no-left-icon text-center" 
-                      placeholder="1883"
-                      required
-                    />
+                <div v-if="showAdvanced" class="advanced-panel">
+                  <div class="advanced-grid">
+                    <div class="form-group flex-2">
+                      <div class="field-label-row">
+                        <label class="field-label-sm">Server MQTT</label>
+                        <button type="button" class="btn-preset-link" @click="useDefaultBroker">Reset HiveMQ</button>
+                      </div>
+                      <input 
+                        v-model="form.mqttBroker" 
+                        type="text" 
+                        class="form-input form-input-sm" 
+                        placeholder="broker.hivemq.com"
+                      />
+                    </div>
+                    <div class="form-group flex-1">
+                      <label class="field-label-sm">Port</label>
+                      <input 
+                        v-model="form.mqttPort" 
+                        type="number" 
+                        class="form-input form-input-sm text-center" 
+                        placeholder="1883"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -228,7 +211,7 @@
                 </div>
               </transition>
 
-              <!-- Action Buttons -->
+              <!-- Modal Footer Actions -->
               <div class="modal-footer-actions">
                 <button type="button" class="btn-cancel" @click="close">
                   Batal
@@ -237,14 +220,13 @@
                   type="submit" 
                   class="btn-submit"
                   :disabled="isSubmitting || isConnecting"
-                  :title="!isBleConnected ? 'Klik untuk menghubungkan Bluetooth & mengirim konfigurasi' : 'Kirim konfigurasi ke ESP32'"
                 >
                   <span v-if="isSubmitting || isConnecting" class="spinner-sm"></span>
                   <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
                     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                   </svg>
-                  <span>{{ isSubmitting ? 'Mengirim ke ESP32...' : (isConnecting ? 'Menghubungkan BLE...' : (!isBleConnected ? 'Hubungkan BLE & Kirim' : 'Kirim Konfigurasi via BLE')) }}</span>
+                  <span>{{ submitButtonLabel }}</span>
                 </button>
               </div>
             </form>
@@ -259,6 +241,7 @@
 import { ref, reactive, computed, watch } from 'vue';
 import connectionManager from '../services/connectionManager';
 import bleService from '../services/ble/bleService';
+import { isDark } from '../services/themeService';
 
 const props = defineProps({
   isOpen: {
@@ -270,17 +253,18 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const showPassword = ref(false);
+const showAdvanced = ref(false);
 const isSubmitting = ref(false);
 const isConnecting = ref(false);
 const feedbackMessage = ref('');
 const feedbackSuccess = ref(false);
 
 const isBleConnected = computed(() => bleService.isConnected);
-const currentDeviceId = computed(() => connectionManager.state.deviceId || 'OPPO Reno');
+const currentDeviceId = computed(() => connectionManager.state.deviceId || 'ESP32-GreenHouse');
 
 const form = reactive({
-  deviceId: connectionManager.state.deviceId || 'OPPO Reno',
-  ssid: connectionManager.state.hotspotName || 'OPPO Reno',
+  deviceId: connectionManager.state.deviceId || 'ESP32-GreenHouse',
+  ssid: connectionManager.state.hotspotName || '',
   password: '',
   mqttBroker: 'broker.hivemq.com',
   mqttPort: 1883,
@@ -288,13 +272,21 @@ const form = reactive({
 
 watch(() => props.isOpen, (open) => {
   if (open) {
-    form.deviceId = connectionManager.state.deviceId || 'OPPO Reno';
-    form.ssid = connectionManager.state.hotspotName || 'OPPO Reno';
+    form.deviceId = connectionManager.state.deviceId || 'ESP32-GreenHouse';
+    form.ssid = connectionManager.state.hotspotName || '';
+    feedbackMessage.value = '';
   }
 });
 
 const feedbackClass = computed(() => {
   return feedbackSuccess.value ? 'banner-success' : 'banner-error';
+});
+
+const submitButtonLabel = computed(() => {
+  if (isSubmitting.value) return 'Menyimpan ke Alat...';
+  if (isConnecting.value) return 'Mencari Bluetooth...';
+  if (!isBleConnected.value) return 'Sambungkan & Simpan';
+  return 'Simpan ke Alat';
 });
 
 const useDefaultBroker = () => {
@@ -312,14 +304,14 @@ const handleConnectBle = async () => {
     const result = await connectionManager.connect();
     if (result && result.success) {
       feedbackSuccess.value = true;
-      feedbackMessage.value = 'Berhasil terhubung ke Bluetooth ESP32!';
+      feedbackMessage.value = 'Berhasil terhubung ke alat via Bluetooth!';
       return true;
     }
     return false;
   } catch (e) {
     if (e.message && !e.message.includes('dibatalkan')) {
       feedbackSuccess.value = false;
-      feedbackMessage.value = `Gagal terhubung Bluetooth: ${e.message}`;
+      feedbackMessage.value = `Gagal terhubung: ${e.message}`;
     }
     return false;
   } finally {
@@ -337,13 +329,13 @@ const submitConfig = async () => {
   if (form.deviceId) connectionManager.setDeviceId(form.deviceId);
   if (form.ssid) connectionManager.setHotspotName(form.ssid);
 
-  // If not connected to BLE yet, prompt to connect
+  // If not connected to BLE yet, auto connect first
   if (!isBleConnected.value) {
     feedbackSuccess.value = false;
-    feedbackMessage.value = 'Menghubungkan ke Bluetooth ESP32 terlebih dahulu...';
+    feedbackMessage.value = 'Mencari dan menyambungkan ke Bluetooth alat...';
     const connected = await handleConnectBle();
     if (!connected) {
-      feedbackMessage.value = 'ESP32 belum terhubung via Bluetooth. Silakan klik tombol "Sambungkan Bluetooth" di kotak atas lalu ulangi kirim konfigurasi.';
+      feedbackMessage.value = 'Belum terhubung ke alat. Pastikan Bluetooth aktif dan alat pengering menyala.';
       return;
     }
   }
@@ -361,13 +353,13 @@ const submitConfig = async () => {
     });
 
     feedbackSuccess.value = true;
-    feedbackMessage.value = 'Kredensial Wi-Fi & MQTT berhasil disimpan ke NVS ESP32! ESP32 akan segera terhubung ke Wi-Fi.';
+    feedbackMessage.value = 'Pengaturan Wi-Fi berhasil dikirim ke alat! Alat sedang menyambung ke jaringan.';
     
     // Mask password after successful submission
     form.password = '';
   } catch (err) {
     feedbackSuccess.value = false;
-    feedbackMessage.value = `Gagal mengirim konfigurasi: ${err.message}`;
+    feedbackMessage.value = `Gagal mengirim pengaturan: ${err.message}`;
   } finally {
     isSubmitting.value = false;
   }
@@ -383,7 +375,7 @@ const close = () => {
 /* Modal Fade Transitions */
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-fade-enter-from,
@@ -400,9 +392,9 @@ const close = () => {
 .ble-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(7, 30, 39, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -414,106 +406,92 @@ const close = () => {
 /* Modal Container Dialog */
 .ble-modal-container {
   background: #FFFFFF;
-  border-radius: 20px;
+  border-radius: 18px;
   width: 100%;
-  max-width: 520px;
-  box-shadow: 0 25px 50px -12px rgba(7, 30, 39, 0.35), 0 0 0 1px rgba(191, 202, 186, 0.4);
+  max-width: 480px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
 }
 
+.dark-theme .ble-modal-container,
 :global(.dark-theme) .ble-modal-container {
-  background: #0B242F;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(30, 78, 97, 0.6);
+  background: #0B242F !important;
+  border: 1px solid #1E4E61 !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 /* Modal Header */
 .ble-modal-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 20px 24px 16px 24px;
-  border-bottom: 1px solid rgba(191, 202, 186, 0.35);
-  background: linear-gradient(180deg, #F8FCFE 0%, #FFFFFF 100%);
+  padding: 18px 22px;
+  border-bottom: 1px solid #E2E8F0;
+  background: #FAFDFB;
 }
 
+.dark-theme .ble-modal-header,
 :global(.dark-theme) .ble-modal-header {
-  background: linear-gradient(180deg, #0E2C39 0%, #0B242F 100%);
-  border-bottom-color: rgba(30, 78, 97, 0.5);
+  background: #09202A !important;
+  border-bottom-color: #1E4E61 !important;
 }
 
 .header-main-info {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .header-icon-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #005DB7 0%, #2563EB 100%);
-  color: #FFFFFF;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #E8F5E9;
+  color: #1B5E20;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 93, 183, 0.25);
+}
+
+.dark-theme .header-icon-badge,
+:global(.dark-theme) .header-icon-badge {
+  background: rgba(27, 94, 32, 0.25);
+  color: #81C784;
 }
 
 .header-titles {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-}
-
-.header-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 2px;
 }
 
 .modal-title {
-  font-size: 15.5px;
-  font-weight: 800;
-  color: #071E27;
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-
-:global(.dark-theme) .modal-title {
-  color: #FFFFFF;
-}
-
-.tech-pill {
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 20px;
-  background: rgba(0, 93, 183, 0.12);
-  color: #005DB7;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.3;
 }
 
-:global(.dark-theme) .tech-pill {
-  background: rgba(59, 130, 246, 0.2);
-  color: #93C5FD;
+.dark-theme .modal-title,
+:global(.dark-theme) .modal-title {
+  color: #F8FAFC !important;
 }
 
 .modal-subtitle {
-  font-size: 11.5px;
-  color: rgba(64, 73, 61, 0.75);
+  font-size: 12px;
+  color: #64748B;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
+.dark-theme .modal-subtitle,
 :global(.dark-theme) .modal-subtitle {
-  color: #94A3B8;
+  color: #94A3B8 !important;
 }
 
 .btn-close-modal {
@@ -530,8 +508,8 @@ const close = () => {
 }
 
 .btn-close-modal:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #071E27;
+  background: #F1F5F9;
+  color: #0F172A;
 }
 
 :global(.dark-theme) .btn-close-modal:hover {
@@ -541,180 +519,107 @@ const close = () => {
 
 /* Modal Body */
 .ble-modal-body {
-  padding: 20px 24px;
+  padding: 18px 22px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
-/* Status Cards */
-.status-card {
-  border-radius: 14px;
-  padding: 12px 16px;
+/* Status Bar */
+.status-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12.5px;
   transition: all 0.2s ease;
 }
 
-.status-card-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.status-icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.card-disconnected {
+.status-disconnected {
   background: #FFFBEB;
   border: 1px solid #FDE68A;
+  color: #92400E;
 }
 
-:global(.dark-theme) .card-disconnected {
+:global(.dark-theme) .status-disconnected {
   background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.3);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #FCD34D;
 }
 
-.warning-icon {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-:global(.dark-theme) .warning-icon {
-  background: rgba(217, 119, 6, 0.2);
-  color: #FBBF24;
-}
-
-.card-connected {
+.status-connected {
   background: #ECFDF5;
   border: 1px solid #A7F3D0;
+  color: #065F46;
 }
 
-:global(.dark-theme) .card-connected {
+:global(.dark-theme) .status-connected {
   background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #6EE7B7;
 }
 
-.success-icon {
-  background: #D1FAE5;
-  color: #059669;
-}
-
-:global(.dark-theme) .success-icon {
-  background: rgba(5, 150, 105, 0.2);
-  color: #34D399;
-}
-
-.status-text-block {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.status-title-row {
+.status-info {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.status-heading {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #071E27;
-  margin: 0;
-}
-
-:global(.dark-theme) .status-heading {
-  color: #F8FAFC;
-}
-
-.status-desc {
-  font-size: 11px;
-  color: #64748B;
-  margin: 0;
-  line-height: 1.35;
-}
-
-:global(.dark-theme) .status-desc {
-  color: #94A3B8;
-}
-
-.pulse-tag-amber {
-  font-size: 10px;
-  font-weight: 700;
-  color: #B45309;
-  background: #FDE68A;
-  padding: 1px 6px;
-  border-radius: 6px;
-}
-
-.pulse-tag-emerald {
-  font-size: 10px;
-  font-weight: 700;
-  color: #047857;
-  background: #A7F3D0;
-  padding: 1px 6px;
-  border-radius: 6px;
-}
-
-/* Action Button on Status Card */
-.btn-action-connect {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #FFFFFF;
-  background: linear-gradient(135deg, #005DB7 0%, #1D4ED8 100%);
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 93, 183, 0.25);
-  transition: all 0.2s ease;
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
-.btn-action-connect:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 12px rgba(0, 93, 183, 0.35);
-  filter: brightness(1.08);
+.dot-amber {
+  background: #D97706;
 }
 
-.btn-action-connect:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.dot-green {
+  background: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
 }
 
-.btn-action-disconnect {
-  padding: 5px 10px;
-  border-radius: 7px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #DC2626;
-  background: rgba(220, 38, 38, 0.1);
-  border: 1px solid rgba(220, 38, 38, 0.2);
+.status-text {
+  font-weight: 500;
+}
+
+.btn-status-action {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
   cursor: pointer;
+  border: none;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.btn-action-disconnect:hover {
+.btn-status-amber {
+  background: #F59E0B;
+  color: #FFFFFF;
+}
+
+.btn-status-amber:hover:not(:disabled) {
+  background: #D97706;
+}
+
+.btn-status-red {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.btn-status-red:hover {
   background: #DC2626;
   color: #FFFFFF;
 }
 
 /* Form Styles */
-.ble-form-layout {
+.ble-form {
   display: flex;
   flex-direction: column;
   gap: 13px;
@@ -726,58 +631,34 @@ const close = () => {
   gap: 5px;
 }
 
-.field-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #40493D;
-}
-
-:global(.dark-theme) .field-label {
-  color: #CBD5E1;
-}
-
-.label-hint {
-  font-size: 10px;
-  font-weight: 500;
-  color: #64748B;
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-.label-optional {
-  font-size: 10px;
-  font-weight: 600;
-  color: #059669;
-  text-transform: none;
-}
-
 .field-label-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.btn-preset-link {
-  background: transparent;
-  border: none;
-  color: #005DB7;
-  font-size: 10.5px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
+.field-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1E293B;
 }
 
-:global(.dark-theme) .btn-preset-link {
-  color: #60A5FA;
+.dark-theme .field-label,
+:global(.dark-theme) .field-label {
+  color: #E2E8F0;
 }
 
-/* Input Containers */
-.input-container {
+.field-hint {
+  font-size: 11px;
+  color: #64748B;
+}
+
+.dark-theme .field-hint,
+:global(.dark-theme) .field-hint {
+  color: #94A3B8;
+}
+
+.input-wrap {
   position: relative;
   display: flex;
   align-items: center;
@@ -792,49 +673,45 @@ const close = () => {
   pointer-events: none;
 }
 
-.custom-input {
+.form-input {
   width: 100%;
-  padding: 10px 12px 10px 38px;
+  height: 40px;
+  padding: 0 12px 0 36px;
   border-radius: 10px;
-  border: 1px solid #CBD5E1;
+  border: 1.5px solid #E2E8F0;
   background: #F8FAFC;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #071E27;
+  font-size: 13px;
+  color: #0F172A;
   outline: none;
   transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
-:global(.dark-theme) .custom-input {
-  background: #071E27;
-  border-color: #1E4E61;
+:global(.dark-theme) .form-input {
+  background: #09202A;
+  border-color: #1E3A47;
   color: #F8FAFC;
 }
 
-.custom-input:focus {
-  border-color: #005DB7;
+.form-input:focus {
+  border-color: #1B5E20;
   background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(0, 93, 183, 0.15);
+  box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.12);
 }
 
-:global(.dark-theme) .custom-input:focus {
-  background: #0B242F;
-  border-color: #38BDF8;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+:global(.dark-theme) .form-input:focus {
+  background: #0E2C39;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
-.custom-input.with-toggle {
-  padding-right: 38px;
+.form-input.with-toggle {
+  padding-right: 36px;
 }
 
-.custom-input.no-left-icon {
-  padding-left: 12px;
-}
-
-.btn-toggle-visibility {
+.btn-toggle-eye {
   position: absolute;
-  right: 10px;
+  right: 8px;
   background: transparent;
   border: none;
   color: #94A3B8;
@@ -846,15 +723,66 @@ const close = () => {
   transition: color 0.2s ease;
 }
 
-.btn-toggle-visibility:hover {
-  color: #071E27;
+.btn-toggle-eye:hover {
+  color: #0F172A;
 }
 
-:global(.dark-theme) .btn-toggle-visibility:hover {
+:global(.dark-theme) .btn-toggle-eye:hover {
   color: #FFFFFF;
 }
 
-.form-row-grid {
+/* Collapsible Advanced */
+.advanced-section {
+  border-top: 1px dashed #E2E8F0;
+  padding-top: 8px;
+}
+
+:global(.dark-theme) .advanced-section {
+  border-top-color: #1E3A47;
+}
+
+.btn-toggle-advanced {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 6px 2px;
+  color: #64748B;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-toggle-advanced:hover {
+  color: #1B5E20;
+}
+
+:global(.dark-theme) .btn-toggle-advanced:hover {
+  color: #81C784;
+}
+
+.advanced-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chevron-icon {
+  transition: transform 0.2s ease;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.advanced-panel {
+  padding: 10px 0 2px 0;
+}
+
+.advanced-grid {
   display: flex;
   gap: 10px;
 }
@@ -862,15 +790,46 @@ const close = () => {
 .flex-2 { flex: 2; }
 .flex-1 { flex: 1; }
 
+.field-label-sm {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.form-input-sm {
+  height: 36px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.btn-preset-link {
+  background: transparent;
+  border: none;
+  color: #1B5E20;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+:global(.dark-theme) .btn-preset-link {
+  color: #81C784;
+}
+
+.text-center {
+  text-align: center;
+}
+
 /* Feedback Banner */
 .feedback-banner {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 11.5px;
-  font-weight: 600;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1.4;
 }
 
@@ -882,7 +841,7 @@ const close = () => {
 
 :global(.dark-theme) .banner-success {
   background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(16, 185, 129, 0.3);
   color: #6EE7B7;
 }
 
@@ -894,7 +853,7 @@ const close = () => {
 
 :global(.dark-theme) .banner-error {
   background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.35);
+  border-color: rgba(239, 68, 68, 0.3);
   color: #FCA5A5;
 }
 
@@ -909,24 +868,25 @@ const close = () => {
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
 .btn-cancel {
-  padding: 9px 18px;
+  padding: 9px 16px;
   border-radius: 10px;
   border: 1px solid #CBD5E1;
   background: #FFFFFF;
   color: #475569;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+.dark-theme .btn-cancel,
 :global(.dark-theme) .btn-cancel {
-  background: #0E2C39;
-  border-color: #1E4E61;
+  background: #09202A;
+  border-color: #1E3A47;
   color: #CBD5E1;
 }
 
@@ -935,6 +895,7 @@ const close = () => {
   color: #0F172A;
 }
 
+.dark-theme .btn-cancel:hover,
 :global(.dark-theme) .btn-cancel:hover {
   background: #133947;
   color: #FFFFFF;
@@ -943,29 +904,27 @@ const close = () => {
 .btn-submit {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 20px;
+  gap: 7px;
+  padding: 9px 18px;
   border-radius: 10px;
   border: none;
-  background: linear-gradient(135deg, #0D631B 0%, #2E7D32 100%);
+  background: #1B5E20;
   color: #FFFFFF;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(13, 99, 27, 0.25);
+  box-shadow: 0 2px 6px rgba(27, 94, 32, 0.25);
   transition: all 0.2s ease;
 }
 
 .btn-submit:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgba(13, 99, 27, 0.35);
-  filter: brightness(1.08);
+  background: #2E7D32;
+  box-shadow: 0 4px 10px rgba(27, 94, 32, 0.35);
 }
 
 .btn-submit:disabled {
-  opacity: 0.55;
+  opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
   box-shadow: none;
 }
 
@@ -973,6 +932,16 @@ const close = () => {
   width: 14px;
   height: 14px;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+.spinner-xs {
+  width: 11px;
+  height: 11px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-top-color: #FFFFFF;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;

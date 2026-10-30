@@ -897,7 +897,7 @@ const statusDotClass = computed(() => {
 
 .card-toggle-dropdown-btn:hover {
   background: #E2E8F0;
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   border-color: rgba(13, 99, 27, 0.35);
   transform: translateY(-1px);
 }
@@ -985,7 +985,7 @@ const statusDotClass = computed(() => {
 }
 
 .source-segment-btn.active {
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
   color: #FFFFFF;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
@@ -1034,7 +1034,7 @@ const statusDotClass = computed(() => {
 
 .mode-icon-circle.wifi {
   background: var(--color-primary-bg, rgba(46, 125, 50, 0.1));
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
 }
 
 :global(.dark-theme) .mode-icon-circle.wifi {
@@ -1237,7 +1237,7 @@ const statusDotClass = computed(() => {
   gap: 4px;
   background: transparent;
   border: none;
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   font-size: 10px;
   font-weight: 700;
   cursor: pointer;
@@ -1287,7 +1287,7 @@ const statusDotClass = computed(() => {
   font-weight: 700;
 }
 
-.text-status-online { color: var(--color-primary-dark, #0D631B); }
+.text-status-online { color: var(--color-primary-dark, #1B5E20); }
 :global(.dark-theme) .text-status-online { color: #6EE7B7; }
 
 .text-status-connecting { color: #B45000; }
@@ -1302,7 +1302,7 @@ const statusDotClass = computed(() => {
 }
 
 .text-green-icon {
-  color: #0D631B;
+  color: #1B5E20;
   flex-shrink: 0;
 }
 
@@ -1469,7 +1469,7 @@ const statusDotClass = computed(() => {
 .btn-ble-setup {
   background: var(--color-primary-bg, rgba(46, 125, 50, 0.1));
   border: 1px solid var(--color-primary, #2E7D32);
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
 }
 
 .btn-ble-setup:hover {
@@ -1573,7 +1573,7 @@ const statusDotClass = computed(() => {
   height: 40px;
   border-radius: 10px;
   background: rgba(13, 99, 27, 0.12);
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1594,7 +1594,7 @@ const statusDotClass = computed(() => {
 .sim-heading {
   font-size: 14px;
   font-weight: 700;
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   margin: 0;
 }
 
@@ -1627,7 +1627,7 @@ const statusDotClass = computed(() => {
   font-size: 12px;
   font-weight: 700;
   background: rgba(13, 99, 27, 0.12);
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   border: 1px solid rgba(13, 99, 27, 0.25);
 }
 
@@ -1641,7 +1641,7 @@ const statusDotClass = computed(() => {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #0D631B;
+  background: #1B5E20;
   animation: pulse-dot 1.8s infinite;
 }
 
@@ -1701,7 +1701,7 @@ const statusDotClass = computed(() => {
   height: 38px;
   border-radius: 10px;
   background: rgba(13, 99, 27, 0.12);
-  color: var(--color-primary-dark, #0D631B);
+  color: var(--color-primary-dark, #1B5E20);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1812,7 +1812,7 @@ const statusDotClass = computed(() => {
 }
 
 .device-input:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.15);
 }
 
@@ -1854,8 +1854,8 @@ const statusDotClass = computed(() => {
 
 .chip-btn.active {
   background: rgba(13, 99, 27, 0.12);
-  border-color: #0D631B;
-  color: #0D631B;
+  border-color: #1B5E20;
+  color: #1B5E20;
   font-weight: 700;
 }
 
@@ -1941,7 +1941,7 @@ const statusDotClass = computed(() => {
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
-  background: var(--color-primary-dark, #0D631B);
+  background: var(--color-primary-dark, #1B5E20);
   color: #FFFFFF;
   border: none;
   cursor: pointer;
@@ -2002,7 +2002,7 @@ const statusDotClass = computed(() => {
   }
 
   .mobile-dropdown-header:focus-visible {
-    outline: 2px solid var(--color-primary-dark, #0D631B);
+    outline: 2px solid var(--color-primary-dark, #1B5E20);
     outline-offset: 2px;
     border-radius: 8px;
   }
@@ -2024,13 +2024,13 @@ const statusDotClass = computed(() => {
     justify-content: center;
     flex-shrink: 0;
     background: rgba(13, 99, 27, 0.1);
-    color: var(--color-primary-dark, #0D631B);
+    color: var(--color-primary-dark, #1B5E20);
     transition: all 0.2s ease;
   }
 
   .mobile-mode-icon-circle.wifi {
     background: rgba(13, 99, 27, 0.1);
-    color: #0D631B;
+    color: #1B5E20;
   }
 
   .mobile-mode-icon-circle.ble {

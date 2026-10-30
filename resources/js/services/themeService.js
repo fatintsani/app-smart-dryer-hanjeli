@@ -20,10 +20,9 @@ export function setTheme(theme) {
   try {
     localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
     if (typeof document !== 'undefined') {
-      if (isDark.value) {
-        document.documentElement.classList.add('dark-theme')
-      } else {
-        document.documentElement.classList.remove('dark-theme')
+      document.documentElement.classList.toggle('dark-theme', isDark.value)
+      if (document.body) {
+        document.body.classList.toggle('dark-theme', isDark.value)
       }
     }
   } catch (e) {
@@ -33,10 +32,9 @@ export function setTheme(theme) {
 
 // Initialize on load
 if (typeof document !== 'undefined') {
-  if (isDark.value) {
-    document.documentElement.classList.add('dark-theme')
-  } else {
-    document.documentElement.classList.remove('dark-theme')
+  document.documentElement.classList.toggle('dark-theme', isDark.value)
+  if (document.body) {
+    document.body.classList.toggle('dark-theme', isDark.value)
   }
 }
 

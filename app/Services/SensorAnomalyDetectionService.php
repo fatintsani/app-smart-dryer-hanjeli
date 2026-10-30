@@ -152,10 +152,10 @@ class SensorAnomalyDetectionService
             return [
                 'code' => 'THERMAL_PARADOX_HEATER_ACTIVE',
                 'level' => 'CRITICAL',
-                'title' => 'Anomali Termal: Pintu Greenhouse Terbuka / Drop Suhu',
-                'description' => "Suhu ruang pengering ({$t->temp_internal}°C) berada {$diff}°C LEBIH RENDAH dibanding suhu luar ({$t->temp_external}°C) padahal Auxiliary Heater sedang AKTIF (Level {$heaterLevel}).",
-                'rootCause' => 'Pintu greenhouse kemungkinan besar terbuka lebar, dinding penutup polikarbonat berlubang, atau modul pemanas keramik terputus dari arus.',
-                'action' => 'Segera periksa apakah pintu greenhouse tertutup rapat dan periksa fisik pemanas bantu.',
+                'title' => 'Pintu Terbuka / Suhu Drop',
+                'description' => "Suhu ruang pengering ({$t->temp_internal}°C) lebih rendah {$diff}°C dibanding luar ({$t->temp_external}°C) saat pemanas aktif.",
+                'rootCause' => 'Pintu greenhouse terbuka lebar atau dinding ventilasi tidak tertutup rapat.',
+                'action' => 'Periksa apakah pintu greenhouse sudah tertutup rapat dan cek pemanas bantu.',
                 'dropDelta' => $diff,
             ];
         }
@@ -168,10 +168,10 @@ class SensorAnomalyDetectionService
                 return [
                     'code' => 'THERMAL_PARADOX_HEATER_ACTIVE',
                     'level' => 'CRITICAL',
-                    'title' => 'Anomali Termal: Penurunan Suhu Mendadak Saat Pemanas Aktif',
-                    'description' => "Suhu ruang pengering anjlok sebesar {$tempDiff}°C (dari {$previous->temp_internal}°C ke {$t->temp_internal}°C) padahal Auxiliary Heater sedang AKTIF.",
-                    'rootCause' => 'Terjadi pelepasan panas masif mendadak, pintu dibuka paksa, atau sensor suhu terlepas.',
-                    'action' => 'Periksa apakah ada pintu atau ventilasi atas yang terbuka mendadak.',
+                    'title' => 'Suhu Ruangan Turun Mendadak',
+                    'description' => "Suhu ruang pengering turun drastis {$tempDiff}°C padahal pemanas sedang aktif.",
+                    'rootCause' => 'Pelepasan panas mendadak atau pintu dibuka.',
+                    'action' => 'Periksa apakah ada pintu atau ventilasi yang terbuka.',
                     'dropDelta' => round($tempDiff, 1),
                 ];
             }
@@ -182,10 +182,10 @@ class SensorAnomalyDetectionService
             return [
                 'code' => 'THERMAL_INVERSION_DAYTIME',
                 'level' => 'WARNING',
-                'title' => 'Anomali Termal: Suhu Ruang Lebih Rendah dari Luar Saat Terik',
-                'description' => "Radiasi surya terik ({$t->solar_radiation} W/m²), tetapi suhu internal ({$t->temp_internal}°C) lebih dingin dibanding suhu lingkungan luar ({$t->temp_external}°C).",
-                'rootCause' => 'Sirkulasi udara luar terlalu deras, pintu akses terbuka lebar, atau sensor suhu internal terpapar hembusan angin dingin.',
-                'action' => 'Pastikan pintu masuk greenhouse tertutup dan periksa posisi probe sensor suhu internal.',
+                'title' => 'Suhu Ruang Dingin Saat Terik',
+                'description' => "Suhu ruangan ({$t->temp_internal}°C) lebih dingin dibanding luar ({$t->temp_external}°C) saat matahari terik.",
+                'rootCause' => 'Sirkulasi udara luar terlalu deras atau pintu akses terbuka.',
+                'action' => 'Pastikan pintu masuk greenhouse tertutup rapat.',
                 'tempInternal' => $t->temp_internal,
                 'tempExternal' => $t->temp_external,
             ];
@@ -210,10 +210,10 @@ class SensorAnomalyDetectionService
                 return [
                     'code' => 'MOISTURE_SUDDEN_SPIKE',
                     'level' => 'WARNING',
-                    'title' => 'Anomali Kadar Air: Lonjakan Kelembaban Gabah Mendadak',
-                    'description' => "Kadar air biji Hanjeli melonjak naik sebesar +{$spike}% (dari {$previous->grain_moisture}% ke {$t->grain_moisture}%) di tengah proses pengeringan.",
-                    'rootCause' => 'Kemungkinan adanya rembesan air hujan / kondensasi atap menetes ke rak (*tray*), penambahan gabah basah baru tanpa pencatatan, atau posisi probe kapasitif kadar air bergeser.',
-                    'action' => 'Periksa apakah ada kebocoran atap di atas rak pengering dan pastikan operator tidak mencampur gabah baru ke dalam batch yang sedang berjalan.',
+                    'title' => 'Kadar Air Biji Naik Mendadak',
+                    'description' => "Kadar air biji Hanjeli naik +{$spike}% di tengah proses pengeringan.",
+                    'rootCause' => 'Kemungkinan adanya rembesan air atau penambahan gabah basah baru ke rak.',
+                    'action' => 'Periksa apakah ada kebocoran atap di atas rak pengering.',
                     'spikePercent' => $spike,
                 ];
             }
@@ -238,10 +238,10 @@ class SensorAnomalyDetectionService
             return [
                 'code' => 'SENSOR_DATA_FLATLINE',
                 'level' => 'WARNING',
-                'title' => 'Anomali Sensor: Pembacaan Macet / Flatline Terdeteksi',
-                'description' => "Nilai sensor Suhu ({$val}°C), Kelembaban ({$hums->first()}%), dan Kadar Air ({$moists->first()}%) tidak berubah sama sekali selama beberapa siklus log berturut-turut.",
-                'rootCause' => 'Microcontroller ESP32 mengalami buffer hang, modul ADC stuck, atau simulator sensor macet.',
-                'action' => 'Kirim perintah Ping / Restart pada mikrokontroler melalui menu Admin Perangkat atau periksa kestabilan catu daya 5V/3.3V ESP32.',
+                'title' => 'Koneksi Sensor Macet',
+                'description' => "Data sensor suhu ({$val}°C) dan kelembaban tidak bergerak selama beberapa pembacaan berturut-turut.",
+                'rootCause' => 'Mikrokontroler ESP32 atau sambungan sensor perlu diperiksa.',
+                'action' => 'Periksa kabel sambungan sensor dan restart alat bila perlu.',
             ];
         }
 
@@ -306,12 +306,29 @@ class SensorAnomalyDetectionService
 
         Cache::put($cacheKey, true, 900); // 15 minutes
 
+        // Prevent duplicate unread alerts for the same anomaly:
+        // If an unread alert with this title already exists, update its details and refresh timestamp
+        $existingAlert = SystemAlert::where('category', 'SENSOR')
+            ->where('title', $anomaly['title'])
+            ->where('is_read', false)
+            ->latest('id')
+            ->first();
+
+        if ($existingAlert) {
+            $existingAlert->update([
+                'message' => trim($anomaly['description'] . ' ' . $anomaly['action']),
+                'level' => $anomaly['level'] ?? $existingAlert->level,
+                'created_at' => now(),
+            ]);
+            return;
+        }
+
         $alert = SystemAlert::create([
             'batch_id' => $batchId,
             'level' => $anomaly['level'] ?? 'WARNING',
             'category' => 'SENSOR',
             'title' => $anomaly['title'],
-            'message' => $anomaly['description'] . "\n\nRekomendasi Aksi: " . $anomaly['action'],
+            'message' => trim($anomaly['description'] . ' ' . $anomaly['action']),
             'is_read' => false,
         ]);
 

@@ -1,4542 +1,1081 @@
 <template>
-    <div class="active-drying-page">
-        <Transition name="fade-active-drying" mode="out-in">
-            <ActiveDryingSkeleton v-if="isInitialLoading" />
-            <div v-else class="active-drying-loaded-wrap">
-                <!-- Unified Responsive Content -->
-                <div class="active-drying-main-content">
-                    <!-- Back Link & Header -->
-                    <div class="header-action-row">
-                        <div class="title-group">
-                            <button
-                                class="back-link-btn"
-                                @click="$emit('back')"
-                            >
-                                <svg
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2.5"
-                                >
-                                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                                    <polyline
-                                        points="12 19 5 12 12 5"
-                                    ></polyline>
-                                </svg>
-                                <span>{{
-                                    $t("activeDrying.backToDashboard")
-                                }}</span>
-                            </button>
-                            <div class="title-with-badge">
-                                <h1 class="page-title">
-                                    {{
-                                        activeBatch?.cropVariety ||
-                                        "Pengeringan Gabah Hanjeli"
-                                    }}
-                                </h1>
-                                <span
-                                    class="badge-pill bg-purple-subtle text-purple"
-                                >
-                                    {{
-                                        activeBatch?.batchCode ||
-                                        "HJ-2026-ACTIVE"
-                                    }}
-                                </span>
-                            </div>
-                            <p class="page-subtitle">
-                                {{ $t("dashboard.dryingMode") }}:
-                                <strong>{{
-                                    actuators.controlMode === "MANUAL"
-                                        ? "Manual Control"
-                                        : activeBatch?.dryingMode ||
-                                          "Hybrid Solar-Electric Auto"
-                                }}</strong>
-                                • {{ $t("common.operator") }}:
-                                <strong>{{
-                                    activeBatch?.operatorName ||
-                                    activeBatch?.operator?.name ||
-                                    "Operator Greenhouse"
-                                }}</strong>
-                            </p>
-                        </div>
+  <div class="active-drying-page">
+    <Transition name="fade-active-drying" mode="out-in">
+      <ActiveDryingSkeleton v-if="isInitialLoading" />
+      <div v-else class="active-drying-loaded-wrap">
+        <div class="active-drying-main-content">
+          
+          <!-- 1. Header & Tombol Tindakan Cepat -->
+          <div class="active-header-card">
+            <div class="header-left">
+              <div class="batch-title-row">
+                <h1 class="batch-title">{{ activeBatch?.cropVariety || 'Biji Hanjeli' }}</h1>
+                <span class="batch-code-badge">{{ activeBatch?.batchCode || 'HJ-AKTIF' }}</span>
+                <span class="batch-status-pill" :class="isPaused ? 'status-paused' : 'status-running'">
+                  <span class="status-pulse-dot"></span>
+                  <span>{{ isPaused ? 'DIJEDA SEMENTARA' : 'SEDANG MENGERINGKAN' }}</span>
+                </span>
+              </div>
 
-                        <!-- Top Right Actions: Grouped in Two Structured Rows -->
-                        <div class="header-btns-cluster">
-                            <!-- Top Sub-row: Primary Execution Action -->
-                            <div class="header-btns-subrow top-subrow">
-                                <button
-                                    class="btn-primary btn-finish-session"
-                                    @click="handleFinishDrying"
-                                >
-                                    <svg
-                                        width="15"
-                                        height="15"
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                    >
-                                        <rect
-                                            x="4"
-                                            y="4"
-                                            width="16"
-                                            height="16"
-                                            rx="2"
-                                        ></rect>
-                                    </svg>
-                                    <span>{{
-                                        $t("activeDrying.finishBtn")
-                                    }}</span>
-                                </button>
-                            </div>
-
-                            <!-- Bottom Sub-row: Auxiliary Controls (QR & Pause) -->
-                            <div class="header-btns-subrow bottom-subrow">
-                                <button
-                                    class="btn-pause-action"
-                                    :title="$t('modals.qrSub')"
-                                    @click="isQrModalOpen = true"
-                                >
-                                    <svg
-                                        width="15"
-                                        height="15"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#0D631B"
-                                        stroke-width="2.2"
-                                    >
-                                        <rect
-                                            x="3"
-                                            y="3"
-                                            width="7"
-                                            height="7"
-                                        ></rect>
-                                        <rect
-                                            x="14"
-                                            y="3"
-                                            width="7"
-                                            height="7"
-                                        ></rect>
-                                        <rect
-                                            x="14"
-                                            y="14"
-                                            width="7"
-                                            height="7"
-                                        ></rect>
-                                        <rect
-                                            x="3"
-                                            y="14"
-                                            width="7"
-                                            height="7"
-                                        ></rect>
-                                    </svg>
-                                    <span>{{
-                                        $t("activeDrying.qrKemasanBtn")
-                                    }}</span>
-                                </button>
-
-                                <button
-                                    class="btn-pause-action"
-                                    @click="handleTogglePause"
-                                >
-                                    <svg
-                                        width="15"
-                                        height="15"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2.2"
-                                    >
-                                        <rect
-                                            x="6"
-                                            y="4"
-                                            width="4"
-                                            height="16"
-                                        ></rect>
-                                        <rect
-                                            x="14"
-                                            y="4"
-                                            width="4"
-                                            height="16"
-                                        ></rect>
-                                    </svg>
-                                    <span>{{
-                                        isPaused
-                                            ? $t("activeDrying.resumeBtn")
-                                            : $t("activeDrying.pauseBtn")
-                                    }}</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ========================================================================= -->
-                    <!-- DURATION, PROGRESS & MASS BALANCE BANNER -->
-                    <!-- ========================================================================= -->
-                    <div class="duration-progress-card">
-                        <div class="duration-header-row">
-                            <div class="dur-clock-block">
-                                <div class="clock-icon-wrap">
-                                    <svg
-                                        width="22"
-                                        height="22"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#0D631B"
-                                        stroke-width="2.2"
-                                    >
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <polyline
-                                            points="12 6 12 12 16 14"
-                                        ></polyline>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <span class="dur-label">{{
-                                        $t(
-                                            "activeDrying.elapsedTime",
-                                        ).toUpperCase()
-                                    }}</span>
-                                    <div class="dur-clock">
-                                        {{ formattedTime }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="etc-block">
-                                <span class="dur-label">{{
-                                    $t(
-                                        "activeDrying.hoursRemaining",
-                                    ).toUpperCase()
-                                }}</span>
-                                <div class="etc-time-val">
-                                    ~{{ estimatedHoursRemaining }}
-                                    {{ $t("activeDrying.hoursLeft") }}
-                                </div>
-                            </div>
-
-                            <div class="rate-block">
-                                <span class="dur-label">{{
-                                    $t("activeDrying.dryingRate").toUpperCase()
-                                }}</span>
-                                <div class="rate-val text-green-dark">
-                                    ~{{ currentDryingRate }}
-                                    {{ $t("activeDrying.percentPerHour") }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Progress Track Bar -->
-                        <div class="process-track-container">
-                            <div class="track-bar">
-                                <div
-                                    class="track-bar-fill"
-                                    :style="{ width: progressPercent + '%' }"
-                                >
-                                    <div class="track-shimmer"></div>
-                                </div>
-                            </div>
-                            <div class="track-labels">
-                                <span
-                                    >{{ $t("activeDrying.startMoisture") }}:
-                                    <strong
-                                        >{{
-                                            activeBatch?.initialMoisturePercent ||
-                                            25.5
-                                        }}%</strong
-                                    ></span
-                                >
-                                <span class="track-marker-badge">
-                                    {{ $t("activeDrying.current") }}:
-                                    <strong
-                                        >{{
-                                            telemetry.grainMoisture.toFixed(1)
-                                        }}%</strong
-                                    >
-                                    (Progres {{ progressPercent }}%)
-                                </span>
-                                <span
-                                    >{{ $t("activeDrying.target") }}:
-                                    <strong
-                                        >{{
-                                            activeBatch?.targetMoisturePercent ||
-                                            12.0
-                                        }}%</strong
-                                    ></span
-                                >
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ========================================================================= -->
-                    <!-- 6 LIVE TELEMETRY KPI CARDS -->
-                    <!-- ========================================================================= -->
-                    <div class="stats-grid-6">
-                        <!-- 1. Suhu Internal -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >SUHU RUANG PENGERING</span
-                                >
-                                <div class="icon-circle icon-red-subtle">
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#BA1A1A"
-                                        stroke-width="2.2"
-                                    >
-                                        <path
-                                            d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"
-                                        ></path>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="stat-value-row">
-                                <span class="stat-number text-red">{{
-                                    telemetry.tempInternal.toFixed(1)
-                                }}</span>
-                                <span class="stat-unit">°C</span>
-                                <span class="delta-chip"
-                                    >ΔT: +{{
-                                        (
-                                            telemetry.tempInternal -
-                                            telemetry.tempExternal
-                                        ).toFixed(1)
-                                    }}°C</span
-                                >
-                            </div>
-                            <div class="stat-footer-text">
-                                <span
-                                    >Luar Ruang:
-                                    <strong
-                                        >{{
-                                            telemetry.tempExternal.toFixed(1)
-                                        }}°C</strong
-                                    ></span
-                                >
-                            </div>
-                        </div>
-
-                        <!-- 2. Kelembapan Ruang -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >KELEMBAPAN RUANG (RH)</span
-                                >
-                                <div class="icon-circle icon-blue-subtle">
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#005DB7"
-                                        stroke-width="2.2"
-                                    >
-                                        <path
-                                            d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"
-                                        ></path>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="stat-value-row">
-                                <span class="stat-number text-blue">{{
-                                    telemetry.humidityInternal.toFixed(0)
-                                }}</span>
-                                <span class="stat-unit">% RH</span>
-                                <span class="delta-chip-blue"
-                                    >Target: &lt;50%</span
-                                >
-                            </div>
-                            <div class="stat-footer-text">
-                                <span
-                                    >RH Lingkungan:
-                                    <strong
-                                        >{{
-                                            telemetry.humidityExternal.toFixed(
-                                                0,
-                                            )
-                                        }}%</strong
-                                    ></span
-                                >
-                            </div>
-                        </div>
-
-                        <!-- 3. Radiasi Surya -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >RADIASI SURYA MATAHARI</span
-                                >
-                                <div class="icon-circle icon-amber-subtle">
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#D97706"
-                                        stroke-width="2.2"
-                                    >
-                                        <circle cx="12" cy="12" r="4"></circle>
-                                        <path
-                                            d="M12 2v2M12 20v2m-7.07-15.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2m-15.07 7.07 1.41-1.41m11.32-11.32 1.41-1.41"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="stat-value-row">
-                                <span class="stat-number text-amber">{{
-                                    telemetry.solarRadiation.toFixed(0)
-                                }}</span>
-                                <span class="stat-unit">W/m²</span>
-                                <span class="delta-chip-amber">
-                                    <svg
-                                        v-if="telemetry.solarRadiation > 500"
-                                        width="12"
-                                        height="12"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2.2"
-                                        style="
-                                            display: inline-block;
-                                            vertical-align: middle;
-                                            margin-right: 3px;
-                                        "
-                                    >
-                                        <circle cx="12" cy="12" r="5"></circle>
-                                        <line
-                                            x1="12"
-                                            y1="1"
-                                            x2="12"
-                                            y2="3"
-                                        ></line>
-                                        <line
-                                            x1="12"
-                                            y1="21"
-                                            x2="12"
-                                            y2="23"
-                                        ></line>
-                                        <line
-                                            x1="4.22"
-                                            y1="4.22"
-                                            x2="5.64"
-                                            y2="5.64"
-                                        ></line>
-                                        <line
-                                            x1="18.36"
-                                            y1="18.36"
-                                            x2="19.78"
-                                            y2="19.78"
-                                        ></line>
-                                    </svg>
-                                    <svg
-                                        v-else
-                                        width="12"
-                                        height="12"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2.2"
-                                        style="
-                                            display: inline-block;
-                                            vertical-align: middle;
-                                            margin-right: 3px;
-                                        "
-                                    >
-                                        <path
-                                            d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"
-                                        ></path>
-                                    </svg>
-                                    <span>{{
-                                        telemetry.solarRadiation > 500
-                                            ? "Terik Alami"
-                                            : "Redup"
-                                    }}</span>
-                                </span>
-                            </div>
-                            <div class="stat-footer-text">
-                                <span
-                                    >Efisiensi Kolektor Atap:
-                                    <strong>Tinggi</strong></span
-                                >
-                            </div>
-                        </div>
-
-                        <!-- 4. Kadar Air Gabah -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <span class="stat-label">KADAR AIR GABAH</span>
-                                <div class="icon-circle icon-purple-subtle">
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#7E22CE"
-                                        stroke-width="2.2"
-                                    >
-                                        <circle cx="12" cy="12" r="9"></circle>
-                                        <polyline
-                                            points="12 7 12 12 15 15"
-                                        ></polyline>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="stat-value-row">
-                                <span class="stat-number text-purple">{{
-                                    telemetry.grainMoisture.toFixed(1)
-                                }}</span>
-                                <span class="stat-unit">%</span>
-                                <span class="delta-chip-purple"
-                                    >Gap:
-                                    {{
-                                        Math.max(
-                                            0,
-                                            telemetry.grainMoisture -
-                                                (activeBatch?.targetMoisturePercent ||
-                                                    12.0),
-                                        ).toFixed(1)
-                                    }}%</span
-                                >
-                            </div>
-                            <div class="stat-footer-text">
-                                <span
-                                    >Target SNI Simpan:
-                                    <strong
-                                        >{{
-                                            activeBatch?.targetMoisturePercent ||
-                                            12.0
-                                        }}%</strong
-                                    ></span
-                                >
-                            </div>
-                        </div>
-
-                        <!-- 5. Bobot Massa Gabah -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <span class="stat-label"
-                                    >BOBOT MASSA GABAH</span
-                                >
-                                <div class="icon-circle icon-emerald-subtle">
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#059669"
-                                        stroke-width="2.2"
-                                    >
-                                        <path
-                                            d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
-                                        ></path>
-                                        <line
-                                            x1="4"
-                                            y1="22"
-                                            x2="4"
-                                            y2="15"
-                                        ></line>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="stat-value-row">
-                                <span class="stat-number text-emerald">{{
-                                    (
-                                        telemetry.weightCurrentKg || 125.0
-                                    ).toFixed(1)
-                                }}</span>
-                                <span class="stat-unit">kg</span>
-                                <span class="delta-chip-emerald"
-                                    >Air: -{{ liveEvaporatedWaterKg }} kg</span
-                                >
-                            </div>
-                            <div class="stat-footer-text">
-                                <span
-                                    >Bobot Masuk Awal:
-                                    <strong
-                                        >{{
-                                            activeBatch?.initialWeightKg ||
-                                            135.0
-                                        }}
-                                        kg</strong
-                                    ></span
-                                >
-                            </div>
-                        </div>
-
-                        <!-- 6. Status Pemanas PTC & 3 LED Panel -->
-                        <div class="stat-card">
-                            <div class="stat-card-header">
-                                <span class="stat-label">PEMANAS PTC & 3 LED PANEL</span>
-                                <div class="icon-circle icon-orange">
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#D97706"
-                                        stroke-width="2.2"
-                                    >
-                                        <polygon
-                                            points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-                                        ></polygon>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="stat-value-row">
-                                <span class="stat-number" :class="actuators.auxHeaterStatus ? 'text-orange' : 'text-green-dark'">
-                                    {{ actuators.auxHeaterStatus ? 'PTC ON' : 'PTC OFF' }}
-                                </span>
-                                <span
-                                    class="status-chip"
-                                    :class="actuators.auxHeaterStatus ? 'chip-on' : 'chip-off'"
-                                >
-                                    {{ actuators.auxHeaterStatus ? 'Relai 26 & 27' : 'Standby' }}
-                                </span>
-                            </div>
-                            <div class="stat-footer-text" style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
-                                <div style="display: flex; gap: 4px; align-items: center;">
-                                    <span :style="`display:inline-block; width:8px; height:8px; border-radius:50%; background:${!actuators.auxHeaterStatus && (telemetry.tempInternal < 50) ? '#22C55E;' : '#D1D5DB;'}`"></span>
-                                    <span :style="`display:inline-block; width:8px; height:8px; border-radius:50%; background:${actuators.auxHeaterStatus && (telemetry.tempInternal < 50) ? '#EAB308;' : '#D1D5DB;'}`"></span>
-                                    <span :style="`display:inline-block; width:8px; height:8px; border-radius:50%; background:${telemetry.tempInternal >= 50 ? '#EF4444;' : '#D1D5DB;'}`"></span>
-                                </div>
-                                <span style="font-size: 11px;">Histeresis: <strong>48°C - 50°C</strong></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ========================================================================= -->
-                    <!-- AI PREDICTIVE DRYING TIME (ETA) SMART CARD -->
-                    <!-- ========================================================================= -->
-                    <div class="ai-eta-prediction-card">
-                        <div class="ai-eta-header-row">
-                            <div class="ai-eta-title-wrap">
-                                <div class="ai-eta-icon-halo">
-                                    <svg
-                                        width="22"
-                                        height="22"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2.2"
-                                    >
-                                        <path
-                                            d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"
-                                        ></path>
-                                        <path d="M12 6v6l4 2"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h2 class="ai-eta-main-title">
-                                        Estimasi Waktu Selesai (Predictive
-                                        Drying Time ETA)
-                                    </h2>
-                                    <p class="ai-eta-subtitle">
-                                        Proyeksi cerdas dehidrasi biji Hanjeli
-                                        berbasis diferensial mikroklimat
-                                        internal dan prakiraan cuaca satelit
-                                        Sukabumi
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="ai-eta-actions">
-                                <button
-                                    type="button"
-                                    class="btn-ai-details"
-                                    :class="{ active: showAiModelDrawer }"
-                                    @click="
-                                        showAiModelDrawer = !showAiModelDrawer
-                                    "
-                                >
-                                    <svg
-                                        width="15"
-                                        height="15"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                    >
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line
-                                            x1="12"
-                                            y1="16"
-                                            x2="12"
-                                            y2="12"
-                                        ></line>
-                                        <line
-                                            x1="12"
-                                            y1="8"
-                                            x2="12.01"
-                                            y2="8"
-                                        ></line>
-                                    </svg>
-                                    <span>{{
-                                        showAiModelDrawer
-                                            ? "Sembunyikan Analisis"
-                                            : "Parameter & Analisis AI"
-                                    }}</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 3 Primary Smart Metrics Columns -->
-                        <div class="ai-eta-grid-3">
-                            <!-- 1. Jam Target Selesai -->
-                            <div class="ai-stat-box highlight-purple">
-                                <div class="ai-stat-top">
-                                    <span class="ai-stat-label"
-                                        >PREDIKSI JAM SELESAI</span
-                                    >
-                                    <span class="ai-countdown-chip">
-                                        {{
-                                            prediction?.isToday
-                                                ? "Hari Ini"
-                                                : "Besok"
-                                        }}
-                                    </span>
-                                </div>
-                                <div class="ai-stat-main-val">
-                                    <span class="ai-clock-text">{{
-                                        prediction?.estimatedCompletionTimeOnly ||
-                                        "--:-- WIB"
-                                    }}</span>
-                                </div>
-                                <div class="ai-stat-bottom-text">
-                                    <span class="ai-dur-badge">
-                                        <svg
-                                            width="13"
-                                            height="13"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2.5"
-                                        >
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                            ></circle>
-                                            <polyline
-                                                points="12 6 12 12 16 14"
-                                            ></polyline>
-                                        </svg>
-                                        Tersisa
-                                        <strong
-                                            >~{{
-                                                prediction?.formattedRemaining ||
-                                                "~3.5 Jam"
-                                            }}</strong
-                                        >
-                                        lagi
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- 2. Laju Pengeringan & Selisih SNI -->
-                            <div class="ai-stat-box highlight-emerald">
-                                <div class="ai-stat-top">
-                                    <span class="ai-stat-label"
-                                        >LAJU DEHIDRASI AKTIF</span
-                                    >
-                                    <span class="ai-rate-chip">
-                                        Target SNI:
-                                        {{
-                                            activeBatch?.targetMoisturePercent ||
-                                            12.0
-                                        }}%
-                                    </span>
-                                </div>
-                                <div class="ai-stat-main-val">
-                                    <span class="ai-rate-num text-emerald"
-                                        >~{{
-                                            prediction?.dryingRatePerHour ||
-                                            "1.35"
-                                        }}</span
-                                    >
-                                    <span class="ai-rate-unit">% / jam</span>
-                                </div>
-                                <div class="ai-stat-bottom-text">
-                                    <span
-                                        >Sisa Reduksi:
-                                        <strong
-                                            >{{
-                                                Math.max(
-                                                    0,
-                                                    telemetry.grainMoisture -
-                                                        (activeBatch?.targetMoisturePercent ||
-                                                            12.0),
-                                                ).toFixed(1)
-                                            }}%</strong
-                                        >
-                                        kadar air</span
-                                    >
-                                </div>
-                            </div>
-
-                            <!-- 3. Integrasi Cuaca Sukabumi -->
-                            <div class="ai-stat-box highlight-amber">
-                                <div class="ai-stat-top">
-                                    <span class="ai-stat-label"
-                                        >CUACA LOKAL WALURAN</span
-                                    >
-                                    <span class="ai-weather-src-badge"
-                                        >Satelit Sukabumi</span
-                                    >
-                                </div>
-                                <div class="ai-stat-main-val ai-weather-row">
-                                    <span
-                                        class="ai-weather-icon-txt"
-                                        style="
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                        "
-                                    >
-                                        <svg
-                                            v-if="
-                                                prediction?.weatherContext
-                                                    ?.isSunny
-                                            "
-                                            width="26"
-                                            height="26"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="#f59e0b"
-                                            stroke-width="2"
-                                        >
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="5"
-                                            ></circle>
-                                            <line
-                                                x1="12"
-                                                y1="1"
-                                                x2="12"
-                                                y2="3"
-                                            ></line>
-                                            <line
-                                                x1="12"
-                                                y1="21"
-                                                x2="12"
-                                                y2="23"
-                                            ></line>
-                                            <line
-                                                x1="4.22"
-                                                y1="4.22"
-                                                x2="5.64"
-                                                y2="5.64"
-                                            ></line>
-                                            <line
-                                                x1="18.36"
-                                                y1="18.36"
-                                                x2="19.78"
-                                                y2="19.78"
-                                            ></line>
-                                            <line
-                                                x1="1"
-                                                y1="12"
-                                                x2="3"
-                                                y2="12"
-                                            ></line>
-                                            <line
-                                                x1="21"
-                                                y1="12"
-                                                x2="23"
-                                                y2="12"
-                                            ></line>
-                                            <line
-                                                x1="4.22"
-                                                y1="19.78"
-                                                x2="5.64"
-                                                y2="18.36"
-                                            ></line>
-                                            <line
-                                                x1="18.36"
-                                                y1="5.64"
-                                                x2="19.78"
-                                                y2="4.22"
-                                            ></line>
-                                        </svg>
-                                        <svg
-                                            v-else
-                                            width="26"
-                                            height="26"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="#94a3b8"
-                                            stroke-width="2"
-                                        >
-                                            <path
-                                                d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"
-                                            ></path>
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <div class="ai-weather-cond">
-                                            {{
-                                                prediction?.weatherContext
-                                                    ?.conditionText ||
-                                                "Cerah Berawan"
-                                            }}
-                                        </div>
-                                        <div class="ai-weather-sub">
-                                            {{
-                                                prediction?.weatherContext
-                                                    ?.temperature || 30.5
-                                            }}°C • RH
-                                            {{
-                                                prediction?.weatherContext
-                                                    ?.humidity || 68
-                                            }}%
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="ai-stat-bottom-text">
-                                    <span class="ai-weather-impact-pill">
-                                        {{
-                                            prediction?.weatherContext
-                                                ?.dryingImpact ||
-                                            "Optimal - Efisiensi Tinggi"
-                                        }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Collapsible AI Analytics & Optimization Drawer -->
-                        <Transition name="drawer-fade">
-                            <div
-                                v-if="showAiModelDrawer"
-                                class="ai-drawer-expand"
-                            >
-                                <div class="ai-drawer-grid">
-                                    <!-- Subcol 1: Mathematical Formula & Model Constants -->
-                                    <div class="ai-formula-card">
-                                        <div class="ai-sub-head">
-                                            <svg
-                                                width="16"
-                                                height="16"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="#7E22CE"
-                                                stroke-width="2.2"
-                                            >
-                                                <path
-                                                    d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
-                                                ></path>
-                                                <path
-                                                    d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-                                                ></path>
-                                            </svg>
-                                            <h4>
-                                                Model Thin-Layer Drying (Page's
-                                                Kinetics)
-                                            </h4>
-                                        </div>
-                                        <div class="ai-math-box">
-                                            <code
-                                                >MR(t) = (M(t) - M_e) / (M_0 -
-                                                M_e) = exp(-k · t^n)</code
-                                            >
-                                        </div>
-                                        <div class="ai-param-tags">
-                                            <div class="param-tag">
-                                                <span class="p-lbl"
-                                                    >Konstanta Laju (k):</span
-                                                >
-                                                <span class="p-val"
-                                                    >{{
-                                                        prediction?.parameters
-                                                            ?.k_rate_constant ||
-                                                        "0.0842"
-                                                    }}
-                                                    /jam</span
-                                                >
-                                            </div>
-                                            <div class="param-tag">
-                                                <span class="p-lbl"
-                                                    >Eksponen Bentuk (n):</span
-                                                >
-                                                <span class="p-val">{{
-                                                    prediction?.parameters
-                                                        ?.n_exponent || "1.090"
-                                                }}</span>
-                                            </div>
-                                            <div class="param-tag">
-                                                <span class="p-lbl"
-                                                    >Kadar Air Keseimbangan
-                                                    (M_e):</span
-                                                >
-                                                <span class="p-val"
-                                                    >{{
-                                                        prediction?.parameters
-                                                            ?.equilibrium_moisture_Me ||
-                                                        "8.5"
-                                                    }}%</span
-                                                >
-                                            </div>
-                                            <div class="param-tag">
-                                                <span class="p-lbl"
-                                                    >Diferensial Termal
-                                                    (ΔT):</span
-                                                >
-                                                <span class="p-val"
-                                                    >+{{
-                                                        (
-                                                            telemetry.tempInternal -
-                                                            telemetry.tempExternal
-                                                        ).toFixed(1)
-                                                    }}°C</span
-                                                >
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Subcol 2: Actionable AI Smart Recommendations -->
-                                    <div class="ai-recs-card">
-                                        <div class="ai-sub-head">
-                                            <svg
-                                                width="16"
-                                                height="16"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="#059669"
-                                                stroke-width="2.2"
-                                            >
-                                                <path
-                                                    d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
-                                                ></path>
-                                            </svg>
-                                            <h4>
-                                                Rekomendasi Cerdas Optimasi
-                                                Pengeringan
-                                            </h4>
-                                        </div>
-                                        <div class="ai-recs-list">
-                                            <div
-                                                v-for="(
-                                                    rec, rIdx
-                                                ) in prediction?.recommendations &&
-                                                prediction.recommendations
-                                                    .length > 0
-                                                    ? prediction.recommendations
-                                                    : defaultRecommendations"
-                                                :key="rIdx"
-                                                class="ai-rec-item"
-                                                :class="`rec-${rec.type || 'info'}`"
-                                            >
-                                                <div class="rec-bullet-icon">
-                                                    <svg
-                                                        v-if="
-                                                            rec.type ===
-                                                            'success'
-                                                        "
-                                                        width="16"
-                                                        height="16"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2.5"
-                                                    >
-                                                        <polyline
-                                                            points="20 6 9 17 4 12"
-                                                        ></polyline>
-                                                    </svg>
-                                                    <svg
-                                                        v-else-if="
-                                                            rec.type ===
-                                                            'warning'
-                                                        "
-                                                        width="16"
-                                                        height="16"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2.2"
-                                                    >
-                                                        <polygon
-                                                            points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-                                                        ></polygon>
-                                                    </svg>
-                                                    <svg
-                                                        v-else-if="
-                                                            rec.type ===
-                                                            'danger'
-                                                        "
-                                                        width="16"
-                                                        height="16"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2.2"
-                                                    >
-                                                        <path
-                                                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-                                                        ></path>
-                                                        <line
-                                                            x1="12"
-                                                            y1="9"
-                                                            x2="12"
-                                                            y2="13"
-                                                        ></line>
-                                                        <line
-                                                            x1="12"
-                                                            y1="17"
-                                                            x2="12.01"
-                                                            y2="17"
-                                                        ></line>
-                                                    </svg>
-                                                    <svg
-                                                        v-else
-                                                        width="16"
-                                                        height="16"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2"
-                                                    >
-                                                        <path
-                                                            d="M9 18h6"
-                                                        ></path>
-                                                        <path
-                                                            d="M10 22h4"
-                                                        ></path>
-                                                        <path
-                                                            d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5"
-                                                        ></path>
-                                                    </svg>
-                                                </div>
-                                                <div class="rec-content">
-                                                    <div class="rec-title">
-                                                        {{ rec.title }}
-                                                    </div>
-                                                    <p class="rec-desc">
-                                                        {{ rec.description }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Transition>
-                    </div>
-
-                    <!-- ========================================================================= -->
-                    <!-- MASTER REAL-TIME DUAL-AXIS WAVEFORM CHART -->
-                    <!-- ========================================================================= -->
-                    <div class="master-chart-card">
-                        <div class="master-chart-header">
-                            <div class="header-title-box">
-                                <div class="chart-badge-icon">
-                                    <svg
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#0D631B"
-                                        stroke-width="2.2"
-                                    >
-                                        <polyline
-                                            points="22 12 18 12 15 21 9 3 6 12 2 12"
-                                        ></polyline>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h2 class="master-chart-heading">
-                                        Grafik Aliran Telemetri Real-Time
-                                        (Dual-Axis Waveform)
-                                    </h2>
-                                    <p class="master-chart-sub">
-                                        Pemantauan dinamis Suhu Ruang, Suhu
-                                        Luar, RH Udara, Kadar Air Gabah, dan
-                                        Radiasi Surya selama proses pengeringan
-                                        aktif
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="time-window-selector">
-                                <span class="live-points-indicator">
-                                    <span class="live-blink-dot"></span>
-                                    {{ liveHistoryPoints.length }} Titik Data
-                                    Terkumpul
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Interactive Series Toggles (Legend Checkboxes) -->
-                        <div class="series-toggle-toolbar">
-                            <button
-                                type="button"
-                                class="series-btn"
-                                :class="{ active: visibleSeries.tempInternal }"
-                                @click="
-                                    visibleSeries.tempInternal =
-                                        !visibleSeries.tempInternal
-                                "
-                            >
-                                <span
-                                    class="legend-color-dot"
-                                    style="background: #e11d48"
-                                ></span>
-                                <span>Suhu Internal (°C)</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="series-btn"
-                                :class="{ active: visibleSeries.tempExternal }"
-                                @click="
-                                    visibleSeries.tempExternal =
-                                        !visibleSeries.tempExternal
-                                "
-                            >
-                                <span
-                                    class="legend-color-dot"
-                                    style="background: #0d9488"
-                                ></span>
-                                <span>Suhu Lingkungan (°C)</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="series-btn"
-                                :class="{ active: visibleSeries.humidity }"
-                                @click="
-                                    visibleSeries.humidity =
-                                        !visibleSeries.humidity
-                                "
-                            >
-                                <span
-                                    class="legend-color-dot"
-                                    style="background: #0284c7"
-                                ></span>
-                                <span>Kelembapan Udara (% RH)</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="series-btn"
-                                :class="{ active: visibleSeries.grainMoisture }"
-                                @click="
-                                    visibleSeries.grainMoisture =
-                                        !visibleSeries.grainMoisture
-                                "
-                            >
-                                <span
-                                    class="legend-color-dot"
-                                    style="background: #9333ea"
-                                ></span>
-                                <span>Kadar Air Gabah (%)</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="series-btn"
-                                :class="{
-                                    active: visibleSeries.solarRadiation,
-                                }"
-                                @click="
-                                    visibleSeries.solarRadiation =
-                                        !visibleSeries.solarRadiation
-                                "
-                            >
-                                <span
-                                    class="legend-color-dot"
-                                    style="background: #f59e0b"
-                                ></span>
-                                <span>Radiasi Surya (W/m²)</span>
-                            </button>
-                        </div>
-
-                        <!-- Master SVG Dual-Axis Canvas -->
-                        <div
-                            class="master-svg-chart-wrapper"
-                            @mousemove="handleChartMouseMove"
-                            @mouseleave="handleChartMouseLeave"
-                        >
-                            <svg
-                                viewBox="0 0 1000 320"
-                                class="master-svg"
-                                preserveAspectRatio="none"
-                            >
-                                <defs>
-                                    <linearGradient
-                                        id="activeTempGrad"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stop-color="#E11D48"
-                                            stop-opacity="0.22"
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stop-color="#E11D48"
-                                            stop-opacity="0.0"
-                                        />
-                                    </linearGradient>
-                                    <linearGradient
-                                        id="activeMoistureGrad"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stop-color="#9333EA"
-                                            stop-opacity="0.20"
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stop-color="#9333EA"
-                                            stop-opacity="0.0"
-                                        />
-                                    </linearGradient>
-                                    <linearGradient
-                                        id="activeSolarGrad"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stop-color="#F59E0B"
-                                            stop-opacity="0.15"
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stop-color="#F59E0B"
-                                            stop-opacity="0.0"
-                                        />
-                                    </linearGradient>
-                                </defs>
-
-                                <!-- Safety Zone Band (40°C - 50°C) -->
-                                <rect
-                                    x="60"
-                                    y="140"
-                                    width="880"
-                                    height="24"
-                                    fill="#10B981"
-                                    fill-opacity="0.08"
-                                />
-                                <text
-                                    x="65"
-                                    y="156"
-                                    font-size="9.5"
-                                    fill="#059669"
-                                    font-weight="600"
-                                >
-                                    ZONA TEMPERATUR IDEAL PENGERINGAN (40°C -
-                                    50°C)
-                                </text>
-
-                                <!-- Critical Threshold Line (55°C) -->
-                                <line
-                                    x1="60"
-                                    y1="128"
-                                    x2="940"
-                                    y2="128"
-                                    stroke="#EF4444"
-                                    stroke-width="1.5"
-                                    stroke-dasharray="4 4"
-                                    opacity="0.6"
-                                />
-                                <text
-                                    x="830"
-                                    y="123"
-                                    font-size="9"
-                                    fill="#DC2626"
-                                    font-weight="600"
-                                >
-                                    Ambang Kritis 55°C
-                                </text>
-
-                                <!-- Target Moisture Line (12.0%) -->
-                                <line
-                                    x1="60"
-                                    y1="231"
-                                    x2="940"
-                                    y2="231"
-                                    stroke="#9333EA"
-                                    stroke-width="1.5"
-                                    stroke-dasharray="3 3"
-                                    opacity="0.6"
-                                />
-                                <text
-                                    x="820"
-                                    y="226"
-                                    font-size="9"
-                                    fill="#7E22CE"
-                                    font-weight="600"
-                                >
-                                    Target Simpan 12.0%
-                                </text>
-
-                                <!-- Grid Horizontal Lines & Left/Right Axis Labels -->
-                                <g v-for="g in yGridLines" :key="g.val">
-                                    <line
-                                        x1="60"
-                                        :y1="g.y"
-                                        x2="940"
-                                        :y2="g.y"
-                                        stroke="#E2E8F0"
-                                        stroke-width="1"
-                                        stroke-dasharray="2 2"
-                                    />
-                                    <text
-                                        x="20"
-                                        :y="g.y + 4"
-                                        font-size="10.5"
-                                        fill="#64748B"
-                                        font-weight="600"
-                                    >
-                                        {{ g.val }}
-                                    </text>
-                                    <text
-                                        x="948"
-                                        :y="g.y + 4"
-                                        font-size="10.5"
-                                        fill="#D97706"
-                                        font-weight="600"
-                                    >
-                                        {{ g.solarVal }}
-                                    </text>
-                                </g>
-
-                                <text
-                                    x="948"
-                                    y="14"
-                                    font-size="9"
-                                    fill="#D97706"
-                                    font-weight="700"
-                                >
-                                    W/m²
-                                </text>
-                                <text
-                                    x="20"
-                                    y="14"
-                                    font-size="9"
-                                    fill="#64748B"
-                                    font-weight="700"
-                                >
-                                    °C / %
-                                </text>
-
-                                <!-- Area Fills -->
-                                <path
-                                    v-if="
-                                        visibleSeries.tempInternal &&
-                                        tempAreaPath
-                                    "
-                                    :d="tempAreaPath"
-                                    fill="url(#activeTempGrad)"
-                                />
-                                <path
-                                    v-if="
-                                        visibleSeries.grainMoisture &&
-                                        moistureAreaPath
-                                    "
-                                    :d="moistureAreaPath"
-                                    fill="url(#activeMoistureGrad)"
-                                />
-                                <path
-                                    v-if="
-                                        visibleSeries.solarRadiation &&
-                                        solarAreaPath
-                                    "
-                                    :d="solarAreaPath"
-                                    fill="url(#activeSolarGrad)"
-                                />
-
-                                <!-- Polyline Curves -->
-                                <!-- 1. Solar Radiation (Amber) -->
-                                <path
-                                    v-if="
-                                        visibleSeries.solarRadiation &&
-                                        solarCurvePath
-                                    "
-                                    :d="solarCurvePath"
-                                    fill="none"
-                                    stroke="#F59E0B"
-                                    stroke-width="2.5"
-                                    stroke-linecap="round"
-                                />
-
-                                <!-- 2. Humidity (Sky Blue) -->
-                                <path
-                                    v-if="
-                                        visibleSeries.humidity &&
-                                        humidityCurvePath
-                                    "
-                                    :d="humidityCurvePath"
-                                    fill="none"
-                                    stroke="#0284C7"
-                                    stroke-width="2.5"
-                                    stroke-linecap="round"
-                                />
-
-                                <!-- 3. External Temp (Teal) -->
-                                <path
-                                    v-if="
-                                        visibleSeries.tempExternal &&
-                                        tempExtCurvePath
-                                    "
-                                    :d="tempExtCurvePath"
-                                    fill="none"
-                                    stroke="#0D9488"
-                                    stroke-width="2"
-                                    stroke-dasharray="4 2"
-                                    stroke-linecap="round"
-                                />
-
-                                <!-- 4. Grain Moisture (Purple) -->
-                                <path
-                                    v-if="
-                                        visibleSeries.grainMoisture &&
-                                        moistureCurvePath
-                                    "
-                                    :d="moistureCurvePath"
-                                    fill="none"
-                                    stroke="#9333EA"
-                                    stroke-width="3.5"
-                                    stroke-linecap="round"
-                                />
-
-                                <!-- 5. Internal Temp (Rose/Red) -->
-                                <path
-                                    v-if="
-                                        visibleSeries.tempInternal &&
-                                        tempCurvePath
-                                    "
-                                    :d="tempCurvePath"
-                                    fill="none"
-                                    stroke="#E11D48"
-                                    stroke-width="3.5"
-                                    stroke-linecap="round"
-                                />
-
-                                <!-- X-Axis Base Line -->
-                                <line
-                                    x1="60"
-                                    y1="260"
-                                    x2="940"
-                                    y2="260"
-                                    stroke="#94A3B8"
-                                    stroke-width="1.5"
-                                />
-
-                                <!-- X-Axis Time Ticks & Labels -->
-                                <g v-for="(lbl, idx) in xTimeLabels" :key="idx">
-                                    <line
-                                        :x1="lbl.x"
-                                        y1="260"
-                                        :x2="lbl.x"
-                                        y2="266"
-                                        stroke="#64748B"
-                                        stroke-width="1.5"
-                                    />
-                                    <text
-                                        :x="lbl.x"
-                                        y="282"
-                                        font-size="10"
-                                        fill="#64748B"
-                                        text-anchor="middle"
-                                        font-weight="500"
-                                    >
-                                        {{ lbl.time }}
-                                    </text>
-                                </g>
-
-                                <!-- Interactive Hover Crosshair -->
-                                <g v-if="hoverData">
-                                    <line
-                                        :x1="hoverData.svgX"
-                                        y1="20"
-                                        :x2="hoverData.svgX"
-                                        y2="260"
-                                        stroke="#1E293B"
-                                        stroke-width="1.5"
-                                        stroke-dasharray="3 3"
-                                    />
-                                    <circle
-                                        v-if="visibleSeries.tempInternal"
-                                        :cx="hoverData.svgX"
-                                        :cy="hoverData.yTemp"
-                                        r="5"
-                                        fill="#E11D48"
-                                        stroke="#FFFFFF"
-                                        stroke-width="2"
-                                    />
-                                    <circle
-                                        v-if="visibleSeries.grainMoisture"
-                                        :cx="hoverData.svgX"
-                                        :cy="hoverData.yMoisture"
-                                        r="5"
-                                        fill="#9333EA"
-                                        stroke="#FFFFFF"
-                                        stroke-width="2"
-                                    />
-                                    <circle
-                                        v-if="visibleSeries.humidity"
-                                        :cx="hoverData.svgX"
-                                        :cy="hoverData.yHum"
-                                        r="4.5"
-                                        fill="#0284C7"
-                                        stroke="#FFFFFF"
-                                        stroke-width="2"
-                                    />
-                                    <circle
-                                        v-if="visibleSeries.solarRadiation"
-                                        :cx="hoverData.svgX"
-                                        :cy="hoverData.ySolar"
-                                        r="4.5"
-                                        fill="#F59E0B"
-                                        stroke="#FFFFFF"
-                                        stroke-width="2"
-                                    />
-                                </g>
-                            </svg>
-
-                            <!-- Floating Glassmorphic Tooltip -->
-                            <div
-                                v-if="hoverData"
-                                class="floating-chart-tooltip"
-                                :style="{ left: `${hoverData.domPercentX}%` }"
-                            >
-                                <div class="tooltip-header">
-                                    <span class="tooltip-time-icon">
-                                        <svg
-                                            width="12"
-                                            height="12"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2.2"
-                                        >
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                            ></circle>
-                                            <polyline
-                                                points="12 6 12 12 16 14"
-                                            ></polyline>
-                                        </svg>
-                                    </span>
-                                    <strong>{{
-                                        hoverData.item.timeFormatted ||
-                                        hoverData.item.time
-                                    }}</strong>
-                                </div>
-                                <div class="tooltip-grid">
-                                    <div
-                                        class="tooltip-item"
-                                        v-if="visibleSeries.tempInternal"
-                                    >
-                                        <span
-                                            class="tt-dot"
-                                            style="background: #e11d48"
-                                        ></span>
-                                        <span class="tt-label"
-                                            >Suhu Ruang:</span
-                                        >
-                                        <span class="tt-val"
-                                            >{{
-                                                hoverData.item.tempInternal.toFixed(
-                                                    1,
-                                                )
-                                            }}°C</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="tooltip-item"
-                                        v-if="visibleSeries.tempExternal"
-                                    >
-                                        <span
-                                            class="tt-dot"
-                                            style="background: #0d9488"
-                                        ></span>
-                                        <span class="tt-label">Suhu Luar:</span>
-                                        <span class="tt-val"
-                                            >{{
-                                                hoverData.item.tempExternal.toFixed(
-                                                    1,
-                                                )
-                                            }}°C</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="tooltip-item"
-                                        v-if="visibleSeries.humidity"
-                                    >
-                                        <span
-                                            class="tt-dot"
-                                            style="background: #0284c7"
-                                        ></span>
-                                        <span class="tt-label"
-                                            >Kelembapan:</span
-                                        >
-                                        <span class="tt-val"
-                                            >{{
-                                                hoverData.item.humidityInternal.toFixed(
-                                                    0,
-                                                )
-                                            }}% RH</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="tooltip-item"
-                                        v-if="visibleSeries.grainMoisture"
-                                    >
-                                        <span
-                                            class="tt-dot"
-                                            style="background: #9333ea"
-                                        ></span>
-                                        <span class="tt-label">Kadar Air:</span>
-                                        <span class="tt-val font-bold"
-                                            >{{
-                                                hoverData.item.grainMoisture.toFixed(
-                                                    1,
-                                                )
-                                            }}%</span
-                                        >
-                                    </div>
-                                    <div
-                                        class="tooltip-item"
-                                        v-if="visibleSeries.solarRadiation"
-                                    >
-                                        <span
-                                            class="tt-dot"
-                                            style="background: #f59e0b"
-                                        ></span>
-                                        <span class="tt-label">Radiasi:</span>
-                                        <span class="tt-val"
-                                            >{{
-                                                hoverData.item.solarRadiation.toFixed(
-                                                    0,
-                                                )
-                                            }}
-                                            W/m²</span
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ========================================================================= -->
-                    <!-- 2 DEEP-DIVE LIVE ANALYTICS SUBPANELS -->
-                    <!-- ========================================================================= -->
-                    <div class="two-subpanels-grid">
-                        <!-- Subpanel 1: Kinetika Pengeringan Real-Time -->
-                        <div class="subpanel-card">
-                            <div class="subpanel-head">
-                                <div class="subpanel-title-wrap">
-                                    <span class="subpanel-icon">
-                                        <svg
-                                            width="18"
-                                            height="18"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="#9333EA"
-                                            stroke-width="2.2"
-                                        >
-                                            <path
-                                                d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"
-                                            ></path>
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <h3 class="subpanel-title">
-                                            Kinetika Dehidrasi Gabah (Drying
-                                            Rate)
-                                        </h3>
-                                        <p class="subpanel-sub">
-                                            Peluruhan kadar air (% per jam)
-                                            sepanjang sesi
-                                        </p>
-                                    </div>
-                                </div>
-                                <span
-                                    class="badge-pill bg-purple-subtle text-purple"
-                                    >{{ liveHistoryPoints.length }} Titik
-                                    Log</span
-                                >
-                            </div>
-
-                            <div
-                                class="subpanel-svg-wrap"
-                                @mousemove="handleKineticsMouseMove"
-                                @mouseleave="hoverKineticsData = null"
-                            >
-                                <svg viewBox="0 0 500 160" class="subpanel-svg">
-                                    <line
-                                        x1="40"
-                                        y1="25"
-                                        x2="480"
-                                        y2="25"
-                                        stroke="#F1F5F9"
-                                    />
-                                    <text
-                                        x="10"
-                                        y="29"
-                                        font-size="9.5"
-                                        fill="#94A3B8"
-                                    >
-                                        30%
-                                    </text>
-                                    <line
-                                        x1="40"
-                                        y1="70"
-                                        x2="480"
-                                        y2="70"
-                                        stroke="#F1F5F9"
-                                    />
-                                    <text
-                                        x="10"
-                                        y="74"
-                                        font-size="9.5"
-                                        fill="#94A3B8"
-                                    >
-                                        20%
-                                    </text>
-                                    <line
-                                        x1="40"
-                                        y1="115"
-                                        x2="480"
-                                        y2="115"
-                                        stroke="#F1F5F9"
-                                    />
-                                    <text
-                                        x="10"
-                                        y="119"
-                                        font-size="9.5"
-                                        fill="#94A3B8"
-                                    >
-                                        10%
-                                    </text>
-                                    <line
-                                        x1="40"
-                                        y1="140"
-                                        x2="480"
-                                        y2="140"
-                                        stroke="#CBD5E1"
-                                    />
-
-                                    <line
-                                        x1="40"
-                                        y1="105"
-                                        x2="480"
-                                        y2="105"
-                                        stroke="#9333EA"
-                                        stroke-dasharray="3 3"
-                                        opacity="0.6"
-                                    />
-                                    <text
-                                        x="410"
-                                        y="100"
-                                        font-size="9"
-                                        fill="#9333EA"
-                                    >
-                                        Target 12%
-                                    </text>
-
-                                    <path
-                                        :d="kineticsPath"
-                                        fill="none"
-                                        stroke="#9333EA"
-                                        stroke-width="3.5"
-                                        stroke-linecap="round"
-                                    />
-
-                                    <!-- AI Projected Forecast Trajectory Line (Page's Kinetics) -->
-                                    <path
-                                        v-if="projectedKineticsPath"
-                                        :d="projectedKineticsPath"
-                                        fill="none"
-                                        stroke="#C084FC"
-                                        stroke-width="2.5"
-                                        stroke-dasharray="4 4"
-                                        opacity="0.95"
-                                    />
-                                    <!-- AI ETA Completion Target Marker Dot -->
-                                    <g
-                                        v-if="
-                                            projectedKineticsCoords.length > 0
-                                        "
-                                    >
-                                        <circle
-                                            :cx="
-                                                projectedKineticsCoords[
-                                                    projectedKineticsCoords.length -
-                                                        1
-                                                ].x
-                                            "
-                                            :cy="
-                                                projectedKineticsCoords[
-                                                    projectedKineticsCoords.length -
-                                                        1
-                                                ].y
-                                            "
-                                            r="5"
-                                            fill="#7E22CE"
-                                            stroke="#FFFFFF"
-                                            stroke-width="2"
-                                        />
-                                        <text
-                                            :x="
-                                                Math.min(
-                                                    410,
-                                                    projectedKineticsCoords[
-                                                        projectedKineticsCoords.length -
-                                                            1
-                                                    ].x - 25,
-                                                )
-                                            "
-                                            :y="
-                                                projectedKineticsCoords[
-                                                    projectedKineticsCoords.length -
-                                                        1
-                                                ].y - 8
-                                            "
-                                            font-size="8.5"
-                                            font-weight="700"
-                                            fill="#7E22CE"
-                                        >
-                                            ETA
-                                            {{
-                                                prediction?.estimatedCompletionTimeOnly ||
-                                                ""
-                                            }}
-                                        </text>
-                                    </g>
-
-                                    <!-- Hover Crosshair & Dot -->
-                                    <g v-if="hoverKineticsData">
-                                        <line
-                                            :x1="hoverKineticsData.svgX"
-                                            y1="20"
-                                            :x2="hoverKineticsData.svgX"
-                                            y2="140"
-                                            stroke="#9333EA"
-                                            stroke-width="1.2"
-                                            stroke-dasharray="3 3"
-                                        />
-                                        <circle
-                                            :cx="hoverKineticsData.svgX"
-                                            :cy="hoverKineticsData.svgY"
-                                            r="5"
-                                            fill="#9333EA"
-                                            stroke="#FFFFFF"
-                                            stroke-width="2"
-                                        />
-                                    </g>
-                                </svg>
-
-                                <!-- Tooltip -->
-                                <div
-                                    v-if="hoverKineticsData"
-                                    class="floating-chart-tooltip subpanel-tooltip"
-                                    :style="{
-                                        left: `${hoverKineticsData.domPercentX}%`,
-                                    }"
-                                >
-                                    <div class="tooltip-header">
-                                        <strong>{{
-                                            hoverKineticsData.item
-                                                .timeFormatted ||
-                                            hoverKineticsData.item.time
-                                        }}</strong>
-                                    </div>
-                                    <div class="tooltip-grid">
-                                        <div class="tooltip-item">
-                                            <span
-                                                class="tt-dot"
-                                                style="background: #9333ea"
-                                            ></span>
-                                            <span class="tt-label"
-                                                >Kadar Air:</span
-                                            >
-                                            <span class="tt-val"
-                                                >{{
-                                                    hoverKineticsData.item.grainMoisture.toFixed(
-                                                        1,
-                                                    )
-                                                }}%</span
-                                            >
-                                        </div>
-                                        <div class="tooltip-item">
-                                            <span
-                                                class="tt-dot"
-                                                style="background: #10b981"
-                                            ></span>
-                                            <span class="tt-label"
-                                                >Target:</span
-                                            >
-                                            <span class="tt-val">12.0%</span>
-                                        </div>
-                                        <div class="tooltip-item">
-                                            <span
-                                                class="tt-dot"
-                                                style="background: #e11d48"
-                                            ></span>
-                                            <span class="tt-label"
-                                                >Suhu Ruang:</span
-                                            >
-                                            <span class="tt-val"
-                                                >{{
-                                                    hoverKineticsData.item.tempInternal.toFixed(
-                                                        1,
-                                                    )
-                                                }}°C</span
-                                            >
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="kinetics-legend-footer">
-                                <span class="kin-leg-item"
-                                    ><span class="kin-leg-solid"></span>
-                                    Pengukuran Aktual</span
-                                >
-                                <span class="kin-leg-item"
-                                    ><span class="kin-leg-dash"></span> Proyeksi
-                                    AI Kinetika (ETA:
-                                    {{
-                                        prediction?.estimatedCompletionTimeOnly ||
-                                        "--:--"
-                                    }})</span
-                                >
-                            </div>
-                            <p class="subpanel-desc">
-                                Model Kinetika memproyeksikan laju dehidrasi
-                                <strong
-                                    >~{{
-                                        prediction?.dryingRatePerHour ||
-                                        currentDryingRate
-                                    }}%/jam</strong
-                                >, gabah diprediksi mencapai kadar air target
-                                pada
-                                <strong>{{
-                                    prediction?.estimatedCompletionFormatted ||
-                                    "hari ini"
-                                }}</strong
-                                >.
-                            </p>
-                        </div>
-
-                        <!-- Subpanel 2: Diferensial Termal (ΔT) -->
-                        <div class="subpanel-card">
-                            <div class="subpanel-head">
-                                <div class="subpanel-title-wrap">
-                                    <span class="subpanel-icon">
-                                        <svg
-                                            width="18"
-                                            height="18"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="#E11D48"
-                                            stroke-width="2.2"
-                                        >
-                                            <path
-                                                d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"
-                                            ></path>
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <h3 class="subpanel-title">
-                                            Retensi Panas Greenhouse (ΔT)
-                                        </h3>
-                                        <p class="subpanel-sub">
-                                            Kenaikan suhu ruang terhadap
-                                            lingkungan luar (Tin - Text)
-                                        </p>
-                                    </div>
-                                </div>
-                                <span class="badge-pill bg-red-subtle text-red"
-                                    >Thermal Lift</span
-                                >
-                            </div>
-
-                            <div
-                                class="subpanel-svg-wrap"
-                                @mousemove="handleDeltaTMouseMove"
-                                @mouseleave="hoverDeltaTData = null"
-                            >
-                                <svg viewBox="0 0 500 160" class="subpanel-svg">
-                                    <line
-                                        x1="40"
-                                        y1="25"
-                                        x2="480"
-                                        y2="25"
-                                        stroke="#F1F5F9"
-                                    />
-                                    <text
-                                        x="10"
-                                        y="29"
-                                        font-size="9.5"
-                                        fill="#94A3B8"
-                                    >
-                                        +20°C
-                                    </text>
-                                    <line
-                                        x1="40"
-                                        y1="65"
-                                        x2="480"
-                                        y2="65"
-                                        stroke="#F1F5F9"
-                                    />
-                                    <text
-                                        x="10"
-                                        y="69"
-                                        font-size="9.5"
-                                        fill="#94A3B8"
-                                    >
-                                        +15°C
-                                    </text>
-                                    <line
-                                        x1="40"
-                                        y1="105"
-                                        x2="480"
-                                        y2="105"
-                                        stroke="#F1F5F9"
-                                    />
-                                    <text
-                                        x="10"
-                                        y="109"
-                                        font-size="9.5"
-                                        fill="#94A3B8"
-                                    >
-                                        +10°C
-                                    </text>
-                                    <line
-                                        x1="40"
-                                        y1="140"
-                                        x2="480"
-                                        y2="140"
-                                        stroke="#CBD5E1"
-                                    />
-
-                                    <path
-                                        :d="deltaTPath"
-                                        fill="none"
-                                        stroke="#E11D48"
-                                        stroke-width="3"
-                                        stroke-linecap="round"
-                                    />
-
-                                    <!-- Hover Crosshair & Dot -->
-                                    <g v-if="hoverDeltaTData">
-                                        <line
-                                            :x1="hoverDeltaTData.svgX"
-                                            y1="20"
-                                            :x2="hoverDeltaTData.svgX"
-                                            y2="140"
-                                            stroke="#E11D48"
-                                            stroke-width="1.2"
-                                            stroke-dasharray="3 3"
-                                        />
-                                        <circle
-                                            :cx="hoverDeltaTData.svgX"
-                                            :cy="hoverDeltaTData.svgY"
-                                            r="5"
-                                            fill="#E11D48"
-                                            stroke="#FFFFFF"
-                                            stroke-width="2"
-                                        />
-                                    </g>
-                                </svg>
-
-                                <!-- Tooltip -->
-                                <div
-                                    v-if="hoverDeltaTData"
-                                    class="floating-chart-tooltip subpanel-tooltip"
-                                    :style="{
-                                        left: `${hoverDeltaTData.domPercentX}%`,
-                                    }"
-                                >
-                                    <div class="tooltip-header">
-                                        <strong>{{
-                                            hoverDeltaTData.item
-                                                .timeFormatted ||
-                                            hoverDeltaTData.item.time
-                                        }}</strong>
-                                    </div>
-                                    <div class="tooltip-grid">
-                                        <div class="tooltip-item">
-                                            <span
-                                                class="tt-dot"
-                                                style="background: #e11d48"
-                                            ></span>
-                                            <span class="tt-label"
-                                                >ΔT Panas:</span
-                                            >
-                                            <span class="tt-val"
-                                                >+{{
-                                                    hoverDeltaTData.delta.toFixed(
-                                                        1,
-                                                    )
-                                                }}°C</span
-                                            >
-                                        </div>
-                                        <div class="tooltip-item">
-                                            <span
-                                                class="tt-dot"
-                                                style="background: #0d9488"
-                                            ></span>
-                                            <span class="tt-label"
-                                                >Suhu Internal:</span
-                                            >
-                                            <span class="tt-val"
-                                                >{{
-                                                    hoverDeltaTData.item.tempInternal.toFixed(
-                                                        1,
-                                                    )
-                                                }}°C</span
-                                            >
-                                        </div>
-                                        <div class="tooltip-item">
-                                            <span
-                                                class="tt-dot"
-                                                style="background: #f59e0b"
-                                            ></span>
-                                            <span class="tt-label"
-                                                >Radiasi Surya:</span
-                                            >
-                                            <span class="tt-val"
-                                                >{{
-                                                    hoverDeltaTData.item.solarRadiation.toFixed(
-                                                        0,
-                                                    )
-                                                }}
-                                                W/m²</span
-                                            >
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="subpanel-desc">
-                                Greenhouse mempertahankan selisih suhu
-                                <strong
-                                    >+{{
-                                        (
-                                            telemetry.tempInternal -
-                                            telemetry.tempExternal
-                                        ).toFixed(1)
-                                    }}°C</strong
-                                >
-                                di atas suhu luar, mengoptimalkan panas surya
-                                alami.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Packaging QR Label Modal -->
-                <PackagingQrLabelModal
-                    :is-open="isQrModalOpen"
-                    :batch="activeBatchFormatted"
-                    @close="isQrModalOpen = false"
-                />
+              <p class="batch-operator-info">
+                Operator: <strong>{{ activeBatch?.operatorName || activeBatch?.operator?.name || 'Operator Greenhouse' }}</strong> &bull;
+                Mode: <strong>{{ activeBatch?.dryingMode === 'PURE_SOLAR' ? 'Hanya Sinar Matahari' : 'Otomatis (Matahari + Pemanas Listrik)' }}</strong>
+              </p>
             </div>
-        </Transition>
-    </div>
+
+            <!-- Tombol Aksi Utama -->
+            <div class="header-actions-group">
+              <button 
+                class="btn-finish-main"
+                @click="handleFinishDrying"
+                title="Selesaikan sesi pengeringan saat kadar air sudah tercapai"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>Selesaikan Pengeringan</span>
+              </button>
+
+              <div class="header-secondary-actions">
+                <button 
+                  class="btn-secondary-action"
+                  @click="handleTogglePause"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <template v-if="isPaused">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </template>
+                    <template v-else>
+                      <rect x="6" y="4" width="4" height="16"></rect>
+                      <rect x="14" y="4" width="4" height="16"></rect>
+                    </template>
+                  </svg>
+                  <span>{{ isPaused ? 'Lanjutkan Proses' : 'Jeda Sementara' }}</span>
+                </button>
+
+                <button 
+                  class="btn-secondary-action"
+                  @click="isQrModalOpen = true"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                  </svg>
+                  <span>Cetak QR Kemasan</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Kartu Progres Kadar Air & Waktu (Besar & Jelas) -->
+          <div class="drying-progress-card">
+            <div class="progress-top-row">
+              <div class="prog-time-box">
+                <div class="clock-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+                <div>
+                  <span class="stat-small-label">WAKTU BERJALAN</span>
+                  <div class="clock-display">{{ formattedTime }}</div>
+                </div>
+              </div>
+
+              <div class="prog-eta-box">
+                <span class="stat-small-label">ESTIMASI SELESAI</span>
+                <div class="eta-val">~{{ estimatedHoursRemaining }} Jam Lagi</div>
+              </div>
+
+              <div class="prog-rate-box">
+                <span class="stat-small-label">KECEPATAN PENURUNAN</span>
+                <div class="rate-val text-green">~{{ currentDryingRate }}% / jam</div>
+              </div>
+            </div>
+
+            <!-- Bar Progres Penurunan Kadar Air -->
+            <div class="progress-track-wrapper">
+              <div class="track-info-row">
+                <span class="track-label-start">
+                  Kadar Air Awal: <strong>{{ activeBatch?.initialMoisturePercent || 25 }}%</strong>
+                </span>
+                <span class="track-badge-current">
+                  Saat Ini: <strong>{{ telemetry.grainMoisture.toFixed(1) }}%</strong> (Progres {{ progressPercent }}%)
+                </span>
+                <span class="track-label-target">
+                  Target Standar SNI: <strong>{{ activeBatch?.targetMoisturePercent || 12 }}%</strong>
+                </span>
+              </div>
+
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" :style="{ width: progressPercent + '%' }"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Empat Indikator Kondisi Ruang Saat Ini -->
+          <div class="active-kpi-grid">
+            
+            <!-- Suhu Ruang -->
+            <div class="active-kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-title">Suhu Ruang Pengering</span>
+                <div class="icon-wrap icon-amber">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-val-row">
+                <span class="kpi-num">{{ telemetry.tempInternal.toFixed(1) }}</span>
+                <span class="kpi-unit">°C</span>
+              </div>
+              <div class="kpi-footer-status">
+                <span class="badge-chip" :class="telemetry.tempInternal >= 50 ? 'chip-red' : (telemetry.tempInternal >= 40 ? 'chip-green' : 'chip-amber')">
+                  {{ telemetry.tempInternal >= 50 ? 'Panas Maksimal (Istirahat)' : (telemetry.tempInternal >= 40 ? 'Suhu Ideal Pengeringan' : 'Sedang Menghangatkan') }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Kelembapan Ruang -->
+            <div class="active-kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-title">Kelembapan Ruang</span>
+                <div class="icon-wrap icon-blue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2.2">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-val-row">
+                <span class="kpi-num">{{ telemetry.humidityInternal.toFixed(0) }}</span>
+                <span class="kpi-unit">%</span>
+              </div>
+              <div class="kpi-footer-status">
+                <span class="badge-chip chip-blue">
+                  {{ telemetry.humidityInternal <= 60 ? 'Kering Terkendali' : 'Cukup Lembap' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Kadar Air Biji -->
+            <div class="active-kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-title">Kadar Air Biji Gabah</span>
+                <div class="icon-wrap icon-purple">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E22CE" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <polyline points="12 7 12 12 15 15"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-val-row">
+                <span class="kpi-num text-purple">{{ telemetry.grainMoisture.toFixed(1) }}</span>
+                <span class="kpi-unit">%</span>
+              </div>
+              <div class="kpi-footer-status">
+                <span class="badge-chip chip-purple">
+                  Target SNI: {{ activeBatch?.targetMoisturePercent || 12 }}%
+                </span>
+              </div>
+            </div>
+
+            <!-- Pemanas Tambahan -->
+            <div class="active-kpi-card">
+              <div class="kpi-top">
+                <span class="kpi-title">Pemanas Tambahan</span>
+                <div class="icon-wrap" :class="actuators.auxHeaterStatus ? 'icon-amber' : 'icon-green'">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-val-row">
+                <span class="kpi-status-text" :class="actuators.auxHeaterStatus ? 'text-amber' : 'text-green'">
+                  {{ actuators.auxHeaterStatus ? 'MENYALA' : 'STANDBY' }}
+                </span>
+              </div>
+              <div class="kpi-footer-status">
+                <span class="badge-chip chip-neutral">
+                  {{ actuators.auxHeaterStatus ? 'Membantu Panas Alami' : 'Panas Alami Cukup' }}
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 4. Grafik Tren Sederhana: Penurunan Kadar Air & Suhu -->
+          <div class="active-chart-card">
+            <div class="chart-head">
+              <div>
+                <h2 class="chart-heading">Grafik Penurunan Kadar Air & Suhu</h2>
+                <p class="chart-desc">Pantau penurunan kadar air gabah menuju target SNI 12% dan kestabilan suhu ruangan.</p>
+              </div>
+              <div class="chart-legend-box">
+                <span class="legend-chip"><span class="color-dot dot-purple"></span> Kadar Air Gabah (%)</span>
+                <span class="legend-chip"><span class="color-dot dot-red"></span> Suhu Ruangan (°C)</span>
+              </div>
+            </div>
+
+            <div class="chart-canvas-box">
+              <svg viewBox="0 0 800 200" class="active-svg" preserveAspectRatio="none">
+                <!-- Target Line 12% SNI -->
+                <line x1="50" y1="150" x2="770" y2="150" stroke="#7E22CE" stroke-width="1.5" stroke-dasharray="4 4" />
+                <text x="56" y="145" font-size="11" fill="#7E22CE" font-weight="700">Target SNI (12.0%)</text>
+
+                <!-- Grid lines -->
+                <line x1="50" y1="20" x2="770" y2="20" stroke="#F1F5F9" />
+                <text x="18" y="24" font-size="10" fill="#94A3B8">30% / 60°</text>
+
+                <line x1="50" y1="85" x2="770" y2="85" stroke="#F1F5F9" />
+                <text x="18" y="89" font-size="10" fill="#94A3B8">20% / 40°</text>
+
+                <line x1="50" y1="150" x2="770" y2="150" stroke="#E2E8F0" />
+                <text x="18" y="154" font-size="10" fill="#94A3B8">10% / 20°</text>
+
+                <!-- Lines -->
+                <path v-if="moisturePath" :d="moisturePath" fill="none" stroke="#7E22CE" stroke-width="3" stroke-linecap="round" />
+                <path v-if="tempPath" :d="tempPath" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" />
+              </svg>
+
+              <div class="chart-time-labels">
+                <span v-for="(lbl, idx) in timeLabels" :key="idx">{{ lbl.time }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Packaging QR Label Modal -->
+        <PackagingQrLabelModal
+          :is-open="isQrModalOpen"
+          :batch="activeBatchFormatted"
+          @close="isQrModalOpen = false"
+        />
+      </div>
+    </Transition>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from "vue";
-import { telemetryService } from "../../services/telemetryService";
-import { batchService } from "../../services/batchService";
-import { socketService } from "../../services/socketService";
-import {
-    confirmDialog,
-    alertDialog,
-} from "../../services/confirmDialogService";
-import PackagingQrLabelModal from "../../components/PackagingQrLabelModal.vue";
-import ActiveDryingSkeleton from "../../components/ActiveDryingSkeleton.vue";
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { telemetryService } from '../../services/telemetryService'
+import { batchService } from '../../services/batchService'
+import { socketService } from '../../services/socketService'
+import { confirmDialog, alertDialog } from '../../services/confirmDialogService'
+import PackagingQrLabelModal from '../../components/PackagingQrLabelModal.vue'
+import ActiveDryingSkeleton from '../../components/ActiveDryingSkeleton.vue'
 
 defineProps({
-    isMobile: {
-        type: Boolean,
-        default: false,
-    },
-});
+  isMobile: {
+    type: Boolean,
+    default: false,
+  },
+})
 
-const emit = defineEmits(["back", "finish"]);
+const emit = defineEmits(['back', 'finish'])
 
-const isInitialLoading = ref(true);
-const isConnected = ref(true);
-const isPaused = ref(false);
-const isQrModalOpen = ref(false);
-const activeBatch = ref(null);
-const seconds = ref(5400);
-const formattedTime = ref("01:30:00");
-let timer = null;
-let pollingTimer = null;
+const isInitialLoading = ref(true)
+const isPaused = ref(false)
+const isQrModalOpen = ref(false)
+const activeBatch = ref(null)
+const seconds = ref(5400)
+const formattedTime = ref('01:30:00')
+let timer = null
+let pollingTimer = null
 
 const activeBatchFormatted = computed(() => {
-    return {
-        ...(activeBatch.value || {}),
-        batchCode: activeBatch.value?.batchCode || "HJ-2026-ACTIVE",
-        cropVariety:
-            activeBatch.value?.cropVariety ||
-            "Hanjeli Ketan Sukabumi (Super Grade A)",
-        finalMoisturePercent: Number(telemetry.value.grainMoisture.toFixed(1)),
-        qualityGrade: activeBatch.value?.qualityGrade || "Grade A (Ekspor)",
-        completedAt: activeBatch.value?.completedAt || new Date().toISOString(),
-    };
-});
+  return {
+    ...(activeBatch.value || {}),
+    batchCode: activeBatch.value?.batchCode || 'HJ-2026-ACTIVE',
+    cropVariety: activeBatch.value?.cropVariety || 'Biji Hanjeli Sukabumi',
+    finalMoisturePercent: Number(telemetry.value.grainMoisture.toFixed(1)),
+    qualityGrade: activeBatch.value?.qualityGrade || 'Grade A (SNI)',
+    completedAt: activeBatch.value?.completedAt || new Date().toISOString(),
+  }
+})
 
 const telemetry = ref({
-    tempInternal: 42.5,
-    tempExternal: 30.2,
-    humidityInternal: 48.0,
-    humidityExternal: 68.0,
-    grainMoisture: 14.2,
-    solarRadiation: 780.0,
-    weightCurrentKg: 126.5,
-});
+  tempInternal: 44.5,
+  tempExternal: 30.2,
+  humidityInternal: 52.0,
+  humidityExternal: 68.0,
+  grainMoisture: 14.8,
+  solarRadiation: 750.0,
+  weightCurrentKg: 126.5,
+})
 
 const actuators = ref({
-    exhaustFanStatus: true,
-    exhaustFanSpeed: 75,
-    auxHeaterStatus: false,
-    auxHeaterLevel: 0,
-    controlMode: "AUTOMATIC",
-});
+  auxHeaterStatus: false,
+  controlMode: 'AUTOMATIC',
+})
 
-// Series Visibility Toggles
-const visibleSeries = reactive({
-    tempInternal: true,
-    tempExternal: true,
-    humidity: true,
-    grainMoisture: true,
-    solarRadiation: true,
-});
-
-// Crosshair & Tooltip State
-const hoverData = ref(null);
-
-// Live Rolling Telemetry History
-const liveHistoryPoints = ref([]);
-
-function appendTelemetryToHistory(data) {
-    const now = new Date();
-    const timeFormatted = now.toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-    });
-    liveHistoryPoints.value.push({
-        time: timeFormatted,
-        timeFormatted,
-        tempInternal: Number(
-            data.tempInternal ??
-                data.temp_internal ??
-                telemetry.value.tempInternal,
-        ),
-        tempExternal: Number(
-            data.tempExternal ??
-                data.temp_external ??
-                telemetry.value.tempExternal,
-        ),
-        humidityInternal: Number(
-            data.humidityInternal ??
-                data.humidity_internal ??
-                telemetry.value.humidityInternal,
-        ),
-        humidityExternal: Number(
-            data.humidityExternal ??
-                data.humidity_external ??
-                telemetry.value.humidityExternal,
-        ),
-        solarRadiation: Number(
-            data.solarRadiation ??
-                data.solar_radiation ??
-                telemetry.value.solarRadiation,
-        ),
-        grainMoisture: Number(
-            data.grainMoisture ??
-                data.grain_moisture ??
-                telemetry.value.grainMoisture,
-        ),
-        weightKg: Number(
-            data.weightCurrentKg ??
-                data.weight_kg ??
-                telemetry.value.weightCurrentKg,
-        ),
-    });
-
-    // Limit rolling points to 35
-    if (liveHistoryPoints.value.length > 35) {
-        liveHistoryPoints.value.shift();
-    }
-}
-
-// Populate initial synthetic rolling curve
-function seedInitialHistory() {
-    const initial = [];
-    const count = 18;
-    const baseTime = new Date(Date.now() - count * 60000);
-    for (let i = 0; i < count; i++) {
-        const t = new Date(baseTime.getTime() + i * 60000);
-        const progress = i / (count - 1);
-        const tempIn = 38.0 + progress * 4.5 + Math.sin(i) * 0.4;
-        const tempExt = 28.0 + progress * 2.2;
-        const humIn = 65.0 - progress * 17.0 + Math.sin(i * 1.5) * 1.5;
-        const humExt = 75.0 - progress * 7.0;
-        const solar = 620.0 + progress * 160.0 + Math.sin(i) * 30;
-        const moisture = 22.0 - progress * 7.8;
-        const weight = 135.0 - progress * 8.5;
-
-        initial.push({
-            time: t.toLocaleTimeString("id-ID", {
-                hour: "2-digit",
-                minute: "2-digit",
-            }),
-            timeFormatted: t.toLocaleTimeString("id-ID", {
-                hour: "2-digit",
-                minute: "2-digit",
-            }),
-            tempInternal: Number(tempIn.toFixed(1)),
-            tempExternal: Number(tempExt.toFixed(1)),
-            humidityInternal: Number(humIn.toFixed(0)),
-            humidityExternal: Number(humExt.toFixed(0)),
-            solarRadiation: Number(solar.toFixed(0)),
-            grainMoisture: Number(moisture.toFixed(1)),
-            weightKg: Number(weight.toFixed(1)),
-        });
-    }
-    liveHistoryPoints.value = initial;
-}
-
-const showAiModelDrawer = ref(false);
-const prediction = ref({
-    estimatedCompletionFormatted: "Memuat kalkulasi...",
-    estimatedCompletionTimeOnly: "16:45 WIB",
-    formattedRemaining: "3 Jam 45 Menit",
-    remainingHours: 3.8,
-    dryingRatePerHour: 1.35,
-    confidenceScore: 94,
-    isToday: true,
-    modelType: "Page's Modified Thin-Layer Kinetics",
-    parameters: {
-        k_rate_constant: 0.0842,
-        n_exponent: 1.09,
-        equilibrium_moisture_Me: 8.5,
-        thermal_potential_dT: 12.3,
-    },
-    weatherContext: {
-        location: "Desa Wisata Hanjeli, Waluran, Sukabumi",
-        temperature: 30.5,
-        humidity: 68,
-        solarIrradiance: 680,
-        conditionText: "Cerah Berawan Sukabumi",
-        conditionIcon: "sun",
-        dryingImpact: "Optimal - Efisiensi Tinggi",
-        isSunny: true,
-    },
-    recommendations: [],
-    forecastTrajectory: [],
-});
-
-const defaultRecommendations = [
-    {
-        type: "primary",
-        title: "Kinetika Pengeringan Optimal",
-        description:
-            "Laju dehidrasi gabah berjalan stabil ~1.35%/jam, aman dari risiko retak butir (case hardening).",
-    },
-    {
-        type: "info",
-        title: "Sirkulasi Udara & Kipas Exhaust",
-        description:
-            "Pertahankan sirkulasi exhaust fan di 75-80% untuk membuang kelembaban evaporasi biji.",
-    },
-    {
-        type: "warning",
-        title: "Pemanfaatan Panas Surya Alami",
-        description:
-            "Radiasi matahari terik 680 W/m² mencukupi pemanasan alami; pemanas bantu hemat energi.",
-    },
-];
+const liveHistoryPoints = ref([])
 
 const progressPercent = computed(() => {
-    if (!activeBatch.value) return 72;
-    const initial = activeBatch.value.initialMoisturePercent || 25.5;
-    const target = activeBatch.value.targetMoisturePercent || 12.0;
-    const current = telemetry.value.grainMoisture || 14.2;
-    if (initial <= target) return 100;
-    const p = ((initial - current) / (initial - target)) * 100;
-    return Math.min(100, Math.max(0, Math.round(p)));
-});
+  if (!activeBatch.value) return 70
+  const initial = activeBatch.value.initialMoisturePercent || 25.0
+  const target = activeBatch.value.targetMoisturePercent || 12.0
+  const current = telemetry.value.grainMoisture || 14.8
+  if (initial <= target) return 100
+  const p = ((initial - current) / (initial - target)) * 100
+  return Math.min(100, Math.max(0, Math.round(p)))
+})
 
 const estimatedHoursRemaining = computed(() => {
-    if (prediction.value?.remainingHours) {
-        return prediction.value.remainingHours.toFixed(1);
-    }
-    const diff =
-        (telemetry.value.grainMoisture || 14.2) -
-        (activeBatch.value?.targetMoisturePercent || 12.0);
-    if (diff <= 0) return "0.5";
-    return Math.max(0.5, diff * 0.75).toFixed(1);
-});
+  const diff = (telemetry.value.grainMoisture || 14.8) - (activeBatch.value?.targetMoisturePercent || 12.0)
+  if (diff <= 0) return '0.5'
+  return Math.max(0.5, diff * 0.8).toFixed(1)
+})
 
 const currentDryingRate = computed(() => {
-    if (prediction.value?.dryingRatePerHour) {
-        return prediction.value.dryingRatePerHour.toFixed(2);
-    }
-    if (liveHistoryPoints.value.length < 2) return "1.45";
-    const first = liveHistoryPoints.value[0].grainMoisture;
-    const last =
-        liveHistoryPoints.value[liveHistoryPoints.value.length - 1]
-            .grainMoisture;
-    const drop = Math.max(0.2, first - last);
-    return (drop * 3.5).toFixed(2);
-});
-
-const liveEvaporatedWaterKg = computed(() => {
-    const init = Number(activeBatch.value?.initialWeightKg || 135.0);
-    const curr = Number(telemetry.value.weightCurrentKg || 126.5);
-    return Math.max(0, init - curr).toFixed(1);
-});
+  return '1.25'
+})
 
 function updateFormattedTime() {
-    const hrs = String(Math.floor(seconds.value / 3600)).padStart(2, "0");
-    const mins = String(Math.floor((seconds.value % 3600) / 60)).padStart(
-        2,
-        "0",
-    );
-    const secs = String(seconds.value % 60).padStart(2, "0");
-    formattedTime.value = `${hrs}:${mins}:${secs}`;
+  const hrs = String(Math.floor(seconds.value / 3600)).padStart(2, '0')
+  const mins = String(Math.floor((seconds.value % 3600) / 60)).padStart(2, '0')
+  const secs = String(seconds.value % 60).padStart(2, '0')
+  formattedTime.value = `${hrs}:${mins}:${secs}`
 }
 
-async function loadData(isFirstTime = false) {
-    try {
-        const [activeRes, telemRes, predRes] = await Promise.allSettled([
-            batchService.getActiveBatch(),
-            telemetryService.getCurrent(),
-            batchService.getActiveDryingPrediction(),
-        ]);
+function appendHistory(data) {
+  const now = new Date()
+  const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  liveHistoryPoints.value.push({
+    time: timeFormatted,
+    tempInternal: Number(data.tempInternal ?? data.temp_internal ?? telemetry.value.tempInternal),
+    grainMoisture: Number(data.grainMoisture ?? data.grain_moisture ?? telemetry.value.grainMoisture),
+  })
 
-        if (
-            activeRes.status === "fulfilled" &&
-            activeRes.value &&
-            activeRes.value.activeBatch
-        ) {
-            activeBatch.value = activeRes.value.activeBatch;
-            if (activeRes.value.activeBatch.startedAt) {
-                const start = new Date(activeRes.value.activeBatch.startedAt);
-                const diffSecs = Math.max(
-                    0,
-                    Math.floor((new Date() - start) / 1000),
-                );
-                seconds.value = diffSecs;
-                updateFormattedTime();
-            }
-        }
+  if (liveHistoryPoints.value.length > 20) {
+    liveHistoryPoints.value.shift()
+  }
+}
 
-        if (telemRes.status === "fulfilled" && telemRes.value) {
-            const res = telemRes.value;
-            if (res.telemetry) {
-                telemetry.value = { ...telemetry.value, ...res.telemetry };
-                appendTelemetryToHistory(res.telemetry);
-            }
-            if (res.actuators) {
-                actuators.value = { ...actuators.value, ...res.actuators };
-            }
-        }
+function seedHistory() {
+  const initial = []
+  const count = 10
+  const baseTime = new Date(Date.now() - count * 15 * 60000)
+  for (let i = 0; i < count; i++) {
+    const t = new Date(baseTime.getTime() + i * 15 * 60000)
+    const progress = i / (count - 1)
+    const temp = 42.0 + progress * 3.5 + Math.sin(i) * 0.4
+    const moisture = 22.0 - progress * 7.2
+    initial.push({
+      time: t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      tempInternal: Number(temp.toFixed(1)),
+      grainMoisture: Number(moisture.toFixed(1)),
+    })
+  }
+  liveHistoryPoints.value = initial
+}
 
-        if (
-            predRes.status === "fulfilled" &&
-            predRes.value &&
-            predRes.value.success
-        ) {
-            prediction.value = predRes.value;
-        }
-    } catch (err) {
-        console.warn("Could not fetch active drying state:", err.message);
-    } finally {
-        if (isFirstTime) {
-            setTimeout(() => {
-                isInitialLoading.value = false;
-            }, 350);
-        }
+function mapToSvg(values, minVal, maxVal, width = 720, height = 150, xOffset = 50, yOffset = 20) {
+  if (!values || values.length < 2) return ''
+  const stepX = width / (values.length - 1)
+  return values.map((val, idx) => {
+    const clamped = Math.max(minVal, Math.min(maxVal, val))
+    const norm = (clamped - minVal) / (maxVal - minVal)
+    const x = Math.round(xOffset + idx * stepX)
+    const y = Math.round(yOffset + (1 - norm) * height)
+    return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`
+  }).join(' ')
+}
+
+const moisturePath = computed(() => {
+  return mapToSvg(liveHistoryPoints.value.map(d => d.grainMoisture), 10, 30)
+})
+
+const tempPath = computed(() => {
+  return mapToSvg(liveHistoryPoints.value.map(d => d.tempInternal), 20, 60)
+})
+
+const timeLabels = computed(() => {
+  const pts = liveHistoryPoints.value
+  if (pts.length === 0) return []
+  const count = Math.min(5, pts.length)
+  const labels = []
+  const stepIdx = Math.floor((pts.length - 1) / (count - 1 || 1))
+  for (let i = 0; i < count; i++) {
+    const idx = Math.min(i * stepIdx, pts.length - 1)
+    labels.push({ time: pts[idx].time })
+  }
+  return labels
+})
+
+async function loadData() {
+  try {
+    const [activeRes, telemRes] = await Promise.allSettled([
+      batchService.getActiveBatch(),
+      telemetryService.getCurrent(),
+    ])
+
+    if (activeRes.status === 'fulfilled' && activeRes.value?.activeBatch) {
+      activeBatch.value = activeRes.value.activeBatch
+      if (activeRes.value.activeBatch.startedAt) {
+        const start = new Date(activeRes.value.activeBatch.startedAt)
+        const diffSecs = Math.max(0, Math.floor((new Date() - start) / 1000))
+        seconds.value = diffSecs
+        updateFormattedTime()
+      }
     }
+
+    if (telemRes.status === 'fulfilled' && telemRes.value) {
+      const res = telemRes.value
+      if (res.telemetry) {
+        telemetry.value = { ...telemetry.value, ...res.telemetry }
+        appendHistory(res.telemetry)
+      }
+      if (res.actuators) {
+        actuators.value = { ...actuators.value, ...res.actuators }
+      }
+    }
+  } catch (err) {
+    console.warn('Active drying data load fallback:', err.message)
+  }
 }
 
 async function handleTogglePause() {
-    if (!activeBatch.value || !activeBatch.value.id) return;
-    try {
-        if (isPaused.value) {
-            await batchService.resume(activeBatch.value.id);
-            isPaused.value = false;
-        } else {
-            await batchService.pause(activeBatch.value.id);
-            isPaused.value = true;
-        }
-    } catch (e) {
-        await alertDialog({
-            title: "Gagal Mengubah Status",
-            message: e.message || "Gagal mengubah status jeda batch.",
-            type: "danger",
-        });
+  if (!activeBatch.value?.id) return
+  try {
+    if (isPaused.value) {
+      await batchService.resume(activeBatch.value.id)
+      isPaused.value = false
+    } else {
+      await batchService.pause(activeBatch.value.id)
+      isPaused.value = true
     }
+  } catch (e) {
+    await alertDialog({
+      title: 'Perhatian',
+      message: e.message || 'Gagal mengubah status proses pengeringan.',
+      type: 'danger',
+    })
+  }
 }
 
 async function handleFinishDrying() {
-    const confirmed = await confirmDialog({
-        title: "Selesaikan Sesi Pengeringan",
-        message:
-            "Apakah Anda yakin ingin menyelesaikan sesi pengeringan ini dan menyimpan data ke riwayat?",
-        details:
-            "Data sensor akhir akan direkam secara permanen ke laporan batch.",
-        type: "warning",
-        confirmText: "Ya, Selesaikan",
-        cancelText: "Batal",
-    });
+  const confirmed = await confirmDialog({
+    title: 'Selesaikan Pengeringan?',
+    message: 'Apakah Anda yakin ingin menyelesaikan proses pengeringan ini? Data akhir akan disimpan ke buku riwayat.',
+    details: 'Pastikan biji hanjeli sudah mencapai tingkat kekeringan yang diinginkan.',
+    type: 'success',
+    confirmText: 'Ya, Selesaikan',
+    cancelText: 'Belum, Lanjutkan',
+  })
 
-    if (!confirmed) return;
+  if (!confirmed) return
 
-    if (activeBatch.value && activeBatch.value.id) {
-        try {
-            await batchService.complete(activeBatch.value.id, {
-                finalWeightKg: telemetry.value.weightCurrentKg || 125,
-                finalMoisturePercent: telemetry.value.grainMoisture || 12.0,
-                qualityScore: 95,
-                notes: "Siklus pengeringan selesai sesuai target SNI (≤ 12.0%).",
-            });
-        } catch (e) {
-            console.warn("Finish batch notice:", e.message);
-        }
+  if (activeBatch.value?.id) {
+    try {
+      await batchService.complete(activeBatch.value.id, {
+        finalWeightKg: telemetry.value.weightCurrentKg || 125,
+        finalMoisturePercent: telemetry.value.grainMoisture || 12.0,
+        qualityScore: 95,
+        notes: 'Pengeringan selesai sesuai target.',
+      })
+    } catch (e) {
+      console.warn('Finish batch notice:', e.message)
     }
-    emit("finish");
+  }
+  emit('finish')
 }
 
-// =========================================================================
-// SVG PATH GENERATORS
-// =========================================================================
-function mapPointsToSvg(
-    values,
-    yMin,
-    yMax,
-    width = 880,
-    height = 240,
-    xOffset = 60,
-    yOffset = 20,
-) {
-    if (!values || values.length < 2) return "";
-    const stepX = width / (values.length - 1);
-    return values.map((val, idx) => {
-        const clamped = Math.max(yMin, Math.min(yMax, val));
-        const norm = (clamped - yMin) / (yMax - yMin);
-        const x = Math.round(xOffset + idx * stepX);
-        const y = Math.round(yOffset + (1 - norm) * height);
-        return { x, y };
-    });
-}
+onMounted(async () => {
+  seedHistory()
+  await loadData()
+  isInitialLoading.value = false
 
-function buildSvgPath(coords) {
-    if (!coords || coords.length === 0) return "";
-    return coords
-        .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`)
-        .join(" ");
-}
-
-function buildSvgArea(coords, baselineY = 260) {
-    if (!coords || coords.length < 2) return "";
-    const first = coords[0];
-    const last = coords[coords.length - 1];
-    const lineStr = coords
-        .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`)
-        .join(" ");
-    return `${lineStr} L ${last.x} ${baselineY} L ${first.x} ${baselineY} Z`;
-}
-
-const tempCoords = computed(() =>
-    mapPointsToSvg(
-        liveHistoryPoints.value.map((d) => d.tempInternal),
-        0,
-        100,
-        880,
-        240,
-        60,
-        20,
-    ),
-);
-const tempExtCoords = computed(() =>
-    mapPointsToSvg(
-        liveHistoryPoints.value.map((d) => d.tempExternal),
-        0,
-        100,
-        880,
-        240,
-        60,
-        20,
-    ),
-);
-const humCoords = computed(() =>
-    mapPointsToSvg(
-        liveHistoryPoints.value.map((d) => d.humidityInternal),
-        0,
-        100,
-        880,
-        240,
-        60,
-        20,
-    ),
-);
-const moistureCoords = computed(() =>
-    mapPointsToSvg(
-        liveHistoryPoints.value.map((d) => d.grainMoisture),
-        0,
-        100,
-        880,
-        240,
-        60,
-        20,
-    ),
-);
-const solarCoords = computed(() =>
-    mapPointsToSvg(
-        liveHistoryPoints.value.map((d) => d.solarRadiation),
-        0,
-        1000,
-        880,
-        240,
-        60,
-        20,
-    ),
-);
-
-const tempCurvePath = computed(() => buildSvgPath(tempCoords.value));
-const tempAreaPath = computed(() => buildSvgArea(tempCoords.value));
-const tempExtCurvePath = computed(() => buildSvgPath(tempExtCoords.value));
-const humidityCurvePath = computed(() => buildSvgPath(humCoords.value));
-const moistureCurvePath = computed(() => buildSvgPath(moistureCoords.value));
-const moistureAreaPath = computed(() => buildSvgArea(moistureCoords.value));
-const solarCurvePath = computed(() => buildSvgPath(solarCoords.value));
-const solarAreaPath = computed(() => buildSvgArea(solarCoords.value));
-
-const yGridLines = [
-    { val: 100, unit: "", y: 20, solarVal: "1000" },
-    { val: 80, unit: "", y: 68, solarVal: "800" },
-    { val: 60, unit: "", y: 116, solarVal: "600" },
-    { val: 40, unit: "", y: 164, solarVal: "400" },
-    { val: 20, unit: "", y: 212, solarVal: "200" },
-    { val: 0, unit: "", y: 260, solarVal: "0" },
-];
-
-const xTimeLabels = computed(() => {
-    const pts = liveHistoryPoints.value;
-    if (pts.length === 0) return [];
-    const count = Math.min(6, pts.length);
-    const labels = [];
-    const stepIdx = Math.floor((pts.length - 1) / (count - 1 || 1));
-    for (let i = 0; i < count; i++) {
-        const idx = Math.min(i * stepIdx, pts.length - 1);
-        const x = Math.round(60 + (idx / (pts.length - 1 || 1)) * 880);
-        labels.push({ x, time: pts[idx].timeFormatted || pts[idx].time });
+  timer = setInterval(() => {
+    if (!isPaused.value) {
+      seconds.value++
+      updateFormattedTime()
     }
-    return labels;
-});
+  }, 1000)
 
-// Subpanels
-const kineticsPath = computed(() => {
-    const coords = mapPointsToSvg(
-        liveHistoryPoints.value.map((d) => d.grainMoisture),
-        5,
-        30,
-        440,
-        115,
-        40,
-        25,
-    );
-    return buildSvgPath(coords);
-});
+  pollingTimer = setInterval(loadData, 4000)
 
-const projectedKineticsCoords = computed(() => {
-    if (
-        !prediction.value ||
-        !prediction.value.forecastTrajectory ||
-        prediction.value.forecastTrajectory.length < 2
-    ) {
-        const currentM = telemetry.value.grainMoisture || 14.2;
-        const targetM = activeBatch.value?.targetMoisturePercent || 12.0;
-        const synthetic = [];
-        const steps = 6;
-        for (let i = 0; i <= steps; i++) {
-            const frac = i / steps;
-            const m =
-                currentM -
-                ((currentM - targetM) * (1 - Math.exp(-2.2 * frac))) /
-                    (1 - Math.exp(-2.2));
-            synthetic.push(Math.max(targetM, m));
-        }
-        return mapPointsToSvg(synthetic, 5, 30, 440, 115, 40, 25);
-    }
-    const traj = prediction.value.forecastTrajectory;
-    const moistureVals = traj.map((t) => t.projectedMoisture);
-    return mapPointsToSvg(moistureVals, 5, 30, 440, 115, 40, 25);
-});
+  socketService.on('telemetry_live', (data) => {
+    telemetry.value = { ...telemetry.value, ...data }
+    appendHistory(data)
+  })
 
-const projectedKineticsPath = computed(() => {
-    return buildSvgPath(projectedKineticsCoords.value);
-});
-
-const deltaTPath = computed(() => {
-    const deltas = liveHistoryPoints.value.map(
-        (d) => d.tempInternal - d.tempExternal,
-    );
-    const coords = mapPointsToSvg(deltas, 0, 20, 440, 115, 40, 25);
-    return buildSvgPath(coords);
-});
-
-const mobileMoisturePath = computed(() => {
-    const coords = mapPointsToSvg(
-        liveHistoryPoints.value.map((d) => d.grainMoisture),
-        5,
-        30,
-        280,
-        80,
-        30,
-        20,
-    );
-    return buildSvgPath(coords);
-});
-
-const mobileTempPath = computed(() => {
-    const coords = mapPointsToSvg(
-        liveHistoryPoints.value.map((d) => d.tempInternal),
-        20,
-        60,
-        280,
-        80,
-        30,
-        20,
-    );
-    return buildSvgPath(coords);
-});
-
-const hoverKineticsData = ref(null);
-const hoverDeltaTData = ref(null);
-
-function handleChartMouseMove(e) {
-    const pts = liveHistoryPoints.value;
-    if (pts.length === 0) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const percentX = Math.max(0, Math.min(1, offsetX / rect.width));
-
-    const index = Math.round(percentX * (pts.length - 1));
-    const item = pts[index];
-    if (!item) return;
-
-    const svgX = Math.round(60 + percentX * 880);
-    const normTemp = (item.tempInternal - 0) / 100;
-    const normHum = (item.humidityInternal - 0) / 100;
-    const normMoist = (item.grainMoisture - 0) / 100;
-    const normSolar = (item.solarRadiation - 0) / 1000;
-
-    hoverData.value = {
-        index,
-        item,
-        svgX,
-        domPercentX: percentX * 100,
-        yTemp: Math.round(20 + (1 - normTemp) * 240),
-        yHum: Math.round(20 + (1 - normHum) * 240),
-        yMoisture: Math.round(20 + (1 - normMoist) * 240),
-        ySolar: Math.round(20 + (1 - normSolar) * 240),
-    };
-}
-
-function handleChartMouseLeave() {
-    hoverData.value = null;
-}
-
-function handleKineticsMouseMove(e) {
-    const pts = liveHistoryPoints.value;
-    if (pts.length === 0) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percentX = Math.max(
-        0,
-        Math.min(1, (e.clientX - rect.left) / rect.width),
-    );
-    const index = Math.round(percentX * (pts.length - 1));
-    const item = pts[index];
-    if (!item) return;
-
-    const svgX = Math.round(40 + percentX * 440);
-    const normMoist = (item.grainMoisture - 5) / 25;
-    const svgY = Math.round(
-        25 + (1 - Math.max(0, Math.min(1, normMoist))) * 115,
-    );
-
-    hoverKineticsData.value = {
-        index,
-        item,
-        svgX,
-        svgY,
-        domPercentX: percentX * 100,
-    };
-}
-
-function handleDeltaTMouseMove(e) {
-    const pts = liveHistoryPoints.value;
-    if (pts.length === 0) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percentX = Math.max(
-        0,
-        Math.min(1, (e.clientX - rect.left) / rect.width),
-    );
-    const index = Math.round(percentX * (pts.length - 1));
-    const item = pts[index];
-    if (!item) return;
-
-    const delta = Math.max(0, item.tempInternal - item.tempExternal);
-    const svgX = Math.round(40 + percentX * 440);
-    const normDelta = delta / 20;
-    const svgY = Math.round(
-        25 + (1 - Math.max(0, Math.min(1, normDelta))) * 115,
-    );
-
-    hoverDeltaTData.value = {
-        index,
-        item,
-        delta,
-        svgX,
-        svgY,
-        domPercentX: percentX * 100,
-    };
-}
-
-onMounted(() => {
-    seedInitialHistory();
-    loadData(true);
-
-    timer = setInterval(() => {
-        if (!isPaused.value) {
-            seconds.value++;
-            updateFormattedTime();
-        }
-    }, 1000);
-
-    pollingTimer = setInterval(() => {
-        telemetryService
-            .getCurrent()
-            .then((res) => {
-                if (res.telemetry) {
-                    telemetry.value = { ...telemetry.value, ...res.telemetry };
-                    appendTelemetryToHistory(res.telemetry);
-                }
-            })
-            .catch(() => {});
-    }, 3000);
-
-    socketService.on("telemetry_live", (data) => {
-        telemetry.value = { ...telemetry.value, ...data };
-        appendTelemetryToHistory(data);
-        isConnected.value = true;
-    });
-
-    socketService.on("actuators_update", (data) => {
-        actuators.value = { ...actuators.value, ...data };
-    });
-});
+  socketService.on('actuators_update', (data) => {
+    actuators.value = { ...actuators.value, ...data }
+  })
+})
 
 onUnmounted(() => {
-    if (timer) clearInterval(timer);
-    if (pollingTimer) clearInterval(pollingTimer);
-    socketService.off("telemetry_live");
-    socketService.off("actuators_update");
-});
+  if (timer) clearInterval(timer)
+  if (pollingTimer) clearInterval(pollingTimer)
+  socketService.off('telemetry_live')
+  socketService.off('actuators_update')
+})
 </script>
 
 <style scoped>
 .active-drying-page {
-    width: 100%;
-    min-height: 100%;
-    background: transparent;
+  width: 100%;
+  min-height: 100%;
 }
 
 .active-drying-main-content {
-    padding: 32px 40px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    max-width: 1280px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
-.header-action-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-}
-
-.title-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.title-with-badge {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+/* 1. Active Header Card */
+.active-header-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .back-link-btn {
-    background: transparent;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--color-text-muted);
-    font-size: 13.5px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    padding: 0;
-    margin-bottom: 2px;
-    transition: color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+  background: transparent;
+  padding: 0;
+  margin-bottom: 12px;
 }
 
 .back-link-btn:hover {
-    color: #0d631b;
+  color: #1B5E20;
 }
 
-.page-title {
-    font-size: 32px;
-    font-weight: 800;
-    color: var(--color-text-title);
-    letter-spacing: -0.5px;
-    line-height: 1.2;
+.batch-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
 }
 
-.page-subtitle {
-    font-size: 16px;
-    color: var(--color-text-muted);
-    line-height: 1.5;
+.batch-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0F291E;
 }
 
-.live-active-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 12px;
-    background: #e8f5e9;
-    color: #0d631b;
-    border: 1px solid #a5d6a7;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
+.batch-code-badge {
+  background: #F1F5F9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.live-pulsing-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #0d631b;
-    animation: pulseDot 1.5s infinite;
+.batch-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-@keyframes pulseDot {
-    0% {
-        transform: scale(0.9);
-        box-shadow: 0 0 0 0 rgba(13, 99, 27, 0.7);
-    }
-    70% {
-        transform: scale(1.1);
-        box-shadow: 0 0 0 7px rgba(13, 99, 27, 0);
-    }
-    100% {
-        transform: scale(0.9);
-        box-shadow: 0 0 0 0 rgba(13, 99, 27, 0);
-    }
+.status-running {
+  background: #DCFCE7;
+  color: #166534;
 }
 
-.header-btns-cluster {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    flex-shrink: 0;
+.status-paused {
+  background: #FEF3C7;
+  color: #B45309;
 }
 
-.header-btns-subrow {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: flex-end;
+.status-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-.btn-pause-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: var(--color-white);
-    color: var(--color-text-title);
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.15s ease;
+.batch-operator-info {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
 }
 
-.btn-pause-action:hover {
-    background: var(--color-bg-light);
-    border-color: #94a3b8;
+.header-actions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
 }
 
-.btn-finish-session {
-    background: #ba1a1a !important;
-    border-color: #ba1a1a !important;
-    color: #ffffff !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 8px;
-    white-space: nowrap;
+.btn-finish-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #1B5E20;
+  color: #FFFFFF;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.btn-finish-session:hover {
-    background: #961515 !important;
+.btn-finish-main:hover {
+  background: #144A18;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
 }
 
-/* Duration & Progress Card */
-.duration-progress-card {
-    background: var(--color-white);
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    border-radius: 14px;
-    padding: 22px 26px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+.header-secondary-actions {
+  display: flex;
+  gap: 8px;
 }
 
-:global(.dark-theme) .duration-progress-card {
-    border-color: rgba(30, 58, 43, 0.6);
+.btn-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.duration-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
+.btn-secondary-action:hover {
+  background: #EDF2F7;
+  color: #0F291E;
 }
 
-.dur-clock-block {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+/* 2. Progress Card */
+.drying-progress-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
-.clock-icon-wrap {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: #e8f5e9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.progress-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #F1F5F9;
+  margin-bottom: 20px;
 }
 
-.dur-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.prog-time-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.dur-clock {
-    font-size: 32px;
-    font-weight: 900;
-    color: #0d631b;
-    font-family: monospace;
-    line-height: 1.1;
+.clock-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #E8F5E9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.etc-time-val,
+.stat-small-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94A3B8;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.clock-display {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0F291E;
+  letter-spacing: 0.5px;
+}
+
+.eta-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: #D97706;
+}
+
 .rate-val {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--color-text-title);
+  font-size: 20px;
+  font-weight: 700;
 }
 
-.process-track-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.text-green {
+  color: #1B5E20;
 }
 
-.track-bar {
-    width: 100%;
-    height: 14px;
-    background: var(--color-bg-light);
-    border-radius: 20px;
-    overflow: hidden;
-    border: 1px solid rgba(203, 213, 225, 0.4);
-    position: relative;
+.progress-track-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.track-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #10b981, #0d631b);
-    border-radius: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: width 0.6s ease;
+.track-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #475569;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.track-shimmer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.4),
-        transparent
-    );
-    animation: shimmerAnim 2s infinite;
+.track-badge-current {
+  color: #1B5E20;
+  font-weight: 600;
 }
 
-@keyframes shimmerAnim {
-    0% {
-        transform: translateX(-100%);
-    }
-    100% {
-        transform: translateX(100%);
-    }
+.progress-bar-container {
+  height: 12px;
+  background: #F1F5F9;
+  border-radius: 9999px;
+  overflow: hidden;
 }
 
-.track-labels {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12.5px;
-    color: var(--color-text-muted);
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1B5E20 0%, #22C55E 100%);
+  border-radius: 9999px;
+  transition: width 0.5s ease;
 }
 
-.track-marker-badge {
-    background: #e8f5e9;
-    color: #0d631b;
-    padding: 2px 10px;
-    border-radius: 12px;
-    font-weight: 700;
-}
-
-/* 6 KPI Cards Grid */
-.stats-grid-6 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-}
-
-.stat-card {
-    background: var(--color-white);
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    border-radius: 14px;
-    padding: 18px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-:global(.dark-theme) .stat-card {
-    border-color: rgba(30, 58, 43, 0.6);
-}
-
-.stat-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-}
-
-.stat-label {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-}
-
-.stat-value-row {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-}
-
-.stat-number {
-    font-size: 28px;
-    font-weight: 800;
-    line-height: 1.1;
-}
-
-.stat-unit {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text-muted);
-    margin-right: 6px;
-}
-
-.delta-chip,
-.delta-chip-blue,
-.delta-chip-amber,
-.delta-chip-purple,
-.delta-chip-emerald {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-left: auto;
-}
-
-.delta-chip {
-    background: #ffe4e6;
-    color: #e11d48;
-}
-.delta-chip-blue {
-    background: #e0f2fe;
-    color: #0284c7;
-}
-.delta-chip-amber {
-    background: #fef3c7;
-    color: #d97706;
-}
-.delta-chip-purple {
-    background: #f3e8ff;
-    color: #7e22ce;
-}
-.delta-chip-emerald {
-    background: #d1fae5;
-    color: #059669;
-}
-
-.stat-footer-text {
-    font-size: 12px;
-    color: var(--color-text-muted);
-    border-top: 1px solid var(--color-border-subtle, #f1f5f9);
-    padding-top: 6px;
-}
-
-/* Master Waveform Chart */
-.master-chart-card {
-    background: var(--color-white);
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    border-radius: 14px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-:global(.dark-theme) .master-chart-card {
-    border-color: rgba(30, 58, 43, 0.6);
-}
-
-.master-chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header-title-box {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.chart-badge-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: #e8f5e9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.master-chart-heading {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--color-text-title);
-    margin-bottom: 2px;
-}
-
-.master-chart-sub {
-    font-size: 12.5px;
-    color: var(--color-text-muted);
-}
-
-.live-points-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #0d631b;
-    background: #e8f5e9;
-    padding: 4px 10px;
-    border-radius: 20px;
-}
-
-.live-blink-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #0d631b;
-    animation: pulseDot 1s infinite;
-}
-
-.series-toggle-toolbar {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.series-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    background: var(--color-bg-light);
-    color: var(--color-text-muted);
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-    opacity: 0.55;
-    transition: all 0.15s ease;
-}
-
-.series-btn.active {
-    opacity: 1;
-    background: var(--color-white);
-    border-color: #94a3b8;
-}
-
-.legend-color-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-}
-
-.master-svg-chart-wrapper {
-    position: relative;
-    width: 100%;
-    height: 320px;
-    background: #fcfdfd;
-    border: 1px solid var(--color-border-subtle, #f1f5f9);
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: crosshair;
-}
-
-:global(.dark-theme) .master-svg-chart-wrapper {
-    background: #0f172a;
-    border-color: #1e293b;
-}
-
-.master-svg {
-    width: 100%;
-    height: 100%;
-}
-
-.floating-chart-tooltip {
-    position: absolute;
-    top: 15px;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(10px);
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 10px 14px;
-    pointer-events: none;
-    z-index: 20;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    min-width: 220px;
-}
-
-:global(.dark-theme) .floating-chart-tooltip {
-    background: rgba(15, 23, 42, 0.92);
-    border-color: #334155;
-}
-
-.tooltip-header {
-    font-size: 12px;
-    color: var(--color-text-title);
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 6px;
-    margin-bottom: 8px;
-}
-
-.tooltip-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.tooltip-item {
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-}
-
-.tt-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    margin-right: 6px;
-}
-
-.tt-label {
-    color: var(--color-text-muted);
-    margin-right: auto;
-}
-
-.tt-val {
-    font-weight: 700;
-    color: var(--color-text-title);
-}
-
-/* 2 Subpanels Grid */
-.two-subpanels-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.subpanel-card {
-    background: var(--color-white);
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    border-radius: 14px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-:global(.dark-theme) .subpanel-card {
-    border-color: rgba(30, 58, 43, 0.6);
-}
-
-.subpanel-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.subpanel-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.subpanel-icon {
-    font-size: 20px;
-}
-
-.subpanel-title {
-    font-size: 14.5px;
-    font-weight: 700;
-    color: var(--color-text-title);
-}
-
-.subpanel-sub {
-    font-size: 12px;
-    color: var(--color-text-muted);
-}
-
-.subpanel-svg-wrap {
-    position: relative;
-    width: 100%;
-    height: 160px;
-    cursor: crosshair;
-}
-
-.subpanel-tooltip {
-    min-width: 190px;
-    padding: 8px 12px;
-    top: 10px;
-}
-
-.subpanel-svg {
-    width: 100%;
-    height: 160px;
-    display: block;
-}
-
-.subpanel-desc {
-    font-size: 12px;
-    color: var(--color-text-muted);
-    line-height: 1.4;
-}
-
-/* Mobile Styling */
-.mobile-content {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.mobile-process-box {
-    background: var(--color-white);
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    border-radius: 14px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.m-box-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.m-status-text {
-    font-size: 12px;
-    font-weight: 700;
-    color: #0d631b;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.dot-live {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #0d631b;
-    animation: pulseDot 1.5s infinite;
-}
-
-.m-batch-name-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-
-.m-batch-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--color-text-title);
-}
-
-.m-clock-text {
-    font-size: 18px;
-    font-weight: 800;
-    color: #0d631b;
-    font-family: monospace;
-}
-
-.m-bar-wrap {
-    width: 100%;
-    height: 10px;
-    background: var(--color-bg-light);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.m-bar-fill {
-    height: 100%;
-    background: #0d631b;
-    border-radius: 10px;
-}
-
-.m-labels-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11.5px;
-    color: var(--color-text-muted);
-}
-
-.m-metrics-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.m-metric-card {
-    background: var(--color-white);
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    border-radius: 12px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.m-metric-head {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--color-text-muted);
-}
-
-.mini-val {
-    font-size: 18px;
-    font-weight: 800;
-}
-
-.unit-xs {
-    font-size: 12px;
-    font-weight: 600;
-    margin-left: 2px;
-}
-
-.mobile-chart-card {
-    background: var(--color-white);
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    border-radius: 14px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.m-chart-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.m-chart-title {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--color-text-title);
-}
-
-.m-svg-wrap {
-    width: 100%;
-    height: 140px;
-}
-
-.m-chart-legend {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    font-size: 11.5px;
-    color: var(--color-text-muted);
-}
-
-.dot-sm {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 4px;
-}
-
-.btn-stop-mobile {
-    width: 100%;
-    background: #ba1a1a;
-    color: #ffffff;
-    border: none;
-    padding: 14px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-/* Global utility classes */
-.icon-circle {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
-    max-width: 36px;
-    max-height: 36px;
-    aspect-ratio: 1 / 1;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.icon-red-subtle {
-    background: #ffe4e6;
-}
-.icon-blue-subtle {
-    background: #e0f2fe;
-}
-.icon-amber-subtle {
-    background: #fef3c7;
-}
-.icon-purple-subtle {
-    background: #f3e8ff;
-}
-.icon-emerald-subtle {
-    background: #d1fae5;
-}
-.icon-green-subtle {
-    background: #e8f5e9;
-}
-
-.status-chip {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    margin-left: auto;
-}
-
-.chip-on {
-    background: #fee2e2;
-    color: #dc2626;
-}
-.chip-off {
-    background: #f1f5f9;
-    color: #64748b;
-}
-
-.bg-purple-subtle {
-    background: #f3e8ff;
-}
-.text-purple {
-    color: #9333ea;
-}
-.bg-red-subtle {
-    background: #ffe4e6;
-}
-.text-red {
-    color: #e11d48;
-}
-.bg-blue-subtle {
-    background: #e0f2fe;
-}
-.text-blue {
-    color: #0284c7;
-}
-.bg-amber-subtle {
-    background: #fef3c7;
-}
-.text-amber {
-    color: #d97706;
-}
-.text-green-dark {
-    color: #0d631b;
-}
-
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: #0d631b;
-    color: #ffffff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-/* ========================================================================= */
-/* AI PREDICTIVE DRYING TIME (ETA) STYLING */
-/* ========================================================================= */
-.ai-eta-prediction-card {
-    background: linear-gradient(
-        135deg,
-        rgba(245, 243, 255, 0.95) 0%,
-        rgba(238, 242, 255, 0.9) 50%,
-        rgba(240, 253, 244, 0.95) 100%
-    );
-    border: 1.5px solid rgba(147, 51, 234, 0.22);
-    border-radius: 16px;
-    padding: 22px 24px;
-    box-shadow:
-        0 8px 24px -6px rgba(147, 51, 234, 0.1),
-        0 2px 8px -2px rgba(0, 0, 0, 0.04);
-    position: relative;
-    overflow: hidden;
-}
-
-.ai-eta-prediction-card::before {
-    content: "";
-    position: absolute;
-    top: -40px;
-    right: -40px;
-    width: 140px;
-    height: 140px;
-    background: radial-gradient(
-        circle,
-        rgba(147, 51, 234, 0.15) 0%,
-        transparent 70%
-    );
-    pointer-events: none;
-}
-
-.ai-eta-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.ai-eta-title-wrap {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-}
-
-.ai-eta-icon-halo {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #7e22ce 0%, #4f46e5 100%);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(126, 34, 206, 0.3);
-}
-
-.ai-eta-badge-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 4px;
-}
-
-.ai-model-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(126, 34, 206, 0.12);
-    color: #6b21a8;
-    font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    padding: 3px 9px;
-    border-radius: 20px;
-}
-
-.ai-spark-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #9333ea;
-    box-shadow: 0 0 8px #9333ea;
-    animation: pulse-dot 1.8s infinite ease-in-out;
-}
-
-@keyframes pulse-dot {
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 0.9;
-    }
-    50% {
-        transform: scale(1.4);
-        opacity: 1;
-    }
-}
-
-.ai-confidence-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: #dcfce7;
-    color: #15803d;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 9px;
-    border-radius: 20px;
-    border: 1px solid #bbf7d0;
-}
-
-.ai-eta-main-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: #1e1b4b;
-    margin: 0 0 3px 0;
-    letter-spacing: -0.2px;
-}
-
-.ai-eta-subtitle {
-    font-size: 12.5px;
-    color: #4b5563;
-    margin: 0;
-    line-height: 1.4;
-}
-
-.btn-ai-details {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    background: #ffffff;
-    border: 1.2px solid #d8b4fe;
-    color: #7e22ce;
-    font-size: 12.5px;
-    font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.btn-ai-details:hover,
-.btn-ai-details.active {
-    background: #7e22ce;
-    color: #ffffff;
-    border-color: #7e22ce;
-    box-shadow: 0 4px 12px rgba(126, 34, 206, 0.25);
-}
-
-.ai-eta-grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-}
-
-.ai-stat-box {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 16px 18px;
-    border: 1.2px solid rgba(226, 232, 240, 0.9);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.ai-stat-box:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-}
-
-.ai-stat-box.highlight-purple {
-    border-left: 4px solid #9333ea;
-}
-
-.ai-stat-box.highlight-emerald {
-    border-left: 4px solid #10b981;
-}
-
-.ai-stat-box.highlight-amber {
-    border-left: 4px solid #f59e0b;
-}
-
-.ai-stat-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.ai-stat-label {
-    font-size: 11px;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 0.5px;
-}
-
-.ai-countdown-chip {
-    font-size: 10.5px;
-    font-weight: 700;
-    background: #f3e8ff;
-    color: #7e22ce;
-    padding: 2px 7px;
-    border-radius: 10px;
-}
-
-.ai-rate-chip {
-    font-size: 10.5px;
-    font-weight: 700;
-    background: #d1fae5;
-    color: #065f46;
-    padding: 2px 7px;
-    border-radius: 10px;
-}
-
-.ai-weather-src-badge {
-    font-size: 10.5px;
-    font-weight: 700;
-    background: #fef3c7;
-    color: #92400e;
-    padding: 2px 7px;
-    border-radius: 10px;
-}
-
-.ai-stat-main-val {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-
-.ai-clock-text {
-    font-size: 26px;
-    font-weight: 800;
-    color: #7e22ce;
-    letter-spacing: -0.5px;
-    font-variant-numeric: tabular-nums;
-}
-
-.ai-rate-num {
-    font-size: 26px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    font-variant-numeric: tabular-nums;
-}
-
-.ai-rate-unit {
-    font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
-}
-
-.ai-weather-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.ai-weather-icon-txt {
-    font-size: 24px;
-}
-
-.ai-weather-cond {
-    font-size: 14px;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.ai-weather-sub {
-    font-size: 11.5px;
-    color: #64748b;
-    margin-top: 1px;
-}
-
-.ai-dur-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11.5px;
-    color: #4c1d95;
-    background: #faf5ff;
-    padding: 3px 8px;
-    border-radius: 6px;
-}
-
-.ai-stat-bottom-text {
-    font-size: 11.5px;
-    color: #64748b;
-}
-
-.ai-weather-impact-pill {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 700;
-    color: #b45309;
-    background: #fffbeb;
-    padding: 3px 8px;
-    border-radius: 6px;
-}
-
-/* Collapsible Drawer */
-.ai-drawer-expand {
-    margin-top: 18px;
-    padding-top: 18px;
-    border-top: 1.5px dashed rgba(147, 51, 234, 0.25);
-}
-
-.ai-drawer-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 16px;
-}
-
-.ai-formula-card,
-.ai-recs-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 16px;
-    border: 1px solid #e2e8f0;
-}
-
-.ai-sub-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.ai-sub-head h4 {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
-}
-
-.ai-math-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-family:
-        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 12px;
-    color: #6b21a8;
-    font-weight: 600;
-    margin-bottom: 12px;
-    overflow-x: auto;
-}
-
-.ai-param-tags {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.param-tag {
-    background: #faf5ff;
-    border: 1px solid #f3e8ff;
-    border-radius: 6px;
-    padding: 6px 10px;
-    display: flex;
-    flex-direction: column;
-}
-
-.param-tag .p-lbl {
-    font-size: 10px;
-    color: #6b7280;
-    font-weight: 600;
-}
-
-.param-tag .p-val {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #7e22ce;
-}
-
-.ai-recs-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.ai-rec-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-}
-
-.rec-bullet-icon {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-    flex-shrink: 0;
-}
-
-.ai-rec-item.rec-primary {
-    background: #f0fdf4;
-    border: 1px solid #dcfce7;
-    color: #166534;
-}
-.ai-rec-item.rec-primary .rec-bullet-icon {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-.ai-rec-item.rec-info {
-    background: #f0f9ff;
-    border: 1px solid #e0f2fe;
-    color: #0369a1;
-}
-.ai-rec-item.rec-info .rec-bullet-icon {
-    background: #e0f2fe;
-    color: #0284c7;
-}
-
-.ai-rec-item.rec-warning {
-    background: #fffbeb;
-    border: 1px solid #fef3c7;
-    color: #92400e;
-}
-.ai-rec-item.rec-warning .rec-bullet-icon {
-    background: #fef3c7;
-    color: #d97706;
-}
-
-.ai-rec-item.rec-danger {
-    background: #fef2f2;
-    border: 1px solid #fee2e2;
-    color: #991b1b;
-}
-.ai-rec-item.rec-danger .rec-bullet-icon {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.rec-title {
-    font-weight: 700;
-    margin-bottom: 2px;
-}
-
-.rec-desc {
-    margin: 0;
-    opacity: 0.9;
-    line-height: 1.35;
-}
-
-/* Kinetics Legend Footer */
-.kinetics-legend-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    font-size: 11.5px;
-    color: #64748b;
-    margin-top: 8px;
-    margin-bottom: 4px;
-}
-
-.kin-leg-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.kin-leg-solid {
-    display: inline-block;
-    width: 14px;
-    height: 3px;
-    background: #9333ea;
-    border-radius: 2px;
-}
-
-.kin-leg-dash {
-    display: inline-block;
-    width: 14px;
-    height: 0;
-    border-top: 2.5px dashed #c084fc;
-}
-
-/* Mobile AI ETA Banner */
-.mobile-ai-eta-card {
-    background: linear-gradient(135deg, #faf5ff 0%, #f0fdf4 100%);
-    border: 1px solid #d8b4fe;
-    border-radius: 12px;
-    padding: 12px 14px;
-    margin-bottom: 12px;
-}
-
-.m-ai-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.m-ai-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.m-ai-label {
-    font-size: 10px;
-    font-weight: 800;
-    color: #7e22ce;
-    letter-spacing: 0.5px;
-}
-
-.m-ai-acc {
-    font-size: 10px;
-    font-weight: 700;
-    background: #dcfce7;
-    color: #15803d;
-    padding: 2px 6px;
-    border-radius: 10px;
-}
-
-.m-ai-body {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.m-ai-sub-lbl {
-    font-size: 9.5px;
-    color: #64748b;
-    display: block;
-}
-
-.m-ai-time {
-    font-size: 17px;
-    font-weight: 800;
-    color: #7e22ce;
-}
-
-.m-ai-remaining,
-.m-ai-weather-txt {
-    font-size: 10.5px;
-    color: #4b5563;
-    display: block;
-}
-
-.m-ai-rate {
-    font-size: 17px;
-    font-weight: 800;
-}
-
-.drawer-fade-enter-active,
-.drawer-fade-leave-active {
-    transition:
-        opacity 0.25s ease,
-        max-height 0.25s ease;
-}
-
-.drawer-fade-enter-from,
-.drawer-fade-leave-to {
-    opacity: 0;
+/* 3. KPI Grid */
+.active-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
 @media (max-width: 1024px) {
-    .ai-eta-grid-3 {
-        grid-template-columns: 1fr;
-    }
-    .ai-drawer-grid {
-        grid-template-columns: 1fr;
-    }
-    .stats-grid-6 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .two-subpanels-grid {
-        grid-template-columns: 1fr;
-    }
+  .active-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
+@media (max-width: 600px) {
+  .active-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.active-kpi-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kpi-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-amber { background: #FEF3C7; color: #D97706; }
+.icon-blue { background: #E0F2FE; color: #0284C7; }
+.icon-purple { background: #F3E8FF; color: #7E22CE; }
+.icon-green { background: #E8F5E9; color: #1B5E20; }
+
+.kpi-val-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.kpi-num {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0F291E;
+  line-height: 1;
+}
+
+.text-purple { color: #7E22CE; }
+.text-amber { color: #D97706; }
+
+.kpi-unit {
+  font-size: 15px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.kpi-status-text {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.badge-chip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.chip-green { background: #E8F5E9; color: #1B5E20; }
+.chip-amber { background: #FEF3C7; color: #B45309; }
+.chip-red { background: #FEE2E2; color: #DC2626; }
+.chip-blue { background: #E0F2FE; color: #0369A1; }
+.chip-purple { background: #F3E8FF; color: #6B21A8; }
+.chip-neutral { background: #F1F5F9; color: #475569; }
+
+/* 4. Chart Card */
+.active-chart-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.chart-heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F291E;
+  margin-bottom: 4px;
+}
+
+.chart-desc {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+.chart-legend-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.legend-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-dot {
+  width: 12px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.dot-purple { background: #7E22CE; }
+.dot-red { background: #DC2626; }
+
+.chart-canvas-box {
+  width: 100%;
+}
+
+.active-svg {
+  width: 100%;
+  height: 180px;
+  display: block;
+}
+
+.chart-time-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 45px 0 45px;
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-    .active-drying-main-content {
-        padding: 0;
-        gap: 16px;
-    }
-    .header-action-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 14px;
-    }
-    .page-title {
-        font-size: 22px;
-    }
-    .page-subtitle {
-        font-size: 13px;
-    }
-    .header-btns-cluster {
-        align-items: stretch;
-        width: 100%;
-    }
-    .header-btns-subrow {
-        flex-wrap: wrap;
-        width: 100%;
-    }
-    .header-btns-subrow > button {
-        flex: 1 1 calc(50% - 8px);
-        justify-content: center;
-        font-size: 12px;
-        padding: 8px 10px;
-    }
-    .stats-grid-6 {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-    .stat-card {
-        padding: 12px 14px;
-        gap: 6px;
-    }
-    .stat-val-big {
-        font-size: 20px;
-    }
-    .duration-progress-card {
-        padding: 16px;
-        gap: 12px;
-    }
-    .dur-clock {
-        font-size: 24px;
-    }
-    .master-chart-card {
-        padding: 16px;
-    }
-    .master-svg-chart-wrapper {
-        height: 220px;
-    }
-    .two-subpanels-grid {
-        grid-template-columns: 1fr;
-    }
-    .subpanel-card {
-        padding: 16px;
-    }
+  .active-drying-main-content {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .active-header-card {
+    padding: 18px;
+  }
+
+  .batch-title {
+    font-size: 18px;
+  }
+
+  .header-actions-group {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .btn-finish-main {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-secondary-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn-secondary-action {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .progress-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .active-svg {
+    height: 150px;
+  }
 }
 
-@media (max-width: 480px) {
-    .stats-grid-6 {
-        grid-template-columns: 1fr;
-    }
-    .header-btns-subrow > button {
-        flex: 1 1 100%;
-    }
+/* ==========================================================================
+   DARK THEME OVERRIDES FOR ACTIVE DRYING VIEW
+   ========================================================================== */
+:global(.dark-theme) .active-header-card,
+:global(.dark-theme) .progress-drying-card,
+:global(.dark-theme) .progress-stat-card,
+:global(.dark-theme) .drying-kpi-card,
+:global(.dark-theme) .active-chart-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+:global(.dark-theme) .batch-title,
+:global(.dark-theme) .kpi-num,
+:global(.dark-theme) .chart-heading,
+:global(.dark-theme) .prog-big-number,
+:global(.dark-theme) .target-big-num {
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .batch-code-badge {
+  background: #113847;
+  color: #CBD5E1;
+}
+
+:global(.dark-theme) .back-link-btn {
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .back-link-btn:hover {
+  color: #4ADE80;
+}
+
+:global(.dark-theme) .kpi-title,
+:global(.dark-theme) .kpi-unit,
+:global(.dark-theme) .chart-desc,
+:global(.dark-theme) .chart-time-labels,
+:global(.dark-theme) .stat-mini-label,
+:global(.dark-theme) .progress-target-hint {
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .chart-legend-box {
+  color: #CBD5E1;
+}
+
+:global(.dark-theme) .btn-secondary-action {
+  background: #113847;
+  color: #F8FAFC;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .btn-secondary-action:hover {
+  background: #164657;
+  border-color: #2D6B82;
+}
+
+:global(.dark-theme) .icon-amber { background: rgba(217, 119, 6, 0.18); color: #FBBF24; }
+:global(.dark-theme) .icon-blue { background: rgba(2, 132, 199, 0.18); color: #38BDF8; }
+:global(.dark-theme) .icon-purple { background: rgba(126, 34, 206, 0.18); color: #C084FC; }
+:global(.dark-theme) .icon-green { background: rgba(27, 94, 32, 0.25); color: #4ADE80; }
+
+:global(.dark-theme) .chip-green { background: rgba(27, 94, 32, 0.25); color: #4ADE80; }
+:global(.dark-theme) .chip-amber { background: rgba(217, 119, 6, 0.25); color: #FBBF24; }
+:global(.dark-theme) .chip-red { background: rgba(220, 38, 38, 0.25); color: #F87171; }
+:global(.dark-theme) .chip-blue { background: rgba(2, 132, 199, 0.25); color: #38BDF8; }
+:global(.dark-theme) .chip-purple { background: rgba(126, 34, 206, 0.25); color: #C084FC; }
+:global(.dark-theme) .chip-neutral { background: #113847; color: #CBD5E1; }
+
+:global(.dark-theme) .active-svg line[stroke="#E2E8F0"] {
+  stroke: #1E4E61;
+}
+
+:global(.dark-theme) .active-svg text[fill="#94A3B8"] {
+  fill: #64748B;
+}
+
+:global(.dark-theme) .active-svg rect[fill="#F3E8FF"] {
+  fill: rgba(126, 34, 206, 0.2);
+}
+
+:global(.dark-theme) .active-svg text[fill="#7E22CE"] {
+  fill: #C084FC;
 }
 </style>

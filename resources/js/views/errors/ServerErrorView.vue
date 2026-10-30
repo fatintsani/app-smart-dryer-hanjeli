@@ -7,7 +7,7 @@
         <div class="nav-brand" @click="router.push('/')">
           <div class="brand-icon-box">
             <img v-if="logoSrc" :src="logoSrc" alt="Hanjeli Logo" class="brand-logo-img" />
-            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
             </svg>
           </div>
@@ -59,7 +59,7 @@
                   <FlagIcon code="id" :size="18" />
                   <span>Bahasa Indonesia</span>
                 </div>
-                <svg v-if="currentLang === 'id'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="3">
+                <svg v-if="currentLang === 'id'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="3">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               </button>
@@ -73,7 +73,7 @@
                   <FlagIcon code="en" :size="18" />
                   <span>English</span>
                 </div>
-                <svg v-if="currentLang === 'en'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="3">
+                <svg v-if="currentLang === 'en'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="3">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
               </button>
@@ -213,7 +213,7 @@
             <div class="footer-brand-header">
               <div class="footer-brand-logo-box">
                 <img v-if="logoSrc" :src="logoSrc" alt="Hanjeli Logo" class="footer-hanjeli-logo" />
-                <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                 </svg>
               </div>
@@ -353,7 +353,7 @@
                 ></iframe>
               </div>
               <div class="footer-map-address" title="Waluran, Kec. Waluran, Kabupaten Sukabumi, Jawa Barat (Kawasan Geopark Ciletuh)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                   <circle cx="12" cy="10" r="3"></circle>
                 </svg>
@@ -532,7 +532,7 @@ onUnmounted(() => {
 .brand-sub {
   font-size: 11.5px;
   font-weight: 600;
-  color: #0D631B;
+  color: #1B5E20;
   letter-spacing: 0.2px;
 }
 
@@ -555,7 +555,7 @@ onUnmounted(() => {
 
 .nav-links a:hover,
 .nav-links a.active {
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .nav-links a.active::after {
@@ -565,7 +565,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 2.5px;
-  background: #0D631B;
+  background: #1B5E20;
   border-radius: 2px;
 }
 
@@ -593,8 +593,8 @@ onUnmounted(() => {
 
 .header-action-btn:hover {
   background: #F0FDF4;
-  border-color: #0D631B;
-  color: #0D631B;
+  border-color: #1B5E20;
+  color: #1B5E20;
 }
 
 .lang-selector-wrapper {
@@ -635,12 +635,12 @@ onUnmounted(() => {
 
 .lang-option:hover {
   background: #F1F5F9;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .lang-option.active {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .lang-option-lead {
@@ -654,7 +654,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 7px;
   padding: 8.5px 18px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border-radius: 9px;
   font-size: 13.5px;
@@ -725,13 +725,13 @@ onUnmounted(() => {
 
 .mobile-drawer-links a:hover {
   background: #F1F5F9;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .btn-drawer-login {
   width: 100%;
   padding: 12px 18px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border-radius: 10px;
   font-size: 14.5px;
@@ -819,7 +819,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 8px;
   padding: 12px 24px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   font-size: 14px;
   font-weight: 700;
@@ -933,7 +933,7 @@ onUnmounted(() => {
 .footer-brand-badge {
   font-size: 11.5px;
   font-weight: 700;
-  color: #0D631B;
+  color: #1B5E20;
   letter-spacing: 0.3px;
 }
 
@@ -967,8 +967,8 @@ onUnmounted(() => {
 }
 
 .footer-social-btn:hover {
-  background: #0D631B;
-  border-color: #0D631B;
+  background: #1B5E20;
+  border-color: #1B5E20;
   color: #FFFFFF;
   transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(13, 99, 27, 0.25);
@@ -992,7 +992,7 @@ onUnmounted(() => {
 .footer-green-bar {
   width: 24px;
   height: 2.5px;
-  background: #0D631B;
+  background: #1B5E20;
   border-radius: 2px;
 }
 
@@ -1012,7 +1012,7 @@ onUnmounted(() => {
 }
 
 .footer-nav-list a:hover {
-  color: #0D631B;
+  color: #1B5E20;
   transform: translateX(3px);
 }
 
@@ -1033,7 +1033,7 @@ onUnmounted(() => {
   height: 22px;
   background: transparent;
   border: none;
-  color: #0D631B;
+  color: #1B5E20;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1067,7 +1067,7 @@ onUnmounted(() => {
 }
 
 a.contact-value:hover {
-  color: #0D631B;
+  color: #1B5E20;
   text-decoration: underline;
 }
 
@@ -1126,7 +1126,7 @@ a.contact-value:hover {
 .footer-tagline {
   font-size: 11px;
   font-weight: 600;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 /* Responsive Media Queries */

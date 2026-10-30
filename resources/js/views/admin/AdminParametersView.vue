@@ -398,12 +398,13 @@ onMounted(async () => {
 }
 
 .admin-content {
-  padding: 32px 40px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .header-action-row {
@@ -443,7 +444,7 @@ onMounted(async () => {
 
 .admin-feedback-toast.success {
   background: #E8F5E9;
-  color: #0D631B;
+  color: #1B5E20;
   border: 1px solid #C8E6C9;
 }
 
@@ -545,7 +546,7 @@ select.modern-input {
 }
 
 .modern-input:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   outline: 2px solid rgba(13, 99, 27, 0.2) !important;
   outline-offset: 1px;
 }
@@ -581,7 +582,7 @@ select.modern-input {
 
 .btn-primary {
   padding: 10px 24px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -665,7 +666,7 @@ select.modern-input {
 
 .badge-whatsapp {
   background: rgba(13, 99, 27, 0.12);
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 :global(.dark-theme) .badge-telegram {
@@ -722,7 +723,7 @@ select.modern-input {
 }
 
 .switch-small input:checked + .slider-small {
-  background-color: #0D631B;
+  background-color: #1B5E20;
 }
 
 .switch-small input:checked + .slider-small:before {

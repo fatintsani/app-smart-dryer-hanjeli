@@ -5,8 +5,20 @@ export const telemetryService = {
     return api.get('/telemetry/current');
   },
 
-  async getHistory(hours = 24, batchId = null) {
-    let url = `/telemetry/history?hours=${hours}`;
+  async getHistory(periodOrHours = '1d', batchId = null) {
+    let period = '1d';
+    let hours = 24;
+    if (typeof periodOrHours === 'number') {
+      hours = periodOrHours;
+      period = hours <= 24 ? '1d' : (hours <= 168 ? '1w' : (hours <= 720 ? '1m' : 'all'));
+    } else if (typeof periodOrHours === 'string') {
+      period = periodOrHours;
+      if (period === '1d') hours = 24;
+      else if (period === '1w') hours = 168;
+      else if (period === '1m') hours = 720;
+      else if (period === 'all') hours = 87600;
+    }
+    let url = `/telemetry/history?period=${period}&hours=${hours}`;
     if (batchId) {
       url += `&batchId=${batchId}`;
     }

@@ -25,7 +25,7 @@
                             height="22"
                             viewBox="0 0 24 24"
                             fill="none"
-                            stroke="#0D631B"
+                            stroke="#1B5E20"
                             stroke-width="2.2"
                         >
                             <path
@@ -113,7 +113,7 @@
                                     height="14"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="#0D631B"
+                                    stroke="#1B5E20"
                                     stroke-width="3"
                                 >
                                     <polyline
@@ -137,7 +137,7 @@
                                     height="14"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="#0D631B"
+                                    stroke="#1B5E20"
                                     stroke-width="3"
                                 >
                                     <polyline
@@ -559,7 +559,7 @@
                                 height="16"
                                 viewBox="0 0 24 24"
                                 fill="none"
-                                stroke="#0D631B"
+                                stroke="#1B5E20"
                                 stroke-width="2.2"
                             >
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -934,7 +934,7 @@
                                     height="16"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="#0D631B"
+                                    stroke="#1B5E20"
                                     stroke-width="2.5"
                                 >
                                     <path
@@ -953,7 +953,7 @@
                                     height="16"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="#0D631B"
+                                    stroke="#1B5E20"
                                     stroke-width="2.5"
                                 >
                                     <path
@@ -1034,7 +1034,7 @@
                                 height="14"
                                 viewBox="0 0 24 24"
                                 fill="none"
-                                stroke="#0D631B"
+                                stroke="#1B5E20"
                                 stroke-width="2.5"
                             >
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -1156,7 +1156,7 @@
                                 height="14"
                                 viewBox="0 0 24 24"
                                 fill="none"
-                                stroke="#0D631B"
+                                stroke="#1B5E20"
                                 stroke-width="2.5"
                             >
                                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -1374,7 +1374,7 @@
                                 height="16"
                                 viewBox="0 0 24 24"
                                 fill="none"
-                                stroke="#0D631B"
+                                stroke="#1B5E20"
                                 stroke-width="2.5"
                             >
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -1406,7 +1406,7 @@
                                     height="22"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="#0D631B"
+                                    stroke="#1B5E20"
                                     stroke-width="2.2"
                                 >
                                     <path
@@ -1799,7 +1799,7 @@
                                     height="14"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="#0D631B"
+                                    stroke="#1B5E20"
                                     stroke-width="2"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -2300,12 +2300,12 @@ onUnmounted(() => {
 }
 
 .nav-links a:hover {
-    color: #0d631b;
+    color: #1B5E20;
     background: rgba(13, 99, 27, 0.06);
 }
 
 .nav-links a.active {
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
 }
 
@@ -2353,7 +2353,7 @@ onUnmounted(() => {
 .mobile-menu-toggle-btn:hover,
 .mobile-menu-toggle-btn.is-active {
     background: rgba(13, 99, 27, 0.1);
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .theme-icon {
@@ -2400,12 +2400,12 @@ onUnmounted(() => {
 
 .lang-option:hover {
     background: #f4f7f5;
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .lang-option.active {
     background: #e8f5e9;
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .lang-option-lead {
@@ -2420,7 +2420,7 @@ onUnmounted(() => {
     align-items: center;
     gap: 8px;
     padding: 8px 18px;
-    background: linear-gradient(180deg, #15803d 0%, #0d631b 55%, #094713 100%);
+    background: linear-gradient(180deg, #15803d 0%, #1B5E20 55%, #094713 100%);
     color: #ffffff !important;
     font-size: 13.5px;
     font-weight: 700;
@@ -2438,7 +2438,7 @@ onUnmounted(() => {
 }
 
 .btn-nav-login:hover {
-    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #1B5E20 100%);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.6),
         inset 0 -1px 0 rgba(0, 0, 0, 0.2),
@@ -2447,7 +2447,7 @@ onUnmounted(() => {
 }
 
 .btn-nav-login:active {
-    background: linear-gradient(180deg, #0d631b 0%, #094713 100%);
+    background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
     transform: scale(0.98);
 }
@@ -2479,7 +2479,7 @@ onUnmounted(() => {
 
 .mobile-menu-btn:hover {
     background: rgba(13, 99, 27, 0.08);
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .mobile-menu-btn:active {
@@ -2597,7 +2597,7 @@ onUnmounted(() => {
     height: 32px;
     border-radius: 8px;
     background: rgba(13, 99, 27, 0.08);
-    color: #0d631b;
+    color: #1B5E20;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2618,7 +2618,7 @@ onUnmounted(() => {
 .mobile-drawer-links a:hover,
 .mobile-drawer-links a.active {
     background: rgba(13, 99, 27, 0.08);
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .dark-landing .mobile-drawer-links a:hover,
@@ -2629,11 +2629,11 @@ onUnmounted(() => {
 
 .mobile-drawer-links a.active .link-icon-chip {
     background: rgba(13, 99, 27, 0.16) !important;
-    color: #0d631b !important;
+    color: #1B5E20 !important;
 }
 
 .mobile-drawer-links a.active .link-icon-chip svg {
-    stroke: #0d631b !important;
+    stroke: #1B5E20 !important;
     fill: none !important;
 }
 
@@ -2660,7 +2660,7 @@ onUnmounted(() => {
     position: relative;
     width: 100%;
     padding: 12px 20px;
-    background: linear-gradient(180deg, #15803d 0%, #0d631b 55%, #094713 100%);
+    background: linear-gradient(180deg, #15803d 0%, #1B5E20 55%, #094713 100%);
     color: #ffffff !important;
     border: 1px solid rgba(13, 99, 27, 0.4);
     border-radius: 12px;
@@ -2681,7 +2681,7 @@ onUnmounted(() => {
 }
 
 .btn-mobile-login:hover {
-    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #1B5E20 100%);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.6),
         inset 0 -1px 0 rgba(0, 0, 0, 0.2),
@@ -2690,7 +2690,7 @@ onUnmounted(() => {
 }
 
 .btn-mobile-login:active {
-    background: linear-gradient(180deg, #0d631b 0%, #094713 100%);
+    background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
     transform: scale(0.98);
 }
@@ -2795,7 +2795,7 @@ onUnmounted(() => {
 .pill-version {
     font-size: 11.5px;
     font-weight: 800;
-    color: #0d631b;
+    color: #1B5E20;
     letter-spacing: 0.3px;
 }
 
@@ -2845,7 +2845,7 @@ onUnmounted(() => {
 .hero-top-badge span {
     font-size: 12.5px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     letter-spacing: 0.2px;
 }
 
@@ -2863,13 +2863,13 @@ onUnmounted(() => {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #0d631b;
+    background: #1B5E20;
 }
 
 .tag-text {
     font-size: 12px;
     font-weight: 600;
-    color: #0d631b;
+    color: #1B5E20;
     letter-spacing: 0.2px;
 }
 
@@ -2904,7 +2904,7 @@ onUnmounted(() => {
     align-items: center;
     gap: 10px;
     padding: 12px 26px;
-    background: linear-gradient(180deg, #15803d 0%, #0d631b 55%, #094713 100%);
+    background: linear-gradient(180deg, #15803d 0%, #1B5E20 55%, #094713 100%);
     color: #ffffff !important;
     font-size: 14.5px;
     font-weight: 700;
@@ -2921,7 +2921,7 @@ onUnmounted(() => {
 }
 
 .btn-hero-primary:hover {
-    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #1B5E20 100%);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.6),
         inset 0 -1px 0 rgba(0, 0, 0, 0.2),
@@ -2930,7 +2930,7 @@ onUnmounted(() => {
 }
 
 .btn-hero-primary:active {
-    background: linear-gradient(180deg, #0d631b 0%, #094713 100%);
+    background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
     transform: scale(0.98);
 }
@@ -2957,8 +2957,8 @@ onUnmounted(() => {
 }
 
 .btn-hero-secondary:hover {
-    border-color: #0d631b;
-    color: #0d631b !important;
+    border-color: #1B5E20;
+    color: #1B5E20 !important;
     background: linear-gradient(180deg, #ffffff 0%, #e8f5e9 100%);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 1),
@@ -2995,7 +2995,7 @@ onUnmounted(() => {
 .mini-card:hover {
     transform: translateY(-3px) scale(1.02);
     box-shadow: 0 8px 18px -4px rgba(13, 99, 27, 0.12);
-    border-color: #0d631b;
+    border-color: #1B5E20;
 }
 
 .mini-card-icon {
@@ -3068,7 +3068,7 @@ onUnmounted(() => {
 .section-tagline {
     font-size: 13px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     letter-spacing: 0.8px;
     text-transform: uppercase;
 }
@@ -3118,7 +3118,7 @@ onUnmounted(() => {
     box-shadow:
         0 20px 36px -8px rgba(13, 99, 27, 0.16),
         0 6px 16px -4px rgba(0, 0, 0, 0.05);
-    border-color: #0d631b;
+    border-color: #1B5E20;
 }
 
 .hw-card-top {
@@ -3174,7 +3174,7 @@ onUnmounted(() => {
 }
 
 .hw-badge-green {
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .hw-badge-blue {
@@ -3190,8 +3190,8 @@ onUnmounted(() => {
 }
 
 .hw-card-featured {
-    background: #0d631b;
-    border-color: #0d631b;
+    background: #1B5E20;
+    border-color: #1B5E20;
 }
 
 .hw-card-featured:hover {
@@ -3264,7 +3264,7 @@ onUnmounted(() => {
 .assembly-banner-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 22px 45px -10px rgba(0, 0, 0, 0.14);
-    border-color: #0d631b;
+    border-color: #1B5E20;
 }
 
 .assembly-visual {
@@ -3323,7 +3323,7 @@ onUnmounted(() => {
 .assembly-tagline {
     font-size: 12px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
 }
@@ -3355,7 +3355,7 @@ onUnmounted(() => {
     gap: 6px;
     font-size: 13.5px;
     font-weight: 600;
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 /* 4. Web App Features */
@@ -3442,7 +3442,7 @@ onUnmounted(() => {
 }
 
 .text-green {
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .text-blue {
@@ -3479,7 +3479,7 @@ onUnmounted(() => {
 .step-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 18px 34px -8px rgba(13, 99, 27, 0.15);
-    border-color: #0d631b;
+    border-color: #1B5E20;
 }
 
 .step-icon-wrap {
@@ -3592,8 +3592,8 @@ onUnmounted(() => {
 }
 
 .cta-banner-card {
-    background: #0d631b;
-    border: 1px solid #0d631b;
+    background: #1B5E20;
+    border: 1px solid #1B5E20;
     border-radius: 16px;
     padding: 38px 48px;
     display: flex;
@@ -3675,7 +3675,7 @@ onUnmounted(() => {
     gap: 10px;
     padding: 13px 28px;
     background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
-    color: #0d631b !important;
+    color: #1B5E20 !important;
     font-size: 14.5px;
     font-weight: 800;
     border: 1px solid rgba(255, 255, 255, 0.9);
@@ -3769,7 +3769,7 @@ onUnmounted(() => {
 .footer-brand-badge {
     font-size: 11.5px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     letter-spacing: 0.3px;
 }
 
@@ -3809,7 +3809,7 @@ onUnmounted(() => {
 }
 
 .footer-social-btn:hover {
-    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #0d631b 100%);
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #1B5E20 100%);
     border-color: rgba(13, 99, 27, 0.4);
     color: #ffffff !important;
     transform: translateY(-2px);
@@ -3841,7 +3841,7 @@ onUnmounted(() => {
 .footer-green-bar {
     width: 24px;
     height: 2.5px;
-    background: #0d631b;
+    background: #1B5E20;
     border-radius: 2px;
 }
 
@@ -3862,7 +3862,7 @@ onUnmounted(() => {
 }
 
 .footer-nav-list a:hover {
-    color: #0d631b;
+    color: #1B5E20;
     transform: translateX(3px);
 }
 
@@ -3884,7 +3884,7 @@ onUnmounted(() => {
     height: 22px;
     background: transparent;
     border: none;
-    color: #0d631b;
+    color: #1B5E20;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3918,7 +3918,7 @@ onUnmounted(() => {
 }
 
 a.contact-value:hover {
-    color: #0d631b;
+    color: #1B5E20;
     text-decoration: underline;
 }
 
@@ -3972,7 +3972,7 @@ a.contact-value:hover {
 .footer-v-tag {
     font-size: 10px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     background: #e8f5e9;
     border: 1px solid #c8e6c9;
     padding: 2px 7px;
@@ -4070,7 +4070,7 @@ a.contact-value:hover {
 }
 
 .dark-landing .nav-links a.active {
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
 }
 
@@ -4218,7 +4218,7 @@ a.contact-value:hover {
 }
 
 .dark-landing .footer-social-btn:hover {
-    background: #0d631b !important;
+    background: #1B5E20 !important;
     border-color: #4ade80 !important;
     color: #ffffff !important;
 }

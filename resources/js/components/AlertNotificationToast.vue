@@ -42,8 +42,8 @@
           <span class="toast-badge">{{ typeBadgeText }}</span>
           <span class="toast-time">{{ alertData.time || 'Baru saja' }}</span>
         </div>
-        <h4 class="toast-title">{{ alertData.title }}</h4>
-        <p class="toast-desc">{{ alertData.message }}</p>
+        <h4 class="toast-title">{{ displayTitle }}</h4>
+        <p class="toast-desc">{{ displayMessage }}</p>
 
         <!-- Quick Action Button if available -->
         <div v-if="alertData.actionLabel" class="toast-action-row">
@@ -103,6 +103,51 @@ const emit = defineEmits(['update:modelValue', 'action', 'close'])
 
 let timer = null
 
+function simplifyAlert(title = '', message = '') {
+  let cleanTitle = title || 'Pemberitahuan Sistem'
+  let cleanMsg = message || ''
+
+  cleanTitle = cleanTitle
+    .replace(/^Anomali Termal:\s*/i, '')
+    .replace(/^Anomali Sensor:\s*/i, '')
+    .replace(/^Anomali Kadar Air:\s*/i, '')
+    .replace(/^Anomali Suhu:\s*/i, '')
+    .replace(/^Peringatan:\s*/i, '')
+    .trim()
+
+  if (cleanTitle.toLowerCase().includes('pintu greenhouse terbuka') || cleanTitle.toLowerCase().includes('drop suhu')) {
+    cleanTitle = 'Pintu Terbuka / Suhu Drop'
+  } else if (cleanTitle.toLowerCase().includes('penurunan suhu mendadak')) {
+    cleanTitle = 'Suhu Ruangan Turun'
+  } else if (cleanTitle.toLowerCase().includes('lonjakan kelembaban') || cleanTitle.toLowerCase().includes('lonjakan kadar air')) {
+    cleanTitle = 'Kadar Air Biji Naik'
+  } else if (cleanTitle.toLowerCase().includes('pembacaan macet') || cleanTitle.toLowerCase().includes('flatline')) {
+    cleanTitle = 'Koneksi Sensor Macet'
+  }
+
+  if (cleanMsg.includes('Auxiliary Heater') || cleanMsg.includes('LEBIH RENDAH')) {
+    const tempMatch = cleanMsg.match(/Suhu ruang pengering \(([^)]+)\)/i)
+    const temp = tempMatch ? tempMatch[1] : 'ruangan'
+    cleanMsg = `Suhu ${temp} lebih dingin dari luar saat pemanas aktif. Mohon periksa apakah pintu greenhouse tertutup rapat.`
+  } else if (cleanMsg.toLowerCase().includes('flatline') || cleanMsg.toLowerCase().includes('tidak berubah sama sekali')) {
+    cleanMsg = 'Data sensor tidak bergerak. Periksa sambungan kabel sensor atau catu daya alat.'
+  } else if (cleanMsg.toLowerCase().includes('melonjak naik') || cleanMsg.toLowerCase().includes('kebocoran atap')) {
+    cleanMsg = 'Kadar air biji naik mendadak. Periksa apakah ada tetesan air atau atap bocor di atas rak.'
+  } else if (cleanMsg.includes('Rekomendasi Aksi:')) {
+    const parts = cleanMsg.split(/Rekomendasi Aksi:\s*/i)
+    cleanMsg = parts[1] ? parts[1].trim() : parts[0].trim()
+  }
+
+  return { title: cleanTitle, message: cleanMsg }
+}
+
+const simplifiedData = computed(() => {
+  return simplifyAlert(props.alertData.title, props.alertData.message)
+})
+
+const displayTitle = computed(() => simplifiedData.value.title)
+const displayMessage = computed(() => simplifiedData.value.message)
+
 const typeBadgeText = computed(() => {
   const isId = props.currentLang === 'id'
   switch (props.alertData.type) {
@@ -142,71 +187,55 @@ watch(() => props.modelValue, (newVal) => {
   position: fixed;
   top: 24px;
   right: 24px;
-  max-width: 400px;
+  max-width: 420px;
   width: calc(100vw - 48px);
   background: #FFFFFF;
   border-radius: 14px;
-  padding: 16px 18px;
+  padding: 14px 16px;
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-    border: 1px solid #E2E8F0;
+  gap: 12px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   z-index: 9999;
   overflow: hidden;
-  backdrop-filter: blur(10px);
 }
 
-/* Severity Theme Variants */
-.alert-toast-container.type-critical {
-  border-left: 5px solid #BA1A1A;
-  background: linear-gradient(135deg, #FFFFFF 85%, #FFF5F5 100%);
-}
+/* Severity Theme Variants (Soft, modern, no harsh thick border) */
 .alert-toast-container.type-critical .toast-icon-circle {
-  background: rgba(186, 26, 26, 0.12);
-  color: #BA1A1A;
+  background: #FEE2E2;
+  color: #DC2626;
 }
 .alert-toast-container.type-critical .toast-badge {
-  background: rgba(186, 26, 26, 0.12);
-  color: #BA1A1A;
+  background: #FEE2E2;
+  color: #DC2626;
 }
 
-.alert-toast-container.type-warning {
-  border-left: 5px solid #D97706;
-  background: linear-gradient(135deg, #FFFFFF 85%, #FFFBEB 100%);
-}
 .alert-toast-container.type-warning .toast-icon-circle {
-  background: rgba(217, 119, 6, 0.12);
+  background: #FEF3C7;
   color: #D97706;
 }
 .alert-toast-container.type-warning .toast-badge {
-  background: rgba(217, 119, 6, 0.12);
+  background: #FEF3C7;
   color: #D97706;
 }
 
-.alert-toast-container.type-success {
-  border-left: 5px solid #0D631B;
-  background: linear-gradient(135deg, #FFFFFF 85%, #F0FDF4 100%);
-}
 .alert-toast-container.type-success .toast-icon-circle {
-  background: rgba(13, 99, 27, 0.12);
-  color: #0D631B;
+  background: #DCFCE7;
+  color: #166534;
 }
 .alert-toast-container.type-success .toast-badge {
-  background: rgba(13, 99, 27, 0.12);
-  color: #0D631B;
+  background: #DCFCE7;
+  color: #166534;
 }
 
-.alert-toast-container.type-info {
-  border-left: 5px solid #005DB7;
-  background: linear-gradient(135deg, #FFFFFF 85%, #F0F9FF 100%);
-}
 .alert-toast-container.type-info .toast-icon-circle {
-  background: rgba(0, 93, 183, 0.12);
-  color: #005DB7;
+  background: #E0F2FE;
+  color: #0284C7;
 }
 .alert-toast-container.type-info .toast-badge {
-  background: rgba(0, 93, 183, 0.12);
-  color: #005DB7;
+  background: #E0F2FE;
+  color: #0284C7;
 }
 
 /* Icon */
@@ -225,7 +254,7 @@ watch(() => props.modelValue, (newVal) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .toast-header-row {
@@ -238,27 +267,30 @@ watch(() => props.modelValue, (newVal) => {
 .toast-badge {
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   padding: 2px 7px;
   border-radius: 4px;
 }
 
 .toast-time {
   font-size: 11px;
-  color: #64748B;
+  color: #94A3B8;
+  font-weight: 500;
 }
 
 .toast-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #0F172A;
-  margin-top: 2px;
+  line-height: 1.35;
+  margin: 1px 0 0;
 }
 
 .toast-desc {
-  font-size: 12.5px;
+  font-size: 12px;
   color: #475569;
-  line-height: 1.4;
+  line-height: 1.45;
+  margin: 2px 0 0;
 }
 
 .toast-action-row {
@@ -268,38 +300,40 @@ watch(() => props.modelValue, (newVal) => {
 .toast-action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 12px;
-  background: #0F172A;
-  color: #FFFFFF;
+  gap: 5px;
+  padding: 4px 12px;
+  background: #E8F5E9;
+  color: #1B5E20;
+  border: none;
   border-radius: 6px;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 
 .toast-action-btn:hover {
-  background: #1E293B;
-  transform: translateX(2px);
+  background: #1B5E20;
+  color: #FFFFFF;
 }
 
 /* Close Button */
 .toast-close-btn {
   background: transparent;
   color: #94A3B8;
+  border: none;
   padding: 4px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 
 .toast-close-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #334155;
+  background: #F1F5F9;
+  color: #64748B;
 }
 
 /* Progress bar */
@@ -395,7 +429,7 @@ watch(() => props.modelValue, (newVal) => {
   color: #94A3B8 !important;
 }
 :global(.dark-theme) .toast-action-btn {
-  background: #0D631B !important;
+  background: #1B5E20 !important;
   color: #FFFFFF !important;
 }
 :global(.dark-theme) .toast-close-btn {

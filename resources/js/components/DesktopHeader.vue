@@ -144,7 +144,7 @@
                             height="14"
                             viewBox="0 0 24 24"
                             fill="none"
-                            stroke="#0D631B"
+                            stroke="#1B5E20"
                             stroke-width="3"
                         >
                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -166,7 +166,7 @@
                             height="14"
                             viewBox="0 0 24 24"
                             fill="none"
-                            stroke="#0D631B"
+                            stroke="#1B5E20"
                             stroke-width="3"
                         >
                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -929,6 +929,46 @@ const toggleConnectionMode = () => {
 const notifications = ref([]);
 let alertSyncTimer = null;
 
+function simplifyAlert(title = '', message = '') {
+    let cleanTitle = title || 'Pemberitahuan Sistem';
+    let cleanMsg = message || '';
+
+    // Bersihkan prefix teknis pada judul
+    cleanTitle = cleanTitle
+        .replace(/^Anomali Termal:\s*/i, '')
+        .replace(/^Anomali Sensor:\s*/i, '')
+        .replace(/^Anomali Kadar Air:\s*/i, '')
+        .replace(/^Anomali Suhu:\s*/i, '')
+        .replace(/^Peringatan:\s*/i, '')
+        .trim();
+
+    if (cleanTitle.toLowerCase().includes('pintu greenhouse terbuka') || cleanTitle.toLowerCase().includes('drop suhu')) {
+        cleanTitle = 'Pintu Terbuka / Suhu Drop';
+    } else if (cleanTitle.toLowerCase().includes('penurunan suhu mendadak')) {
+        cleanTitle = 'Suhu Ruangan Turun';
+    } else if (cleanTitle.toLowerCase().includes('lonjakan kelembaban') || cleanTitle.toLowerCase().includes('lonjakan kadar air')) {
+        cleanTitle = 'Kadar Air Biji Naik';
+    } else if (cleanTitle.toLowerCase().includes('pembacaan macet') || cleanTitle.toLowerCase().includes('flatline')) {
+        cleanTitle = 'Koneksi Sensor Macet';
+    }
+
+    // Sederhanakan pesan menjadi bahasa petani yang jelas dan ringkas
+    if (cleanMsg.includes('Auxiliary Heater') || cleanMsg.includes('LEBIH RENDAH')) {
+        const tempMatch = cleanMsg.match(/Suhu ruang pengering \(([^)]+)\)/i);
+        const temp = tempMatch ? tempMatch[1] : 'ruangan';
+        cleanMsg = `Suhu ${temp} lebih dingin dari luar saat pemanas aktif. Mohon periksa apakah pintu greenhouse tertutup rapat.`;
+    } else if (cleanMsg.toLowerCase().includes('flatline') || cleanMsg.toLowerCase().includes('tidak berubah sama sekali')) {
+        cleanMsg = 'Data sensor tidak bergerak. Periksa sambungan kabel sensor atau catu daya alat.';
+    } else if (cleanMsg.toLowerCase().includes('melonjak naik') || cleanMsg.toLowerCase().includes('kebocoran atap')) {
+        cleanMsg = 'Kadar air biji naik mendadak. Periksa apakah ada tetesan air atau atap bocor di atas rak.';
+    } else if (cleanMsg.includes('Rekomendasi Aksi:')) {
+        const parts = cleanMsg.split(/Rekomendasi Aksi:\s*/i);
+        cleanMsg = parts[1] ? parts[1].trim() : parts[0].trim();
+    }
+
+    return { title: cleanTitle, message: cleanMsg };
+}
+
 function transformAlert(a) {
     const type =
         a.type === "DANGER" || a.level === "CRITICAL"
@@ -948,13 +988,15 @@ function transformAlert(a) {
             : "Baru saja");
     const timeEnStr = a.timeEn || timeStr;
 
+    const simplified = simplifyAlert(a.title, a.message);
+
     return {
         id: a.id,
         type,
-        title: a.title,
-        titleEn: a.titleEn || a.title,
-        message: a.message,
-        messageEn: a.messageEn || a.message,
+        title: simplified.title,
+        titleEn: a.titleEn || simplified.title,
+        message: simplified.message,
+        messageEn: a.messageEn || simplified.message,
         time: timeStr,
         timeEn: timeEnStr,
         unread: !a.isRead && !a.is_read,
@@ -980,11 +1022,26 @@ function transformAlert(a) {
     };
 }
 
+function deduplicateNotifications(items) {
+    if (!Array.isArray(items)) return [];
+    const seen = new Set();
+    const result = [];
+    for (const item of items) {
+        if (!item) continue;
+        const key = `${(item.title || '').trim().toLowerCase()}_${item.unread ? 'u' : 'r'}`;
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(item);
+        }
+    }
+    return result;
+}
+
 async function loadAlerts() {
     try {
         const res = await alertService.getAll();
         const list = Array.isArray(res) ? res : res?.alerts || [];
-        notifications.value = list.map(transformAlert);
+        notifications.value = deduplicateNotifications(list.map(transformAlert));
     } catch (err) {
         console.warn("Could not load alerts from DB:", err.message);
     }
@@ -997,7 +1054,11 @@ onMounted(() => {
     alertSyncTimer = setInterval(loadAlerts, 5000);
 
     socketService.on("alert_new", (newAlert) => {
-        notifications.value.unshift(transformAlert(newAlert));
+        if (!newAlert) return;
+        const transformed = transformAlert(newAlert);
+        const key = (transformed.title || '').trim().toLowerCase();
+        const filtered = notifications.value.filter(n => (n.title || '').trim().toLowerCase() !== key);
+        notifications.value = [transformed, ...filtered];
     });
 });
 
@@ -1177,7 +1238,7 @@ onUnmounted(() => {
 .pulse-indicator {
     width: 8px;
     height: 8px;
-    background: #0d631b;
+    background: #1B5E20;
     border-radius: 50%;
     animation: pulse 2s infinite;
 }
@@ -1193,7 +1254,7 @@ onUnmounted(() => {
 
 .status-title {
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
 }
 
 .status-sep {
@@ -1208,7 +1269,7 @@ onUnmounted(() => {
 .header-version-tag {
     font-size: 10px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     background: #e8f5e9;
     border: 1px solid #c8e6c9;
     padding: 1px 5px;
@@ -1464,7 +1525,7 @@ onUnmounted(() => {
 
 .lang-option.active {
     background: #e8f5e9;
-    color: #0d631b;
+    color: #1B5E20;
     font-weight: 700;
 }
 
@@ -1523,7 +1584,7 @@ onUnmounted(() => {
 .notif-count {
     font-size: 11px;
     background: #e8f5e9;
-    color: #0d631b;
+    color: #1B5E20;
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 10px;
@@ -1532,7 +1593,7 @@ onUnmounted(() => {
 .btn-text-action {
     font-size: 12px;
     font-weight: 600;
-    color: #0d631b;
+    color: #1B5E20;
     background: transparent;
     padding: 4px 8px;
     border-radius: 6px;
@@ -1568,8 +1629,8 @@ onUnmounted(() => {
 }
 
 .notif-filter-chip.active {
-    background: #0d631b;
-    border-color: #0d631b;
+    background: #1B5E20;
+    border-color: #1B5E20;
     color: #ffffff;
 }
 
@@ -1593,7 +1654,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 340px;
+    max-height: 360px;
     overflow-y: auto;
     padding-right: 2px;
 }
@@ -1601,60 +1662,51 @@ onUnmounted(() => {
 .notif-card {
     display: flex;
     gap: 12px;
-    padding: 12px;
+    padding: 12px 14px;
     border-radius: 12px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     transition: all 0.2s ease;
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .notif-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
     transform: translateY(-1px);
 }
 
 .notif-card.unread {
     background: #f8fafc;
-    border-color: #cbd5e1;
+    border-color: #e2e8f0;
 }
 
-/* Severity borders & colors */
-.notif-card.type-critical {
-    border-left: 4px solid #ba1a1a;
-}
+/* Modern soft badge icons without harsh left borders */
 .notif-card.type-critical .notif-icon-box {
-    background: rgba(186, 26, 26, 0.1);
-    color: #ba1a1a;
+    background: #fee2e2;
+    color: #dc2626;
 }
 
-.notif-card.type-warning {
-    border-left: 4px solid #d97706;
-}
 .notif-card.type-warning .notif-icon-box {
-    background: rgba(217, 119, 6, 0.1);
+    background: #fef3c7;
     color: #d97706;
 }
 
-.notif-card.type-success {
-    border-left: 4px solid #0d631b;
-}
 .notif-card.type-success .notif-icon-box {
-    background: rgba(13, 99, 27, 0.1);
-    color: #0d631b;
+    background: #dcfce7;
+    color: #166534;
 }
 
-.notif-card.type-info {
-    border-left: 4px solid #005db7;
-}
 .notif-card.type-info .notif-icon-box {
-    background: rgba(0, 93, 183, 0.1);
-    color: #005db7;
+    background: #e0f2fe;
+    color: #0284c7;
 }
 
 .notif-icon-box {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1665,33 +1717,36 @@ onUnmounted(() => {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
 }
 
 .notif-headline-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 6px;
+    align-items: baseline;
+    gap: 8px;
 }
 
 .notif-item-title {
     font-size: 13px;
     font-weight: 700;
     color: #0f172a;
-    line-height: 16px;
+    line-height: 1.35;
+    margin: 0;
 }
 
 .notif-time-tag {
-    font-size: 10px;
+    font-size: 11px;
     color: #94a3b8;
     white-space: nowrap;
+    font-weight: 500;
 }
 
 .notif-item-desc {
-    font-size: 11.5px;
+    font-size: 12px;
     color: #475569;
-    line-height: 15px;
+    line-height: 1.45;
+    margin: 0;
 }
 
 .notif-item-footer {
@@ -1704,36 +1759,39 @@ onUnmounted(() => {
 .notif-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-size: 11px;
+    gap: 5px;
+    font-size: 11.5px;
     font-weight: 700;
-    color: #0d631b;
-    background: rgba(13, 99, 27, 0.08);
-    padding: 3px 8px;
+    color: #1B5E20;
+    background: #e8f5e9;
+    padding: 4px 10px;
     border-radius: 6px;
+    border: none;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.15s ease;
 }
 
 .notif-action-btn:hover {
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
 }
 
 .notif-dismiss-btn {
     background: transparent;
     color: #94a3b8;
-    padding: 3px;
-    border-radius: 4px;
+    padding: 4px;
+    border: none;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: all 0.15s ease;
 }
 
 .notif-dismiss-btn:hover {
     background: #f1f5f9;
-    color: #ba1a1a;
+    color: #64748b;
 }
 
 /* Empty State */
@@ -1850,7 +1908,7 @@ onUnmounted(() => {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2e7d32 0%, #0d631b 100%);
+    background: linear-gradient(135deg, #2e7d32 0%, #1B5E20 100%);
     color: #ffffff;
     font-size: 13px;
     font-weight: 700;
@@ -1928,7 +1986,7 @@ onUnmounted(() => {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2e7d32 0%, #0d631b 100%);
+    background: linear-gradient(135deg, #2e7d32 0%, #1B5E20 100%);
     color: #ffffff;
     font-size: 15px;
     font-weight: 700;
@@ -1964,7 +2022,7 @@ onUnmounted(() => {
 
 .ph-location {
     font-size: 11px;
-    color: #0d631b;
+    color: #1B5E20;
     font-weight: 600;
     margin-top: 2px;
 }
@@ -2004,7 +2062,7 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #0d631b;
+    color: #1B5E20;
     flex-shrink: 0;
 }
 
@@ -2062,7 +2120,7 @@ onUnmounted(() => {
 }
 
 .profile-menu-version-info strong {
-    color: #0d631b;
+    color: #1B5E20;
     font-weight: 700;
 }
 

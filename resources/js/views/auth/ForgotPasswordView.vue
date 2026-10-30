@@ -123,7 +123,7 @@
             <div v-else-if="currentStep === 2" key="step2" class="step-card">
               <div class="step-header">
                 <div class="step-icon-badge">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.2">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
                     <rect width="20" height="16" x="2" y="4" rx="2"></rect>
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
                   </svg>
@@ -254,7 +254,7 @@
             <!-- STEP 4: Success Message -->
             <div v-else-if="currentStep === 4" key="step4" class="step-card success-card">
               <div class="success-icon-box">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
@@ -371,7 +371,7 @@
 
         <div v-else-if="currentStep === 4" class="m-step-block success-block">
           <div class="success-icon-box">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0D631B" stroke-width="2.5">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
@@ -608,7 +608,7 @@ async function handleSaveNewPassword() {
 .forgot-banner {
   flex: 1;
   height: 100vh;
-  background: linear-gradient(135deg, #1B5E20 0%, #0D631B 50%, #073810 100%);
+  background: linear-gradient(135deg, #1B5E20 0%, #1B5E20 50%, #073810 100%);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -775,7 +775,7 @@ async function handleSaveNewPassword() {
 }
 
 .back-link-btn:hover {
-  color: #0D631B;
+  color: #1B5E20;
   background: #E8F5E9;
   transform: translateX(-2px);
 }
@@ -798,7 +798,7 @@ async function handleSaveNewPassword() {
 }
 
 .lang-pill-btn:hover {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   background: linear-gradient(180deg, #FFFFFF 0%, #E8F5E9 100%);
   transform: translateY(-1px);
 }
@@ -816,7 +816,7 @@ async function handleSaveNewPassword() {
 }
 
 .lang-pill-btn-sm:hover {
-  border-color: #0D631B;
+  border-color: #1B5E20;
 }
 
 .lang-dropdown-menu {
@@ -852,12 +852,12 @@ async function handleSaveNewPassword() {
 
 .lang-option:hover {
   background: rgba(13, 99, 27, 0.08);
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .lang-option.active {
   background: rgba(13, 99, 27, 0.12);
-  color: #0D631B;
+  color: #1B5E20;
   font-weight: 700;
 }
 
@@ -989,7 +989,7 @@ async function handleSaveNewPassword() {
 }
 
 .text-input:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   background: #FFFFFF;
   box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.12);
 }
@@ -1027,7 +1027,7 @@ async function handleSaveNewPassword() {
 }
 
 .otp-digit-box:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   background: #FFFFFF;
   box-shadow: 0 0 0 3px rgba(13, 99, 27, 0.15);
 }
@@ -1045,7 +1045,7 @@ async function handleSaveNewPassword() {
 .resend-btn {
   background: transparent;
   border: none;
-  color: #0D631B;
+  color: #1B5E20;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1077,7 +1077,7 @@ async function handleSaveNewPassword() {
 
 .strength-bar-fill.weak { background: #DC2626; }
 .strength-bar-fill.medium { background: #EA580C; }
-.strength-bar-fill.strong { background: #0D631B; }
+.strength-bar-fill.strong { background: #1B5E20; }
 
 .strength-label {
   font-size: 0.6875rem;
@@ -1086,7 +1086,7 @@ async function handleSaveNewPassword() {
 
 .strength-label.weak { color: #DC2626; }
 .strength-label.medium { color: #EA580C; }
-.strength-label.strong { color: #0D631B; }
+.strength-label.strong { color: #1B5E20; }
 
 .error-text {
   font-size: 0.75rem;
@@ -1103,7 +1103,7 @@ async function handleSaveNewPassword() {
   justify-content: center;
   gap: 8px;
   padding: 12px 18px;
-  background: linear-gradient(180deg, #15803D 0%, #0D631B 55%, #094713 100%);
+  background: linear-gradient(180deg, #15803D 0%, #1B5E20 55%, #094713 100%);
   color: #FFFFFF !important;
   border: 1px solid rgba(13, 99, 27, 0.4);
   border-radius: 10px;
@@ -1120,7 +1120,7 @@ async function handleSaveNewPassword() {
 }
 
 .submit-action-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #0D631B 100%);
+  background: linear-gradient(180deg, #16A34A 0%, #15803D 55%, #1B5E20 100%);
   border-color: rgba(13, 99, 27, 0.5);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
@@ -1130,7 +1130,7 @@ async function handleSaveNewPassword() {
 }
 
 .submit-action-btn:active:not(:disabled) {
-  background: linear-gradient(180deg, #0D631B 0%, #094713 100%);
+  background: linear-gradient(180deg, #1B5E20 0%, #094713 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
   transform: scale(0.98);
 }
@@ -1234,7 +1234,7 @@ async function handleSaveNewPassword() {
 .m-brand-title {
   font-size: 18px;
   font-weight: 800;
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 .m-step-block {
@@ -1271,5 +1271,48 @@ async function handleSaveNewPassword() {
   font-size: 10.5px;
   color: #94A3B8;
   margin-top: 4px;
+}
+
+/* ==========================================================================
+   DARK THEME OVERRIDES FOR FORGOT PASSWORD VIEW
+   ========================================================================== */
+:global(.dark-theme) .forgot-form-side,
+:global(.dark-theme) .mobile-forgot-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .desktop-forgot-container,
+:global(.dark-theme) .mobile-forgot-container {
+  background: #071E27;
+}
+
+:global(.dark-theme) .step-title,
+:global(.dark-theme) .m-step-title {
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .step-subtitle,
+:global(.dark-theme) .m-step-sub,
+:global(.dark-theme) .input-label,
+:global(.dark-theme) .back-link-btn,
+:global(.dark-theme) .mobile-back-btn {
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .back-link-btn:hover,
+:global(.dark-theme) .mobile-back-btn:hover {
+  color: #4ADE80;
+}
+
+:global(.dark-theme) .text-input {
+  background: #071E27;
+  border-color: #1E4E61;
+  color: #F8FAFC;
+}
+
+:global(.dark-theme) .text-input:focus {
+  background: #09202A;
+  border-color: #16A34A;
 }
 </style>

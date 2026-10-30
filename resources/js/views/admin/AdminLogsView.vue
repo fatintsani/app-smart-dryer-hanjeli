@@ -175,12 +175,13 @@ function exportLogsToCsv() {
 }
 
 .admin-content {
-  padding: 32px 40px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .header-action-row {
@@ -263,8 +264,8 @@ function exportLogsToCsv() {
 }
 
 .filter-chip.active {
-  background: #0D631B;
-  border-color: #0D631B;
+  background: #1B5E20;
+  border-color: #1B5E20;
   color: #FFFFFF;
 }
 
@@ -324,7 +325,7 @@ function exportLogsToCsv() {
 
 .btn-secondary-action:hover {
   background: var(--color-white);
-  border-color: #0D631B;
+  border-color: #1B5E20;
 }
 
 .badge-pill {

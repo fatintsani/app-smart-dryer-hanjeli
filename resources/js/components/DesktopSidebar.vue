@@ -468,7 +468,7 @@ defineEmits(["navigate", "start-drying", "toggle-collapse"]);
 }
 
 .brand-title {
-    color: #0d631b;
+    color: #1B5E20;
     font-size: 20px;
     font-weight: 700;
     line-height: 26px;
@@ -479,7 +479,7 @@ defineEmits(["navigate", "start-drying", "toggle-collapse"]);
     margin-top: 5px;
     font-size: 10px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     background: #e8f5e9;
     border: 1px solid #c8e6c9;
     padding: 1px 6px;
@@ -545,12 +545,12 @@ defineEmits(["navigate", "start-drying", "toggle-collapse"]);
 }
 
 .nav-item:hover {
-    background: #f3faff;
-    color: #0d631b;
+    background: #e8f5e9;
+    color: #1B5E20;
 }
 
 .nav-item.active {
-    background: #0d631b;
+    background: #1B5E20;
     color: #ffffff;
 }
 
@@ -575,7 +575,7 @@ defineEmits(["navigate", "start-drying", "toggle-collapse"]);
 .action-dry-btn {
     width: 100%;
     padding: 11px 14px;
-    background: #0d631b;
+    background: #1B5E20;
     border-radius: 8px;
     color: white;
     font-size: 13px;
@@ -651,7 +651,7 @@ defineEmits(["navigate", "start-drying", "toggle-collapse"]);
 .creator-version-tag {
     font-size: 9px;
     font-weight: 700;
-    color: #0d631b;
+    color: #1B5E20;
     background: #e8f5e9;
     padding: 0px 4px;
     border-radius: 3px;

@@ -458,7 +458,7 @@ function handleSubmit() {
 }
 
 .avatar-edit-card.is-dragging {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   background: rgba(13, 99, 27, 0.05);
 }
 
@@ -477,7 +477,7 @@ function handleSubmit() {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2E7D32 0%, #0D631B 100%);
+  background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
   color: #FFFFFF;
   display: flex;
   align-items: center;
@@ -515,7 +515,7 @@ function handleSubmit() {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   display: flex;
   align-items: center;
@@ -564,7 +564,7 @@ function handleSubmit() {
   padding: 2px 7px;
   border-radius: 6px;
   background: rgba(13, 99, 27, 0.12);
-  color: #0D631B;
+  color: #1B5E20;
 }
 
 :global(.dark-theme) .badge-custom-photo {
@@ -610,7 +610,7 @@ function handleSubmit() {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border-radius: 7px;
   font-size: 12px;
@@ -701,7 +701,7 @@ function handleSubmit() {
 }
 
 .modal-input:focus {
-  border-color: #0D631B;
+  border-color: #1B5E20;
   outline: 2px solid rgba(13, 99, 27, 0.2) !important;
   outline-offset: 1px;
   background: var(--color-white);
@@ -756,7 +756,7 @@ function handleSubmit() {
 
 .btn-save {
   padding: 10px 18px;
-  background: #0D631B;
+  background: #1B5E20;
   color: #FFFFFF;
   border-radius: 8px;
   font-size: 14px;
