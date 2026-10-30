@@ -39,6 +39,59 @@
       </div>
     </div>
 
+    <!-- Master One-Click Heater Control Bar -->
+    <div class="master-heater-control-bar">
+      <div class="mhc-info">
+        <span class="mhc-label">{{ currentLang === 'id' ? 'Kendali Relay Heater (Pin 26 & 27)' : 'Master Heater Relay Control (Pin 26 & 27)' }}</span>
+        <span class="mhc-status" :class="actuators.auxHeaterStatus ? 'mhc-on' : 'mhc-off'">
+          {{ actuators.auxHeaterStatus 
+            ? (currentLang === 'id' ? 'HEATER ON (RELAY AKTIF MEMANASKAN)' : 'HEATER ON (RELAY ACTIVE)') 
+            : (currentLang === 'id' ? 'HEATER OFF (RELAY STANDBY / MATI)' : 'HEATER OFF (RELAY STANDBY)') 
+          }}
+        </span>
+      </div>
+      <div class="mhc-buttons">
+        <button 
+          class="btn-mhc btn-mhc-on" 
+          :class="{ active: actuators.isOverrideActive && actuators.auxHeaterStatus }"
+          :disabled="isLedRedActive"
+          @click="setHeaterManual(true)"
+          :title="isLedRedActive ? 'Dilarang menyalakan: Suhu >= 50°C' : 'Nyalakan Heater (Relay ON)'"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline>
+          </svg>
+          <span>{{ currentLang === 'id' ? 'Nyalakan Heater (ON)' : 'Turn Heater ON' }}</span>
+        </button>
+
+        <button 
+          class="btn-mhc btn-mhc-off" 
+          :class="{ active: actuators.isOverrideActive && !actuators.auxHeaterStatus }"
+          @click="setHeaterManual(false)"
+          title="Matikan Heater (Relay OFF)"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>{{ currentLang === 'id' ? 'Matikan Heater (OFF)' : 'Turn Heater OFF' }}</span>
+        </button>
+
+        <button 
+          class="btn-mhc btn-mhc-auto" 
+          :class="{ active: !actuators.isOverrideActive }"
+          @click="setHeaterAuto()"
+          title="Kembalikan ke Mode Otomatis (Jadwal 18:00 - 05:00 WIB & Histeresis)"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 14"></polyline>
+          </svg>
+          <span>{{ currentLang === 'id' ? 'Mode Otomatis (AUTO)' : 'Auto Mode' }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Feedback Toast Mini -->
     <Transition name="fade">
       <div v-if="feedbackMsg" class="acc-feedback-bar" :class="feedbackType">
@@ -301,6 +354,46 @@ async function handleActuatorToggle(field, value) {
   }
 }
 
+async function setHeaterManual(state) {
+  if (state && isLedRedActive.value) {
+    showFeedback(props.currentLang === 'id' ? 'Pemanas ditolak: Proteksi Overheat aktif (Suhu ≥ 50°C).' : 'Heater rejected: Overheat protection active.', 'error')
+    return
+  }
+  actuators.value.isOverrideActive = true
+  actuators.value.overrideMode = 'MANUAL'
+  actuators.value.auxHeaterStatus = state
+
+  try {
+    await actuatorService.updateStatus({
+      auxHeaterStatus: state,
+      isOverrideActive: true,
+      overrideMode: 'MANUAL'
+    })
+    showFeedback(
+      state 
+        ? (props.currentLang === 'id' ? 'Perintah ON terkirim! Relay pemanas (Pin 26 & 27) MENYALA.' : 'Command ON sent! Heater relay active.')
+        : (props.currentLang === 'id' ? 'Perintah OFF terkirim! Relay pemanas (Pin 26 & 27) DIMATIKAN.' : 'Command OFF sent! Heater relay standby.')
+    )
+  } catch (err) {
+    showFeedback(props.currentLang === 'id' ? 'Gagal mengirim perintah relay pemanas.' : 'Failed to send relay command.', 'error')
+  }
+}
+
+async function setHeaterAuto() {
+  actuators.value.isOverrideActive = false
+  actuators.value.overrideMode = 'AUTO'
+
+  try {
+    await actuatorService.updateStatus({
+      isOverrideActive: false,
+      overrideMode: 'AUTO'
+    })
+    showFeedback(props.currentLang === 'id' ? 'Sistem dikembalikan ke Mode Otomatis (Jadwal 18:00-05:00 WIB & Histeresis).' : 'System returned to Auto Mode.')
+  } catch (err) {
+    showFeedback(props.currentLang === 'id' ? 'Gagal beralih ke Mode Otomatis.' : 'Failed to switch to Auto Mode.', 'error')
+  }
+}
+
 async function handleSpeedChange(field, val) {
   try {
     await actuatorService.updateStatus({ [field]: val })
@@ -496,6 +589,156 @@ onUnmounted(() => {
 
 .mode-slider.slider-manual .mode-slider-thumb {
   transform: translateX(18px);
+}
+
+/* Master One-Click Heater Control Bar */
+.master-heater-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--color-bg, #F4F7F5);
+  border: 1px solid var(--color-border, #CBD5E1);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.mhc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mhc-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-text-muted, #707A6C);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.mhc-status {
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mhc-status.mhc-on {
+  color: #D97706;
+}
+
+.mhc-status.mhc-off {
+  color: #0D631B;
+}
+
+.mhc-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-mhc {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 42px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.btn-mhc:active {
+  transform: scale(0.98);
+}
+
+.btn-mhc:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-mhc-on {
+  background: #FFFFFF;
+  border-color: rgba(217, 119, 6, 0.3);
+  color: #B45309;
+}
+
+.btn-mhc-on:hover:not(:disabled) {
+  background: #FFFBEB;
+  border-color: #D97706;
+  color: #92400E;
+}
+
+.btn-mhc-on.active {
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
+  color: #FFFFFF !important;
+  border-color: #B45309;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+}
+
+.btn-mhc-off {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #475569;
+}
+
+.btn-mhc-off:hover:not(:disabled) {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.btn-mhc-off.active {
+  background: #334155;
+  color: #FFFFFF !important;
+  border-color: #1E293B;
+  box-shadow: 0 4px 12px rgba(51, 65, 85, 0.3);
+}
+
+.btn-mhc-auto {
+  background: #FFFFFF;
+  border-color: rgba(13, 99, 27, 0.3);
+  color: #0D631B;
+}
+
+.btn-mhc-auto:hover:not(:disabled) {
+  background: #E8F5E9;
+  border-color: #0D631B;
+}
+
+.btn-mhc-auto.active {
+  background: linear-gradient(180deg, #16A34A 0%, #0D631B 100%);
+  color: #FFFFFF !important;
+  border-color: #0D631B;
+  box-shadow: 0 4px 12px rgba(13, 99, 27, 0.3);
+}
+
+@media (max-width: 640px) {
+  .master-heater-control-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+  .mhc-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  .btn-mhc {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Feedback Bar */

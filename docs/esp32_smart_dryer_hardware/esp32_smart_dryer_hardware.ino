@@ -448,6 +448,12 @@ const char* phaseShortName() {
 
 // Alasan status heater dikirim bersama telemetri agar mudah dianalisis
 const char* heaterReasonName() {
+  if (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C)) {
+    return "OVER_TEMPERATURE";
+  }
+  if (ENABLE_REMOTE_CONTROL && remoteHeaterOverrideActive) {
+    return remoteHeaterRequest ? "REMOTE_ON_OVERRIDE" : "REMOTE_OFF_OVERRIDE";
+  }
   if (!dhtOK) {
     return "DHT22_ERROR";
   }
@@ -457,17 +463,11 @@ const char* heaterReasonName() {
   if (dayPhase == PHASE_UNKNOWN) {
     return "PHASE_UNKNOWN";
   }
-  if (temperatureLockout || temp >= MAX_TEMP_C) {
-    return "OVER_TEMPERATURE";
-  }
   if (!ntpTimeSynced) {
     return "WAITING_FOR_NTP_TIME";
   }
   if (!heaterScheduleActive) {
     return "OUTSIDE_HEATER_SCHEDULE";
-  }
-  if (ENABLE_REMOTE_CONTROL && remoteHeaterOverrideActive) {
-    return remoteHeaterRequest ? "REMOTE_ON" : "REMOTE_OFF";
   }
 
   switch (dayPhase) {
@@ -488,7 +488,7 @@ const char* heaterReasonName() {
 // 13. LOGIKA KONTROL HEATER & SAFETY INTERLOCK (COMBINE)
 // ==============================================================================
 void updateHeaterControl() {
-  // Evaluasi jadwal operasional NTP WIB
+  // Evaluasi jadwal operasional NTP WIB (18:00 - 05:00 WIB)
   heaterScheduleActive = isWithinHeaterSchedule();
 
   // 1. Penguncian Suhu Darurat (Safety Lockout):
@@ -508,38 +508,39 @@ void updateHeaterControl() {
     }
   }
 
-  // 2. Interlock Keamanan Wajib (Kondisi sensor rusak / suhu kritis SELALU mengalahkan kontrol lain)
-  if (!dhtOK || !bh1750Ready || !luxReadingValid ||
-      dayPhase == PHASE_UNKNOWN || temperatureLockout || temp >= MAX_TEMP_C) {
+  // Interlock Keselamatan Mutlak Suhu Kritis (≥ 50°C): Wajib mematikan heater
+  if (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C)) {
     heaterState = false;
-    remoteHeaterOverrideActive = false;
-    remoteHeaterRequest = false;
     return;
   }
 
-  // 3. Sinkronisasi Waktu NTP Belum Valid: Heater dimatikan demi keselamatan jadwal
-  if (!ntpTimeSynced) {
-    heaterState = false;
-    remoteHeaterOverrideActive = false;
-    remoteHeaterRequest = false;
-    return;
-  }
-
-  // 4. Di luar jam operasional (05:00 - 18:00 WIB): Heater wajib OFF
-  if (!heaterScheduleActive) {
-    heaterState = false;
-    remoteHeaterOverrideActive = false;
-    remoteHeaterRequest = false;
-    return;
-  }
-
-  // 5. Override Jarak Jauh (Remote Control) jika diaktifkan dan memenuhi syarat aman
+  // 2. KENDALI MANUAL DARI WEBSITE / MQTT (REMOTE OVERRIDE):
+  //    Jika operator mengubah status heater lewat website/MQTT, prioritaskan kendali web!
   if (ENABLE_REMOTE_CONTROL && remoteHeaterOverrideActive) {
     heaterState = remoteHeaterRequest;
     return;
   }
 
-  // 6. Logika Otomatis Berdasarkan Fase Cahaya (Di Dalam Jadwal 18:00 - 05:00 WIB)
+  // 3. LOGIKA OTOMATIS (Bila tidak ada override manual dari web)
+  // Syarat sensor valid:
+  if (!dhtOK || !bh1750Ready || !luxReadingValid || dayPhase == PHASE_UNKNOWN) {
+    heaterState = false;
+    return;
+  }
+
+  // Syarat sinkronisasi waktu NTP:
+  if (!ntpTimeSynced) {
+    heaterState = false;
+    return;
+  }
+
+  // Syarat jam operasional (18:00 - 05:00 WIB):
+  if (!heaterScheduleActive) {
+    heaterState = false;
+    return;
+  }
+
+  // Siklus Otomatis Histeresis Berdasarkan Fase Cahaya:
   switch (dayPhase) {
     case PHASE_NIGHT:
       // Malam: Pemanas ON terus menerus selama suhu dalam batas aman
@@ -613,63 +614,88 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  StaticJsonDocument<512> command;
+  StaticJsonDocument<768> command;
   DeserializationError error = deserializeJson(command, payload, length);
   if (error) {
     Serial.println("[MQTT] Perintah kontrol tidak dapat di-parse JSON.");
     return;
   }
 
-  // Format 1: Kembali ke Mode Otomatis {"mode":"AUTO"}
+  // Format 1: Perintah kembali ke Mode Otomatis {"mode":"AUTO"} atau {"data":{"overrideMode":"AUTO"}}
+  bool setAutoMode = false;
   if ((command["mode"].is<const char*>() && String(command["mode"].as<const char*>()) == "AUTO") ||
-      (command["data"]["overrideMode"].is<const char*>() && String(command["data"]["overrideMode"].as<const char*>()) == "AUTO")) {
+      (command["overrideMode"].is<const char*>() && String(command["overrideMode"].as<const char*>()) == "AUTO") ||
+      (command["data"]["overrideMode"].is<const char*>() && String(command["data"]["overrideMode"].as<const char*>()) == "AUTO") ||
+      (command.containsKey("isOverrideActive") && !command["isOverrideActive"].as<bool>()) ||
+      (command["data"].containsKey("isOverrideActive") && !command["data"]["isOverrideActive"].as<bool>())) {
+    setAutoMode = true;
+  }
+
+  if (setAutoMode) {
     remoteHeaterOverrideActive = false;
     remoteHeaterRequest = false;
     updateHeaterControl();
     applyRelayState();
-    Serial.println("[MQTT] Heater kembali ke mode OTOMATIS.");
+    Serial.println("[MQTT] Mode AUTO diterima -> Kembali ke histeresis otomatis.");
     return;
   }
 
-  // Format 2: Perintah Langsung {"target":"AUX_HEATER","state":true/false} atau {"auxHeaterStatus":true/false}
+  // Format 2: Perintah Langsung ON / OFF Relay Heater dari Web
   bool requestedState = false;
   bool hasState = false;
 
-  if (command["target"].is<const char*>() && String(command["target"].as<const char*>()) == "AUX_HEATER") {
-    if (command["state"].is<bool>()) {
+  if (command["data"].containsKey("auxHeaterStatus")) {
+    requestedState = command["data"]["auxHeaterStatus"].as<bool>();
+    hasState = true;
+  } else if (command.containsKey("auxHeaterStatus")) {
+    requestedState = command["auxHeaterStatus"].as<bool>();
+    hasState = true;
+  } else if (command["data"].containsKey("heaterStatus")) {
+    requestedState = command["data"]["heaterStatus"].as<bool>();
+    hasState = true;
+  } else if (command.containsKey("heaterStatus")) {
+    requestedState = command["heaterStatus"].as<bool>();
+    hasState = true;
+  } else if (command["data"].containsKey("heater_status")) {
+    requestedState = command["data"]["heater_status"].as<bool>();
+    hasState = true;
+  } else if (command.containsKey("heater_status")) {
+    requestedState = command["heater_status"].as<bool>();
+    hasState = true;
+  } else if (command["data"].containsKey("heater")) {
+    requestedState = command["data"]["heater"].as<bool>();
+    hasState = true;
+  } else if (command.containsKey("heater")) {
+    requestedState = command["heater"].as<bool>();
+    hasState = true;
+  } else if (command.containsKey("target") && String(command["target"].as<const char*>()) == "AUX_HEATER") {
+    if (command.containsKey("state")) {
       requestedState = command["state"].as<bool>();
       hasState = true;
     }
-  } else if (command["auxHeaterStatus"].is<bool>()) {
-    requestedState = command["auxHeaterStatus"].as<bool>();
-    hasState = true;
-  } else if (command["data"]["auxHeaterStatus"].is<bool>()) {
-    requestedState = command["data"]["auxHeaterStatus"].as<bool>();
-    hasState = true;
   }
 
   if (!hasState) {
     return;
   }
 
-  // Interlock Keselamatan: Jika tidak aman / suhu >= 50°C, tolak permintaan menyalakan heater
-  if (requestedState &&
-      (!dhtOK || !bh1750Ready || !luxReadingValid ||
-       dayPhase == PHASE_UNKNOWN || temperatureLockout || temp >= MAX_TEMP_C)) {
-    Serial.println("[MQTT] Permintaan remote heater ditolak: Syarat keselamatan suhu belum terpenuhi.");
+  // Interlock Keselamatan Mutlak: Tolak menyalakan heater jika suhu kritis >= 50°C
+  if (requestedState && (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C))) {
+    Serial.println("[MQTT] Ditolak: Suhu >= 50°C (Overheat Lockout). Heater tetap OFF demi keselamatan.");
     heaterState = false;
-    remoteHeaterOverrideActive = false;
+    remoteHeaterOverrideActive = true;
     remoteHeaterRequest = false;
     applyRelayState();
     return;
   }
 
+  // Terapkan override manual relay dari website
   remoteHeaterOverrideActive = true;
   remoteHeaterRequest = requestedState;
   heaterState = requestedState;
   applyRelayState();
 
-  Serial.printf("[MQTT] Perintah remote diterapkan -> Heater %s\n",
+  Serial.printf("[MQTT] Perintah Web Diterapkan -> RELAY HEATER: %s (Pin 26 & 27)\n",
                 requestedState ? "ON (MENYALA)" : "OFF (MATI)");
 }
 
@@ -843,6 +869,43 @@ bool sendHttpTelemetry() {
   lastHttpPublishOk = (responseCode >= 200 && responseCode < 300);
   hasHttpPublishResult = true;
   lastHttpPublishMillis = millis();
+
+  // Sinkronisasi status aktuator dari respons HTTP backend website
+  if (lastHttpPublishOk && ENABLE_REMOTE_CONTROL) {
+    String responseBody = http.getString();
+    if (responseBody.length() > 0) {
+      StaticJsonDocument<512> respDoc;
+      DeserializationError respErr = deserializeJson(respDoc, responseBody);
+      if (!respErr && respDoc.containsKey("actuators")) {
+        JsonObject acts = respDoc["actuators"];
+        bool isOverride = acts["isOverrideActive"].as<bool>();
+        const char* mode = acts["overrideMode"].as<const char*>();
+
+        if (isOverride && mode && String(mode) == "MANUAL") {
+          bool reqState = acts["auxHeaterStatus"].as<bool>();
+          if (reqState && (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C))) {
+            reqState = false;
+          }
+          if (!remoteHeaterOverrideActive || remoteHeaterRequest != reqState) {
+            remoteHeaterOverrideActive = true;
+            remoteHeaterRequest = reqState;
+            heaterState = reqState;
+            applyRelayState();
+            Serial.printf("[HTTP Sync] Relay Heater disinkronkan dari Web: %s\n",
+                          reqState ? "ON (MENYALA)" : "OFF (MATI)");
+          }
+        } else if (!isOverride || (mode && String(mode) == "AUTO")) {
+          if (remoteHeaterOverrideActive) {
+            remoteHeaterOverrideActive = false;
+            remoteHeaterRequest = false;
+            updateHeaterControl();
+            applyRelayState();
+            Serial.println("[HTTP Sync] Mode AUTO disinkronkan dari Web.");
+          }
+        }
+      }
+    }
+  }
 
   http.end();
   return lastHttpPublishOk;
@@ -1047,7 +1110,11 @@ void updateLCD() {
     relayLine += " H2:";
     relayLine += (heaterState ? "ON " : "OFF");
     relayLine += " ";
-    relayLine += phaseShortName();
+    if (remoteHeaterOverrideActive) {
+      relayLine += "REM";
+    } else {
+      relayLine += phaseShortName();
+    }
     printLCDLine(3, relayLine);
 
   } else {

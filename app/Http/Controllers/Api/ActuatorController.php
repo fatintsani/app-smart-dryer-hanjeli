@@ -69,13 +69,31 @@ class ActuatorController extends Controller
         if ($request->has('exhaustFanSpeed')) $updates['exhaust_fan_speed'] = (int) $request->exhaustFanSpeed;
         if ($request->has('intakeFanStatus')) $updates['intake_fan_status'] = (bool) $request->intakeFanStatus;
         if ($request->has('circFanStatus')) $updates['circ_fan_status'] = (bool) $request->circFanStatus;
-        if ($request->has('auxHeaterStatus')) $updates['aux_heater_status'] = (bool) $request->auxHeaterStatus;
+
+        if ($request->has('auxHeaterStatus')) {
+            $updates['aux_heater_status'] = (bool) $request->auxHeaterStatus;
+        } elseif ($request->has('heaterStatus')) {
+            $updates['aux_heater_status'] = (bool) $request->heaterStatus;
+        } elseif ($request->has('heater_status')) {
+            $updates['aux_heater_status'] = (bool) $request->heater_status;
+        } elseif ($request->has('heater')) {
+            $updates['aux_heater_status'] = (bool) $request->heater;
+        } elseif ($request->has('aux_heater_status')) {
+            $updates['aux_heater_status'] = (bool) $request->aux_heater_status;
+        }
+
         if ($request->has('auxHeaterLevel')) $updates['aux_heater_level'] = (int) $request->auxHeaterLevel;
         if ($request->has('uvLightStatus')) $updates['uv_light_status'] = (bool) $request->uvLightStatus;
         if ($request->has('rotaryTrayStatus')) $updates['rotary_tray_status'] = (bool) $request->rotaryTrayStatus;
         if ($request->has('dehumidifierStatus')) $updates['dehumidifier_status'] = (bool) $request->dehumidifierStatus;
         if ($request->has('isOverrideActive')) $updates['is_override_active'] = (bool) $request->isOverrideActive;
         if ($request->has('overrideMode')) $updates['override_mode'] = $request->overrideMode;
+
+        // Otomatis aktifkan mode manual jika aktuator pemanas diubah secara eksplisit tanpa menyebut override
+        if (isset($updates['aux_heater_status']) && !isset($updates['is_override_active']) && !isset($updates['override_mode'])) {
+            $updates['is_override_active'] = true;
+            $updates['override_mode'] = 'MANUAL';
+        }
 
         if (!empty($updates)) {
             $updates['updated_by'] = $request->user()?->id;
@@ -96,17 +114,19 @@ class ActuatorController extends Controller
 
             // Publish to MQTT Broker for hardware actuators
             $actuatorData = [
-                'exhaustFanStatus' => $state->exhaust_fan_status,
-                'exhaustFanSpeed' => $state->exhaust_fan_speed,
-                'intakeFanStatus' => $state->intake_fan_status,
-                'circFanStatus' => $state->circ_fan_status,
-                'auxHeaterStatus' => $state->aux_heater_status,
-                'auxHeaterLevel' => $state->aux_heater_level,
-                'uvLightStatus' => $state->uv_light_status,
-                'rotaryTrayStatus' => $state->rotary_tray_status,
-                'dehumidifierStatus' => $state->dehumidifier_status,
-                'isOverrideActive' => $state->is_override_active,
-                'overrideMode' => $state->override_mode,
+                'exhaustFanStatus' => (bool) $state->exhaust_fan_status,
+                'exhaustFanSpeed' => (int) $state->exhaust_fan_speed,
+                'intakeFanStatus' => (bool) $state->intake_fan_status,
+                'circFanStatus' => (bool) $state->circ_fan_status,
+                'auxHeaterStatus' => (bool) $state->aux_heater_status,
+                'heaterStatus' => (bool) $state->aux_heater_status,
+                'heater' => (bool) $state->aux_heater_status,
+                'auxHeaterLevel' => (int) $state->aux_heater_level,
+                'uvLightStatus' => (bool) $state->uv_light_status,
+                'rotaryTrayStatus' => (bool) $state->rotary_tray_status,
+                'dehumidifierStatus' => (bool) $state->dehumidifier_status,
+                'isOverrideActive' => (bool) $state->is_override_active,
+                'overrideMode' => (string) $state->override_mode,
             ];
             $mqttService->publishControl($actuatorData);
         }

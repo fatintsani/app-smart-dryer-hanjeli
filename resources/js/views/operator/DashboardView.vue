@@ -229,6 +229,25 @@
                   {{ !isDataActive ? 'OFF' : (telemetry.tempInternal >= 50 ? '🔴 Overheat (≥50°)' : ((telemetry.heaterStatus || actuators.auxHeaterStatus) ? '🟡 Memanaskan' : '🟢 Normal')) }}
                 </span>
               </div>
+
+              <!-- Quick Relay Control on Dashboard -->
+              <div class="dash-heater-ctrl-row">
+                <button 
+                  class="btn-dash-heater-toggle"
+                  :class="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'btn-dash-heater-off' : 'btn-dash-heater-on'"
+                  :disabled="isTogglingHeater || (telemetry.tempInternal >= 50 && !(telemetry.heaterStatus || actuators.auxHeaterStatus))"
+                  @click.stop="toggleDashboardHeater"
+                  :title="(telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'Klik untuk mematikan heater' : 'Klik untuk menyalakan heater'"
+                >
+                  <span v-if="!isTogglingHeater">
+                    {{ (telemetry.heaterStatus || actuators.auxHeaterStatus) ? 'Matikan Heater' : 'Nyalakan Heater' }}
+                  </span>
+                  <span v-else>Memproses...</span>
+                </button>
+                <router-link to="/monitoring" class="link-dash-monitoring" title="Buka Kontrol Penuh Aktuator di Monitoring">
+                  <span>Kontrol Relai &rarr;</span>
+                </router-link>
+              </div>
             </div>
           </div>
 
@@ -501,6 +520,7 @@ import { batchService } from '../../services/batchService'
 import { alertService } from '../../services/alertService'
 import { anomalyService } from '../../services/anomalyService'
 import { systemState } from '../../services/settingsService'
+import { actuatorService } from '../../services/actuatorService'
 import connectionManager from '../../services/connectionManager'
 import ConnectionStatusCard from '../../components/ConnectionStatusCard.vue'
 import DeviceSetupBleModal from '../../components/DeviceSetupBleModal.vue'
@@ -542,6 +562,33 @@ const actuators = ref({
   auxHeaterLevel: 0,
   controlMode: 'AUTOMATIC',
 })
+
+const isTogglingHeater = ref(false)
+
+async function toggleDashboardHeater() {
+  const currentStatus = Boolean(telemetry.value.heaterStatus || actuators.value.auxHeaterStatus)
+  const nextStatus = !currentStatus
+
+  if (nextStatus && telemetry.value.tempInternal >= 50) {
+    alert('Pemanas tidak dapat dinyalakan: Suhu saat ini ≥ 50°C (Proteksi Overheat).')
+    return
+  }
+
+  isTogglingHeater.value = true
+  try {
+    await actuatorService.updateStatus({
+      auxHeaterStatus: nextStatus,
+      isOverrideActive: true,
+      overrideMode: 'MANUAL',
+    })
+    telemetry.value.heaterStatus = nextStatus
+    actuators.value.auxHeaterStatus = nextStatus
+  } catch (err) {
+    console.warn('Gagal mengubah status relay heater:', err)
+  } finally {
+    isTogglingHeater.value = false
+  }
+}
 
 const activeBatch = ref(null)
 const recentAlerts = ref([])
@@ -1072,6 +1119,99 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
+}
+
+/* Quick Relay Control on Dashboard */
+.dash-heater-ctrl-row {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(203, 213, 225, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+:global(.dark-theme) .dash-heater-ctrl-row {
+  border-top-color: rgba(30, 58, 43, 0.8);
+}
+
+.btn-dash-heater-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.btn-dash-heater-toggle:active {
+  transform: scale(0.97);
+}
+
+.btn-dash-heater-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-dash-heater-on {
+  background: #FEF3C7;
+  color: #B45309;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.btn-dash-heater-on:hover:not(:disabled) {
+  background: #FDE68A;
+  color: #92400E;
+}
+
+.btn-dash-heater-off {
+  background: #F1F5F9;
+  color: #475569;
+  border-color: #CBD5E1;
+}
+
+.btn-dash-heater-off:hover:not(:disabled) {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+:global(.dark-theme) .btn-dash-heater-on {
+  background: rgba(217, 119, 6, 0.2);
+  color: #FCD34D;
+  border-color: rgba(217, 119, 6, 0.4);
+}
+
+:global(.dark-theme) .btn-dash-heater-off {
+  background: rgba(51, 65, 85, 0.4);
+  color: #CBD5E1;
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.link-dash-monitoring {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0D631B;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.link-dash-monitoring:hover {
+  color: #15803D;
+  text-decoration: underline;
+}
+
+:global(.dark-theme) .link-dash-monitoring {
+  color: #4ADE80;
 }
 
 /* Master Waveform Chart */

@@ -58,8 +58,13 @@ const char*    TOPIC_CONTROL    = "hanjeli/greenhouse/control";
    * **Malam ($\le 50\text{ lux}$):** Pemanas menyala (*ON*) untuk menjaga suhu pengeringan stabil.
    * **Subuh / Transisi ($40 - 200\text{ lux}$):** Pemanas menyala jika terdeteksi hujan atau kelembapan udara $\ge 70\%$.
    * **Siang ($\ge 200\text{ lux}$):** Pemanas menyala hanya jika kondisi mendung gelap atau hujan.
-4. **Kendali Jarak Jauh (Remote Override via MQTT):**
-   * Menerima perintah kendali relay dari antarmuka web, namun keselamatan sensor dan batas suhu $\ge 50^\circ\text{C}$ selalu menjadi prioritas tertinggi (*interlock lock*).
+4. **Kendali Jarak Jauh (Remote Override via Web / MQTT & HTTP Fallback):**
+   * Operator dan Admin dapat mengatur relay pemanas langsung dari antarmuka Web (Halaman Monitoring & Dashboard).
+   * **Dual-Path Control**: Perintah diteruskan secara instan melalui MQTT (`hanjeli/greenhouse/control`) dan disinkronkan otomatis lewat respons HTTP Ingestion backend.
+   * **Mode Manual vs Otomatis**:
+     * Saat diatur ke **ON** atau **OFF** lewat web, relay langsung berpindah status (override manual aktif).
+     * Saat diatur ke **Mode Otomatis (AUTO)**, ESP32 kembali mengikuti jadwal histeresis cahaya, hujan, dan waktu NTP WIB (18:00 - 05:00 WIB).
+   * **Prioritas Keselamatan Absolut (Overheat Lockout)**: Jika suhu ruangan $\ge 50^\circ\text{C}$, sistem keamanan fisik mikrokontroler akan secara mutlak mematikan relay pemanas (fail-safe over-temperature protection).
 5. **Fail-Safe Offline:**
    * Jika Wi-Fi atau server backend terputus, ESP32 tetap menjalankan seluruh pembacaan sensor dan kontrol relay secara lokal tanpa kendala (*non-blocking*).
 
