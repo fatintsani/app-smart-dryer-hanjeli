@@ -1,71 +1,110 @@
-#include <BH1750.h>
-#include <DHT.h>
-#include <HTTPClient.h>
-#include <LiquidCrystal_I2C.h>
-#include <WiFi.h>
 #include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+#include <BH1750.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+#include <time.h>   // NTP dan waktu lokal WIB
 
 // ==============================================================================
 // 1. PIN ESP32 HARDWARE CONFIGURATION
 // ==============================================================================
-#define DHTPIN 25 // Sensor Suhu & Kelembapan Ruang (DHT22)
-#define DHTTYPE DHT22
-#define RELAY_CH1 26 // Relay Channel 1: Heater / Pemanas Ruang
-#define RELAY_CH2 27 // Relay Channel 2: Heater Cadangan / Exhaust
-#define RAIN_PIN 34  // Sensor Hujan (Analog ADC Pin)
+#define DHTPIN        25     // Sensor Suhu & Kelembapan Ruang (DHT22)
+#define DHTTYPE       DHT22  
+#define RELAY_CH1     26     // Relay Channel 1: Heater / Pemanas Ruang (PTC 1)
+#define RELAY_CH2     27     // Relay Channel 2: Heater Cadangan / Exhaust (PTC 2)
+#define RAIN_PIN      34     // Sensor Hujan (Analog ADC Pin)
 
 // ==============================================================================
 // 2. KONFIGURASI KONTROL & PARAMETER KESELAMATAN
 // ==============================================================================
-const int RAIN_THRESH = 2000; // ADC < 2000 = Terdeteksi Hujan
+const int RAIN_THRESH = 2000;          // ADC < 2000 = Terdeteksi Hujan
 
-const float MAX_TEMP_C = 50.0; // Batas Suhu Kritis (Heater Wajib OFF)
-const float RESTART_TEMP_C =
-    48.0; // Suhu Pemulihan (Heater Boleh Aktif Kembali)
+const float MAX_TEMP_C     = 50.0;     // Batas Suhu Kritis (Heater Wajib OFF / Lockout)
+const float RESTART_TEMP_C = 48.0;     // Suhu Pemulihan (Heater Boleh Aktif Kembali)
 
 // Ambang Batas Intensitas Cahaya (Lux)
 const float INITIAL_NIGHT_MAX_LUX = 50.0;
-const float INITIAL_DAY_MIN_LUX = 100.0;
+const float INITIAL_DAY_MIN_LUX   = 100.0;
 
 // Hysteresis Perpindahan Fase Cahaya (Mencegah Fluktuasi Status)
 const float NIGHT_TO_DAWN_LUX = 80.0;
 const float DAWN_TO_NIGHT_LUX = 40.0;
-const float DAWN_TO_DAY_LUX = 200.0;
-const float DAY_TO_DAWN_LUX = 180.0;
+const float DAWN_TO_DAY_LUX   = 200.0;
+const float DAY_TO_DAWN_LUX   = 180.0;
 
 // Hysteresis Kelembapan Khusus Fase Subuh / Transisi
-const float DAWN_HUMIDITY_ON = 70.0;
+const float DAWN_HUMIDITY_ON  = 70.0;
 const float DAWN_HUMIDITY_OFF = 65.0;
 
-const byte MAX_DHT_ERRORS = 3;
+const byte MAX_DHT_ERRORS     = 3;
 
-// Level Logika Relay (Aktif-HIGH)
-const uint8_t RELAY_ON_LEVEL = HIGH;
-const uint8_t RELAY_OFF_LEVEL = LOW;
+// Level Logika Modul Relay Fisik:
+// false = aktif-HIGH (HIGH menyalakan relay - default perangkat Smart Dryer)
+// true  = aktif-LOW  (LOW menyalakan relay)
+const bool RELAY_ACTIVE_LOW   = false;
+const uint8_t RELAY_ON_LEVEL  = RELAY_ACTIVE_LOW ? LOW : HIGH;
+const uint8_t RELAY_OFF_LEVEL = RELAY_ACTIVE_LOW ? HIGH : LOW;
 
 // ==============================================================================
-// 3. KONFIGURASI NETWORK & SERVER BACKEND WEB
+// 3. KONFIGURASI NETWORK & SERVER BACKEND WEB (TETAP & COMBINE)
 // ==============================================================================
-// Pastikan ESP32 terhubung ke Wi-Fi / Hotspot yang SAMA dengan Server Laptop
-const char *ssid = "inode-AOO2";     // Nama Wi-Fi / Hotspot
-const char *password = "stasrg2024"; // Password Wi-Fi
+// A. Kredensial Wi-Fi / Hotspot
+const char* ssid        = "inode-AOO2";     // Nama Wi-Fi / Hotspot
+const char* password    = "stasrg2024";     // Password Wi-Fi
 
-// Endpoint API Web Server Smart Dryer Hanjeli
-const char *serverUrl = "https://hanjeli-dryer.stas-rg.com/api/telemetry";
-const char *apiKey = "NCtJiDY-xuz9iPr8LYy4Mb15bXN-tB3EJOcrJ-ei754";
-const char *deviceId = "SRD-001";
+// B. Endpoint API HTTP Web Server Smart Dryer Hanjeli
+const char* serverUrl   = "https://hanjeli-dryer.stas-rg.com/api/telemetry";
+const char* apiKey      = "NCtJiDY-xuz9iPr8LYy4Mb15bXN-tB3EJOcrJ-ei754";
+const char* deviceId    = "SRD-001";        // ID Perangkat Resmi (Sinkron dengan Sistem Web)
+
+// C. Sinkronisasi Waktu NTP Indonesia Barat (WIB = UTC+7, tanpa DST)
+const long GMT_OFFSET_SEC      = 7L * 60L * 60L;
+const int  DAYLIGHT_OFFSET_SEC = 0;
+const char* NTP_SERVER_1       = "id.pool.ntp.org";
+const char* NTP_SERVER_2       = "pool.ntp.org";
+const char* NTP_SERVER_3       = "time.google.com";
+
+// Jadwal Operasional Pemanas (Heater) Berdasarkan Waktu NTP WIB
+// Aktif dari pukul 18:00 malam hingga sebelum 05:00 subuh WIB. Di luar jadwal, heater OFF.
+const uint8_t HEATER_START_HOUR = 18;
+const uint8_t HEATER_STOP_HOUR  = 5;
+
+// D. Konfigurasi Protokol Broker MQTT (HiveMQ)
+const char*    MQTT_BROKER      = "broker.hivemq.com";
+const uint16_t MQTT_PORT        = 1883;
+const char*    MQTT_DEVICE_ID   = "SRD-001"; // Harmonisasi dengan deviceId backend
+
+const char* TOPIC_TELEMETRY     = "hanjeli/greenhouse/telemetry";
+const char* TOPIC_CONTROL       = "hanjeli/greenhouse/control";
+
+// Opsi Transmisi Ganda (Dual Telemetry: MQTT + HTTP Ingestion)
+const bool ENABLE_MQTT_TELEMETRY = true;
+const bool ENABLE_HTTP_TELEMETRY = true;
+
+// Menerima kendali jarak jauh (remote control / override) dari website & MQTT
+const bool ENABLE_REMOTE_CONTROL = true;
 
 // ==============================================================================
 // 4. INISIALISASI OBJEK HARDWARE
 // ==============================================================================
 LiquidCrystal_I2C lcd(0x27, 20, 4); // LCD 20x4 Alamat I2C 0x27
 DHT dht(DHTPIN, DHTTYPE);
-BH1750 lightMeter;
+BH1750 lightMeter; 
+WiFiClient mqttNetworkClient;
+PubSubClient mqttClient(mqttNetworkClient);
 
 // ==============================================================================
 // 5. ENUMERASI FASE CAHAYA
 // ==============================================================================
-enum DayPhase { PHASE_UNKNOWN, PHASE_NIGHT, PHASE_DAWN, PHASE_DAY };
+enum DayPhase {
+  PHASE_UNKNOWN,
+  PHASE_NIGHT,
+  PHASE_DAWN,
+  PHASE_DAY
+};
 
 DayPhase dayPhase = PHASE_UNKNOWN;
 
@@ -73,41 +112,71 @@ DayPhase dayPhase = PHASE_UNKNOWN;
 // 6. VARIABEL STATUS SENSOR & AKTUATOR
 // ==============================================================================
 float temp = 0.0;
-float hum = 0.0;
-float lux = 0.0;
+float hum  = 0.0;
+float lux  = 0.0;
 
-int rainVal = 4095;
+int  rainVal   = 4095;
 bool isRaining = false;
 
 bool heaterState = false;
 
-bool dhtOK = false;
-bool bh1750Ready = false;
-bool luxReadingValid = false;
+bool dhtOK                  = false;
+bool bh1750Ready            = false;
+bool luxReadingValid        = false;
+bool hasCompletedSensorRead = false; // Telemetri baru dikirim setelah pembacaan sensor pertama selesai
 
 bool temperatureLockout = false;
 bool dawnHumidityDemand = false;
 
+// Override kendali heater jarak jauh (Remote Control via MQTT/Web)
+bool remoteHeaterOverrideActive = false;
+bool remoteHeaterRequest        = false;
+
 byte dhtErrorCount = 0;
-byte currentPage = 0;
+byte currentPage   = 0;
 
 // ==============================================================================
 // 7. TIMER INTERVAL (NON-BLOCKING MULTITASKING)
 // ==============================================================================
-unsigned long prevSensorMillis = 0;
-const unsigned long SENSOR_INTERVAL = 2500; // Baca sensor tiap 2.5 detik
+unsigned long prevSensorMillis     = 0;
+const unsigned long SENSOR_INTERVAL = 2500;  // Baca sensor tiap 2.5 detik
 
-unsigned long prevSendMillis = 0;
-const unsigned long SEND_INTERVAL = 5000; // Kirim telemetri tiap 5.0 detik
+unsigned long prevSendMillis       = 0;
+const unsigned long SEND_INTERVAL   = 5000;  // Kirim telemetri berkala tiap 5.0 detik
 
-unsigned long prevDisplayMillis = 0;
-const unsigned long PAGE_INTERVAL = 4000; // Ganti halaman LCD tiap 4.0 detik
+unsigned long prevDisplayMillis    = 0;
+const unsigned long PAGE_INTERVAL   = 4000;  // Ganti halaman LCD tiap 4.0 detik
 
-unsigned long lastWifiAttempt = 0;
-const unsigned long WIFI_RETRY_INTERVAL =
-    15000; // Coba reconnect Wi-Fi tiap 15 detik
+unsigned long prevLCDRefreshMillis = 0;
+const unsigned long LCD_REFRESH_INTERVAL = 300; // Refresh LCD tiap 300 ms
+
+unsigned long lastWifiAttempt      = 0;
+const unsigned long WIFI_RETRY_INTERVAL = 15000; // Coba reconnect Wi-Fi tiap 15 detik
+
+unsigned long lastMqttAttempt      = 0;
+const unsigned long MQTT_RETRY_INTERVAL = 5000;  // Coba reconnect MQTT tiap 5 detik
 
 bool wifiWasConnected = false;
+
+// Status sinkronisasi waktu NTP
+bool ntpTimeSynced = false;
+bool heaterScheduleActive = false;
+unsigned long prevNtpCheckMillis = 0;
+const unsigned long NTP_CHECK_INTERVAL = 1000;
+
+// Status telemetri terakhir yang berhasil dipublikasikan
+bool hasPublishedHeaterState  = false;
+bool lastPublishedHeaterState = false;
+
+// Status pengiriman data untuk monitoring Serial
+bool hasMqttPublishResult     = false;
+bool lastMqttPublishOk        = false;
+unsigned long lastMqttPublishMillis = 0;
+
+bool hasHttpPublishResult     = false;
+bool lastHttpPublishOk        = false;
+int  lastHttpResponseCode     = 0;
+unsigned long lastHttpPublishMillis = 0;
 
 // ==============================================================================
 // 8. DEKLARASI FUNGSI
@@ -117,12 +186,20 @@ void updateDayNight();
 void updateHeaterControl();
 void applyRelayState();
 void maintainWiFi();
-void sendTelemetry();
-void printToSerial();
+void updateNtpStatus();
+bool isWithinHeaterSchedule();
+void maintainMQTT();
+void mqttCallback(char* topic, byte* payload, unsigned int length);
+bool publishMqttTelemetry();
+bool sendHttpTelemetry();
+bool sendTelemetry();
+void printFriendlyDashboard();
 void updateLCD();
+void printLCDLine(uint8_t row, String line);
 
-const char *phaseName();
-const char *phaseShortName();
+const char* phaseName();
+const char* phaseShortName();
+const char* heaterReasonName();
 
 // ==============================================================================
 // 9. SETUP HARDWARE
@@ -130,10 +207,7 @@ const char *phaseShortName();
 void setup() {
   Serial.begin(115200);
 
-  // Pastikan relay langsung aman (OFF) saat startup
-  digitalWrite(RELAY_CH1, RELAY_OFF_LEVEL);
-  digitalWrite(RELAY_CH2, RELAY_OFF_LEVEL);
-
+  // Inisialisasi pin relay dan tetapkan kondisi awal aman (OFF)
   pinMode(RELAY_CH1, OUTPUT);
   pinMode(RELAY_CH2, OUTPUT);
   pinMode(RAIN_PIN, INPUT);
@@ -150,12 +224,10 @@ void setup() {
   lcd.backlight();
   lcd.clear();
 
-  lcd.setCursor(0, 0);
-  lcd.print(" SMART ROOM DRYER   ");
-  lcd.setCursor(0, 1);
-  lcd.print(" Starting System... ");
-  lcd.setCursor(0, 2);
-  lcd.print(" STAS-RG HANJELI    ");
+  printLCDLine(0, " SMART ROOM DRYER   ");
+  printLCDLine(1, " Starting System... ");
+  printLCDLine(2, " STAS-RG HANJELI    ");
+  printLCDLine(3, " Inisialisasi...    ");
 
   // Inisialisasi Sensor DHT22
   dht.begin();
@@ -163,10 +235,10 @@ void setup() {
   // Inisialisasi Sensor Cahaya BH1750
   if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
     bh1750Ready = true;
-    Serial.println("BH1750 OK.");
+    Serial.println("[BH1750] Sensor cahaya siap digunakan.");
   } else {
     bh1750Ready = false;
-    Serial.println("ERROR: BH1750 tidak terdeteksi!");
+    Serial.println("[BH1750] PERINGATAN: Sensor cahaya tidak terdeteksi. Periksa pengkabelan I2C.");
   }
 
   // Pengaturan Koneksi Wi-Fi Non-blocking
@@ -177,10 +249,24 @@ void setup() {
 
   lastWifiAttempt = millis();
 
+  // Konfigurasi MQTT Client HiveMQ
+  mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+  mqttClient.setCallback(mqttCallback);
+  mqttClient.setBufferSize(1536);
+  mqttClient.setKeepAlive(30);
+  mqttClient.setSocketTimeout(5);
+
+  Serial.println();
   Serial.println("==================================================");
   Serial.println("   GREEN HOUSE SMART DRYER - ESP32 FIRMWARE       ");
+  Serial.println("   Desa Wisata Hanjeli - Waluran, Kab. Sukabumi   ");
   Serial.println("==================================================");
-  Serial.println("Menghubungkan ke Wi-Fi: " + String(ssid));
+  Serial.printf("Device ID       : %s\n", deviceId);
+  Serial.printf("Wi-Fi Target    : %s\n", ssid);
+  Serial.printf("Server Backend  : %s\n", serverUrl);
+  Serial.printf("MQTT Broker     : %s:%d\n", MQTT_BROKER, MQTT_PORT);
+  Serial.printf("Jadwal Heater   : %02d:00 - %02d:00 WIB\n", HEATER_START_HOUR, HEATER_STOP_HOUR);
+  Serial.println("==================================================");
 
   applyRelayState();
 }
@@ -191,8 +277,10 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // 1. Monitor dan jaga kestabilan koneksi Wi-Fi
+  // 1. Monitor Wi-Fi, waktu NTP WIB, dan koneksi MQTT
   maintainWiFi();
+  updateNtpStatus();
+  maintainMQTT();
 
   // 2. Baca sensor dan eksekusi logika kontrol lokal
   if (now - prevSensorMillis >= SENSOR_INTERVAL) {
@@ -201,23 +289,42 @@ void loop() {
     readSensors();
     updateHeaterControl();
     applyRelayState();
-    printToSerial();
   }
 
-  // 3. Kirim paket telemetri ke API Backend & MQTT Worker
-  if (now - prevSendMillis >= SEND_INTERVAL) {
+  // 3. Kirim telemetri berkala (Dual Ingestion: MQTT + HTTP)
+  // Responsif terhadap perubahan status heater (kirim segera jika heater berubah, jeda min 1s)
+  const bool heaterStateChanged =
+      hasPublishedHeaterState && (heaterState != lastPublishedHeaterState);
+  const bool firstPublishDue =
+      !hasPublishedHeaterState && hasCompletedSensorRead &&
+      (WiFi.status() == WL_CONNECTED) && (now - prevSendMillis >= 1000UL);
+
+  if ((now - prevSendMillis >= SEND_INTERVAL) ||
+      firstPublishDue ||
+      (heaterStateChanged && (WiFi.status() == WL_CONNECTED) &&
+       (now - prevSendMillis >= 1000UL))) {
     prevSendMillis = now;
-    sendTelemetry();
+
+    if (sendTelemetry()) {
+      lastPublishedHeaterState = heaterState;
+      hasPublishedHeaterState = true;
+    }
+
+    // Tampilkan dashboard Serial Monitor setelah pengiriman
+    printFriendlyDashboard();
   }
 
   // 4. Pergantian halaman tampilan LCD 20x4
   if (now - prevDisplayMillis >= PAGE_INTERVAL) {
     prevDisplayMillis = now;
     currentPage = !currentPage;
-    lcd.clear();
   }
 
-  updateLCD();
+  // 5. Refresh LCD berkala tanpa membebani lalu lintas I2C
+  if (now - prevLCDRefreshMillis >= LCD_REFRESH_INTERVAL) {
+    prevLCDRefreshMillis = now;
+    updateLCD();
+  }
 }
 
 // ==============================================================================
@@ -228,8 +335,9 @@ void readSensors() {
   float t = dht.readTemperature();
   float h = dht.readHumidity();
 
-  if (!isnan(t) && !isnan(h) && t >= -40.0 && t <= 80.0 && h >= 0.0 &&
-      h <= 100.0) {
+  if (!isnan(t) && !isnan(h) &&
+      t >= -40.0 && t <= 80.0 &&
+      h >= 0.0 && h <= 100.0) {
 
     temp = t;
     hum = h;
@@ -242,9 +350,6 @@ void readSensors() {
     if (dhtErrorCount < MAX_DHT_ERRORS) {
       dhtErrorCount++;
     }
-
-    Serial.printf("Warning: DHT22 gagal membaca (%d/%d)\n", dhtErrorCount,
-                  MAX_DHT_ERRORS);
   }
 
   // B. Sensor Intensitas Cahaya (BH1750)
@@ -257,7 +362,6 @@ void readSensors() {
       updateDayNight();
     } else {
       luxReadingValid = false;
-      Serial.println("Warning: Pembacaan BH1750 tidak valid.");
     }
   } else {
     luxReadingValid = false;
@@ -266,6 +370,9 @@ void readSensors() {
   // C. Sensor Hujan (Analog ADC Pin 34)
   rainVal = analogRead(RAIN_PIN);
   isRaining = (rainVal < RAIN_THRESH);
+
+  // Menandakan siklus pembacaan pertama sudah selesai
+  hasCompletedSensorRead = true;
 }
 
 // ==============================================================================
@@ -290,68 +397,101 @@ void updateDayNight() {
 
   // Hysteresis transisi untuk meredam kedipan cahaya
   switch (dayPhase) {
-  case PHASE_NIGHT:
-    if (lux >= DAWN_TO_DAY_LUX) {
-      dayPhase = PHASE_DAY;
-    } else if (lux >= NIGHT_TO_DAWN_LUX) {
-      dayPhase = PHASE_DAWN;
-    }
-    break;
+    case PHASE_NIGHT:
+      if (lux >= DAWN_TO_DAY_LUX) {
+        dayPhase = PHASE_DAY;
+      } else if (lux >= NIGHT_TO_DAWN_LUX) {
+        dayPhase = PHASE_DAWN;
+      }
+      break;
 
-  case PHASE_DAWN:
-    if (lux <= DAWN_TO_NIGHT_LUX) {
-      dayPhase = PHASE_NIGHT;
-    } else if (lux >= DAWN_TO_DAY_LUX) {
-      dayPhase = PHASE_DAY;
-    }
-    break;
+    case PHASE_DAWN:
+      if (lux <= DAWN_TO_NIGHT_LUX) {
+        dayPhase = PHASE_NIGHT;
+      } else if (lux >= DAWN_TO_DAY_LUX) {
+        dayPhase = PHASE_DAY;
+      }
+      break;
 
-  case PHASE_DAY:
-    if (lux <= DAWN_TO_NIGHT_LUX) {
-      dayPhase = PHASE_NIGHT;
-    } else if (lux <= DAY_TO_DAWN_LUX) {
-      dayPhase = PHASE_DAWN;
-    }
-    break;
+    case PHASE_DAY:
+      if (lux <= DAWN_TO_NIGHT_LUX) {
+        dayPhase = PHASE_NIGHT;
+      } else if (lux <= DAY_TO_DAWN_LUX) {
+        dayPhase = PHASE_DAWN;
+      }
+      break;
 
-  default:
-    dayPhase = PHASE_UNKNOWN;
-    break;
+    default:
+      dayPhase = PHASE_UNKNOWN;
+      break;
   }
 }
 
-const char *phaseName() {
+const char* phaseName() {
   switch (dayPhase) {
-  case PHASE_NIGHT:
-    return "MALAM";
-  case PHASE_DAWN:
-    return "SUBUH/TRANSISI";
-  case PHASE_DAY:
-    return "SIANG";
-  default:
-    return "BELUM DIKETAHUI";
+    case PHASE_NIGHT: return "MALAM";
+    case PHASE_DAWN:  return "SUBUH/TRANSISI";
+    case PHASE_DAY:   return "SIANG";
+    default:          return "BELUM DIKETAHUI";
   }
 }
 
-const char *phaseShortName() {
+const char* phaseShortName() {
   switch (dayPhase) {
-  case PHASE_NIGHT:
-    return "MALAM";
-  case PHASE_DAWN:
-    return "SUBUH";
-  case PHASE_DAY:
-    return "SIANG";
-  default:
-    return "UNK";
+    case PHASE_NIGHT: return "MLM";
+    case PHASE_DAWN:  return "SBH";
+    case PHASE_DAY:   return "SNG";
+    default:          return "UNK";
+  }
+}
+
+// Alasan status heater dikirim bersama telemetri agar mudah dianalisis
+const char* heaterReasonName() {
+  if (!dhtOK) {
+    return "DHT22_ERROR";
+  }
+  if (!bh1750Ready || !luxReadingValid) {
+    return "BH1750_ERROR";
+  }
+  if (dayPhase == PHASE_UNKNOWN) {
+    return "PHASE_UNKNOWN";
+  }
+  if (temperatureLockout || temp >= MAX_TEMP_C) {
+    return "OVER_TEMPERATURE";
+  }
+  if (!ntpTimeSynced) {
+    return "WAITING_FOR_NTP_TIME";
+  }
+  if (!heaterScheduleActive) {
+    return "OUTSIDE_HEATER_SCHEDULE";
+  }
+  if (ENABLE_REMOTE_CONTROL && remoteHeaterOverrideActive) {
+    return remoteHeaterRequest ? "REMOTE_ON" : "REMOTE_OFF";
+  }
+
+  switch (dayPhase) {
+    case PHASE_NIGHT:
+      return heaterState ? "NIGHT_AUTO_ON" : "NIGHT_STATE_OFF";
+    case PHASE_DAWN:
+      if (isRaining) return "DAWN_RAIN";
+      if (dawnHumidityDemand) return "DAWN_HUMIDITY";
+      return "DAWN_NO_DEMAND";
+    case PHASE_DAY:
+      return isRaining ? "DAY_RAIN" : "DAY_NO_RAIN";
+    default:
+      return "UNKNOWN";
   }
 }
 
 // ==============================================================================
-// 13. LOGIKA KONTROL HEATER & SAFETY INTERLOCK
+// 13. LOGIKA KONTROL HEATER & SAFETY INTERLOCK (COMBINE)
 // ==============================================================================
 void updateHeaterControl() {
-  // Penguncian Suhu Darurat (Lockout)
-  // OFF jika suhu >= 50°C, kembali ON jika suhu <= 48°C
+  // Evaluasi jadwal operasional NTP WIB
+  heaterScheduleActive = isWithinHeaterSchedule();
+
+  // 1. Penguncian Suhu Darurat (Safety Lockout):
+  //    OFF jika suhu >= 50°C, kembali diizinkan ON jika suhu <= 48°C
   if (dhtOK) {
     if (temp >= MAX_TEMP_C) {
       temperatureLockout = true;
@@ -359,7 +499,7 @@ void updateHeaterControl() {
       temperatureLockout = false;
     }
 
-    // Permintaan kelembapan subuh
+    // Permintaan pemanasan kelembapan subuh
     if (hum >= DAWN_HUMIDITY_ON) {
       dawnHumidityDemand = true;
     } else if (hum <= DAWN_HUMIDITY_OFF) {
@@ -367,33 +507,57 @@ void updateHeaterControl() {
     }
   }
 
-  // Interlock Keamanan Wajib
-  if (!dhtOK || !bh1750Ready || !luxReadingValid || dayPhase == PHASE_UNKNOWN ||
-      temperatureLockout) {
+  // 2. Interlock Keamanan Wajib (Kondisi sensor rusak / suhu kritis SELALU mengalahkan kontrol lain)
+  if (!dhtOK || !bh1750Ready || !luxReadingValid ||
+      dayPhase == PHASE_UNKNOWN || temperatureLockout || temp >= MAX_TEMP_C) {
     heaterState = false;
+    remoteHeaterOverrideActive = false;
+    remoteHeaterRequest = false;
     return;
   }
 
-  // Logika Berdasarkan Fase
-  switch (dayPhase) {
-  case PHASE_NIGHT:
-    // Malam: Pemanas ON terus selama suhu aman
-    heaterState = true;
-    break;
-
-  case PHASE_DAWN:
-    // Subuh: ON jika hujan atau kelembapan tinggi
-    heaterState = isRaining || dawnHumidityDemand;
-    break;
-
-  case PHASE_DAY:
-    // Siang: ON hanya saat mendung/hujan
-    heaterState = isRaining;
-    break;
-
-  default:
+  // 3. Sinkronisasi Waktu NTP Belum Valid: Heater dimatikan demi keselamatan jadwal
+  if (!ntpTimeSynced) {
     heaterState = false;
-    break;
+    remoteHeaterOverrideActive = false;
+    remoteHeaterRequest = false;
+    return;
+  }
+
+  // 4. Di luar jam operasional (05:00 - 18:00 WIB): Heater wajib OFF
+  if (!heaterScheduleActive) {
+    heaterState = false;
+    remoteHeaterOverrideActive = false;
+    remoteHeaterRequest = false;
+    return;
+  }
+
+  // 5. Override Jarak Jauh (Remote Control) jika diaktifkan dan memenuhi syarat aman
+  if (ENABLE_REMOTE_CONTROL && remoteHeaterOverrideActive) {
+    heaterState = remoteHeaterRequest;
+    return;
+  }
+
+  // 6. Logika Otomatis Berdasarkan Fase Cahaya (Di Dalam Jadwal 18:00 - 05:00 WIB)
+  switch (dayPhase) {
+    case PHASE_NIGHT:
+      // Malam: Pemanas ON terus menerus selama suhu dalam batas aman
+      heaterState = true;
+      break;
+
+    case PHASE_DAWN:
+      // Subuh: ON jika hujan atau kelembapan udara tinggi (>= 70%)
+      heaterState = isRaining || dawnHumidityDemand;
+      break;
+
+    case PHASE_DAY:
+      // Siang: ON hanya saat mendung gelap atau hujan
+      heaterState = isRaining;
+      break;
+
+    default:
+      heaterState = false;
+      break;
   }
 }
 
@@ -407,176 +571,511 @@ void applyRelayState() {
 }
 
 // ==============================================================================
-// 15. MANAJEMEN KONEKSI WIFI
+// 15. KONEKSI & KONTROL MQTT
+// ==============================================================================
+void maintainMQTT() {
+  if (WiFi.status() != WL_CONNECTED) {
+    lastMqttPublishOk = false;
+    return;
+  }
+
+  if (mqttClient.connected()) {
+    mqttClient.loop();
+    return;
+  }
+
+  const unsigned long now = millis();
+  if (now - lastMqttAttempt < MQTT_RETRY_INTERVAL) {
+    return;
+  }
+  lastMqttAttempt = now;
+
+  String mac = WiFi.macAddress();
+  mac.replace(":", "");
+  String clientId = String("ESP32-SRD-") + mac;
+
+  if (mqttClient.connect(clientId.c_str())) {
+    Serial.println("[MQTT] Terhubung ke Broker HiveMQ!");
+    if (ENABLE_REMOTE_CONTROL) {
+      mqttClient.subscribe(TOPIC_CONTROL);
+      Serial.printf("[MQTT] Berlangganan topik kontrol: %s\n", TOPIC_CONTROL);
+    }
+  }
+}
+
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  if (!ENABLE_REMOTE_CONTROL) {
+    return;
+  }
+
+  if (String(topic) != TOPIC_CONTROL) {
+    return;
+  }
+
+  StaticJsonDocument<512> command;
+  DeserializationError error = deserializeJson(command, payload, length);
+  if (error) {
+    Serial.println("[MQTT] Perintah kontrol tidak dapat di-parse JSON.");
+    return;
+  }
+
+  // Format 1: Kembali ke Mode Otomatis {"mode":"AUTO"}
+  if ((command["mode"].is<const char*>() && String(command["mode"].as<const char*>()) == "AUTO") ||
+      (command["data"]["overrideMode"].is<const char*>() && String(command["data"]["overrideMode"].as<const char*>()) == "AUTO")) {
+    remoteHeaterOverrideActive = false;
+    remoteHeaterRequest = false;
+    updateHeaterControl();
+    applyRelayState();
+    Serial.println("[MQTT] Heater kembali ke mode OTOMATIS.");
+    return;
+  }
+
+  // Format 2: Perintah Langsung {"target":"AUX_HEATER","state":true/false} atau {"auxHeaterStatus":true/false}
+  bool requestedState = false;
+  bool hasState = false;
+
+  if (command["target"].is<const char*>() && String(command["target"].as<const char*>()) == "AUX_HEATER") {
+    if (command["state"].is<bool>()) {
+      requestedState = command["state"].as<bool>();
+      hasState = true;
+    }
+  } else if (command["auxHeaterStatus"].is<bool>()) {
+    requestedState = command["auxHeaterStatus"].as<bool>();
+    hasState = true;
+  } else if (command["data"]["auxHeaterStatus"].is<bool>()) {
+    requestedState = command["data"]["auxHeaterStatus"].as<bool>();
+    hasState = true;
+  }
+
+  if (!hasState) {
+    return;
+  }
+
+  // Interlock Keselamatan: Jika tidak aman / suhu >= 50°C, tolak permintaan menyalakan heater
+  if (requestedState &&
+      (!dhtOK || !bh1750Ready || !luxReadingValid ||
+       dayPhase == PHASE_UNKNOWN || temperatureLockout || temp >= MAX_TEMP_C)) {
+    Serial.println("[MQTT] Permintaan remote heater ditolak: Syarat keselamatan suhu belum terpenuhi.");
+    heaterState = false;
+    remoteHeaterOverrideActive = false;
+    remoteHeaterRequest = false;
+    applyRelayState();
+    return;
+  }
+
+  remoteHeaterOverrideActive = true;
+  remoteHeaterRequest = requestedState;
+  heaterState = requestedState;
+  applyRelayState();
+
+  Serial.printf("[MQTT] Perintah remote diterapkan -> Heater %s\n",
+                requestedState ? "ON (MENYALA)" : "OFF (MATI)");
+}
+
+// ==============================================================================
+// 16. PUBLIKASI TELEMETRI (MQTT & HTTP DUAL TRANSMISSION)
+// ==============================================================================
+bool publishMqttTelemetry() {
+  if (!ENABLE_MQTT_TELEMETRY || !hasCompletedSensorRead || !mqttClient.connected()) {
+    lastMqttPublishOk = false;
+    hasMqttPublishResult = true;
+    lastMqttPublishMillis = millis();
+    return false;
+  }
+
+  StaticJsonDocument<1536> doc;
+  doc["deviceId"] = MQTT_DEVICE_ID;
+
+  // Sensor Suhu & Kelembapan
+  if (dhtOK) {
+    doc["tempInternal"]     = round(temp * 10.0) / 10.0;
+    doc["humidityInternal"] = round(hum * 10.0) / 10.0;
+  } else {
+    doc["tempInternal"]     = nullptr;
+    doc["humidityInternal"] = nullptr;
+  }
+
+  // Sensor Intensitas Cahaya
+  if (bh1750Ready && luxReadingValid) {
+    doc["lux"]            = round(lux * 10.0) / 10.0;
+    doc["solarRadiation"] = round(lux * 10.0) / 10.0;
+  } else {
+    doc["lux"]            = nullptr;
+    doc["solarRadiation"] = nullptr;
+  }
+
+  // Sensor Hujan & Status Lingkungan
+  doc["rainAdc"]    = rainVal;
+  doc["isRaining"]  = isRaining;
+  doc["rainStatus"] = isRaining ? "HUJAN" : "KERING";
+  doc["dhtOk"]      = dhtOK;
+  doc["bh1750Ok"]   = bh1750Ready && luxReadingValid;
+  doc["dayPhase"]   = phaseName();
+
+  // Status Aktuator Heater & Relay
+  doc["auxHeater"]            = heaterState;
+  doc["auxHeaterStatus"]      = heaterState;
+  doc["heaterState"]          = heaterState;
+  doc["heaterOn"]             = heaterState;
+  doc["heaterStatus"]         = heaterState;
+  doc["relayCh1"]             = heaterState;
+  doc["relayCh2"]             = heaterState;
+  doc["heaterStatusText"]     = heaterState ? "ON" : "OFF";
+  doc["relayStatus"]          = heaterState ? "ON" : "OFF";
+  doc["heaterReason"]         = heaterReasonName();
+  doc["relayActiveLow"]       = RELAY_ACTIVE_LOW;
+  doc["heaterScheduleStart"]  = "18:00";
+  doc["heaterScheduleEnd"]    = "05:00";
+  doc["heaterScheduleActive"] = heaterScheduleActive;
+  doc["heaterScheduleStatus"] = !ntpTimeSynced
+      ? "WAITING_FOR_TIME"
+      : (heaterScheduleActive ? "ACTIVE" : "OUTSIDE_SCHEDULE");
+
+  doc["heaterMode"]           = (ENABLE_REMOTE_CONTROL && remoteHeaterOverrideActive) ? "MANUAL" : "AUTO";
+  doc["temperatureLockout"]   = temperatureLockout;
+  doc["sensorSafe"]           = dhtOK && bh1750Ready && luxReadingValid &&
+                                dayPhase != PHASE_UNKNOWN && !temperatureLockout &&
+                                temp < MAX_TEMP_C;
+  doc["uptimeMs"]             = millis();
+
+  // Waktu Lokal Sinkron NTP WIB
+  doc["ntpSynced"] = ntpTimeSynced;
+  doc["timeZone"]  = "WIB";
+  if (ntpTimeSynced) {
+    struct tm timeInfo;
+    if (getLocalTime(&timeInfo, 10)) {
+      char dateBuffer[11];
+      char timeBuffer[9];
+      char dateTimeBuffer[20];
+      strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d", &timeInfo);
+      strftime(timeBuffer, sizeof(timeBuffer), "%H:%M:%S", &timeInfo);
+      strftime(dateTimeBuffer, sizeof(dateTimeBuffer), "%Y-%m-%d %H:%M:%S", &timeInfo);
+      doc["localDate"]     = dateBuffer;
+      doc["localTime"]     = timeBuffer;
+      doc["localDateTime"] = dateTimeBuffer;
+    } else {
+      doc["ntpSynced"]     = false;
+      doc["localDate"]     = nullptr;
+      doc["localTime"]     = nullptr;
+      doc["localDateTime"] = nullptr;
+    }
+  } else {
+    doc["localDate"]     = nullptr;
+    doc["localTime"]     = nullptr;
+    doc["localDateTime"] = nullptr;
+  }
+
+  char payload[1536];
+  const size_t bytes = serializeJson(doc, payload, sizeof(payload));
+  if (bytes == 0 || bytes >= sizeof(payload)) {
+    lastMqttPublishOk = false;
+    hasMqttPublishResult = true;
+    lastMqttPublishMillis = millis();
+    return false;
+  }
+
+  const bool ok = mqttClient.publish(TOPIC_TELEMETRY, payload);
+  lastMqttPublishOk = ok;
+  hasMqttPublishResult = true;
+  lastMqttPublishMillis = millis();
+  return ok;
+}
+
+bool sendHttpTelemetry() {
+  if (!ENABLE_HTTP_TELEMETRY || !hasCompletedSensorRead || WiFi.status() != WL_CONNECTED) {
+    lastHttpPublishOk = false;
+    hasHttpPublishResult = true;
+    lastHttpPublishMillis = millis();
+    return false;
+  }
+
+  HTTPClient http;
+  http.setTimeout(3500);
+
+  if (!http.begin(serverUrl)) {
+    lastHttpPublishOk = false;
+    hasHttpPublishResult = true;
+    lastHttpPublishMillis = millis();
+    return false;
+  }
+
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("X-Device-Key", apiKey);
+  http.addHeader("X-Device-Token", apiKey);
+
+  // Buat Payload JSON HTTP kompatibel dengan TelemetryController Laravel
+  StaticJsonDocument<768> httpDoc;
+  httpDoc["deviceId"]         = deviceId;
+  httpDoc["device_id"]        = deviceId;
+  httpDoc["temperature"]      = dhtOK ? (round(temp * 10.0) / 10.0) : 0.0;
+  httpDoc["tempInternal"]     = dhtOK ? (round(temp * 10.0) / 10.0) : 0.0;
+  httpDoc["humidity"]         = dhtOK ? (round(hum * 10.0) / 10.0) : 0.0;
+  httpDoc["humidityInternal"] = dhtOK ? (round(hum * 10.0) / 10.0) : 0.0;
+  httpDoc["lux"]              = (bh1750Ready && luxReadingValid) ? (round(lux * 10.0) / 10.0) : 0.0;
+  httpDoc["solarRadiation"]   = (bh1750Ready && luxReadingValid) ? (round(lux * 10.0) / 10.0) : 0.0;
+  httpDoc["rain_adc"]         = rainVal;
+  httpDoc["is_raining"]       = isRaining;
+  httpDoc["dht_ok"]           = dhtOK;
+  httpDoc["bh1750_ok"]        = (bh1750Ready && luxReadingValid);
+  httpDoc["heater_on"]        = heaterState;
+  httpDoc["heaterStatus"]     = heaterState;
+  httpDoc["heaterReason"]     = heaterReasonName();
+  httpDoc["dayPhase"]         = phaseName();
+
+  String jsonPayload;
+  serializeJson(httpDoc, jsonPayload);
+
+  int responseCode = http.POST(jsonPayload);
+  lastHttpResponseCode = responseCode;
+  lastHttpPublishOk = (responseCode >= 200 && responseCode < 300);
+  hasHttpPublishResult = true;
+  lastHttpPublishMillis = millis();
+
+  http.end();
+  return lastHttpPublishOk;
+}
+
+bool sendTelemetry() {
+  if (WiFi.status() != WL_CONNECTED) {
+    lastMqttPublishOk = false;
+    lastHttpPublishOk = false;
+    hasMqttPublishResult = true;
+    hasHttpPublishResult = true;
+    return false;
+  }
+
+  bool mqttOk = false;
+  bool httpOk = false;
+
+  if (ENABLE_MQTT_TELEMETRY) {
+    mqttOk = publishMqttTelemetry();
+  }
+  if (ENABLE_HTTP_TELEMETRY) {
+    httpOk = sendHttpTelemetry();
+  }
+
+  return (mqttOk || httpOk);
+}
+
+// ==============================================================================
+// 17. MANAJEMEN KONEKSI WIFI & NTP
 // ==============================================================================
 void maintainWiFi() {
   wl_status_t status = WiFi.status();
 
   if (status == WL_CONNECTED) {
     if (!wifiWasConnected) {
-      Serial.println("\n[WiFi] Terhubung!");
+      Serial.println();
+      Serial.println("[WiFi] Berhasil Terhubung!");
       Serial.print("[WiFi] IP Address ESP32: ");
       Serial.println(WiFi.localIP());
+
+      // Sinkronkan waktu WIB via NTP
+      configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC,
+                 NTP_SERVER_1, NTP_SERVER_2, NTP_SERVER_3);
+      prevNtpCheckMillis = 0;
+      Serial.println("[NTP] Memulai sinkronisasi waktu WIB (UTC+7)...");
     }
     wifiWasConnected = true;
     return;
   }
 
   if (wifiWasConnected) {
-    Serial.println("\n[WiFi] Koneksi terputus. Kontrol lokal tetap aktif.");
+    Serial.println("\n[WiFi] Terputus. Kontrol lokal greenhouse tetap aktif.");
   }
   wifiWasConnected = false;
 
-  if ((status == WL_CONNECT_FAILED || status == WL_NO_SSID_AVAIL) &&
-      millis() - lastWifiAttempt >= WIFI_RETRY_INTERVAL) {
+  // Coba sambungkan kembali secara berkala
+  if (millis() - lastWifiAttempt >= WIFI_RETRY_INTERVAL) {
     lastWifiAttempt = millis();
-    Serial.println("[WiFi] Mencoba koneksi kembali...");
+    WiFi.disconnect();
     WiFi.begin(ssid, password);
   }
 }
 
-// ==============================================================================
-// 16. KIRIM TELEMETRI KE API SERVER & MQTT WORKER
-// ==============================================================================
-void sendTelemetry() {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("[HTTP] Wi-Fi offline. Pembacaan lokal berjalan normal.");
+void updateNtpStatus() {
+  const unsigned long now = millis();
+  if (now - prevNtpCheckMillis < NTP_CHECK_INTERVAL) {
     return;
   }
+  prevNtpCheckMillis = now;
 
-  HTTPClient http;
-  http.setTimeout(3000); // Batas waktu koneksi 3 detik
+  struct tm timeInfo;
+  const bool timeValid = getLocalTime(&timeInfo, 10) &&
+                         (timeInfo.tm_year >= (2024 - 1900));
+  if (timeValid) {
+    ntpTimeSynced = true;
+  }
+}
 
-  if (!http.begin(serverUrl)) {
-    Serial.println("[HTTP] Gagal menginisialisasi koneksi HTTP.");
-    return;
+bool isWithinHeaterSchedule() {
+  if (!ntpTimeSynced) {
+    return false;
   }
 
-  // Header Autentikasi Hardware Resmi
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("X-Device-Key", apiKey);
-
-  // Buat Payload JSON
-  String json = "{";
-  json += "\"device_id\":\"" + String(deviceId) + "\"";
-  json += ",\"temperature\":" + String(temp, 1);
-  json += ",\"humidity\":" + String(hum, 1);
-  json += ",\"lux\":" + String(lux, 1);
-  json += ",\"rain_adc\":" + String(rainVal);
-  json += ",\"is_raining\":" + String(isRaining ? "true" : "false");
-  json += ",\"dht_ok\":" + String(dhtOK ? "true" : "false");
-  json += ",\"bh1750_ok\":" +
-          String(bh1750Ready && luxReadingValid ? "true" : "false");
-  json += ",\"heater_on\":" + String(heaterState ? "true" : "false");
-  json += "}";
-
-  int responseCode = http.POST(json);
-
-  Serial.printf("[HTTP] POST %s -> Response Code: %d\n", serverUrl,
-                responseCode);
-
-  if (responseCode > 0) {
-    String response = http.getString();
-    Serial.printf("[HTTP] Balasan: %s\n", response.c_str());
-  } else {
-    Serial.printf("[HTTP] Error: %s\n",
-                  http.errorToString(responseCode).c_str());
+  struct tm timeInfo;
+  if (!getLocalTime(&timeInfo, 10) || timeInfo.tm_year < (2024 - 1900)) {
+    return false;
   }
 
-  http.end();
+  const int hourNow = timeInfo.tm_hour;
+
+  // Jadwal melewati tengah malam: 18:00 hingga sebelum 05:00 WIB
+  if (HEATER_START_HOUR > HEATER_STOP_HOUR) {
+    return (hourNow >= HEATER_START_HOUR || hourNow < HEATER_STOP_HOUR);
+  }
+
+  return (hourNow >= HEATER_START_HOUR && hourNow < HEATER_STOP_HOUR);
 }
 
 // ==============================================================================
-// 17. SERIAL MONITOR
+// 18. SERIAL MONITOR — DASHBOARD MONITORING
 // ==============================================================================
-void printToSerial() {
-  Serial.println("----------------------------------------------");
+void printFriendlyDashboard() {
+  Serial.println();
+  Serial.println("==================================================");
+  Serial.println("       SMART ROOM DRYER - DESA WISATA HANJELI     ");
+  Serial.println("==================================================");
+
+  Serial.printf("Kondisi Cahaya  : %s\n", phaseName());
+
   if (dhtOK) {
-    Serial.printf("Suhu: %.1f C | Kelembapan: %.1f %%\n", temp, hum);
+    Serial.printf("Suhu Ruangan    : %.1f C\n", temp);
+    Serial.printf("Kelembapan Udara: %.1f %%\n", hum);
   } else {
-    Serial.println("DHT22: SENSOR FAULT / ERROR");
+    Serial.printf("Suhu / RH Udara : SENSOR ERROR (%d/%d)\n", dhtErrorCount, MAX_DHT_ERRORS);
   }
 
-  if (luxReadingValid) {
-    Serial.printf("Cahaya: %.1f lux | Fase: %s\n", lux, phaseName());
+  if (bh1750Ready && luxReadingValid) {
+    Serial.printf("Intensitas Lux  : %.1f lux\n", lux);
   } else {
-    Serial.println("BH1750: SENSOR FAULT / ERROR");
+    Serial.println("Intensitas Lux  : BH1750 ERROR / TIDAK TERBACA");
   }
 
-  Serial.printf("Sensor Hujan: %s (ADC: %d)\n", isRaining ? "HUJAN" : "KERING",
-                rainVal);
-  Serial.printf("Status Heater: %s | Lockout: %s\n",
-                heaterState ? "AKTIF (ON)" : "MATI (OFF)",
-                temperatureLockout ? "LOCKOUT (SUHU TINGGI)" : "NORMAL");
-  Serial.println("----------------------------------------------");
+  Serial.printf("Sensor Hujan    : %s (ADC: %d)\n",
+                isRaining ? "HUJAN TERDETEKSI" : "TIDAK HUJAN", rainVal);
+
+  Serial.printf("Jadwal Heater   : %s\n",
+                !ntpTimeSynced ? "MENUNGGU SINKRONISASI WAKTU NTP" :
+                (heaterScheduleActive ? "AKTIF (18:00 - 05:00 WIB)" : "DI LUAR JADWAL (OFF)"));
+
+  Serial.printf("Pemanas (PTC)   : %s\n",
+                heaterState ? "ON - MENYALA" : "OFF - STANDBY");
+
+  Serial.printf("Alasan Kontrol  : %s\n", heaterReasonName());
+  Serial.printf("Lockout Suhu    : %s\n", temperatureLockout ? "LOCKOUT AKTIF (SUHU TINGGI)" : "NORMAL");
+
+  Serial.println("--------------------------------------------------");
+  Serial.printf("Koneksi Wi-Fi   : %s (IP: %s)\n",
+                WiFi.status() == WL_CONNECTED ? "TERHUBUNG" : "OFFLINE",
+                WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString().c_str() : "-");
+
+  Serial.printf("Broker MQTT     : %s [%s]\n",
+                mqttClient.connected() ? "TERHUBUNG" : "BELUM TERHUBUNG",
+                lastMqttPublishOk ? "KIRIM SUKSES" : "MENUNGGU / GAGAL");
+
+  Serial.printf("HTTP Backend    : %s [%s, Kode: %d]\n",
+                serverUrl,
+                lastHttpPublishOk ? "SUKSES" : "BELUM / GAGAL",
+                lastHttpResponseCode);
+
+  Serial.println("==================================================");
 }
 
 // ==============================================================================
-// 18. TAMPILAN LCD 20x4
+// 19. TAMPILAN LCD 20x4 (ANTI-FLICKER & CLEAN PADDING)
 // ==============================================================================
+void printLCDLine(uint8_t row, String line) {
+  if (line.length() > 20) {
+    line = line.substring(0, 20);
+  }
+
+  lcd.setCursor(0, row);
+  lcd.print(line);
+  for (size_t i = line.length(); i < 20; i++) {
+    lcd.print(' ');
+  }
+}
+
 void updateLCD() {
   if (currentPage == 0) {
-    // Halaman 1: Monitoring Real-Time Sensor & Aktuator
-    lcd.setCursor(0, 0);
-    lcd.print(" SMART ROOM DRYER   ");
+    // HALAMAN 1: Monitoring Real-Time Sensor & Relay
+    printLCDLine(0, " SMART ROOM DRYER   ");
 
-    lcd.setCursor(0, 1);
+    String sensorLine;
     if (dhtOK) {
-      lcd.print("T:");
-      lcd.print(temp, 1);
-      lcd.print((char)223);
-      lcd.print("C H:");
-      lcd.print(hum, 1);
-      lcd.print("%   ");
+      sensorLine = "T:";
+      sensorLine += String(temp, 1);
+      sensorLine += (char)223;  // Derajat Celcius
+      sensorLine += "C H:";
+      sensorLine += String(hum, 1);
+      sensorLine += "%";
     } else {
-      lcd.print("T:ERR! H:ERR!       ");
+      sensorLine = "T:ERROR H:ERROR";
     }
+    printLCDLine(1, sensorLine);
 
-    lcd.setCursor(0, 2);
-    lcd.print("L:");
+    String lightRainLine = "L:";
     if (luxReadingValid) {
-      lcd.print((int)lux);
-      lcd.print("lx       ");
+      lightRainLine += String((unsigned long)lux);
     } else {
-      lcd.print("ERR lx      ");
+      lightRainLine += "ERR";
     }
+    lightRainLine += "lx";
+    while (lightRainLine.length() < 12) {
+      lightRainLine += ' ';
+    }
+    lightRainLine += "Rain:";
+    lightRainLine += (isRaining ? "YES" : "NO");
+    printLCDLine(2, lightRainLine);
 
-    lcd.setCursor(10, 2);
-    lcd.print("Rain:");
-    lcd.print(isRaining ? "YES" : "NO ");
-
-    lcd.setCursor(0, 3);
-    lcd.print("H1:");
-    lcd.print(heaterState ? "ON " : "OFF");
-    lcd.print(" H2:");
-    lcd.print(heaterState ? "ON " : "OFF");
-    lcd.print(" ");
-    lcd.print(phaseShortName());
+    String relayLine = "H1:";
+    relayLine += (heaterState ? "ON " : "OFF");
+    relayLine += " H2:";
+    relayLine += (heaterState ? "ON " : "OFF");
+    relayLine += " ";
+    relayLine += phaseShortName();
+    printLCDLine(3, relayLine);
 
   } else {
-    // Halaman 2: Diagnostik Perangkat & IP ESP32
-    lcd.setCursor(0, 0);
-    lcd.print("[SYSTEM DIAGNOSTIC] ");
-
-    lcd.setCursor(0, 1);
-    lcd.print("DHT:");
-    lcd.print(dhtOK ? "OK " : "ERR");
-    lcd.print(" BH:");
-    lcd.print((bh1750Ready && luxReadingValid) ? "OK " : "ERR");
-    lcd.print(" P:");
-    lcd.print(phaseShortName());
-
-    lcd.setCursor(0, 2);
-    lcd.print("Rain ADC: ");
-    lcd.print(rainVal);
-    lcd.print("    ");
-
-    lcd.setCursor(0, 3);
-    if (WiFi.status() == WL_CONNECTED) {
-      lcd.print("IP:");
-      lcd.print(WiFi.localIP().toString().substring(0, 17));
+    // HALAMAN 2: Diagnostik, Jam NTP WIB, & IP Jaringan
+    String diagnosticTitle = "DIAG ";
+    if (ntpTimeSynced) {
+      struct tm timeInfo;
+      if (getLocalTime(&timeInfo, 10)) {
+        char clockBuffer[9];
+        strftime(clockBuffer, sizeof(clockBuffer), "%H:%M:%S", &timeInfo);
+        diagnosticTitle += clockBuffer;
+        diagnosticTitle += " WIB";
+      } else {
+        diagnosticTitle += "NTP MENUNGGU";
+      }
     } else {
-      lcd.print("WiFi: DISCONNECTED  ");
+      diagnosticTitle += "NTP MENUNGGU";
     }
+    printLCDLine(0, diagnosticTitle);
+
+    const bool displayBhOk = bh1750Ready && luxReadingValid;
+    String statusLine = "DHT:";
+    statusLine += (dhtOK ? "OK" : "ERR");
+    statusLine += " BH:";
+    statusLine += (displayBhOk ? "OK" : "ERR");
+    statusLine += " P:";
+    statusLine += phaseShortName();
+    printLCDLine(1, statusLine);
+
+    String rainLine = "RAIN ADC:";
+    rainLine += String(rainVal);
+    rainLine += (isRaining ? " HUJAN" : " KERING");
+    printLCDLine(2, rainLine);
+
+    String networkLine;
+    if (WiFi.status() == WL_CONNECTED) {
+      networkLine = "IP:";
+      networkLine += WiFi.localIP().toString();
+    } else {
+      networkLine = "WiFi: DISCONNECTED";
+    }
+    printLCDLine(3, networkLine);
   }
 }

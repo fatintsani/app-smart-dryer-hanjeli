@@ -19,19 +19,29 @@ Firmware resmi untuk mikrokontroler **ESP32** pada sistem Smart Room Dryer Green
 
 ---
 
-## 2. Konfigurasi Jaringan & Server
+## 2. Konfigurasi Jaringan, NTP & MQTT
 
-Di dalam file `esp32_smart_dryer_hardware.ino`, sesuaikan kredensial berikut:
+Di dalam file `esp32_smart_dryer_hardware.ino`, konfigurasi jaringan dan server telah dikombinasikan secara lengkap:
 
 ```cpp
 // Wi-Fi
-const char* ssid        = "tes2";            // Nama Wi-Fi Anda
-const char* password    = "12345678";        // Password Wi-Fi Anda
+const char* ssid        = "inode-AOO2";
+const char* password    = "stasrg2024";
 
-// Endpoint Backend Web
+// Endpoint Backend Web (HTTP Ingestion)
 const char* serverUrl   = "https://hanjeli-dryer.stas-rg.com/api/telemetry";
 const char* apiKey      = "NCtJiDY-xuz9iPr8LYy4Mb15bXN-tB3EJOcrJ-ei754";
 const char* deviceId    = "SRD-001";
+
+// Waktu NTP WIB (UTC+7) & Jadwal Operasional Pemanas
+const uint8_t HEATER_START_HOUR = 18;  // Mulai 18:00 WIB
+const uint8_t HEATER_STOP_HOUR  = 5;   // Berakhir 05:00 WIB
+
+// MQTT Broker HiveMQ
+const char*    MQTT_BROKER      = "broker.hivemq.com";
+const uint16_t MQTT_PORT        = 1883;
+const char*    TOPIC_TELEMETRY  = "hanjeli/greenhouse/telemetry";
+const char*    TOPIC_CONTROL    = "hanjeli/greenhouse/control";
 ```
 
 ---
@@ -39,13 +49,18 @@ const char* deviceId    = "SRD-001";
 ## 3. Logika Kontrol Pemanas & Keamanan (Safety Interlock)
 
 1. **Batas Suhu Kritis (Temperature Lockout):**
-   * Pemanas **wajib MATI** jika suhu $\ge 50^\circ\text{C}$.
+   * Pemanas **wajib MATI (OFF)** jika suhu $\ge 50^\circ\text{C}$.
    * Pemanas baru diizinkan menyala kembali jika suhu telah turun $\le 48^\circ\text{C}$.
-2. **State Machine Fase Cahaya:**
-   * **Malam ($\le 50\text{ lux}$):** Pemanas menyala (*ON*) untuk menjaga suhu pengeringan.
+2. **Jadwal Operasional Waktu Nyata (NTP WIB):**
+   * Pemanas hanya aktif pada jam kerja malam: **18:00 hingga sebelum 05:00 WIB**.
+   * Di luar jadwal tersebut atau sebelum waktu NTP tersinkronisasi, pemanas dimatikan secara aman (*fail-safe*).
+3. **State Machine Fase Cahaya (Di Dalam Jadwal):**
+   * **Malam ($\le 50\text{ lux}$):** Pemanas menyala (*ON*) untuk menjaga suhu pengeringan stabil.
    * **Subuh / Transisi ($40 - 200\text{ lux}$):** Pemanas menyala jika terdeteksi hujan atau kelembapan udara $\ge 70\%$.
-   * **Siang ($\ge 200\text{ lux}$):** Pemanas menyala hanya jika kondisi hujan / mendung gelap.
-3. **Fail-Safe Offline:**
+   * **Siang ($\ge 200\text{ lux}$):** Pemanas menyala hanya jika kondisi mendung gelap atau hujan.
+4. **Kendali Jarak Jauh (Remote Override via MQTT):**
+   * Menerima perintah kendali relay dari antarmuka web, namun keselamatan sensor dan batas suhu $\ge 50^\circ\text{C}$ selalu menjadi prioritas tertinggi (*interlock lock*).
+5. **Fail-Safe Offline:**
    * Jika Wi-Fi atau server backend terputus, ESP32 tetap menjalankan seluruh pembacaan sensor dan kontrol relay secara lokal tanpa kendala (*non-blocking*).
 
 ---
