@@ -616,15 +616,15 @@ let timer = null;
 
 // Device Customization State
 const isDeviceEditOpen = ref(false);
-const devicePresets = ['OPPO Reno', 'ESP32-GreenHouse', 'SRD-001', 'Smart-Dryer-01'];
+const devicePresets = ['inode-AOO2', 'SRD-001', 'ESP32-GreenHouse', 'Smart-Dryer-01', 'OPPO Reno'];
 const editDeviceForm = reactive({
-  deviceId: 'OPPO Reno',
-  hotspotName: 'OPPO Reno',
+  deviceId: 'inode-AOO2',
+  hotspotName: 'inode-AOO2',
 });
 
 const openDeviceEditModal = () => {
-  editDeviceForm.deviceId = connectionState.deviceId || 'OPPO Reno';
-  editDeviceForm.hotspotName = connectionState.hotspotName || connectionState.deviceId || 'OPPO Reno';
+  editDeviceForm.deviceId = connectionState.deviceId || 'inode-AOO2';
+  editDeviceForm.hotspotName = connectionState.hotspotName || connectionState.deviceId || 'inode-AOO2';
   isDeviceEditOpen.value = true;
 };
 

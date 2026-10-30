@@ -22,8 +22,8 @@ class ConnectionManager {
   constructor() {
     this.listeners = new Map();
 
-    const savedDeviceId = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_device_id') || 'OPPO Reno') : 'OPPO Reno';
-    const savedHotspot = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_hotspot_name') || 'OPPO Reno') : 'OPPO Reno';
+    const savedDeviceId = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_device_id') || 'inode-AOO2') : 'inode-AOO2';
+    const savedHotspot = typeof localStorage !== 'undefined' ? (localStorage.getItem('hanjeli_hotspot_name') || 'inode-AOO2') : 'inode-AOO2';
 
     // Reactive State for UI binding - 100% Production Direct Hardware
     this.state = reactive({

@@ -39,10 +39,14 @@ class TelemetryController extends Controller
 
         $now = Carbon::now();
         $isLive = $latest && abs($latest->recorded_at->diffInSeconds($now)) <= 20;
+        $deviceCode = \App\Models\Device::where('is_active', true)->where('status', 'online')->value('code') 
+            ?? \App\Models\Device::where('is_active', true)->value('code') 
+            ?? 'inode-AOO2';
 
         if (!$latest || !$isLive) {
             return response()->json([
                 'telemetry' => [
+                    'deviceId' => $deviceCode,
                     'tempInternal' => $latest ? $latest->temp_internal : 0.0,
                     'humidityInternal' => $latest ? $latest->humidity_internal : 0.0,
                     'tempExternal' => $latest ? $latest->temp_external : 0.0,
@@ -72,6 +76,7 @@ class TelemetryController extends Controller
         return response()->json([
             'telemetry' => [
                 'id' => $latest->id,
+                'deviceId' => $deviceCode,
                 'tempInternal' => $latest->temp_internal,
                 'humidityInternal' => $latest->humidity_internal,
                 'tempExternal' => $latest->temp_external,
@@ -215,6 +220,8 @@ class TelemetryController extends Controller
             'bh1750Ok' => $request->boolean('bh1750_ok', $request->boolean('bh1750Ok', true)),
         ];
 
+        $incomingDeviceId = $request->input('deviceId', $request->input('device_id', $validDevice?->code ?? 'inode-AOO2'));
+
         if ($validDevice) {
             $validDevice->update([
                 'last_heartbeat' => Carbon::now()->locale('id')->diffForHumans(),
@@ -222,13 +229,14 @@ class TelemetryController extends Controller
             ]);
         }
 
+        $payload['deviceId'] = $incomingDeviceId;
         $telemetry = $mqttService->processTelemetryPayload($payload);
         $actuatorState = ActuatorState::first();
 
         return response()->json([
             'success' => true,
             'id' => $telemetry->id,
-            'deviceId' => $validDevice?->code ?? 'SRD-001',
+            'deviceId' => $incomingDeviceId,
             'recordedAt' => $telemetry->recorded_at->toIso8601String(),
             'actuators' => $actuatorState ? [
                 'exhaustFanStatus' => (bool) $actuatorState->exhaust_fan_status,

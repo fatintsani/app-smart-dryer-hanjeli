@@ -430,7 +430,9 @@
                                         viewBox="0 0 24 24"
                                         fill="none"
                                         stroke="currentColor"
-                                        stroke-width="2"
+                                        stroke-width="2.2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
                                     >
                                         <path
                                             d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
@@ -2626,21 +2628,23 @@ onUnmounted(() => {
 }
 
 .mobile-drawer-links a.active .link-icon-chip {
-    background: #0d631b;
-    color: #ffffff;
+    background: rgba(13, 99, 27, 0.16) !important;
+    color: #0d631b !important;
 }
 
 .mobile-drawer-links a.active .link-icon-chip svg {
-    stroke: #ffffff !important;
+    stroke: #0d631b !important;
+    fill: none !important;
 }
 
 .dark-landing .mobile-drawer-links a.active .link-icon-chip {
-    background: #0d631b;
-    color: #ffffff;
+    background: rgba(74, 222, 128, 0.22) !important;
+    color: #4ade80 !important;
 }
 
 .dark-landing .mobile-drawer-links a.active .link-icon-chip svg {
-    stroke: #ffffff !important;
+    stroke: #4ade80 !important;
+    fill: none !important;
 }
 
 .mobile-drawer-cta {

@@ -52,14 +52,23 @@ const uint8_t RELAY_OFF_LEVEL = RELAY_ACTIVE_LOW ? HIGH : LOW;
 // ==============================================================================
 // 3. KONFIGURASI NETWORK & SERVER BACKEND WEB (TETAP & COMBINE)
 // ==============================================================================
-// A. Kredensial Wi-Fi / Hotspot
-const char* ssid        = "inode-AOO2";     // Nama Wi-Fi / Hotspot
-const char* password    = "stasrg2024";     // Password Wi-Fi
+// A. Kredensial Wi-Fi / Hotspot (Mendukung Hotspot Utama & Cadangan Otomatis)
+const char* ssidPrimary       = "inode-AOO2";     // Nama Wi-Fi / Hotspot HP Anda
+const char* passwordPrimary   = "stasrg2024";     // Password Hotspot HP Anda
+
+const char* ssidSecondary     = "tes2";           // Nama Hotspot Cadangan
+const char* passwordSecondary = "12345678";       // Password Hotspot Cadangan
+
+// Variabel aktif untuk koneksi Wi-Fi
+const char* currentSsid       = ssidPrimary;
+const char* currentPassword   = passwordPrimary;
+bool usingSecondaryWifi       = false;
+uint8_t wifiFailRetries       = 0;
 
 // B. Endpoint API HTTP Web Server Smart Dryer Hanjeli
 const char* serverUrl   = "https://hanjeli-dryer.stas-rg.com/api/telemetry";
 const char* apiKey      = "NCtJiDY-xuz9iPr8LYy4Mb15bXN-tB3EJOcrJ-ei754";
-const char* deviceId    = "SRD-001";        // ID Perangkat Resmi (Sinkron dengan Sistem Web)
+const char* deviceId    = "inode-AOO2";        // Identitas Perangkat ESP32 (Sinkron dengan Sistem Web)
 
 // C. Sinkronisasi Waktu NTP Indonesia Barat (WIB = UTC+7, tanpa DST)
 const long GMT_OFFSET_SEC      = 7L * 60L * 60L;
@@ -76,7 +85,7 @@ const uint8_t HEATER_STOP_HOUR  = 5;
 // D. Konfigurasi Protokol Broker MQTT (HiveMQ)
 const char*    MQTT_BROKER      = "broker.hivemq.com";
 const uint16_t MQTT_PORT        = 1883;
-const char*    MQTT_DEVICE_ID   = "SRD-001"; // Harmonisasi dengan deviceId backend
+const char*    MQTT_DEVICE_ID   = "inode-AOO2"; // Harmonisasi dengan deviceId backend
 
 const char* TOPIC_TELEMETRY     = "hanjeli/greenhouse/telemetry";
 const char* TOPIC_CONTROL       = "hanjeli/greenhouse/control";
@@ -152,10 +161,10 @@ unsigned long prevLCDRefreshMillis = 0;
 const unsigned long LCD_REFRESH_INTERVAL = 300; // Refresh LCD tiap 300 ms
 
 unsigned long lastWifiAttempt      = 0;
-const unsigned long WIFI_RETRY_INTERVAL = 15000; // Coba reconnect Wi-Fi tiap 15 detik
+const unsigned long WIFI_RETRY_INTERVAL = 8000; // Evaluasi koneksi Wi-Fi tiap 8 detik
 
 unsigned long lastMqttAttempt      = 0;
-const unsigned long MQTT_RETRY_INTERVAL = 5000;  // Coba reconnect MQTT tiap 5 detik
+const unsigned long MQTT_RETRY_INTERVAL = 5000; // Coba reconnect MQTT tiap 5 detik
 
 bool wifiWasConnected = false;
 
@@ -169,7 +178,7 @@ const unsigned long NTP_CHECK_INTERVAL = 1000;
 bool hasPublishedHeaterState  = false;
 bool lastPublishedHeaterState = false;
 
-// Status pengiriman data untuk monitoring Serial
+// Status pengiriman data untuk monitoring Serial & LCD
 bool hasMqttPublishResult     = false;
 bool lastMqttPublishOk        = false;
 unsigned long lastMqttPublishMillis = 0;
@@ -207,6 +216,7 @@ const char* heaterReasonName();
 // ==============================================================================
 void setup() {
   Serial.begin(115200);
+  delay(500);
 
   // Inisialisasi pin relay dan tetapkan kondisi awal aman (OFF)
   pinMode(RELAY_CH1, OUTPUT);
@@ -228,7 +238,7 @@ void setup() {
   printLCDLine(0, " SMART ROOM DRYER   ");
   printLCDLine(1, " Starting System... ");
   printLCDLine(2, " STAS-RG HANJELI    ");
-  printLCDLine(3, " Inisialisasi...    ");
+  printLCDLine(3, " Menghubungkan WiFi ");
 
   // Inisialisasi Sensor DHT22
   dht.begin();
@@ -236,7 +246,7 @@ void setup() {
   // Inisialisasi Sensor Cahaya BH1750
   if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
     bh1750Ready = true;
-    Serial.println("[BH1750] Sensor cahaya siap digunakan.");
+    Serial.println("[BH1750] Sensor cahaya BH1750 siap digunakan (I2C 0x23).");
   } else {
     bh1750Ready = false;
     Serial.println("[BH1750] PERINGATAN: Sensor cahaya tidak terdeteksi. Periksa pengkabelan I2C.");
@@ -246,8 +256,22 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.setSleep(false);
   WiFi.setAutoReconnect(true);
-  WiFi.begin(ssid, password);
 
+  Serial.println();
+  Serial.println("==================================================");
+  Serial.println("   GREEN HOUSE SMART DRYER - ESP32 FIRMWARE       ");
+  Serial.println("   Desa Wisata Hanjeli - Waluran, Kab. Sukabumi   ");
+  Serial.println("==================================================");
+  Serial.printf("Target Perangkat : %s\n", deviceId);
+  Serial.printf("Hotspot Utama    : %s\n", ssidPrimary);
+  Serial.printf("Hotspot Cadangan : %s\n", ssidSecondary);
+  Serial.printf("Server Hosting   : %s\n", serverUrl);
+  Serial.printf("Broker MQTT      : %s:%d\n", MQTT_BROKER, MQTT_PORT);
+  Serial.printf("Jadwal Heater    : %02d:00 - %02d:00 WIB\n", HEATER_START_HOUR, HEATER_STOP_HOUR);
+  Serial.println("==================================================");
+
+  Serial.printf("[WiFi] Memulai inisialisasi koneksi ke: \"%s\"...\n", currentSsid);
+  WiFi.begin(currentSsid, currentPassword);
   lastWifiAttempt = millis();
 
   // Konfigurasi MQTT Client HiveMQ
@@ -256,18 +280,6 @@ void setup() {
   mqttClient.setBufferSize(1536);
   mqttClient.setKeepAlive(30);
   mqttClient.setSocketTimeout(5);
-
-  Serial.println();
-  Serial.println("==================================================");
-  Serial.println("   GREEN HOUSE SMART DRYER - ESP32 FIRMWARE       ");
-  Serial.println("   Desa Wisata Hanjeli - Waluran, Kab. Sukabumi   ");
-  Serial.println("==================================================");
-  Serial.printf("Device ID       : %s\n", deviceId);
-  Serial.printf("Wi-Fi Target    : %s\n", ssid);
-  Serial.printf("Server Backend  : %s\n", serverUrl);
-  Serial.printf("MQTT Broker     : %s:%d\n", MQTT_BROKER, MQTT_PORT);
-  Serial.printf("Jadwal Heater   : %02d:00 - %02d:00 WIB\n", HEATER_START_HOUR, HEATER_STOP_HOUR);
-  Serial.println("==================================================");
 
   applyRelayState();
 }
@@ -594,14 +606,20 @@ void maintainMQTT() {
 
   String mac = WiFi.macAddress();
   mac.replace(":", "");
-  String clientId = String("ESP32-SRD-") + mac;
+  String clientId = String("ESP32-") + deviceId + "-" + mac.substring(mac.length() - 4);
+
+  Serial.printf("[MQTT] Menghubungkan ke Broker %s:%d (Client ID: %s)... ",
+                MQTT_BROKER, MQTT_PORT, clientId.c_str());
 
   if (mqttClient.connect(clientId.c_str())) {
-    Serial.println("[MQTT] Terhubung ke Broker HiveMQ!");
+    Serial.println("SUKSES!");
+    Serial.println("[MQTT SUKSES] Terhubung ke Broker HiveMQ!");
     if (ENABLE_REMOTE_CONTROL) {
       mqttClient.subscribe(TOPIC_CONTROL);
-      Serial.printf("[MQTT] Berlangganan topik kontrol: %s\n", TOPIC_CONTROL);
+      Serial.printf("[MQTT SUKSES] Berlangganan topik kontrol website: %s\n", TOPIC_CONTROL);
     }
+  } else {
+    Serial.printf("GAGAL (RC: %d). Akan mencoba ulang otomatis.\n", mqttClient.state());
   }
 }
 
@@ -636,7 +654,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     remoteHeaterRequest = false;
     updateHeaterControl();
     applyRelayState();
-    Serial.println("[MQTT] Mode AUTO diterima -> Kembali ke histeresis otomatis.");
+    Serial.println("[MQTT] Perintah Web Diterima -> Mode AUTO Aktif (Kembali ke histeresis otomatis).");
     return;
   }
 
@@ -681,7 +699,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   // Interlock Keselamatan Mutlak: Tolak menyalakan heater jika suhu kritis >= 50°C
   if (requestedState && (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C))) {
-    Serial.println("[MQTT] Ditolak: Suhu >= 50°C (Overheat Lockout). Heater tetap OFF demi keselamatan.");
+    Serial.println("[MQTT] DITOLAK: Suhu >= 50°C (Overheat Lockout). Heater tetap OFF demi keselamatan.");
     heaterState = false;
     remoteHeaterOverrideActive = true;
     remoteHeaterRequest = false;
@@ -711,7 +729,8 @@ bool publishMqttTelemetry() {
   }
 
   StaticJsonDocument<1536> doc;
-  doc["deviceId"] = MQTT_DEVICE_ID;
+  doc["deviceId"]  = deviceId;
+  doc["device_id"] = deviceId;
 
   // Sensor Suhu & Kelembapan
   if (dhtOK) {
@@ -805,6 +824,10 @@ bool publishMqttTelemetry() {
   lastMqttPublishOk = ok;
   hasMqttPublishResult = true;
   lastMqttPublishMillis = millis();
+
+  if (ok) {
+    Serial.println("[MQTT SUKSES] Paket telemetri terkirim ke topic: " + String(TOPIC_TELEMETRY));
+  }
   return ok;
 }
 
@@ -817,7 +840,7 @@ bool sendHttpTelemetry() {
   }
 
   HTTPClient http;
-  http.setTimeout(3500);
+  http.setTimeout(4500);
 
   WiFiClientSecure secureClient;
   WiFiClient standardClient;
@@ -832,6 +855,7 @@ bool sendHttpTelemetry() {
   }
 
   if (!beginOk) {
+    Serial.println("[HTTP ERROR] Inisialisasi koneksi HTTP gagal.");
     lastHttpPublishOk = false;
     hasHttpPublishResult = true;
     lastHttpPublishMillis = millis();
@@ -864,11 +888,19 @@ bool sendHttpTelemetry() {
   String jsonPayload;
   serializeJson(httpDoc, jsonPayload);
 
+  Serial.println("[HTTP POST] Mengirim data telemetri ke Website Hosting...");
   int responseCode = http.POST(jsonPayload);
   lastHttpResponseCode = responseCode;
   lastHttpPublishOk = (responseCode >= 200 && responseCode < 300);
   hasHttpPublishResult = true;
   lastHttpPublishMillis = millis();
+
+  if (lastHttpPublishOk) {
+    Serial.printf("[HTTP %d SUKSES] Data DITERIMA oleh Website Hosting!\n", responseCode);
+  } else {
+    Serial.printf("[HTTP %d INFO] Website Hosting respon kode %d (Data disalurkan via HiveMQ)\n",
+                  responseCode, responseCode);
+  }
 
   // Sinkronisasi status aktuator dari respons HTTP backend website
   if (lastHttpPublishOk && ENABLE_REMOTE_CONTROL) {
@@ -891,7 +923,7 @@ bool sendHttpTelemetry() {
             remoteHeaterRequest = reqState;
             heaterState = reqState;
             applyRelayState();
-            Serial.printf("[HTTP Sync] Relay Heater disinkronkan dari Web: %s\n",
+            Serial.printf("[HTTP Sync] Relay Heater DISINKRONKAN dari Web: %s\n",
                           reqState ? "ON (MENYALA)" : "OFF (MATI)");
           }
         } else if (!isOverride || (mode && String(mode) == "AUTO")) {
@@ -941,10 +973,15 @@ void maintainWiFi() {
 
   if (status == WL_CONNECTED) {
     if (!wifiWasConnected) {
+      wifiWasConnected = true;
+      wifiFailRetries = 0;
       Serial.println();
-      Serial.println("[WiFi] Berhasil Terhubung!");
-      Serial.print("[WiFi] IP Address ESP32: ");
-      Serial.println(WiFi.localIP());
+      Serial.println("==================================================");
+      Serial.println("[WiFi SUKSES] ESP32 BERHASIL TERHUBUNG KE JARINGAN!");
+      Serial.printf("[WiFi] SSID Terhubung: %s\n", currentSsid);
+      Serial.printf("[WiFi] IP Address    : %s\n", WiFi.localIP().toString().c_str());
+      Serial.printf("[WiFi] Kuat Sinyal   : %d dBm\n", WiFi.RSSI());
+      Serial.println("==================================================");
 
       // Sinkronkan waktu WIB via NTP
       configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC,
@@ -952,20 +989,48 @@ void maintainWiFi() {
       prevNtpCheckMillis = 0;
       Serial.println("[NTP] Memulai sinkronisasi waktu WIB (UTC+7)...");
     }
-    wifiWasConnected = true;
     return;
   }
 
   if (wifiWasConnected) {
-    Serial.println("\n[WiFi] Terputus. Kontrol lokal greenhouse tetap aktif.");
+    Serial.println("\n[WiFi] Koneksi terputus! Mencoba menyambungkan kembali...");
   }
   wifiWasConnected = false;
 
-  // Coba sambungkan kembali secara berkala
-  if (millis() - lastWifiAttempt >= WIFI_RETRY_INTERVAL) {
-    lastWifiAttempt = millis();
+  const unsigned long now = millis();
+  if (now - lastWifiAttempt >= WIFI_RETRY_INTERVAL) {
+    lastWifiAttempt = now;
+    wifiFailRetries++;
+
+    // Jika gagal terhubung 3x berturut-turut pada SSID utama, beralih ke cadangan (atau sebaliknya)
+    if (wifiFailRetries >= 3) {
+      wifiFailRetries = 0;
+      if (!usingSecondaryWifi && strlen(ssidSecondary) > 0) {
+        usingSecondaryWifi = true;
+        currentSsid = ssidSecondary;
+        currentPassword = passwordSecondary;
+        Serial.printf("\n[WiFi SWITCH] Beralih ke Hotspot Cadangan: \"%s\"\n", currentSsid);
+      } else {
+        usingSecondaryWifi = false;
+        currentSsid = ssidPrimary;
+        currentPassword = passwordPrimary;
+        Serial.printf("\n[WiFi SWITCH] Kembali mencoba Hotspot Utama: \"%s\"\n", currentSsid);
+      }
+    }
+
+    Serial.printf("[WiFi] Menghubungkan ke \"%s\" (Percobaan %d)... ", currentSsid, wifiFailRetries + 1);
     WiFi.disconnect();
-    WiFi.begin(ssid, password);
+    WiFi.begin(currentSsid, currentPassword);
+
+    if (wifiFailRetries == 2) {
+      Serial.println("\n--------------------------------------------------");
+      Serial.println("[WiFi TIPS PENGGUNAAN]:");
+      Serial.println("1. Pastikan Personal Hotspot di HP Anda AKTIF.");
+      Serial.println("2. Pastikan Hotspot diatur pada frekuensi 2.4 GHz (ESP32 tidak mendukung 5 GHz).");
+      Serial.printf("3. Pastikan Nama Hotspot di HP persis: \"%s\"\n", currentSsid);
+      Serial.printf("4. Pastikan Password Hotspot di HP persis: \"%s\"\n", currentPassword);
+      Serial.println("--------------------------------------------------");
+    }
   }
 }
 
@@ -1042,8 +1107,9 @@ void printFriendlyDashboard() {
   Serial.printf("Lockout Suhu    : %s\n", temperatureLockout ? "LOCKOUT AKTIF (SUHU TINGGI)" : "NORMAL");
 
   Serial.println("--------------------------------------------------");
-  Serial.printf("Koneksi Wi-Fi   : %s (IP: %s)\n",
+  Serial.printf("Koneksi Wi-Fi   : %s (SSID: %s, IP: %s)\n",
                 WiFi.status() == WL_CONNECTED ? "TERHUBUNG" : "OFFLINE",
+                currentSsid,
                 WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString().c_str() : "-");
 
   Serial.printf("Broker MQTT     : %s [%s]\n",
@@ -1052,7 +1118,7 @@ void printFriendlyDashboard() {
 
   Serial.printf("HTTP Backend    : %s [%s, Kode: %d]\n",
                 serverUrl,
-                lastHttpPublishOk ? "SUKSES" : "BELUM / GAGAL",
+                lastHttpPublishOk ? "SUKSES DITERIMA" : "BELUM / GAGAL",
                 lastHttpResponseCode);
 
   Serial.println("==================================================");
@@ -1075,7 +1141,7 @@ void printLCDLine(uint8_t row, String line) {
 
 void updateLCD() {
   if (currentPage == 0) {
-    // HALAMAN 1: Monitoring Real-Time Sensor & Relay
+    // HALAMAN 1: Monitoring Real-Time Sensor & Relay & Status Jaringan Langsung
     printLCDLine(0, " SMART ROOM DRYER   ");
 
     String sensorLine;
@@ -1098,24 +1164,29 @@ void updateLCD() {
       lightRainLine += "ERR";
     }
     lightRainLine += "lx";
-    while (lightRainLine.length() < 12) {
+    while (lightRainLine.length() < 11) {
       lightRainLine += ' ';
     }
     lightRainLine += "Rain:";
     lightRainLine += (isRaining ? "YES" : "NO");
     printLCDLine(2, lightRainLine);
 
-    String relayLine = "H1:";
-    relayLine += (heaterState ? "ON " : "OFF");
-    relayLine += " H2:";
-    relayLine += (heaterState ? "ON " : "OFF");
-    relayLine += " ";
-    if (remoteHeaterOverrideActive) {
-      relayLine += "REM";
+    // Baris 4: Tampilkan status Heater & Status Koneksi Web Jelas!
+    String statusLine = "H:";
+    statusLine += (heaterState ? "ON " : "OFF");
+    statusLine += "|NET:";
+    if (WiFi.status() == WL_CONNECTED) {
+      if (lastHttpPublishOk) {
+        statusLine += "ONLINE(WEB)";
+      } else if (mqttClient.connected()) {
+        statusLine += "OK(MQTT)  ";
+      } else {
+        statusLine += "WIFI OK   ";
+      }
     } else {
-      relayLine += phaseShortName();
+      statusLine += "DISCONNECT";
     }
-    printLCDLine(3, relayLine);
+    printLCDLine(3, statusLine);
 
   } else {
     // HALAMAN 2: Diagnostik, Jam NTP WIB, & IP Jaringan

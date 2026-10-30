@@ -241,7 +241,8 @@ class MqttService
                 'overrideMode' => (string) $actuators->override_mode,
             ] : null;
 
-            event(new TelemetryUpdated($telemetry, $actuatorData));
+            $deviceId = $payload['deviceId'] ?? $payload['device_id'] ?? 'inode-AOO2';
+            event(new TelemetryUpdated($telemetry, $actuatorData, $deviceId));
         } catch (\Throwable $e) {
             Log::debug('WebSocket broadcast skipped (Reverb offline/standby): ' . $e->getMessage());
         }

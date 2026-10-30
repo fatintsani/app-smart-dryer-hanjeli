@@ -19,12 +19,13 @@ class TelemetryUpdated implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      */
-    public function __construct(Telemetry $telemetry, ?array $actuators = null)
+    public function __construct(Telemetry $telemetry, ?array $actuators = null, ?string $deviceId = null)
     {
         $d = $telemetry->recorded_at ?? $telemetry->created_at ?? now();
 
         $this->telemetry = [
             'id' => $telemetry->id,
+            'deviceId' => $deviceId ?? 'inode-AOO2',
             'tempInternal' => (float) $telemetry->temp_internal,
             'humidityInternal' => (float) $telemetry->humidity_internal,
             'tempExternal' => (float) $telemetry->temp_external,
