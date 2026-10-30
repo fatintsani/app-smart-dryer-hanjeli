@@ -29,21 +29,23 @@ defineProps({ alt: { type: String, default: 'Smart Dryer Greenhouse Hanjeli' } }
 
 @media (max-width: 1024px) {
   .hero-photo {
-    width: min(100%, 360px);
+    width: min(100%, 380px);
     margin: 0 auto;
   }
 }
 
 @media (max-width: 768px) {
   .hero-photo {
-    width: min(100%, 250px);
+    width: min(100%, 330px);
+    max-width: 330px;
     margin: 0 auto;
   }
 }
 
 @media (max-width: 480px) {
   .hero-photo {
-    width: min(100%, 180px);
+    width: min(100%, 290px);
+    max-width: 290px;
     margin: 0 auto;
   }
 }

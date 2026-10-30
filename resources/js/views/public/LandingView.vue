@@ -4373,7 +4373,618 @@ a.contact-value:hover {
 @media (max-width: 768px) {
     /* Section Wrappers & Headings */
     .section-wrapper {
-        padding: 30px 14px;
+        padding: 40px 18px;
+    }
+
+    .section-header-center {
+        margin-bottom: 24px;
+        gap: 6px;
+    }
+
+    .section-tagline {
+        font-size: 12px;
+        letter-spacing: 0.8px;
+        font-weight: 700;
+    }
+
+    .section-heading {
+        font-size: 24px;
+        line-height: 1.3;
+        font-weight: 800;
+    }
+
+    .section-subtext {
+        font-size: 14px;
+        line-height: 1.55;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        padding: 28px 18px 36px;
+    }
+
+    .hero-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .hero-top-badge {
+        padding: 6px 14px;
+        margin-bottom: 12px;
+        gap: 8px;
+    }
+
+    .hero-badge-img {
+        width: 18px;
+        height: 18px;
+    }
+
+    .hero-top-badge span {
+        font-size: 12.5px;
+        font-weight: 600;
+    }
+
+    .hero-title {
+        font-size: 28px;
+        line-height: 1.25;
+        font-weight: 800;
+        margin: 0 0 12px 0;
+    }
+
+    .hero-desc {
+        font-size: 14.5px;
+        line-height: 1.6;
+        margin: 0 0 20px 0;
+    }
+
+    .hero-cta-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .btn-hero-primary {
+        width: 100%;
+        justify-content: center;
+        padding: 13px 22px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        min-height: 48px;
+        gap: 8px;
+    }
+
+    .btn-hero-secondary {
+        width: 100%;
+        justify-content: center;
+        padding: 13px 22px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        min-height: 48px;
+        gap: 8px;
+    }
+
+    .btn-hero-primary svg,
+    .btn-hero-secondary svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .hero-mini-cards-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .mini-card {
+        padding: 12px 16px;
+        gap: 14px;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+    }
+
+    .mini-card-icon {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mini-card-icon .icon-3d-img {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+    }
+
+    .mini-card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .mini-card-title {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .mini-card-sub {
+        font-size: 12.5px;
+        font-weight: 500;
+        line-height: 1.35;
+    }
+
+    .hero-right {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin: 8px auto 0;
+    }
+
+    .hero-right :deep(.hero-photo),
+    .hero-right .hero-photo {
+        width: min(100%, 320px);
+        max-width: 320px;
+        margin: 0 auto;
+    }
+
+    /* Hardware Cards Grid */
+    .hardware-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .hw-card {
+        padding: 18px 20px;
+        gap: 12px;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hw-card-top {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .hw-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0;
+    }
+
+    .hw-icon-box .icon-3d-img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+    }
+
+    .hw-icon-box-featured {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 12px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .hw-title {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .hw-desc {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .hw-card-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-top: 12px;
+        font-size: 12px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .hw-spec-tag,
+    .hw-badge-green,
+    .hw-badge-blue,
+    .hw-badge-pill-light {
+        padding: 5px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        gap: 4px;
+    }
+
+    /* Assembly Banner Card */
+    .assembly-banner-card {
+        display: flex;
+        flex-direction: column;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .assembly-visual {
+        min-height: 190px;
+        max-height: 230px;
+        width: 100%;
+    }
+
+    .panel-live-tag {
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        bottom: 10px;
+        left: 10px;
+    }
+
+    .assembly-content {
+        padding: 20px 18px;
+    }
+
+    .assembly-tagline {
+        font-size: 11.5px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .assembly-title {
+        font-size: 19px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+
+    .assembly-desc {
+        font-size: 14px;
+        line-height: 1.55;
+        margin-bottom: 14px;
+    }
+
+    .assembly-badges-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .assembly-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 12px;
+        gap: 6px;
+    }
+
+    .assembly-badge svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* App Features Grid */
+    .app-features-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .feature-card {
+        padding: 18px 20px;
+        gap: 12px;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .feature-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0;
+    }
+
+    .feature-icon-box .icon-3d-img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+    }
+
+    .feature-title {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .feature-desc {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .feature-footer {
+        padding-top: 10px;
+        font-size: 12.5px;
+        font-weight: 600;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .feature-footer svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* SOP Steps Grid */
+    .steps-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .step-card {
+        padding: 18px 20px;
+        gap: 10px;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .step-icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0;
+    }
+
+    .step-icon-wrap .icon-3d-img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+    }
+
+    .step-title {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .step-desc {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .panoramic-banner {
+        min-height: 160px;
+        margin-top: 20px;
+        border-radius: 14px;
+    }
+
+    .panoramic-overlay {
+        padding: 18px;
+    }
+
+    .panoramic-tagline {
+        font-size: 11.5px;
+        margin-bottom: 4px;
+    }
+
+    .panoramic-title {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.3;
+        max-width: 85%;
+    }
+
+    /* CTA Banner */
+    .cta-section {
+        padding: 32px 18px;
+    }
+
+    .cta-banner-card {
+        padding: 24px 20px;
+        gap: 16px;
+        border-radius: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cta-icon-wrap {
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+    }
+
+    .cta-tagline {
+        font-size: 11.5px;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+
+    .cta-heading {
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.3;
+        margin-bottom: 6px;
+    }
+
+    .cta-sub {
+        font-size: 14px;
+        line-height: 1.55;
+        margin-bottom: 0;
+    }
+
+    .btn-cta-white {
+        width: 100%;
+        justify-content: center;
+        padding: 13px 22px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        min-height: 48px;
+        gap: 8px;
+    }
+
+    /* Footer */
+    .landing-footer {
+        padding: 40px 18px 24px;
+    }
+
+    .footer-top-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .footer-brand-header {
+        gap: 10px;
+    }
+
+    .footer-brand-logo-box {
+        width: 32px;
+        height: 32px;
+    }
+
+    .footer-brand-title {
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .footer-brand-badge {
+        font-size: 11.5px;
+    }
+
+    .footer-desc {
+        font-size: 13.5px;
+        line-height: 1.6;
+    }
+
+    .footer-col-title {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .footer-links a {
+        font-size: 13.5px;
+        line-height: 1.9;
+    }
+
+    .footer-social-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+    }
+
+    .footer-social-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .footer-bottom-row {
+        padding-top: 18px;
+        margin-top: 18px;
+        font-size: 12.5px;
+        line-height: 1.6;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Navbar */
+    .landing-navbar {
+        padding: 0 14px;
+    }
+
+    .landing-nav-container {
+        padding: 10px 0;
+    }
+
+    .brand-icon-box {
+        width: 32px;
+        height: 32px;
+    }
+
+    .brand-logo-img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .brand-title {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .brand-sub {
+        font-size: 10.5px;
+    }
+
+    .header-action-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+    }
+
+    .mobile-menu-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+    }
+
+    .mobile-drawer-inner {
+        padding: 16px 14px 22px 14px;
+    }
+
+    .mobile-drawer-links a {
+        padding: 12px 14px;
+        font-size: 14.5px;
+        font-weight: 600;
+        gap: 12px;
+        border-radius: 10px;
+    }
+
+    .btn-mobile-login {
+        font-size: 14.5px;
+        font-weight: 600;
+        padding: 12px 18px;
+        min-height: 46px;
+        border-radius: 10px;
+    }
+
+    /* Section Wrappers & Headings */
+    .hero-section,
+    .section-wrapper,
+    .cta-section,
+    .landing-footer {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+
+    .section-wrapper {
+        padding-top: 32px;
+        padding-bottom: 32px;
     }
 
     .section-header-center {
@@ -4383,161 +4994,140 @@ a.contact-value:hover {
 
     .section-tagline {
         font-size: 11px;
-        letter-spacing: 0.5px;
     }
 
     .section-heading {
-        font-size: 20px;
-        line-height: 1.25;
+        font-size: 21px;
+        line-height: 1.3;
     }
 
     .section-subtext {
-        font-size: 12.5px;
-        line-height: 1.45;
+        font-size: 13.5px;
+        line-height: 1.5;
     }
 
-    /* Hero Section */
+    /* Hero */
     .hero-section {
-        padding: 20px 14px 24px;
+        padding-top: 20px;
+        padding-bottom: 28px;
     }
 
     .hero-grid {
-        gap: 16px;
-    }
-
-    .hero-top-badge {
-        padding: 4px 10px;
-        margin-bottom: 10px;
-        gap: 6px;
-    }
-
-    .hero-badge-img {
-        width: 16px;
-        height: 16px;
-    }
-
-    .hero-top-badge span {
-        font-size: 11px;
+        gap: 18px;
     }
 
     .hero-title {
-        font-size: 22px;
-        line-height: 1.22;
-        margin: 0 0 8px 0;
+        font-size: 25px;
+        line-height: 1.25;
+        margin-bottom: 10px;
     }
 
     .hero-desc {
-        font-size: 12.5px;
-        line-height: 1.45;
-        margin: 0 0 14px 0;
+        font-size: 14px;
+        line-height: 1.55;
+        margin-bottom: 16px;
     }
 
     .hero-cta-row {
-        gap: 8px;
-        margin-bottom: 14px;
-    }
-
-    .btn-hero-primary {
-        padding: 8px 16px;
-        font-size: 12.5px;
-        border-radius: 9px;
-        gap: 6px;
-    }
-
-    .btn-hero-secondary {
-        padding: 8px 14px;
-        font-size: 12.5px;
-        border-radius: 9px;
-        gap: 6px;
-    }
-
-    .btn-hero-primary svg,
-    .btn-hero-secondary svg {
-        width: 14px;
-        height: 14px;
-    }
-
-    .hero-mini-cards-row {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-    }
-
-    .mini-card {
-        padding: 6px 8px;
-        gap: 6px;
-        border-radius: 8px;
-    }
-
-    .mini-card-icon {
-        width: 24px;
-        height: 24px;
-    }
-
-    .mini-card-title {
-        font-size: 10.5px;
-    }
-
-    .mini-card-sub {
-        font-size: 9px;
-        line-height: 1.15;
-    }
-
-    .hero-right :deep(.hero-photo),
-    .hero-right .hero-photo {
-        max-width: 240px;
-        margin: 0 auto;
-    }
-
-    /* Hardware Cards Grid */
-    .hardware-grid {
-        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
         margin-bottom: 16px;
     }
 
-    .hw-card {
-        padding: 12px 10px 10px;
-        gap: 8px;
+    .btn-hero-primary {
+        padding: 12px 18px;
+        font-size: 14.5px;
         border-radius: 10px;
+        min-height: 46px;
     }
 
-    .hw-card-top {
-        gap: 6px;
+    .btn-hero-secondary {
+        padding: 12px 18px;
+        font-size: 14.5px;
+        border-radius: 10px;
+        min-height: 46px;
+    }
+
+    .hero-mini-cards-row {
+        gap: 8px;
+    }
+
+    .mini-card {
+        padding: 10px 14px;
+        gap: 12px;
+        border-radius: 12px;
+    }
+
+    .mini-card-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .mini-card-icon .icon-3d-img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .mini-card-title {
+        font-size: 13px;
+    }
+
+    .mini-card-sub {
+        font-size: 11.5px;
+        line-height: 1.3;
+    }
+
+    .hero-right :deep(.hero-photo),
+    .hero-right .hero-photo {
+        width: min(100%, 280px);
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    /* Hardware Cards */
+    .hardware-grid {
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .hw-card {
+        padding: 16px 16px;
+        gap: 10px;
+        border-radius: 12px;
     }
 
     .hw-icon-box {
-        width: 36px;
-        height: 36px;
-        margin-bottom: 0;
+        width: 44px;
+        height: 44px;
     }
 
     .hw-icon-box-featured {
-        width: 36px !important;
-        height: 36px !important;
-        border-radius: 8px !important;
-        margin-bottom: 0 !important;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 10px !important;
     }
 
     .hw-title {
-        font-size: 13px;
-        line-height: 1.25;
+        font-size: 16px;
     }
 
     .hw-desc {
-        font-size: 11px;
-        line-height: 1.35;
+        font-size: 13.5px;
+        line-height: 1.5;
     }
 
     .hw-card-footer {
-        padding-top: 6px;
-        font-size: 10px;
+        padding-top: 10px;
+        font-size: 11.5px;
+        gap: 6px;
     }
 
+    .hw-spec-tag,
+    .hw-badge-green,
+    .hw-badge-blue,
     .hw-badge-pill-light {
-        padding: 3px 6px;
-        font-size: 9.5px;
-        border-radius: 4px;
-        gap: 4px;
+        padding: 4px 10px;
+        font-size: 11.5px;
+        border-radius: 5px;
     }
 
     /* Assembly Banner Card */
@@ -4546,13 +5136,13 @@ a.contact-value:hover {
     }
 
     .assembly-visual {
-        min-height: 140px;
-        max-height: 160px;
+        min-height: 170px;
+        max-height: 200px;
     }
 
     .panel-live-tag {
         padding: 3px 8px;
-        font-size: 9.5px;
+        font-size: 10px;
         bottom: 8px;
         left: 8px;
     }
@@ -4562,107 +5152,87 @@ a.contact-value:hover {
     }
 
     .assembly-tagline {
-        font-size: 10px;
+        font-size: 10.5px;
         margin-bottom: 3px;
     }
 
     .assembly-title {
-        font-size: 15px;
+        font-size: 17px;
         margin-bottom: 6px;
-        line-height: 1.25;
     }
 
     .assembly-desc {
-        font-size: 11.5px;
-        line-height: 1.45;
-        margin-bottom: 10px;
-    }
-
-    .assembly-badges-row {
-        gap: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 12px;
     }
 
     .assembly-badge {
-        font-size: 11px;
+        font-size: 11.5px;
+        padding: 5px 10px;
         gap: 4px;
     }
 
-    .assembly-badge svg {
-        width: 12px;
-        height: 12px;
-    }
-
-    /* App Features Grid */
+    /* App Features */
     .app-features-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 16px;
+        gap: 12px;
+        margin-bottom: 18px;
     }
 
     .feature-card {
-        padding: 12px 10px 10px;
-        gap: 8px;
-        border-radius: 10px;
+        padding: 16px 16px;
+        gap: 10px;
+        border-radius: 12px;
     }
 
     .feature-icon-box {
-        width: 36px;
-        height: 36px;
-        margin-bottom: 0;
+        width: 44px;
+        height: 44px;
     }
 
     .feature-title {
-        font-size: 13px;
-        line-height: 1.25;
+        font-size: 16px;
     }
 
     .feature-desc {
-        font-size: 11px;
-        line-height: 1.35;
+        font-size: 13.5px;
+        line-height: 1.5;
     }
 
     .feature-footer {
-        padding-top: 6px;
-        font-size: 10px;
+        padding-top: 10px;
+        font-size: 11.5px;
     }
 
-    .feature-footer svg {
-        width: 12px;
-        height: 12px;
-    }
-
-    /* SOP Steps Grid */
+    /* SOP Steps */
     .steps-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        gap: 12px;
     }
 
     .step-card {
-        padding: 12px 10px 10px;
-        gap: 6px;
-        border-radius: 10px;
+        padding: 16px 16px;
+        gap: 8px;
+        border-radius: 12px;
     }
 
     .step-icon-wrap {
-        width: 36px;
-        height: 36px;
-        margin-bottom: 0;
+        width: 44px;
+        height: 44px;
     }
 
     .step-title {
-        font-size: 13px;
-        line-height: 1.25;
+        font-size: 16px;
     }
 
     .step-desc {
-        font-size: 11px;
-        line-height: 1.35;
+        font-size: 13.5px;
+        line-height: 1.5;
     }
 
     .panoramic-banner {
-        height: 130px;
+        min-height: 140px;
         margin-top: 16px;
-        border-radius: 10px;
+        border-radius: 12px;
     }
 
     .panoramic-overlay {
@@ -4670,14 +5240,13 @@ a.contact-value:hover {
     }
 
     .panoramic-tagline {
-        font-size: 9.5px;
-        margin-bottom: 2px;
+        font-size: 10.5px;
     }
 
     .panoramic-title {
-        font-size: 14px;
-        line-height: 1.25;
-        max-width: 260px;
+        font-size: 15.5px;
+        max-width: 90%;
+        line-height: 1.3;
     }
 
     /* CTA Banner */
@@ -4687,488 +5256,62 @@ a.contact-value:hover {
 
     .cta-banner-card {
         padding: 18px 16px;
-        gap: 14px;
-        border-radius: 12px;
-        flex-direction: row;
-        align-items: center;
-    }
-
-    .cta-icon-wrap {
-        width: 48px;
-        height: 48px;
-        flex-shrink: 0;
-    }
-
-    .cta-tagline {
-        font-size: 9.5px;
-        margin-bottom: 2px;
-    }
-
-    .cta-heading {
-        font-size: 16px;
-        line-height: 1.25;
-        margin-bottom: 4px;
-    }
-
-    .cta-sub {
-        font-size: 11.5px;
-        line-height: 1.4;
-        margin-bottom: 0;
-    }
-
-    .btn-cta-white {
-        padding: 7px 14px;
-        font-size: 11.5px;
-        border-radius: 8px;
-        gap: 5px;
-    }
-
-    /* Footer */
-    .landing-footer {
-        padding: 28px 14px 18px;
-    }
-
-    .footer-top-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-bottom: 18px;
-    }
-
-    .footer-brand-header {
-        gap: 8px;
-    }
-
-    .footer-brand-logo-box {
-        width: 26px;
-        height: 26px;
-    }
-
-    .footer-brand-title {
-        font-size: 13.5px;
-    }
-
-    .footer-brand-badge {
-        font-size: 10px;
-    }
-
-    .footer-desc {
-        font-size: 11px;
-        line-height: 1.45;
-    }
-
-    .footer-col-title {
-        font-size: 12px;
-        margin-bottom: 6px;
-    }
-
-    .footer-links a {
-        font-size: 11px;
-        padding: 2px 0;
-    }
-
-    .footer-social-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 7px;
-    }
-
-    .footer-social-btn svg {
-        width: 13px;
-        height: 13px;
-    }
-
-    .footer-bottom-row {
-        padding-top: 12px;
-        margin-top: 14px;
-        font-size: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    /* Navbar */
-    .landing-navbar {
-        padding: 0 12px;
-    }
-
-    .landing-nav-container {
-        padding: 8px 0;
-    }
-
-    .brand-icon-box {
-        width: auto;
-        height: auto;
-        background: transparent;
-    }
-
-    .brand-logo-img {
-        width: 24px;
-        height: 24px;
-    }
-
-    .brand-title {
-        font-size: 12px;
-    }
-
-    .brand-sub {
-        font-size: 9.5px;
-    }
-
-    .header-action-btn {
-        width: 30px;
-        height: 30px;
-    }
-
-    .mobile-menu-btn {
-        width: 30px;
-        height: 30px;
-    }
-
-    .mobile-drawer-inner {
-        padding: 12px 12px 18px 12px;
-    }
-
-    .mobile-drawer-links a {
-        padding: 8px 10px;
-        font-size: 12.5px;
-    }
-
-    .btn-mobile-login {
-        font-size: 12.5px;
-        padding: 9px 14px;
-    }
-
-    /* Section Wrappers & Headings */
-    .hero-section,
-    .section-wrapper,
-    .cta-section,
-    .landing-footer {
-        padding-left: 10px !important;
-        padding-right: 10px !important;
-    }
-
-    .section-wrapper {
-        padding-top: 22px;
-        padding-bottom: 22px;
-    }
-
-    .section-header-center {
-        margin-bottom: 12px;
-        gap: 2px;
-    }
-
-    .section-tagline {
-        font-size: 9.5px;
-    }
-
-    .section-heading {
-        font-size: 16.5px;
-    }
-
-    .section-subtext {
-        font-size: 11px;
-        line-height: 1.35;
-    }
-
-    /* Hero */
-    .hero-section {
-        padding-top: 14px;
-        padding-bottom: 18px;
-    }
-
-    .hero-grid {
         gap: 12px;
-    }
-
-    .hero-title {
-        font-size: 17.5px;
-        line-height: 1.2;
-        margin-bottom: 6px;
-    }
-
-    .hero-desc {
-        font-size: 11.5px;
-        line-height: 1.4;
-        margin-bottom: 10px;
-    }
-
-    .hero-cta-row {
-        gap: 6px;
-        margin-bottom: 10px;
-    }
-
-    .btn-hero-primary {
-        padding: 6px 12px;
-        font-size: 11px;
-        border-radius: 7px;
-        gap: 5px;
-    }
-
-    .btn-hero-secondary {
-        padding: 6px 10px;
-        font-size: 11px;
-        border-radius: 7px;
-        gap: 5px;
-    }
-
-    .hero-mini-cards-row {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 4px;
-    }
-
-    .mini-card {
-        padding: 5px 4px;
-        gap: 4px;
-        border-radius: 6px;
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .mini-card-icon {
-        width: 20px;
-        height: 20px;
-    }
-
-    .mini-card-title {
-        font-size: 9px;
-    }
-
-    .mini-card-sub {
-        font-size: 7.5px;
-        line-height: 1.05;
-    }
-
-    .hero-right :deep(.hero-photo),
-    .hero-right .hero-photo {
-        max-width: 170px;
-        margin: 0 auto;
-    }
-
-    /* Hardware Cards */
-    .hardware-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 7px;
-        margin-bottom: 12px;
-    }
-
-    .hw-card {
-        padding: 9px 7px 7px;
-        gap: 5px;
-        border-radius: 7px;
-    }
-
-    .hw-icon-box {
-        width: 28px;
-        height: 28px;
-    }
-
-    .hw-icon-box-featured {
-        width: 28px !important;
-        height: 28px !important;
-        border-radius: 6px !important;
-    }
-
-    .hw-title {
-        font-size: 11.5px;
-    }
-
-    .hw-desc {
-        font-size: 9.5px;
-        line-height: 1.3;
-    }
-
-    .hw-card-footer {
-        padding-top: 4px;
-        font-size: 8.5px;
-        gap: 2px;
-    }
-
-    .hw-badge-pill-light {
-        padding: 2px 4px;
-        font-size: 8px;
-        border-radius: 3px;
-    }
-
-    /* Assembly Banner Card */
-    .assembly-banner-card {
-        border-radius: 9px;
-    }
-
-    .assembly-visual {
-        min-height: 110px;
-        max-height: 130px;
-    }
-
-    .panel-live-tag {
-        padding: 2px 6px;
-        font-size: 8.5px;
-        bottom: 6px;
-        left: 6px;
-    }
-
-    .assembly-content {
-        padding: 12px 10px;
-    }
-
-    .assembly-tagline {
-        font-size: 9px;
-        margin-bottom: 2px;
-    }
-
-    .assembly-title {
-        font-size: 13.5px;
-        margin-bottom: 4px;
-    }
-
-    .assembly-desc {
-        font-size: 10.5px;
-        line-height: 1.35;
-        margin-bottom: 8px;
-    }
-
-    .assembly-badge {
-        font-size: 9.5px;
-        gap: 3px;
-    }
-
-    /* App Features */
-    .app-features-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 7px;
-        margin-bottom: 12px;
-    }
-
-    .feature-card {
-        padding: 9px 7px 7px;
-        gap: 5px;
-        border-radius: 7px;
-    }
-
-    .feature-icon-box {
-        width: 28px;
-        height: 28px;
-    }
-
-    .feature-title {
-        font-size: 11.5px;
-    }
-
-    .feature-desc {
-        font-size: 9.5px;
-        line-height: 1.3;
-    }
-
-    .feature-footer {
-        padding-top: 4px;
-        font-size: 8.5px;
-    }
-
-    /* SOP Steps */
-    .steps-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 7px;
-    }
-
-    .step-card {
-        padding: 9px 7px 7px;
-        gap: 4px;
-        border-radius: 7px;
-    }
-
-    .step-icon-wrap {
-        width: 28px;
-        height: 28px;
-    }
-
-    .step-title {
-        font-size: 11.5px;
-    }
-
-    .step-desc {
-        font-size: 9.5px;
-        line-height: 1.3;
-    }
-
-    .panoramic-banner {
-        height: 100px;
-        margin-top: 12px;
-        border-radius: 7px;
-    }
-
-    .panoramic-overlay {
-        padding: 10px;
-    }
-
-    .panoramic-tagline {
-        font-size: 8.5px;
-    }
-
-    .panoramic-title {
-        font-size: 12px;
-        max-width: 190px;
-        line-height: 1.2;
-    }
-
-    /* CTA Banner */
-    .cta-section {
-        padding: 16px 10px;
-    }
-
-    .cta-banner-card {
-        padding: 12px 10px;
-        gap: 8px;
-        border-radius: 8px;
+        border-radius: 14px;
         flex-direction: column;
         align-items: flex-start;
     }
 
     .cta-icon-wrap {
-        width: 36px;
-        height: 36px;
+        width: 46px;
+        height: 46px;
     }
 
     .cta-heading {
-        font-size: 14.5px;
-        line-height: 1.2;
+        font-size: 18px;
+        line-height: 1.3;
     }
 
     .cta-sub {
-        font-size: 10.5px;
+        font-size: 13.5px;
+        line-height: 1.5;
     }
 
     .btn-cta-white {
-        padding: 6px 10px;
-        font-size: 10.5px;
-        border-radius: 7px;
+        padding: 12px 18px;
+        font-size: 14px;
+        border-radius: 10px;
         width: 100%;
         justify-content: center;
+        min-height: 46px;
     }
 
     /* Footer */
     .landing-footer {
-        padding: 20px 10px 14px;
+        padding: 30px 14px 20px;
     }
 
     .footer-top-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-        margin-bottom: 14px;
+        gap: 20px;
+        margin-bottom: 20px;
     }
 
     .footer-brand-title {
-        font-size: 13px;
+        font-size: 16px;
     }
 
     .footer-desc {
-        font-size: 10.5px;
+        font-size: 13px;
+        line-height: 1.55;
     }
 
     .footer-col-title {
-        font-size: 11.5px;
-        margin-bottom: 4px;
+        font-size: 14px;
+        margin-bottom: 6px;
     }
 
     .footer-links a {
-        font-size: 10.5px;
+        font-size: 13px;
     }
 }
 </style>
