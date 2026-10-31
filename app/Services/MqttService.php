@@ -101,7 +101,29 @@ class MqttService
         }
 
         // 2. Save Telemetry with flexible schema mapping
-        $heaterActive = (bool) ($payload['heaterStatus'] ?? $payload['heater_status'] ?? $payload['heater_on'] ?? false);
+        $isHeaterExplicit = isset($payload['heaterStatus']) || isset($payload['heater_status']) || isset($payload['heater_on']) || isset($payload['auxHeaterStatus']);
+        if ($isHeaterExplicit) {
+            $heaterActive = (bool) ($payload['heaterStatus'] ?? $payload['heater_status'] ?? $payload['heater_on'] ?? $payload['auxHeaterStatus'] ?? false);
+        } else {
+            // Evaluasi logika hardware Smart Dryer Hanjeli (Jadwal NTP WIB + Sensor Trigger):
+            // 1. Suhu >= 50.0°C -> Lockout Wajib OFF (SNI)
+            // 2. Jadwal Operasional NTP WIB: 18:00 - 05:00 WIB -> Otomatis ON
+            // 3. Di luar jadwal (siang hari): ON jika Hujan || Lembap >= 70% || Suhu <= 35.0°C
+            $tempVal = (float) ($payload['tempInternal'] ?? $payload['temp_internal'] ?? $payload['temperature'] ?? 0.0);
+            $humVal = (float) ($payload['humidityInternal'] ?? $payload['humidity_internal'] ?? $payload['humidity'] ?? 0.0);
+            $isRain = (bool) ($payload['isRaining'] ?? $payload['is_raining'] ?? false);
+            $currentHourWib = Carbon::now('Asia/Jakarta')->hour;
+            $isNightSchedule = ($currentHourWib >= 18 || $currentHourWib < 5);
+
+            if ($tempVal >= 50.0) {
+                $heaterActive = false;
+            } elseif ($isNightSchedule) {
+                $heaterActive = true;
+            } else {
+                $heaterActive = ($isRain || $humVal >= 70.0 || $tempVal <= 35.0);
+            }
+        }
+
         $telemetry = Telemetry::create([
             'batch_id' => $batchId,
             'temp_internal' => (float) ($payload['tempInternal'] ?? $payload['temp_internal'] ?? $payload['temperature'] ?? 0.0),

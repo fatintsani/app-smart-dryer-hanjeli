@@ -2643,12 +2643,12 @@ const isCopied = ref(false);
 const arduinoPrograms = computed(() => [
     {
         id: "physical-standalone",
-        title: "Firmware Resmi Alat Fisik (DHT22, BH1750, Rain Sensor, Dual PTC & LCD 20x4)",
+        title: "Firmware Resmi Alat Fisik (DHT22, BH1750, Rain Sensor, Relay PTC & LCD 20x4)",
         filename: "esp32_smart_dryer_physical_fixed.ino",
         badge: "Produksi / Hardware Fix Langsung",
         badgeClass: "badge-prod",
-        desc: "Program resmi mikrokontroler ESP32 langsung untuk hardware greenhouse fisik: Sensor DHT22 (Pin 25), BH1750 I2C (Pin 21/22), Sensor Hujan (Pin 34), Dual Relay PTC Heaters (Pin 26 & 27), LCD 20x4 I2C (0x27) dengan kontrol cerdas 55°C - 60°C serta proteksi safety shut-off.",
-        target: "ESP32 DevKit V1 (DHT22 Pin 25, Relay 26/27, Rain 34, I2C 21/22)",
+        desc: "Program resmi mikrokontroler ESP32 untuk hardware greenhouse fisik: Sensor DHT22 (Pin 25), BH1750 I2C (Pin 21/22), Sensor Hujan (Pin 34), Relay PTC Heater (Pin 26), LCD 20x4 I2C (0x27) dengan sinkronisasi waktu NTP WIB (jadwal 18:00 - 05:00 WIB & histeresis otomatis dingin/hujan/lembap) serta proteksi lockout 50°C.",
+        target: "ESP32 DevKit V1 (DHT22 Pin 25, Relay 26, Rain 34, I2C 21/22)",
         libraries: [
             "DHT sensor library (Adafruit)",
             "BH1750 (Christopher Laws)",
@@ -2664,8 +2664,8 @@ const arduinoPrograms = computed(() => [
         filename: "esp32_smart_dryer_dual_iot.ino",
         badge: "Hardware Nyata + Sinkronisasi Cloud/Web",
         badgeClass: "badge-prod",
-        desc: "Program ESP32 untuk hardware fisik yang sama dengan tambahan konektivitas ganda: Wi-Fi MQTT broker dan Web Bluetooth BLE untuk kendali nirkabel jarak jauh dari dashboard operator.",
-        target: "ESP32 DevKit V1 (DHT22 Pin 25, Relay 26/27, Rain 34, I2C 21/22)",
+        desc: "Program ESP32 untuk hardware fisik dengan tambahan konektivitas ganda: Wi-Fi MQTT broker (HiveMQ), sinkronisasi waktu NTP WIB (jadwal malam 18:00 - 05:00 WIB), dan Web Bluetooth BLE / Web Serial untuk kendali terintegrasi dasbor.",
+        target: "ESP32 DevKit V1 (DHT22 Pin 25, Relay 26, Rain 34, I2C 21/22)",
         libraries: [
             "DHT sensor library",
             "BH1750",
@@ -2694,11 +2694,8 @@ const hardwareCatalog = computed(() => [
         name: "Mikrokontroler ESP32 DevKit V1",
         category: "Node Utama & Master Gateway",
         purpose:
-            "Pengendali histeresis pemanas PTC 1 & 2 (48°C - 50°C), pembacaan DHT22, BH1750, sensor hujan, serta stream telemetri JSON serial & LCD 20x4.",
-        purpose:
-            "Pengendali histeresis pemanas PTC (48°C - 50°C), pembacaan DHT22, BH1750, sensor hujan, serta stream telemetri JSON serial & LCD 20x4.",
+            "Pengendali histeresis pemanas PTC berdasarkan jadwal NTP WIB (18:00 - 05:00 WIB & otomatis saat dingin/hujan/lembap), pembacaan DHT22, BH1750, sensor hujan, serta stream telemetri JSON serial & LCD 20x4.",
         specs: "Dual-Core Xtensa 240MHz, 520KB SRAM, Flash 4MB",
-        pinout: "GPIO 25, 26, 27, 34, I2C 21/22",
         pinout: "GPIO 25, 26, 34, I2C 21/22",
         location: "Box Panel Utama Greenhouse",
         iconType: "mcu",

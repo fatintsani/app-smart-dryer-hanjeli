@@ -515,6 +515,9 @@
                                         }}</span>
                                     </button>
                                 </div>
+                                <p class="card-hint">
+                                    {{ heaterScheduleHint }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -1187,6 +1190,47 @@ const weatherHintText = computed(() => {
     if (telemetry.value.solarRadiation >= 150)
         return "Sinar matahari sedang bagus dan membantu menghemat pemanas listrik.";
     return "Pemanas otomatis menyala saat sinar matahari berkurang.";
+});
+
+function getWibHour() {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const wib = new Date(utc + (7 * 3600000));
+    return wib.getHours();
+}
+
+const isWithinNtpSchedule = computed(() => {
+    const h = getWibHour();
+    return (h >= 18 || h < 5);
+});
+
+const heaterScheduleHint = computed(() => {
+    if (!isHardwareActive.value) {
+        return "Hubungkan mikrokontroler ESP32 untuk memantau status pemanas.";
+    }
+    if (telemetry.value.tempInternal >= 50.0) {
+        return "Suhu ruang telah mencapai batas aman (≥50°C). Pemanas dimatikan otomatis demi keselamatan biji hanjeli.";
+    }
+    if (isHeaterActive.value) {
+        if (isWithinNtpSchedule.value) {
+            return "Jadwal Malam NTP (18:00 - 05:00 WIB): Pemanas aktif otomatis menjaga kestabilan panas.";
+        }
+        if (telemetry.value.isRaining) {
+            return "Otomatis Cuaca: Pemanas aktif karena sensor mendeteksi hujan di luar.";
+        }
+        if (telemetry.value.humidityInternal >= 70.0) {
+            return "Otomatis Kelembapan: Pemanas aktif karena kelembapan ruangan tinggi (≥70% RH).";
+        }
+        if (telemetry.value.tempInternal <= 35.0) {
+            return "Otomatis Suhu Dingin: Pemanas aktif untuk memulihkan suhu ideal (≤35°C).";
+        }
+        return "Pemanas aktif menjaga kestabilan mikroklimat ruang pengering.";
+    } else {
+        if (isWithinNtpSchedule.value) {
+            return "Pemanas standby dalam jadwal malam (suhu ruang saat ini telah hangat / terkendali).";
+        }
+        return "Siang hari (05:00 - 18:00 WIB): Pemanas siaga; aktif otomatis jika hujan, dingin, atau lembap.";
+    }
 });
 
 function handleStartDryingClick() {

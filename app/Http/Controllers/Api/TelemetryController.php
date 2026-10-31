@@ -310,7 +310,28 @@ class TelemetryController extends Controller
             ], 422);
         }
 
-        $isHeaterOn = $request->boolean('heaterStatus', $request->boolean('heater_status', $request->boolean('heater_on')));
+        $isHeaterExplicit = $request->has('heaterStatus') || $request->has('heater_status') || $request->has('heater_on') || $request->has('auxHeaterStatus');
+        if ($isHeaterExplicit) {
+            $isHeaterOn = $request->boolean('heaterStatus', $request->boolean('heater_status', $request->boolean('heater_on', $request->boolean('auxHeaterStatus'))));
+        } else {
+            // Evaluasi logika hardware Smart Dryer Hanjeli (Jadwal NTP WIB + Sensor Trigger):
+            // 1. Suhu >= 50.0°C -> Lockout Wajib OFF (SNI)
+            // 2. Jadwal Operasional NTP WIB: 18:00 - 05:00 WIB -> Otomatis ON
+            // 3. Di luar jadwal (siang hari): ON jika Hujan || Lembap >= 70% || Suhu <= 35.0°C
+            $currentHourWib = Carbon::now('Asia/Jakarta')->hour;
+            $isNightSchedule = ($currentHourWib >= 18 || $currentHourWib < 5);
+            $tempVal = (float) $tempInternal;
+            $humVal = (float) $humidityInternal;
+            $isRain = $request->boolean('is_raining', $request->boolean('isRaining'));
+
+            if ($tempVal >= 50.0) {
+                $isHeaterOn = false;
+            } elseif ($isNightSchedule) {
+                $isHeaterOn = true;
+            } else {
+                $isHeaterOn = ($isRain || $humVal >= 70.0 || $tempVal <= 35.0);
+            }
+        }
 
         $payload = [
             'batchId' => $request->input('batchId', $request->input('batch_id')),

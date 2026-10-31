@@ -21,8 +21,8 @@
           </div>
           <p class="acc-subtitle">
             {{ actuators.isOverrideActive 
-              ? 'Anda sedang mengendalikan alat secara manual.' 
-              : 'Sistem otomatis mengatur pemanas sesuai suhu ideal (48°C - 50°C) dan kondisi cuaca.' 
+              ? 'Anda sedang mengendalikan alat secara manual (Override).' 
+              : 'Otomatis: Aktif malam 18:00 - 05:00 WIB (NTP), atau saat dingin (≤35°C), hujan, & lembap (≥70%) dengan batas aman SNI 50°C.' 
             }}
           </p>
         </div>
@@ -49,6 +49,36 @@
       </div>
     </div>
 
+    <!-- Banner Jadwal Operasional Pemanas (Waktu NTP WIB) -->
+    <div class="ntp-schedule-banner" :class="isWithinNtpSchedule ? 'schedule-active' : 'schedule-standby'">
+      <div class="nsb-left">
+        <div class="nsb-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="nsb-text">
+          <div class="nsb-title-row">
+            <span class="nsb-title">Jadwal Operasional Pemanas (Waktu NTP WIB):</span>
+            <span class="nsb-pill" :class="isWithinNtpSchedule ? 'pill-active' : 'pill-standby'">
+              {{ isWithinNtpSchedule ? 'JADWAL MALAM AKTIF (18:00 - 05:00 WIB)' : 'DI LUAR JADWAL (SIANG HARI)' }}
+            </span>
+          </div>
+          <p class="nsb-desc">
+            {{ isWithinNtpSchedule 
+              ? 'Pemanas PTC aktif otomatis di malam hari untuk menjaga suhu hangat ruang pengering (18:00 - 05:00 WIB) selama suhu < 50°C.' 
+              : 'Di luar jadwal (siang hari), pemanas otomatis siaga dan hanya menyala jika cuaca dingin (≤35°C), hujan, atau lembap (≥70%).' 
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="nsb-clock">
+        <span class="clock-label">JAM WIB (NTP)</span>
+        <strong class="clock-time">{{ currentWibTime }}</strong>
+      </div>
+    </div>
+
     <!-- Tombol Kendali Cepat Pemanas -->
     <div class="quick-heater-bar">
       <div class="qh-status-info">
@@ -56,6 +86,9 @@
         <strong class="qh-val" :class="isHardwareActive && actuators.auxHeaterStatus ? 'text-amber' : (isHardwareActive ? 'text-green' : 'text-neutral')">
           {{ isHardwareActive ? (actuators.auxHeaterStatus ? 'MENYALA (MEMANASKAN)' : 'MATI (STANDBY)') : 'ALAT BELUM TERHUBUNG' }}
         </strong>
+        <span v-if="isHardwareActive" class="qh-reason-chip" :class="actuators.auxHeaterStatus ? 'chip-reason-on' : 'chip-reason-off'">
+          {{ heaterTriggerReason }}
+        </span>
       </div>
 
       <div class="qh-buttons">
@@ -123,7 +156,7 @@
           </div>
           <div>
             <h4 class="ai-name">Pemanas Ruangan (Heater)</h4>
-            <p class="ai-desc">Menjaga panas ruang pengering tetap di 48°C - 50°C saat cuaca mendung/malam.</p>
+            <p class="ai-desc">Aktif otomatis 18:00 - 05:00 WIB (NTP), atau saat dingin (≤35°C), hujan, &amp; lembap (≥70%). Mati otomatis saat ≥50°C.</p>
           </div>
         </div>
         <label class="switch-toggle">
@@ -204,7 +237,46 @@ defineProps({
 })
 
 const currentTemp = ref(32.0)
+const currentHum = ref(60.0)
+const isRaining = ref(false)
 const isLiveTelemetry = ref(false)
+const currentWibTime = ref('--:--:-- WIB')
+const isWithinNtpSchedule = ref(false)
+let wibClockTimer = null
+
+function updateWibClock() {
+  const now = new Date()
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000)
+  const wib = new Date(utc + (7 * 3600000))
+  const h = wib.getHours()
+  const m = String(wib.getMinutes()).padStart(2, '0')
+  const s = String(wib.getSeconds()).padStart(2, '0')
+  currentWibTime.value = `${String(h).padStart(2, '0')}:${m}:${s} WIB`
+  // Jadwal Operasional Pemanas NTP WIB: 18:00 malam hingga sebelum 05:00 subuh WIB
+  isWithinNtpSchedule.value = (h >= 18 || h < 5)
+}
+
+const heaterTriggerReason = computed(() => {
+  if (actuators.value.isOverrideActive) {
+    return 'Manual Operator (Override Web)'
+  }
+  if (currentTemp.value >= 50.0) {
+    return 'Proteksi Suhu Maksimal (≥50°C Lockout)'
+  }
+  if (isWithinNtpSchedule.value) {
+    return 'Jadwal Malam NTP (18:00 - 05:00 WIB)'
+  }
+  if (isRaining.value) {
+    return 'Otomatis: Deteksi Hujan'
+  }
+  if (currentHum.value >= 70.0) {
+    return 'Otomatis: Udara Lembap (≥70% RH)'
+  }
+  if (currentTemp.value <= 35.0) {
+    return 'Otomatis: Suhu Dingin (≤35°C)'
+  }
+  return 'Otomatis: Standby (Di Luar Jadwal / Hangat Alami)'
+})
 
 const isHardwareActive = computed(() => {
   return Boolean(connectionManager.state.isHardwareActive || isLiveTelemetry.value)
@@ -339,11 +411,19 @@ async function setHeaterAuto() {
 
 onMounted(() => {
   fetchStatus()
+  updateWibClock()
+  wibClockTimer = setInterval(updateWibClock, 1000)
 
   telemetryService.getCurrent().then((res) => {
     if (res?.telemetry) {
       if (res.telemetry.tempInternal !== undefined) {
         currentTemp.value = Number(res.telemetry.tempInternal)
+      }
+      if (res.telemetry.humidityInternal !== undefined) {
+        currentHum.value = Number(res.telemetry.humidityInternal)
+      }
+      if (res.telemetry.isRaining !== undefined) {
+        isRaining.value = Boolean(res.telemetry.isRaining)
       }
       if (res.telemetry.isLive !== undefined) {
         isLiveTelemetry.value = Boolean(res.telemetry.isLive)
@@ -360,6 +440,12 @@ onMounted(() => {
       if (data.tempInternal !== undefined) {
         currentTemp.value = Number(data.tempInternal)
       }
+      if (data.humidityInternal !== undefined) {
+        currentHum.value = Number(data.humidityInternal)
+      }
+      if (data.isRaining !== undefined) {
+        isRaining.value = Boolean(data.isRaining)
+      }
       if (data.isLive !== undefined) {
         isLiveTelemetry.value = Boolean(data.isLive)
       }
@@ -371,6 +457,12 @@ onMounted(() => {
       if (data.tempInternal !== undefined) {
         currentTemp.value = Number(data.tempInternal)
       }
+      if (data.humidityInternal !== undefined) {
+        currentHum.value = Number(data.humidityInternal)
+      }
+      if (data.isRaining !== undefined) {
+        isRaining.value = Boolean(data.isRaining)
+      }
       if (data.isLive !== undefined) {
         isLiveTelemetry.value = Boolean(data.isLive)
       }
@@ -380,6 +472,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (feedbackTimer) clearTimeout(feedbackTimer)
+  if (wibClockTimer) clearInterval(wibClockTimer)
   socketService.off('actuator_update')
   socketService.off('telemetry_live')
   connectionManager.off('telemetry_live')
@@ -497,6 +590,135 @@ onUnmounted(() => {
   color: #0F291E;
   font-weight: 700;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* NTP Schedule Banner */
+.ntp-schedule-banner {
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  border: 1px solid transparent;
+  flex-wrap: wrap;
+}
+
+.ntp-schedule-banner.schedule-active {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+}
+
+.ntp-schedule-banner.schedule-standby {
+  background: #F0F9FF;
+  border-color: #BAE6FD;
+}
+
+.nsb-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.nsb-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.schedule-active .nsb-icon {
+  color: #166534;
+}
+
+.schedule-standby .nsb-icon {
+  color: #0284C7;
+}
+
+.nsb-text {
+  flex: 1;
+}
+
+.nsb-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.nsb-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.nsb-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.3px;
+}
+
+.pill-active {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.pill-standby {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+.nsb-desc {
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.nsb-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding-left: 14px;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.clock-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.clock-time {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0F172A;
+  font-family: monospace;
+}
+
+.qh-reason-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-left: 8px;
+  display: inline-block;
+}
+
+.chip-reason-on {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.chip-reason-off {
+  background: #F1F5F9;
+  color: #475569;
 }
 
 /* Quick Heater Bar */
@@ -849,5 +1071,63 @@ input:checked + .slider:before {
 
 :global(.dark-theme) .led-item.active {
   color: #F8FAFC;
+}
+
+:global(.dark-theme) .ntp-schedule-banner.schedule-active {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+:global(.dark-theme) .ntp-schedule-banner.schedule-standby {
+  background: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(14, 165, 233, 0.25) !important;
+}
+
+:global(.dark-theme) .schedule-active .nsb-icon {
+  color: #86EFAC !important;
+}
+
+:global(.dark-theme) .schedule-standby .nsb-icon {
+  color: #38BDF8 !important;
+}
+
+:global(.dark-theme) .nsb-title {
+  color: #F8FAFC !important;
+}
+
+:global(.dark-theme) .pill-active {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #86EFAC !important;
+}
+
+:global(.dark-theme) .pill-standby {
+  background: rgba(14, 165, 233, 0.2) !important;
+  color: #7DD3FC !important;
+}
+
+:global(.dark-theme) .nsb-desc {
+  color: #CBD5E1 !important;
+}
+
+:global(.dark-theme) .nsb-clock {
+  border-left-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+:global(.dark-theme) .clock-label {
+  color: #94A3B8 !important;
+}
+
+:global(.dark-theme) .clock-time {
+  color: #F8FAFC !important;
+}
+
+:global(.dark-theme) .chip-reason-on {
+  background: rgba(217, 119, 6, 0.25) !important;
+  color: #FDE68A !important;
+}
+
+:global(.dark-theme) .chip-reason-off {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #CBD5E1 !important;
 }
 </style>

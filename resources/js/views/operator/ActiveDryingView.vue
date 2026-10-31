@@ -223,7 +223,7 @@
               </div>
               <div class="kpi-footer-status">
                 <span class="badge-chip chip-neutral">
-                  {{ actuators.auxHeaterStatus ? 'Membantu Panas Alami' : 'Panas Alami Cukup' }}
+                  {{ heaterFooterStatus }}
                 </span>
               </div>
             </div>
@@ -357,6 +357,30 @@ const estimatedHoursRemaining = computed(() => {
 
 const currentDryingRate = computed(() => {
   return '1.25'
+})
+
+function getWibHour() {
+  const now = new Date()
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000)
+  const wib = new Date(utc + (7 * 3600000))
+  return wib.getHours()
+}
+
+const isWithinNtpSchedule = computed(() => {
+  const h = getWibHour()
+  return (h >= 18 || h < 5)
+})
+
+const heaterFooterStatus = computed(() => {
+  if (actuators.value.auxHeaterStatus) {
+    if (isWithinNtpSchedule.value) return 'Jadwal Malam NTP (18:00 - 05:00)'
+    if (telemetry.value.isRaining) return 'Otomatis: Deteksi Hujan'
+    if (telemetry.value.humidityInternal >= 70) return 'Otomatis: Lembap (≥70%)'
+    if (telemetry.value.tempInternal <= 35) return 'Otomatis: Suhu Dingin'
+    return 'Membantu Panas Alami'
+  }
+  if (isWithinNtpSchedule.value) return 'Standby dalam Jadwal (Suhu Aman)'
+  return 'Standby (Siang / Panas Cukup)'
 })
 
 function updateFormattedTime() {
