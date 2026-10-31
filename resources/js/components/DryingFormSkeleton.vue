@@ -114,9 +114,11 @@
    ========================================================================== */
 .drying-form-skeleton-page {
   width: 100%;
+  max-width: 100%;
   min-height: calc(100vh - 72px);
   background: var(--color-bg-page, #F0F4F2);
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 :global(.dark-theme) .drying-form-skeleton-page {
@@ -124,6 +126,7 @@
 }
 
 .drying-form-skeleton-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px 28px;
@@ -135,11 +138,14 @@
 
 /* Base Card Skeleton */
 .skeleton-card {
+  width: 100%;
+  max-width: 100%;
   background: #FFFFFF;
   border-radius: 16px;
   border: 1px solid #E2E8F0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Animated Shimmer Bar */
@@ -149,6 +155,8 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .skeleton-bar::after {
@@ -184,13 +192,13 @@
 
 .sk-title {
   width: 340px;
-  max-width: 85%;
+  max-width: 100%;
   height: 28px;
 }
 
 .sk-subtitle {
   width: 480px;
-  max-width: 95%;
+  max-width: 100%;
   height: 14px;
 }
 
@@ -421,6 +429,15 @@
   .sk-timeline-quad {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .sk-sec-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sk-timing-switch {
+    width: 100%;
+  }
 }
 
 @media (max-width: 600px) {
@@ -431,6 +448,21 @@
 
   .sk-preset-btns {
     flex-direction: column;
+  }
+
+  .sk-predict-badge-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sk-chip-pill {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .sk-timeline-quad {
+    grid-template-columns: 1fr;
   }
 }
 

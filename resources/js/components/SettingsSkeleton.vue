@@ -70,6 +70,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow-x: hidden;
 }
 
 @media (max-width: 900px) {
@@ -84,6 +85,9 @@
   overflow: hidden;
   background-color: #E2E8F0;
   border-radius: 8px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .ss-shimmer::after {
@@ -126,22 +130,28 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .ss-title-block {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ss-title {
   width: 260px;
+  max-width: 100%;
   height: 28px;
   border-radius: 6px;
 }
 
 .ss-subtitle {
   width: 440px;
+  max-width: 100%;
   height: 15px;
   border-radius: 4px;
 }
@@ -157,6 +167,15 @@
   gap: 10px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   padding-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  box-sizing: border-box;
+  scrollbar-width: none;
+}
+
+.ss-tabs-bar::-webkit-scrollbar {
+  display: none;
 }
 
 :global(.dark-theme) .ss-tabs-bar {
@@ -166,6 +185,7 @@
 .ss-tab {
   height: 38px;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .ss-card {
@@ -176,6 +196,10 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 :global(.dark-theme) .ss-card {
@@ -187,28 +211,35 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ss-card-icon {
   width: 38px;
   height: 38px;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .ss-card-titles {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
 .ss-card-title {
   width: 240px;
+  max-width: 100%;
   height: 18px;
   border-radius: 4px;
 }
 
 .ss-card-sub {
   width: 380px;
+  max-width: 100%;
   height: 13px;
   border-radius: 4px;
 }
@@ -217,9 +248,25 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
+  .ss-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ss-save-btn {
+    width: 100%;
+  }
+
+  .ss-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
   .ss-options-grid-3 {
     grid-template-columns: 1fr;
   }
@@ -228,12 +275,14 @@
 .ss-option-card {
   height: 110px;
   border-radius: 12px;
+  width: 100%;
 }
 
 .ss-form-rows {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
 }
 
 .ss-form-row {
@@ -243,6 +292,8 @@
   gap: 20px;
   padding-bottom: 14px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 :global(.dark-theme) .ss-form-row {
@@ -251,6 +302,7 @@
 
 .ss-row-lbl {
   width: 220px;
+  max-width: 100%;
   height: 15px;
   border-radius: 4px;
 }
@@ -259,5 +311,22 @@
   width: 140px;
   height: 36px;
   border-radius: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .ss-form-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .ss-row-lbl {
+    width: 100%;
+  }
+
+  .ss-row-input {
+    width: 100%;
+  }
 }
 </style>

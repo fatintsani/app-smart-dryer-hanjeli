@@ -176,14 +176,15 @@
 
 <style scoped>
 .guide-skeleton-container {
+    width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     padding: 24px 28px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 100%;
     box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 @media (max-width: 900px) {
@@ -199,6 +200,9 @@
     overflow: hidden;
     background: #e2e8f0;
     border-radius: 6px;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 :global(.dark-theme) .skeleton-bar {
@@ -244,16 +248,20 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
+    width: 100%;
 }
 
 .page-header-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
+    max-width: 100%;
 }
 
 .skeleton-title-bar {
     width: 320px;
+    max-width: 100%;
     height: 32px;
     border-radius: 8px;
 }
@@ -277,6 +285,9 @@
     flex-wrap: wrap;
     gap: 16px;
     box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 :global(.dark-theme) .system-overview-banner-skeleton {
@@ -288,6 +299,8 @@
     display: flex;
     align-items: center;
     gap: 14px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .banner-status-icon-skeleton {
@@ -300,6 +313,8 @@
 .banner-text-skeleton {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .banner-indicators-skeleton {
@@ -307,17 +322,20 @@
     align-items: center;
     gap: 18px;
     flex-wrap: wrap;
+    min-width: 0;
 }
 
 .indicator-item-skeleton {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .indicator-sep-skeleton {
     width: 1px;
     height: 30px;
     background: rgba(203, 213, 225, 0.5);
+    flex-shrink: 0;
 }
 
 :global(.dark-theme) .indicator-sep-skeleton {
@@ -330,7 +348,15 @@
     gap: 8px;
     border-bottom: 1px solid rgba(191, 202, 186, 0.4);
     padding-bottom: 2px;
-    flex-wrap: wrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    box-sizing: border-box;
+    scrollbar-width: none;
+}
+
+.guide-nav-tabs-skeleton::-webkit-scrollbar {
+    display: none;
 }
 
 :global(.dark-theme) .guide-nav-tabs-skeleton {
@@ -340,13 +366,16 @@
 .tab-btn-skeleton {
     height: 38px;
     border-radius: 8px 8px 0 0;
+    flex-shrink: 0;
 }
 
 /* 4. Sensor Catalog Grid */
 .devices-simple-grid-skeleton {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .sensor-simple-card-skeleton {
@@ -359,6 +388,10 @@
     flex-direction: column;
     gap: 12px;
     box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
 }
 
 :global(.dark-theme) .sensor-simple-card-skeleton {
@@ -370,6 +403,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
 }
 
 .sensor-icon-box-skeleton {
@@ -383,6 +417,7 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    min-width: 0;
 }
 
 .sensor-status-tag-skeleton {
@@ -395,6 +430,7 @@
 .sensor-desc-skeleton {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .sensor-card-bottom-skeleton {
@@ -402,6 +438,7 @@
     align-items: center;
     justify-content: space-between;
     padding-top: 4px;
+    min-width: 0;
 }
 
 /* 5. Partnership & Collaboration Strip */
@@ -416,6 +453,9 @@
     gap: 24px;
     box-sizing: border-box;
     flex-wrap: wrap;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 :global(.dark-theme) .collab-strip-card-skeleton {
@@ -428,7 +468,9 @@
     align-items: center;
     gap: 16px;
     flex: 1;
-    min-width: 280px;
+    min-width: 260px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .collab-logo-skeleton {
@@ -442,12 +484,14 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    min-width: 0;
 }
 
 .collab-divider-skeleton {
     width: 1px;
     height: 50px;
     background: rgba(203, 213, 225, 0.5);
+    flex-shrink: 0;
 }
 
 :global(.dark-theme) .collab-divider-skeleton {
@@ -471,9 +515,20 @@
     .collab-strip-card-skeleton {
         flex-direction: column;
         align-items: flex-start;
+        padding: 16px;
+    }
+    .collab-item-skeleton {
+        min-width: 0;
+        width: 100%;
     }
     .collab-divider-skeleton {
         display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .devices-simple-grid-skeleton {
+        grid-template-columns: 1fr;
     }
 }
 </style>

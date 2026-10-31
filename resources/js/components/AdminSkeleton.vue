@@ -38,20 +38,22 @@
             </div>
 
             <!-- Table Header & 4 Rows Placeholder -->
-            <div class="as-table-header">
-                <div class="as-shimmer as-th" style="width: 20%"></div>
-                <div class="as-shimmer as-th" style="width: 25%"></div>
-                <div class="as-shimmer as-th" style="width: 20%"></div>
-                <div class="as-shimmer as-th" style="width: 15%"></div>
-                <div class="as-shimmer as-th" style="width: 20%"></div>
-            </div>
+            <div class="as-table-responsive-box">
+                <div class="as-table-header">
+                    <div class="as-shimmer as-th" style="width: 20%"></div>
+                    <div class="as-shimmer as-th" style="width: 25%"></div>
+                    <div class="as-shimmer as-th" style="width: 20%"></div>
+                    <div class="as-shimmer as-th" style="width: 15%"></div>
+                    <div class="as-shimmer as-th" style="width: 20%"></div>
+                </div>
 
-            <div v-for="r in 4" :key="r" class="as-table-row">
-                <div class="as-shimmer as-td" style="width: 20%"></div>
-                <div class="as-shimmer as-td" style="width: 25%"></div>
-                <div class="as-shimmer as-td" style="width: 20%"></div>
-                <div class="as-shimmer as-td" style="width: 15%"></div>
-                <div class="as-shimmer as-td" style="width: 20%"></div>
+                <div v-for="r in 4" :key="r" class="as-table-row">
+                    <div class="as-shimmer as-td" style="width: 20%"></div>
+                    <div class="as-shimmer as-td" style="width: 25%"></div>
+                    <div class="as-shimmer as-td" style="width: 20%"></div>
+                    <div class="as-shimmer as-td" style="width: 15%"></div>
+                    <div class="as-shimmer as-td" style="width: 20%"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -71,6 +73,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow-x: hidden;
 }
 
 @media (max-width: 900px) {
@@ -85,6 +88,9 @@
   overflow: hidden;
   background-color: #E2E8F0;
   border-radius: 8px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .as-shimmer::after {
@@ -127,28 +133,28 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 20px;
-}
-
-@media (max-width: 768px) {
-  .as-header {
-    flex-direction: column;
-  }
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .as-title-block {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .as-title {
   width: 260px;
+  max-width: 100%;
   height: 28px;
   border-radius: 6px;
 }
 
 .as-subtitle {
   width: 420px;
+  max-width: 100%;
   height: 15px;
   border-radius: 4px;
 }
@@ -156,6 +162,7 @@
 .as-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .as-btn {
@@ -167,6 +174,8 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1100px) {
@@ -176,6 +185,18 @@
 }
 
 @media (max-width: 640px) {
+  .as-header {
+    flex-direction: column;
+  }
+
+  .as-actions {
+    width: 100%;
+  }
+
+  .as-btn {
+    flex: 1;
+  }
+
   .as-stats-grid {
     grid-template-columns: 1fr;
   }
@@ -189,6 +210,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 :global(.dark-theme) .as-stat-card {
@@ -204,6 +228,7 @@
 
 .as-stat-lbl {
   width: 130px;
+  max-width: 100%;
   height: 12px;
   border-radius: 4px;
 }
@@ -212,6 +237,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .as-stat-mid {
@@ -234,6 +260,7 @@
 
 .as-stat-sub {
   width: 150px;
+  max-width: 100%;
   height: 12px;
   border-radius: 4px;
 }
@@ -246,6 +273,10 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 :global(.dark-theme) .as-main-card {
@@ -259,30 +290,60 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .as-card-titles {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
 .as-card-title {
   width: 240px;
+  max-width: 100%;
   height: 20px;
   border-radius: 4px;
 }
 
 .as-card-sub {
   width: 360px;
+  max-width: 100%;
   height: 13px;
   border-radius: 4px;
 }
 
 .as-search-box {
   width: 240px;
+  max-width: 100%;
   height: 38px;
   border-radius: 10px;
+}
+
+@media (max-width: 640px) {
+  .as-card-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .as-search-box {
+    width: 100%;
+  }
+
+  .as-main-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+}
+
+.as-table-responsive-box {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 .as-table-header {
@@ -290,6 +351,7 @@
   padding: 10px 12px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   gap: 16px;
+  min-width: 500px;
 }
 
 :global(.dark-theme) .as-table-header {
@@ -307,6 +369,7 @@
   padding: 14px 12px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.4);
   gap: 16px;
+  min-width: 500px;
 }
 
 :global(.dark-theme) .as-table-row {

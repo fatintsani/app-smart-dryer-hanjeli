@@ -1,5 +1,5 @@
 <template>
-  <div class="monitoring-skeleton-page">
+  <div class="monitoring-skeleton-page" aria-hidden="true">
     <div class="monitoring-skeleton-container">
       
       <!-- 1. Header Card Skeleton (1:1 with monitoring-header-card) -->
@@ -104,7 +104,7 @@
           </div>
         </div>
 
-        <!-- Simple Summary Badges Strip Skeleton -->
+        <!-- 4 Metric Cards Strip Skeleton -->
         <div class="sk-metric-badges-strip">
           <div v-for="s in 4" :key="'sk-m-' + s" class="skeleton-bar sk-metric-chip"></div>
         </div>
@@ -137,12 +137,16 @@
 </template>
 
 <script setup>
+// MonitoringSkeleton faithful 1:1 replica of MonitoringView
 </script>
 
 <style scoped>
 .monitoring-skeleton-page {
   width: 100%;
+  max-width: 100%;
   min-height: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
   animation: fadeInSkeleton 0.25s ease-in-out;
 }
 
@@ -158,7 +162,10 @@
   flex-direction: column;
   gap: 20px;
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Card base */
@@ -169,6 +176,9 @@
   border: 1px solid #E2E8F0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 /* Shimmer base */
@@ -177,6 +187,9 @@
   overflow: hidden;
   background: #E2E8F0;
   border-radius: 6px;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .skeleton-bar::after {
@@ -212,12 +225,14 @@
 }
 
 .sk-header-left {
-  flex: 1;
-  min-width: 260px;
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sk-pill {
   width: 200px;
+  max-width: 100%;
   height: 24px;
   border-radius: 9999px;
   margin-bottom: 12px;
@@ -225,19 +240,24 @@
 
 .sk-title {
   width: 380px;
-  max-width: 90%;
+  max-width: 100%;
   height: 26px;
   margin-bottom: 8px;
 }
 
 .sk-sub {
   width: 520px;
-  max-width: 95%;
+  max-width: 100%;
   height: 14px;
+}
+
+.sk-header-right {
+  flex-shrink: 0;
 }
 
 .sk-btn-export {
   width: 150px;
+  max-width: 100%;
   height: 40px;
   border-radius: 10px;
 }
@@ -247,6 +267,8 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .skeleton-sensor-card {
@@ -255,6 +277,7 @@
   flex-direction: column;
   justify-content: space-between;
   min-height: 140px;
+  box-sizing: border-box;
 }
 
 .sk-sensor-head {
@@ -296,6 +319,7 @@
 
 .sk-sensor-badge {
   width: 110px;
+  max-width: 100%;
   height: 22px;
   border-radius: 6px;
 }
@@ -306,6 +330,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  box-sizing: border-box;
 }
 
 .sk-act-head {
@@ -314,12 +339,16 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .sk-act-head-left {
   display: flex;
   align-items: center;
   gap: 14px;
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sk-act-icon {
@@ -333,24 +362,29 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sk-act-title {
   width: 240px;
-  max-width: 80%;
+  max-width: 100%;
   height: 18px;
 }
 
 .sk-act-sub {
   width: 360px;
-  max-width: 90%;
+  max-width: 100%;
   height: 12px;
 }
 
 .sk-act-mode-toggle {
   width: 160px;
+  max-width: 100%;
   height: 34px;
   border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .sk-act-quick-bar {
@@ -363,35 +397,46 @@
   border: 1px solid #E2E8F0;
   gap: 12px;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-act-status-text {
   width: 220px;
+  max-width: 100%;
   height: 16px;
 }
 
 .sk-act-quick-btns {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  max-width: 100%;
 }
 
 .sk-act-qbtn {
-  width: 120px;
+  flex: 1 1 80px;
+  max-width: 100%;
   height: 32px;
   border-radius: 8px;
 }
 
 .sk-act-reason-box {
   width: 100%;
+  max-width: 100%;
   height: 60px;
   border-radius: 12px;
   margin-top: 14px;
+  box-sizing: border-box;
 }
 
 .sk-act-switches-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-act-switch-box {
@@ -403,6 +448,9 @@
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .sk-act-sw-info {
@@ -410,6 +458,7 @@
   align-items: center;
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .sk-act-sw-icon {
@@ -424,17 +473,18 @@
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  min-width: 0;
 }
 
 .sk-act-sw-title {
   width: 170px;
-  max-width: 85%;
+  max-width: 100%;
   height: 14px;
 }
 
 .sk-act-sw-desc {
   width: 220px;
-  max-width: 95%;
+  max-width: 100%;
   height: 11px;
 }
 
@@ -453,20 +503,27 @@
   border-top: 1px dashed #E2E8F0;
   gap: 12px;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-act-led-label {
   width: 200px;
+  max-width: 100%;
   height: 12px;
 }
 
 .sk-act-led-items {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  max-width: 100%;
 }
 
 .sk-act-led-chip {
-  width: 130px;
+  flex: 1 1 90px;
+  max-width: 100%;
   height: 18px;
   border-radius: 4px;
 }
@@ -477,6 +534,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  box-sizing: border-box;
 }
 
 .sk-chart-header {
@@ -485,11 +543,13 @@
   align-items: flex-start;
   gap: 16px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .sk-chart-header-left {
-  flex: 1;
-  min-width: 260px;
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sk-chart-title-row {
@@ -497,23 +557,25 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
 .sk-chart-title {
   width: 310px;
-  max-width: 80%;
+  max-width: 100%;
   height: 20px;
 }
 
 .sk-chart-period-badge {
   width: 90px;
+  max-width: 100%;
   height: 20px;
   border-radius: 20px;
 }
 
 .sk-chart-subtitle {
   width: 480px;
-  max-width: 95%;
+  max-width: 100%;
   height: 13px;
 }
 
@@ -526,30 +588,34 @@
 
 .sk-chart-tabs {
   width: 220px;
+  max-width: 100%;
   height: 32px;
   border-radius: 8px;
 }
 
 .sk-chart-btn-csv {
   width: 105px;
+  max-width: 100%;
   height: 32px;
   border-radius: 8px;
 }
 
 .sk-metric-badges-strip {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  flex-wrap: wrap;
-  padding: 8px 12px;
+  padding: 10px;
   border-radius: 12px;
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-metric-chip {
-  width: 170px;
-  height: 28px;
+  width: 100%;
+  max-width: 100%;
+  height: 32px;
   border-radius: 8px;
 }
 
@@ -560,6 +626,8 @@
   border: 1px solid #E2E8F0;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-chart-grid-line {
@@ -607,25 +675,35 @@
   flex-wrap: wrap;
   gap: 12px;
   padding-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-chart-legend {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .sk-legend-pill {
   width: 90px;
+  max-width: 100%;
   height: 14px;
 }
 
 .sk-chart-time-labels {
   display: flex;
-  gap: 16px;
+  justify-content: space-between;
+  width: 100%;
+  gap: 6px;
+  overflow: hidden;
 }
 
 .sk-time-tag {
-  width: 45px;
+  flex: 1;
+  max-width: 45px;
+  min-width: 0;
   height: 11px;
 }
 
@@ -650,15 +728,9 @@
   }
 
   .sk-metric-badges-strip {
-    display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     padding: 8px;
-  }
-
-  .sk-metric-chip {
-    width: 100%;
-    height: 30px;
   }
 
   .sk-act-switches-grid {
@@ -681,13 +753,44 @@
     grid-template-columns: 1fr;
   }
 
+  .sk-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sk-header-right {
+    width: 100%;
+  }
+
+  .sk-btn-export {
+    width: 100%;
+  }
+
+  .sk-chart-header-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sk-chart-tabs,
+  .sk-chart-btn-csv {
+    width: 100%;
+  }
+
   .sk-act-quick-btns {
     width: 100%;
-    justify-content: space-between;
   }
 
   .sk-act-qbtn {
-    flex: 1;
+    flex: 1 1 70px;
+  }
+
+  .sk-act-led-items {
+    width: 100%;
+  }
+
+  .sk-act-led-chip {
+    flex: 1 1 80px;
   }
 }
 

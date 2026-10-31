@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <!-- Simple Summary Badges Strip Skeleton -->
+        <!-- 4 Metric Cards Strip Skeleton -->
         <div class="sk-metric-badges-strip">
           <div v-for="s in 4" :key="'sk-m-' + s" class="skeleton-bar sk-metric-chip"></div>
         </div>
@@ -117,9 +117,11 @@ defineProps({
    ========================================================================== */
 .dashboard-skeleton-page {
   width: 100%;
+  max-width: 100%;
   min-height: calc(100vh - 72px);
   background: var(--color-bg-page, #F0F4F2);
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 :global(.dark-theme) .dashboard-skeleton-page {
@@ -134,6 +136,8 @@ defineProps({
   flex-direction: column;
   gap: 20px;
   box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -145,6 +149,8 @@ defineProps({
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .skeleton-bar::after {
@@ -177,6 +183,9 @@ defineProps({
   border: 1px solid #E2E8F0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -189,11 +198,13 @@ defineProps({
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .sk-welcome-left {
-  flex: 1;
-  min-width: 260px;
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -201,13 +212,14 @@ defineProps({
 
 .sk-status-pill {
   width: 190px;
+  max-width: 100%;
   height: 24px;
   border-radius: 20px;
 }
 
 .sk-welcome-title {
   width: 380px;
-  max-width: 90%;
+  max-width: 100%;
   height: 26px;
 }
 
@@ -220,10 +232,12 @@ defineProps({
 .sk-welcome-right {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .sk-action-btn {
   width: 220px;
+  max-width: 100%;
   height: 52px;
   border-radius: 12px;
 }
@@ -235,6 +249,8 @@ defineProps({
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .skeleton-indicator-card {
@@ -242,35 +258,41 @@ defineProps({
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .sk-indicator-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
 .sk-indicator-icon {
   width: 42px;
   height: 42px;
   border-radius: 12px;
+  flex-shrink: 0;
 }
 
 .sk-indicator-tag {
   width: 95px;
+  max-width: 50%;
   height: 22px;
-  border-radius: 6px;
+  border-radius: 20px;
 }
 
 .sk-indicator-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .sk-indicator-title {
-  width: 100px;
-  height: 13px;
+  width: 130px;
+  max-width: 70%;
+  height: 14px;
 }
 
 .sk-number-row {
@@ -280,20 +302,20 @@ defineProps({
 }
 
 .sk-big-number {
-  width: 70px;
-  height: 34px;
-  border-radius: 6px;
+  width: 85px;
+  height: 36px;
 }
 
 .sk-unit {
-  width: 24px;
+  width: 28px;
   height: 18px;
 }
 
 .sk-hint-line {
-  width: 140px;
-  max-width: 95%;
-  height: 11px;
+  width: 180px;
+  max-width: 90%;
+  height: 12px;
+  margin-top: 4px;
 }
 
 /* ==========================================================================
@@ -304,6 +326,7 @@ defineProps({
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box;
 }
 
 .sk-chart-header {
@@ -312,11 +335,13 @@ defineProps({
   align-items: flex-start;
   gap: 16px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .sk-chart-header-left {
-  flex: 1;
-  min-width: 260px;
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sk-chart-title-row {
@@ -324,23 +349,25 @@ defineProps({
   align-items: center;
   gap: 10px;
   margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
 .sk-chart-title {
   width: 320px;
-  max-width: 80%;
+  max-width: 100%;
   height: 22px;
 }
 
 .sk-chart-period-badge {
   width: 90px;
+  max-width: 100%;
   height: 20px;
   border-radius: 20px;
 }
 
 .sk-chart-subtitle {
   width: 460px;
-  max-width: 95%;
+  max-width: 100%;
   height: 13px;
 }
 
@@ -353,31 +380,35 @@ defineProps({
 
 .sk-chart-tabs {
   width: 220px;
+  max-width: 100%;
   height: 32px;
   border-radius: 8px;
 }
 
 .sk-chart-btn-csv {
   width: 105px;
+  max-width: 100%;
   height: 32px;
   border-radius: 8px;
 }
 
 /* Simple Summary Badges Strip */
 .sk-metric-badges-strip {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  flex-wrap: wrap;
-  padding: 8px 12px;
+  padding: 10px;
   border-radius: 12px;
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-metric-chip {
-  width: 170px;
-  height: 28px;
+  width: 100%;
+  max-width: 100%;
+  height: 32px;
   border-radius: 8px;
 }
 
@@ -387,20 +418,25 @@ defineProps({
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .sk-legend-group {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .sk-legend-pill {
   width: 110px;
+  max-width: 100%;
   height: 14px;
 }
 
 .sk-legend-hint {
   width: 260px;
+  max-width: 100%;
   height: 12px;
 }
 
@@ -411,6 +447,8 @@ defineProps({
   border: 1px solid #E2E8F0;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-chart-grid-line {
@@ -453,16 +491,22 @@ defineProps({
 
 .sk-chart-footer {
   padding-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-chart-time-labels {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  width: 100%;
+  gap: 4px;
+  overflow: hidden;
 }
 
 .sk-time-tag {
-  width: 45px;
+  flex: 1;
+  max-width: 40px;
+  min-width: 0;
   height: 11px;
 }
 
@@ -474,10 +518,12 @@ defineProps({
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-sizing: border-box;
 }
 
 .sk-alerts-title {
   width: 200px;
+  max-width: 100%;
   height: 18px;
 }
 
@@ -485,6 +531,7 @@ defineProps({
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .sk-alert-item {
@@ -495,6 +542,8 @@ defineProps({
   border-radius: 10px;
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .sk-alert-dot {
@@ -506,6 +555,7 @@ defineProps({
 
 .sk-alert-text {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -513,18 +563,21 @@ defineProps({
 
 .sk-alert-heading {
   width: 140px;
+  max-width: 100%;
   height: 13px;
 }
 
 .sk-alert-msg {
   width: 320px;
-  max-width: 90%;
+  max-width: 100%;
   height: 11px;
 }
 
 .sk-alert-time {
   width: 70px;
+  max-width: 100%;
   height: 11px;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -562,15 +615,9 @@ defineProps({
   }
 
   .sk-metric-badges-strip {
-    display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     padding: 8px;
-  }
-
-  .sk-metric-chip {
-    width: 100%;
-    height: 30px;
   }
 
   .sk-chart-canvas {
@@ -586,6 +633,26 @@ defineProps({
 
   .sk-metric-badges-strip {
     grid-template-columns: 1fr;
+  }
+
+  .sk-chart-header-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sk-chart-tabs,
+  .sk-chart-btn-csv {
+    width: 100%;
+  }
+
+  .sk-alert-item {
+    flex-wrap: wrap;
+  }
+
+  .sk-alert-time {
+    width: 100%;
+    text-align: right;
   }
 }
 

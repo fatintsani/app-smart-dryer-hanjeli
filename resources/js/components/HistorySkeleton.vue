@@ -45,27 +45,31 @@
         </div>
       </div>
 
-      <!-- 4. Batch Records Table Card Skeleton (1:1 with history-list-card) -->
-      <div class="skeleton-card skeleton-table-card">
-        <div class="sk-table-header-row">
-          <div class="skeleton-bar sk-col-th" style="width: 130px;"></div>
-          <div class="skeleton-bar sk-col-th" style="width: 160px;"></div>
-          <div class="skeleton-bar sk-col-th" style="width: 140px;"></div>
-          <div class="skeleton-bar sk-col-th" style="width: 100px;"></div>
-          <div class="skeleton-bar sk-col-th" style="width: 110px;"></div>
-          <div class="skeleton-bar sk-col-th" style="width: 90px;"></div>
-          <div class="skeleton-bar sk-col-th" style="width: 110px;"></div>
-        </div>
+      <!-- 4. Batch Cards Grid Skeleton (1:1 with batch-cards-grid) -->
+      <div class="sk-batch-cards-grid">
+        <div v-for="c in 6" :key="'sk-batch-card-' + c" class="skeleton-card sk-batch-item-card">
+          <!-- Card Header: Code & Status -->
+          <div class="sk-card-top-row">
+            <div class="skeleton-bar sk-batch-code"></div>
+            <div class="skeleton-bar sk-status-pill"></div>
+          </div>
 
-        <div class="sk-table-rows">
-          <div v-for="r in 5" :key="'sk-row-' + r" class="sk-table-row">
-            <div class="skeleton-bar sk-col-td" style="width: 120px; height: 18px;"></div>
-            <div class="skeleton-bar sk-col-td" style="width: 150px; height: 16px;"></div>
-            <div class="skeleton-bar sk-col-td" style="width: 130px; height: 14px;"></div>
-            <div class="skeleton-bar sk-col-td" style="width: 90px; height: 14px;"></div>
-            <div class="skeleton-bar sk-col-td" style="width: 100px; height: 16px;"></div>
-            <div class="skeleton-bar sk-col-td" style="width: 80px; height: 22px; border-radius: 20px;"></div>
-            <div class="skeleton-bar sk-col-td" style="width: 95px; height: 32px; border-radius: 8px;"></div>
+          <!-- Variety & Meta -->
+          <div class="skeleton-bar sk-crop-title"></div>
+          <div class="skeleton-bar sk-meta-date"></div>
+
+          <!-- 3 Metrics Box -->
+          <div class="sk-metrics-triple">
+            <div v-for="m in 3" :key="'sk-m-' + m" class="sk-metric-col">
+              <div class="skeleton-bar sk-metric-lbl"></div>
+              <div class="skeleton-bar sk-metric-val"></div>
+            </div>
+          </div>
+
+          <!-- Card Actions -->
+          <div class="sk-card-actions">
+            <div class="skeleton-bar sk-btn-detail"></div>
+            <div class="skeleton-bar sk-btn-qr"></div>
           </div>
         </div>
       </div>
@@ -84,9 +88,11 @@
    ========================================================================== */
 .history-skeleton-page {
   width: 100%;
+  max-width: 100%;
   min-height: calc(100vh - 72px);
   background: var(--color-bg-page, #F0F4F2);
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 :global(.dark-theme) .history-skeleton-page {
@@ -94,6 +100,7 @@
 }
 
 .history-skeleton-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px 28px;
@@ -105,11 +112,14 @@
 
 /* Base Card Skeleton */
 .skeleton-card {
+  width: 100%;
+  max-width: 100%;
   background: #FFFFFF;
   border-radius: 16px;
   border: 1px solid #E2E8F0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Animated Shimmer Bar */
@@ -119,6 +129,8 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .skeleton-bar::after {
@@ -164,18 +176,20 @@
 
 .sk-title {
   width: 260px;
+  max-width: 100%;
   height: 28px;
 }
 
 .sk-subtitle {
   width: 440px;
-  max-width: 95%;
+  max-width: 100%;
   height: 14px;
 }
 
 .sk-header-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .sk-btn-action {
@@ -189,6 +203,8 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .skeleton-kpi-card {
@@ -203,10 +219,13 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
 .sk-kpi-label {
   width: 160px;
+  max-width: 100%;
   height: 12px;
 }
 
@@ -228,6 +247,7 @@
 
 .sk-kpi-hint {
   width: 130px;
+  max-width: 100%;
   height: 11px;
 }
 
@@ -256,7 +276,7 @@
 
 .sk-search-box {
   flex: 1;
-  min-width: 240px;
+  min-width: 220px;
   height: 40px;
   border-radius: 10px;
 }
@@ -264,6 +284,7 @@
 .sk-filter-pills {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .sk-filter-pill {
@@ -290,48 +311,110 @@
   border-radius: 8px;
 }
 
-/* 4. Table Card */
-.skeleton-table-card {
+/* 4. Batch Cards Grid Skeleton */
+.sk-batch-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sk-batch-item-card {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  overflow-x: auto;
+  gap: 12px;
 }
 
-.sk-table-header-row {
+.sk-card-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #E2E8F0;
-  gap: 16px;
-  min-width: 700px;
 }
 
-.sk-col-th {
-  height: 13px;
+.sk-batch-code {
+  width: 75px;
+  height: 22px;
+  border-radius: 6px;
 }
 
-.sk-table-rows {
+.sk-status-pill {
+  width: 95px;
+  height: 22px;
+  border-radius: 20px;
+}
+
+.sk-crop-title {
+  width: 180px;
+  max-width: 100%;
+  height: 20px;
+}
+
+.sk-meta-date {
+  width: 220px;
+  max-width: 100%;
+  height: 12px;
+}
+
+.sk-metrics-triple {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  box-sizing: border-box;
+}
+
+.sk-metric-col {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 700px;
+  gap: 6px;
 }
 
-.sk-table-row {
+.sk-metric-lbl {
+  width: 60px;
+  max-width: 100%;
+  height: 10px;
+}
+
+.sk-metric-val {
+  width: 70px;
+  max-width: 100%;
+  height: 16px;
+}
+
+.sk-card-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px dashed #E2E8F0;
-  gap: 16px;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.sk-btn-detail {
+  flex: 1;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.sk-btn-qr {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
    RESPONSIVE (MOBILE & TABLET)
    ========================================================================== */
+@media (max-width: 1100px) {
+  .sk-batch-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
   .history-skeleton-container {
     padding: 0;
@@ -361,6 +444,39 @@
   }
 }
 
+@media (max-width: 680px) {
+  .sk-batch-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sk-filter-top-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sk-search-box {
+    width: 100%;
+  }
+
+  .sk-filter-pills {
+    width: 100%;
+  }
+
+  .sk-filter-pill {
+    flex: 1;
+  }
+
+  .sk-filter-bottom-row {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .sk-date-input,
+  .sk-sort-select {
+    width: 100%;
+  }
+}
+
 /* ==========================================================================
    DARK THEME OVERRIDES
    ========================================================================== */
@@ -382,11 +498,8 @@
   );
 }
 
-:global(.dark-theme) .sk-table-header-row {
-  border-bottom-color: #1E4E61;
-}
-
-:global(.dark-theme) .sk-table-row {
-  border-bottom-color: rgba(30, 78, 97, 0.4);
+:global(.dark-theme) .sk-metrics-triple {
+  background: #071E27;
+  border-color: #1E4E61;
 }
 </style>

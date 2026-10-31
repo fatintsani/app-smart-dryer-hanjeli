@@ -1,7 +1,10 @@
 <template>
   <div class="history-view-page">
-    <div class="history-main-container">
-      <!-- 1. Header Card with Title and Actions -->
+    <Transition name="fade-history" mode="out-in">
+      <HistorySkeleton v-if="isInitialLoading" />
+      <div v-else class="history-loaded-wrap">
+        <div class="history-main-container">
+          <!-- 1. Header Card with Title and Actions -->
       <div class="history-header-card">
         <div class="header-left">
           <div class="title-with-pill">
@@ -303,6 +306,8 @@
         </div>
       </div>
     </div>
+    </div>
+  </Transition>
 
     <!-- ========================================================================= -->
     <!-- MODAL: SELESAIKAN BATCH -->
@@ -413,6 +418,7 @@ import { batchService } from '../../services/batchService'
 import { alertDialog } from '../../services/confirmDialogService'
 import { connectionManager } from '../../services/connectionManager'
 import PackagingQrLabelModal from '../../components/PackagingQrLabelModal.vue'
+import HistorySkeleton from '../../components/HistorySkeleton.vue'
 
 const router = useRouter()
 
@@ -815,6 +821,20 @@ function executeExport() {
   width: 100%;
   min-height: 100%;
   background: var(--color-bg, #F4F7F5);
+}
+
+.history-loaded-wrap {
+  width: 100%;
+}
+
+.fade-history-enter-active,
+.fade-history-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.fade-history-enter-from,
+.fade-history-leave-to {
+  opacity: 0;
 }
 
 .history-main-container {

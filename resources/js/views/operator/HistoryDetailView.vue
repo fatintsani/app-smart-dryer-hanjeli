@@ -1,7 +1,10 @@
 <template>
     <div class="history-detail-page">
-        <div class="history-detail-container">
-            <!-- 1. Header Card with Back Button and Actions -->
+        <Transition name="fade-history-detail" mode="out-in">
+            <HistoryDetailSkeleton v-if="isLoading" />
+            <div v-else class="history-detail-loaded-wrap">
+                <div class="history-detail-container">
+                    <!-- 1. Header Card with Back Button and Actions -->
             <div class="detail-header-card">
                 <div class="header-left">
                     <button
@@ -502,6 +505,8 @@
                 </div>
             </div>
         </div>
+        </div>
+    </Transition>
 
         <!-- ========================================================================= -->
         <!-- EDIT BATCH MODAL -->
@@ -630,6 +635,7 @@ import {
     alertDialog,
 } from "../../services/confirmDialogService";
 import PackagingQrLabelModal from "../../components/PackagingQrLabelModal.vue";
+import HistoryDetailSkeleton from "../../components/HistoryDetailSkeleton.vue";
 import QRCode from "qrcode";
 
 const route = useRoute();
@@ -1071,6 +1077,21 @@ watch(
     background: var(--color-bg, #f4f7f5);
     overflow-x: hidden;
     box-sizing: border-box;
+}
+
+.history-detail-loaded-wrap {
+    width: 100%;
+    max-width: 100%;
+}
+
+.fade-history-detail-enter-active,
+.fade-history-detail-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-history-detail-enter-from,
+.fade-history-detail-leave-to {
+    opacity: 0;
 }
 
 .history-detail-container {

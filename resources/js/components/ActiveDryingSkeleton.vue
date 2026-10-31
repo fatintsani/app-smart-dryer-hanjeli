@@ -116,9 +116,11 @@
    ========================================================================== */
 .active-drying-skeleton-page {
   width: 100%;
+  max-width: 100%;
   min-height: calc(100vh - 72px);
   background: var(--color-bg-page, #F0F4F2);
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 :global(.dark-theme) .active-drying-skeleton-page {
@@ -126,6 +128,7 @@
 }
 
 .active-drying-skeleton-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px 28px;
@@ -137,11 +140,14 @@
 
 /* Base Card Skeleton */
 .skeleton-card {
+  width: 100%;
+  max-width: 100%;
   background: #FFFFFF;
   border-radius: 16px;
   border: 1px solid #E2E8F0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Animated Shimmer Bar */
@@ -151,6 +157,8 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .skeleton-bar::after {
@@ -222,7 +230,7 @@
 
 .sk-operator-info {
   width: 380px;
-  max-width: 95%;
+  max-width: 100%;
   height: 14px;
 }
 
@@ -429,13 +437,14 @@
 
 .sk-chart-desc {
   width: 440px;
-  max-width: 95%;
+  max-width: 100%;
   height: 12px;
 }
 
 .sk-legend-chips {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .sk-legend-chip {
@@ -451,6 +460,9 @@
   border: 1px solid #E2E8F0;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-chart-grid-line {
@@ -493,16 +505,22 @@
 
 .sk-chart-footer {
   padding-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sk-chart-time-labels {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .sk-time-tag {
-  width: 45px;
+  flex: 1;
+  max-width: 45px;
   height: 11px;
 }
 
@@ -548,6 +566,12 @@
     flex: 1;
   }
 
+  .sk-chart-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
   .sk-chart-canvas {
     height: 170px;
   }
@@ -563,6 +587,17 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+
+  .sk-prog-time-box,
+  .sk-prog-metric-box {
+    width: 100%;
+  }
+
+  .sk-track-info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }
 
