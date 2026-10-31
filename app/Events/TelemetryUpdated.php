@@ -31,8 +31,13 @@ class TelemetryUpdated implements ShouldBroadcastNow
             'tempExternal' => (float) $telemetry->temp_external,
             'humidityExternal' => (float) $telemetry->humidity_external,
             'solarRadiation' => (float) $telemetry->solar_radiation,
+            'isRaining' => (bool) $telemetry->is_raining,
             'grainMoisture' => (float) $telemetry->grain_moisture,
             'weightCurrentKg' => (float) $telemetry->weight_kg,
+            'heaterStatus' => (bool) $telemetry->heater_status,
+            'auxHeaterStatus' => (bool) $telemetry->heater_status,
+            'heaterReason' => (string) ($telemetry->heater_reason ?? ''),
+            'heaterLevel' => (int) $telemetry->heater_level,
             'hasData' => true,
             'timestamp' => $d->toIso8601String(),
         ];

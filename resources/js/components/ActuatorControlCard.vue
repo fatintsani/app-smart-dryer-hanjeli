@@ -136,6 +136,24 @@
       </div>
     </div>
 
+    <!-- Alasan Otomatisasi Pemanas (Heater Reason) -->
+    <div class="heater-automation-card" :class="heaterReasonInfo.statusClass">
+      <div class="hac-badge-row">
+        <div class="hac-status-pill" :class="actuators.auxHeaterStatus ? 'pill-on' : (heaterReasonInfo.isWarning ? 'pill-lockout' : 'pill-standby')">
+          <span class="hac-dot"></span>
+          <span class="hac-label-title">Status:</span>
+          <strong>{{ isHardwareActive ? heaterReasonInfo.statusText : 'MENUNGGU ALAT' }}</strong>
+        </div>
+        <span class="hac-source-tag">
+          {{ actuators.isOverrideActive ? 'Mode Manual (Override Web)' : 'Otomatisasi ESP32' }}
+        </span>
+      </div>
+      <div class="hac-reason-row">
+        <span class="hac-reason-label">Alasan:</span>
+        <p class="hac-reason-text">{{ heaterReasonInfo.fullReason }}</p>
+      </div>
+    </div>
+
     <!-- Feedback Message Toast Mini -->
     <Transition name="fade">
       <div v-if="feedbackMsg" class="acc-feedback-toast" :class="feedbackType">
@@ -155,8 +173,15 @@
             </svg>
           </div>
           <div>
-            <h4 class="ai-name">Pemanas Ruangan (Heater)</h4>
-            <p class="ai-desc">Aktif otomatis 18:00 - 05:00 WIB (NTP), atau saat dingin (≤35°C), hujan, &amp; lembap (≥70%). Mati otomatis saat ≥50°C.</p>
+            <div class="ai-name-row">
+              <h4 class="ai-name">Pemanas Ruangan (Heater)</h4>
+              <span class="ai-badge-status" :class="actuators.auxHeaterStatus ? 'badge-on' : 'badge-standby'">
+                Status: {{ isHardwareActive ? (actuators.auxHeaterStatus ? 'MENYALA' : 'STANDBY') : 'MENUNGGU ALAT' }}
+              </span>
+            </div>
+            <p class="ai-desc">
+              <span class="ai-desc-label">Alasan:</span> {{ heaterReasonInfo.fullReason }}
+            </p>
           </div>
         </div>
         <label class="switch-toggle">
@@ -228,11 +253,16 @@ import { actuatorService } from '../services/actuatorService'
 import { telemetryService } from '../services/telemetryService'
 import { socketService } from '../services/socketService'
 import connectionManager from '../services/connectionManager'
+import { resolveHeaterReason } from '../services/heaterAutomationHelper'
 
-defineProps({
+const props = defineProps({
   currentLang: {
     type: String,
     default: 'id'
+  },
+  telemetryData: {
+    type: Object,
+    default: null
   }
 })
 
@@ -240,6 +270,7 @@ const currentTemp = ref(32.0)
 const currentHum = ref(60.0)
 const isRaining = ref(false)
 const isLiveTelemetry = ref(false)
+const currentHeaterReason = ref('')
 const currentWibTime = ref('--:--:-- WIB')
 const isWithinNtpSchedule = ref(false)
 let wibClockTimer = null
@@ -256,26 +287,25 @@ function updateWibClock() {
   isWithinNtpSchedule.value = (h >= 18 || h < 5)
 }
 
+const heaterReasonInfo = computed(() => {
+  const reason = props.telemetryData?.heaterReason || currentHeaterReason.value
+  const temp = props.telemetryData?.tempInternal !== undefined ? Number(props.telemetryData.tempInternal) : currentTemp.value
+  const hum = props.telemetryData?.humidityInternal !== undefined ? Number(props.telemetryData.humidityInternal) : currentHum.value
+  const rain = props.telemetryData?.isRaining !== undefined ? Boolean(props.telemetryData.isRaining) : isRaining.value
+
+  return resolveHeaterReason(reason, {
+    isHeaterActive: Boolean(actuators.value.auxHeaterStatus),
+    tempInternal: isHardwareActive.value ? temp : null,
+    humidityInternal: isHardwareActive.value ? hum : null,
+    isRaining: rain,
+    isWithinNtpSchedule: isWithinNtpSchedule.value,
+    isOverrideActive: Boolean(actuators.value.isOverrideActive),
+    isHardwareActive: isHardwareActive.value
+  })
+})
+
 const heaterTriggerReason = computed(() => {
-  if (actuators.value.isOverrideActive) {
-    return 'Manual Operator (Override Web)'
-  }
-  if (currentTemp.value >= 50.0) {
-    return 'Proteksi Suhu Maksimal (≥50°C Lockout)'
-  }
-  if (isWithinNtpSchedule.value) {
-    return 'Jadwal Malam NTP (18:00 - 05:00 WIB)'
-  }
-  if (isRaining.value) {
-    return 'Otomatis: Deteksi Hujan'
-  }
-  if (currentHum.value >= 70.0) {
-    return 'Otomatis: Udara Lembap (≥70% RH)'
-  }
-  if (currentTemp.value <= 35.0) {
-    return 'Otomatis: Suhu Dingin (≤35°C)'
-  }
-  return 'Otomatis: Standby (Di Luar Jadwal / Hangat Alami)'
+  return heaterReasonInfo.value.shortReason
 })
 
 const isHardwareActive = computed(() => {
@@ -428,6 +458,9 @@ onMounted(() => {
       if (res.telemetry.isLive !== undefined) {
         isLiveTelemetry.value = Boolean(res.telemetry.isLive)
       }
+      if (res.telemetry.heaterReason !== undefined) {
+        currentHeaterReason.value = String(res.telemetry.heaterReason || '')
+      }
     }
   }).catch(() => {})
 
@@ -449,6 +482,9 @@ onMounted(() => {
       if (data.isLive !== undefined) {
         isLiveTelemetry.value = Boolean(data.isLive)
       }
+      if (data.heaterReason !== undefined) {
+        currentHeaterReason.value = String(data.heaterReason || '')
+      }
     }
   })
 
@@ -465,6 +501,9 @@ onMounted(() => {
       }
       if (data.isLive !== undefined) {
         isLiveTelemetry.value = Boolean(data.isLive)
+      }
+      if (data.heaterReason !== undefined) {
+        currentHeaterReason.value = String(data.heaterReason || '')
       }
     }
   })
@@ -815,6 +854,140 @@ onUnmounted(() => {
   border: 1px solid #FECACA;
 }
 
+/* Heater Automation Card */
+.heater-automation-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.25s ease;
+}
+
+.heater-automation-card.status-on {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+}
+
+.heater-automation-card.status-lockout {
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+
+.hac-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hac-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hac-status-pill.pill-on {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.hac-status-pill.pill-standby {
+  background: #E2E8F0;
+  color: #475569;
+}
+
+.hac-status-pill.pill-lockout {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.hac-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.hac-label-title {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.hac-source-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.hac-reason-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.hac-reason-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.hac-reason-text {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.ai-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.ai-badge-status {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ai-badge-status.badge-on {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.ai-badge-status.badge-standby {
+  background: #E2E8F0;
+  color: #475569;
+}
+
+.ai-desc-label {
+  font-weight: 700;
+  color: #475569;
+}
+
 /* Actuator Items */
 .actuator-cards-grid {
   display: grid;
@@ -1129,5 +1302,47 @@ input:checked + .slider:before {
 :global(.dark-theme) .chip-reason-off {
   background: rgba(255, 255, 255, 0.08) !important;
   color: #CBD5E1 !important;
+}
+
+:global(.dark-theme) .heater-automation-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .heater-automation-card.status-on {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+:global(.dark-theme) .heater-automation-card.status-lockout {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+:global(.dark-theme) .hac-source-tag {
+  color: #94A3B8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:global(.dark-theme) .hac-reason-label {
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .hac-reason-text {
+  color: #CBD5E1;
+}
+
+:global(.dark-theme) .ai-badge-status.badge-on {
+  background: rgba(217, 119, 6, 0.25);
+  color: #FDE68A;
+}
+
+:global(.dark-theme) .ai-badge-status.badge-standby {
+  background: #113847;
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .ai-desc-label {
+  color: #94A3B8;
 }
 </style>

@@ -53,6 +53,8 @@
           </div>
         </div>
 
+        <div class="skeleton-bar sk-act-reason-box"></div>
+
         <div class="sk-act-switches-grid">
           <div class="sk-act-switch-box">
             <div class="sk-act-sw-info">
@@ -377,6 +379,13 @@
   width: 120px;
   height: 32px;
   border-radius: 8px;
+}
+
+.sk-act-reason-box {
+  width: 100%;
+  height: 60px;
+  border-radius: 12px;
+  margin-top: 14px;
 }
 
 .sk-act-switches-grid {

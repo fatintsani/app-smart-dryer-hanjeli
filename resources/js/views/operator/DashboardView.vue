@@ -515,9 +515,21 @@
                                         }}</span>
                                     </button>
                                 </div>
-                                <p class="card-hint">
-                                    {{ heaterScheduleHint }}
-                                </p>
+                                <!-- Alasan Otomatisasi Pemanas (Heater Reason) -->
+                                <div class="heater-reason-box" :class="heaterReasonInfo.statusClass">
+                                    <div class="hrb-row">
+                                        <span class="hrb-label">Status:</span>
+                                        <strong class="hrb-status-text" :class="isHeaterActive ? 'text-amber' : (heaterReasonInfo.isWarning ? 'text-rose' : 'text-neutral')">
+                                            {{ isHardwareActive ? heaterReasonInfo.statusText : 'MENUNGGU ALAT' }}
+                                        </strong>
+                                    </div>
+                                    <div class="hrb-row hrb-reason-row">
+                                        <span class="hrb-label">Alasan:</span>
+                                        <p class="hrb-reason-text">
+                                            {{ heaterReasonInfo.fullReason }}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1036,6 +1048,7 @@ import { systemState } from "../../services/settingsService";
 import { actuatorService } from "../../services/actuatorService";
 import { alertDialog } from "../../services/confirmDialogService";
 import connectionManager from "../../services/connectionManager";
+import { resolveHeaterReason } from "../../services/heaterAutomationHelper";
 import DeviceSetupBleModal from "../../components/DeviceSetupBleModal.vue";
 import DashboardSkeleton from "../../components/DashboardSkeleton.vue";
 
@@ -1060,6 +1073,7 @@ const telemetry = ref({
     solarRadiation: 0,
     isRaining: false,
     heaterStatus: false,
+    heaterReason: null,
     grainMoisture: 0,
     weightCurrentKg: 0,
     hasData: false,
@@ -1231,6 +1245,18 @@ const heaterScheduleHint = computed(() => {
         }
         return "Siang hari (05:00 - 18:00 WIB): Pemanas siaga; aktif otomatis jika hujan, dingin, atau lembap.";
     }
+});
+
+const heaterReasonInfo = computed(() => {
+    return resolveHeaterReason(telemetry.value.heaterReason, {
+        isHeaterActive: isHeaterActive.value,
+        tempInternal: isHardwareActive.value ? telemetry.value.tempInternal : null,
+        humidityInternal: isHardwareActive.value ? telemetry.value.humidityInternal : null,
+        isRaining: Boolean(telemetry.value.isRaining),
+        isWithinNtpSchedule: isWithinNtpSchedule.value,
+        isOverrideActive: Boolean(actuators.value.controlMode === "MANUAL" || actuators.value.isOverrideActive),
+        isHardwareActive: isHardwareActive.value,
+    });
 });
 
 function handleStartDryingClick() {
@@ -2333,6 +2359,112 @@ onUnmounted(() => {
 .btn-heater-toggle:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Heater Automation Reason Callout */
+.heater-reason-box {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    text-align: left;
+    transition: all 0.25s ease;
+}
+
+.heater-reason-box.status-on {
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+.heater-reason-box.status-lockout {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.hrb-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.hrb-reason-row {
+    align-items: flex-start;
+}
+
+.hrb-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    flex-shrink: 0;
+    width: 48px;
+}
+
+.hrb-status-text {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+.hrb-status-text.text-amber {
+    color: #b45309;
+}
+
+.hrb-status-text.text-neutral {
+    color: #475569;
+}
+
+.hrb-status-text.text-rose {
+    color: #dc2626;
+}
+
+.hrb-reason-text {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: #334155;
+    font-weight: 500;
+}
+
+:global(.dark-theme) .heater-reason-box {
+    background: #0b242f;
+    border-color: #1e4e61;
+}
+
+:global(.dark-theme) .heater-reason-box.status-on {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+:global(.dark-theme) .heater-reason-box.status-lockout {
+    background: rgba(220, 38, 38, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+:global(.dark-theme) .hrb-label {
+    color: #94a3b8;
+}
+
+:global(.dark-theme) .hrb-status-text.text-amber {
+    color: #fbbf24;
+}
+
+:global(.dark-theme) .hrb-status-text.text-neutral {
+    color: #94a3b8;
+}
+
+:global(.dark-theme) .hrb-status-text.text-rose {
+    color: #f87171;
+}
+
+:global(.dark-theme) .hrb-reason-text {
+    color: #cbd5e1;
 }
 
 /* 3. Simple & Analytical Chart Card */

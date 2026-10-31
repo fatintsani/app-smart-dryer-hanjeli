@@ -102,6 +102,12 @@ class MqttService
 
         // 2. Save Telemetry with flexible schema mapping
         $isHeaterExplicit = isset($payload['heaterStatus']) || isset($payload['heater_status']) || isset($payload['heater_on']) || isset($payload['auxHeaterStatus']);
+        $tempVal = (float) ($payload['tempInternal'] ?? $payload['temp_internal'] ?? $payload['temperature'] ?? 0.0);
+        $humVal = (float) ($payload['humidityInternal'] ?? $payload['humidity_internal'] ?? $payload['humidity'] ?? 0.0);
+        $isRain = (bool) ($payload['isRaining'] ?? $payload['is_raining'] ?? false);
+        $currentHourWib = Carbon::now('Asia/Jakarta')->hour;
+        $isNightSchedule = ($currentHourWib >= 18 || $currentHourWib < 5);
+
         if ($isHeaterExplicit) {
             $heaterActive = (bool) ($payload['heaterStatus'] ?? $payload['heater_status'] ?? $payload['heater_on'] ?? $payload['auxHeaterStatus'] ?? false);
         } else {
@@ -109,12 +115,6 @@ class MqttService
             // 1. Suhu >= 50.0°C -> Lockout Wajib OFF (SNI)
             // 2. Jadwal Operasional NTP WIB: 18:00 - 05:00 WIB -> Otomatis ON
             // 3. Di luar jadwal (siang hari): ON jika Hujan || Lembap >= 70% || Suhu <= 35.0°C
-            $tempVal = (float) ($payload['tempInternal'] ?? $payload['temp_internal'] ?? $payload['temperature'] ?? 0.0);
-            $humVal = (float) ($payload['humidityInternal'] ?? $payload['humidity_internal'] ?? $payload['humidity'] ?? 0.0);
-            $isRain = (bool) ($payload['isRaining'] ?? $payload['is_raining'] ?? false);
-            $currentHourWib = Carbon::now('Asia/Jakarta')->hour;
-            $isNightSchedule = ($currentHourWib >= 18 || $currentHourWib < 5);
-
             if ($tempVal >= 50.0) {
                 $heaterActive = false;
             } elseif ($isNightSchedule) {
@@ -124,17 +124,38 @@ class MqttService
             }
         }
 
+        // Resolusi alasan kontrol pemanas (heaterReason) dari ESP32 atau evaluasi sensor
+        $incomingReason = $payload['heaterReason'] ?? $payload['heater_reason'] ?? null;
+        if (!empty($incomingReason)) {
+            $heaterReason = (string) $incomingReason;
+        } else {
+            if ($tempVal >= 50.0) {
+                $heaterReason = 'OVER_TEMPERATURE_LOCKOUT';
+            } elseif ($isNightSchedule) {
+                $heaterReason = 'NIGHT_SCHEDULE_AUTO_ON';
+            } elseif ($isRain) {
+                $heaterReason = 'AUTO_RAIN_DEMAND';
+            } elseif ($humVal >= 70.0) {
+                $heaterReason = 'AUTO_HIGH_HUMIDITY';
+            } elseif ($tempVal <= 35.0) {
+                $heaterReason = 'AUTO_COLD_TEMPERATURE';
+            } else {
+                $heaterReason = 'STANDBY_OPTIMAL_DAY';
+            }
+        }
+
         $telemetry = Telemetry::create([
             'batch_id' => $batchId,
-            'temp_internal' => (float) ($payload['tempInternal'] ?? $payload['temp_internal'] ?? $payload['temperature'] ?? 0.0),
-            'humidity_internal' => (float) ($payload['humidityInternal'] ?? $payload['humidity_internal'] ?? $payload['humidity'] ?? 0.0),
+            'temp_internal' => $tempVal,
+            'humidity_internal' => $humVal,
             'temp_external' => (float) ($payload['tempExternal'] ?? $payload['temp_external'] ?? 30.0),
             'humidity_external' => (float) ($payload['humidityExternal'] ?? $payload['humidity_external'] ?? 65.0),
             'solar_radiation' => (float) ($payload['solarRadiation'] ?? $payload['solar_radiation'] ?? $payload['lux'] ?? $payload['light'] ?? 700.0),
-            'is_raining' => (bool) ($payload['isRaining'] ?? $payload['is_raining'] ?? false),
+            'is_raining' => $isRain,
             'grain_moisture' => (float) ($payload['grainMoisture'] ?? $payload['grain_moisture'] ?? $payload['soil'] ?? 14.0),
             'weight_kg' => (float) ($payload['weightKg'] ?? $payload['weight_kg'] ?? 45.0),
             'heater_status' => $heaterActive,
+            'heater_reason' => $heaterReason,
             'heater_level' => (int) ($payload['heaterLevel'] ?? $payload['heater_level'] ?? ($heaterActive ? 100 : 0)),
             'exhaust_fan_status' => (bool) ($payload['exhaustFanStatus'] ?? $payload['exhaust_fan_status'] ?? ($payload['fan'] ?? '') === 'ON'),
             'exhaust_fan_speed' => (int) ($payload['exhaustFanSpeed'] ?? $payload['exhaust_fan_speed'] ?? 50),

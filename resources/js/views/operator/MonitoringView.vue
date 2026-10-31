@@ -130,7 +130,7 @@
 
           <!-- 3. Pusat Kendali Alat & Pemanas (Actuator Control) -->
           <div class="actuator-control-section">
-            <ActuatorControlCard :current-lang="currentLang" />
+            <ActuatorControlCard :current-lang="currentLang" :telemetry-data="telemetry" />
           </div>
 
           <!-- 4. Analisis Statistik Suhu & Kelembapan (1 Hari, 1 Minggu, 1 Bulan, Semua) -->
@@ -394,6 +394,7 @@ const telemetry = ref({
   solarRadiation: 0,
   isRaining: false,
   heaterStatus: false,
+  heaterReason: null,
   grainMoisture: 0,
   weightCurrentKg: 0,
   hasData: false,

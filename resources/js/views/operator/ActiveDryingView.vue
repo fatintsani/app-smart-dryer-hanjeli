@@ -222,10 +222,13 @@
                 </span>
               </div>
               <div class="kpi-footer-status">
-                <span class="badge-chip chip-neutral">
-                  {{ heaterFooterStatus }}
+                <span class="badge-chip" :class="actuators.auxHeaterStatus ? 'chip-amber' : 'chip-neutral'" :title="heaterReasonInfo.fullReason">
+                  {{ heaterReasonInfo.shortReason }}
                 </span>
               </div>
+              <p class="kpi-reason-subtext">
+                <span class="kpi-sub-label">Alasan:</span> {{ heaterReasonInfo.fullReason }}
+              </p>
             </div>
 
           </div>
@@ -290,6 +293,7 @@ import { batchService } from '../../services/batchService'
 import { socketService } from '../../services/socketService'
 import connectionManager from '../../services/connectionManager'
 import { confirmDialog, alertDialog } from '../../services/confirmDialogService'
+import { resolveHeaterReason } from '../../services/heaterAutomationHelper'
 import PackagingQrLabelModal from '../../components/PackagingQrLabelModal.vue'
 import ActiveDryingSkeleton from '../../components/ActiveDryingSkeleton.vue'
 
@@ -330,6 +334,9 @@ const telemetry = ref({
   grainMoisture: 14.8,
   solarRadiation: 750.0,
   weightCurrentKg: 126.5,
+  isRaining: false,
+  heaterStatus: false,
+  heaterReason: null,
 })
 
 const actuators = ref({
@@ -371,16 +378,20 @@ const isWithinNtpSchedule = computed(() => {
   return (h >= 18 || h < 5)
 })
 
+const heaterReasonInfo = computed(() => {
+  return resolveHeaterReason(telemetry.value.heaterReason, {
+    isHeaterActive: Boolean(actuators.value.auxHeaterStatus),
+    tempInternal: telemetry.value.tempInternal,
+    humidityInternal: telemetry.value.humidityInternal,
+    isRaining: Boolean(telemetry.value.isRaining),
+    isWithinNtpSchedule: isWithinNtpSchedule.value,
+    isOverrideActive: false,
+    isHardwareActive: true
+  })
+})
+
 const heaterFooterStatus = computed(() => {
-  if (actuators.value.auxHeaterStatus) {
-    if (isWithinNtpSchedule.value) return 'Jadwal Malam NTP (18:00 - 05:00)'
-    if (telemetry.value.isRaining) return 'Otomatis: Deteksi Hujan'
-    if (telemetry.value.humidityInternal >= 70) return 'Otomatis: Lembap (≥70%)'
-    if (telemetry.value.tempInternal <= 35) return 'Otomatis: Suhu Dingin'
-    return 'Membantu Panas Alami'
-  }
-  if (isWithinNtpSchedule.value) return 'Standby dalam Jadwal (Suhu Aman)'
-  return 'Standby (Siang / Panas Cukup)'
+  return heaterReasonInfo.value.shortReason
 })
 
 function updateFormattedTime() {
@@ -929,6 +940,18 @@ onUnmounted(() => {
 .chip-purple { background: #F3E8FF; color: #6B21A8; }
 .chip-neutral { background: #F1F5F9; color: #475569; }
 
+.kpi-reason-subtext {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: #64748B;
+}
+
+.kpi-sub-label {
+  font-weight: 700;
+  color: #475569;
+}
+
 /* 4. Chart Card */
 .active-chart-card {
   background: #FFFFFF;
@@ -1186,5 +1209,13 @@ onUnmounted(() => {
 
 :global(.dark-theme) .dmn-text {
   color: #E2E8F0;
+}
+
+:global(.dark-theme) .kpi-reason-subtext {
+  color: #94A3B8;
+}
+
+:global(.dark-theme) .kpi-sub-label {
+  color: #CBD5E1;
 }
 </style>

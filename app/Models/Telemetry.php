@@ -23,6 +23,7 @@ class Telemetry extends Model
         'grain_moisture',
         'weight_kg',
         'heater_status',
+        'heater_reason',
         'heater_level',
         'exhaust_fan_status',
         'exhaust_fan_speed',

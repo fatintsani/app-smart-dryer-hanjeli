@@ -96,6 +96,7 @@ class DashboardController extends Controller
                 'grainMoisture' => $latestTelemetry ? (float) $latestTelemetry->grain_moisture : 0.0,
                 'weightCurrentKg' => $latestTelemetry ? (float) $latestTelemetry->weight_kg : 0.0,
                 'heaterStatus' => $latestTelemetry ? (bool) $latestTelemetry->heater_status : false,
+                'heaterReason' => $latestTelemetry?->heater_reason,
                 'hasData' => $latestTelemetry !== null,
                 'isLive' => $isLive,
                 'lastSeenSeconds' => $diffSeconds,

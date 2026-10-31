@@ -58,6 +58,7 @@ class TelemetryController extends Controller
                     'weightCurrentKg' => 0.0,
                     'heaterStatus' => false,
                     'heaterLevel' => 0,
+                    'heaterReason' => null,
                     'hasData' => false,
                     'isLive' => false,
                     'timestamp' => $now->toIso8601String(),
@@ -88,6 +89,8 @@ class TelemetryController extends Controller
                 'grainMoisture' => (float) $latest->grain_moisture,
                 'weightCurrentKg' => (float) $latest->weight_kg,
                 'heaterStatus' => (bool) $latest->heater_status,
+                'auxHeaterStatus' => (bool) $latest->heater_status,
+                'heaterReason' => $latest->heater_reason ?? null,
                 'heaterLevel' => (int) $latest->heater_level,
                 'hasData' => true,
                 'isLive' => $isLive,
@@ -333,6 +336,29 @@ class TelemetryController extends Controller
             }
         }
 
+        $heaterReason = $request->input('heaterReason', $request->input('heater_reason'));
+        if (empty($heaterReason)) {
+            $currentHourWib = Carbon::now('Asia/Jakarta')->hour;
+            $isNightSchedule = ($currentHourWib >= 18 || $currentHourWib < 5);
+            $tempVal = (float) $tempInternal;
+            $humVal = (float) $humidityInternal;
+            $isRain = $request->boolean('is_raining', $request->boolean('isRaining'));
+
+            if ($tempVal >= 50.0) {
+                $heaterReason = 'LOCKOUT SUHU TINGGI >= 50C';
+            } elseif ($isNightSchedule) {
+                $heaterReason = 'JADWAL MALAM';
+            } elseif ($isRain) {
+                $heaterReason = 'HUJAN & DINGIN';
+            } elseif ($humVal >= 70.0) {
+                $heaterReason = 'AUTO_HIGH_HUMIDITY';
+            } elseif ($tempVal <= 35.0) {
+                $heaterReason = 'AUTO_COLD_TEMPERATURE';
+            } else {
+                $heaterReason = 'STANDBY (SIANG CERAH)';
+            }
+        }
+
         $payload = [
             'batchId' => $request->input('batchId', $request->input('batch_id')),
             'tempInternal' => (float) $tempInternal,
@@ -343,6 +369,7 @@ class TelemetryController extends Controller
             'grainMoisture' => $grainMoisture !== null ? (float) $grainMoisture : null,
             'weightKg' => $weightKg !== null ? (float) $weightKg : null,
             'heaterStatus' => $isHeaterOn,
+            'heaterReason' => $heaterReason,
             'heaterLevel' => (int) $request->input('heaterLevel', $request->input('heater_level', $isHeaterOn ? 100 : 0)),
             'exhaustFanStatus' => $request->boolean('exhaustFanStatus', $request->boolean('exhaust_fan_status')),
             'exhaustFanSpeed' => (int) $request->input('exhaustFanSpeed', $request->input('exhaust_fan_speed', 0)),
