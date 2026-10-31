@@ -2579,7 +2579,7 @@
 import { ref, computed, onMounted } from "vue";
 import { settingsService } from "../../services/settingsService";
 import { authService } from "../../services/authService";
-import { alertDialog } from "../../services/confirmDialogService";
+import { alertDialog, confirmDialog } from "../../services/confirmDialogService";
 import connectionManager from "../../services/connectionManager";
 import usbSerialService from "../../services/serial/usbSerialService";
 import SettingsSkeleton from "../../components/SettingsSkeleton.vue";
@@ -2678,7 +2678,22 @@ const currentConnectionLabel = computed(() => {
     return "Standby";
 });
 
-function setPrimaryConnectionMode(mode) {
+async function setPrimaryConnectionMode(mode) {
+    if (mode === connectionManager.state.mode) return;
+
+    if (mode === "ble" || mode === "usb") {
+        const modeName = mode === "ble" ? "Bluetooth (BLE)" : "Kabel USB Serial";
+        const confirmed = await confirmDialog({
+            title: "Konfirmasi Pengalihan Mode Teknisi",
+            message: `Smart Dryer di greenhouse beroperasi secara penuh menggunakan koneksi Wi-Fi & Internet (MQTT). Beralih ke ${modeName} hanya untuk keperluan teknisi/maintenance dan akan menghentikan pemantauan telemetri cloud sementara. Apakah Anda yakin ingin beralih?`,
+            type: "warning",
+            confirmText: "Ya, Beralih Mode",
+            cancelText: "Batal",
+        });
+
+        if (!confirmed) return;
+    }
+
     connectionManager.setConnectionMode(mode);
     triggerToast(
         `Saluran komunikasi utama diubah ke: ${mode === "wifi" ? "Wi-Fi & MQTT" : mode === "ble" ? "Bluetooth BLE" : "Kabel USB Serial"}`,

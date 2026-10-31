@@ -64,49 +64,96 @@
                 <span class="status-sub">Smart Room Dryer</span>
             </div>
 
-            <!-- 2. Dual Connectivity Pill (Wi-Fi/MQTT Production Mode) -->
+            <!-- 2. Read-Only Hardware & Cloud Connection Status Strip -->
             <div
-                class="conn-mode-pill"
-                :class="[
-                    connectionMode,
-                    { 'conn-offline': !isConnectionActive },
-                ]"
-                :title="`Koneksi Perangkat: ${connectionMode === 'wifi' ? 'Wi-Fi & Server Cloud' : connectionMode.toUpperCase()}`"
+                class="header-conn-status-bar"
+                role="status"
+                aria-label="Status Koneksi Perangkat dan Jaringan"
             >
-                <svg
-                    v-if="connectionMode === 'wifi'"
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
+                <!-- 1. Status Wi-Fi -->
+                <div
+                    class="hcs-item"
+                    :class="isWifiConnected ? 'hcs-active' : 'hcs-offline'"
+                    :title="
+                        isWifiConnected
+                            ? 'Jaringan Wi-Fi Greenhouse terhubung'
+                            : 'Jaringan Wi-Fi terputus'
+                    "
                 >
-                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
-                </svg>
-                <svg
-                    v-else
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
+                    <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                        <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                    </svg>
+                    <span class="hcs-label">Wi-Fi:</span>
+                    <strong class="hcs-val">{{
+                        isWifiConnected ? "Terhubung" : "Terputus"
+                    }}</strong>
+                </div>
+
+                <span class="hcs-sep">|</span>
+
+                <!-- 2. Status MQTT -->
+                <div
+                    class="hcs-item"
+                    :class="isMqttOnline ? 'hcs-active' : 'hcs-offline'"
+                    :title="
+                        isMqttOnline
+                            ? 'Koneksi broker MQTT & Cloud Server online'
+                            : 'Koneksi broker MQTT offline'
+                    "
                 >
-                    <polyline
-                        points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"
-                    ></polyline>
-                </svg>
-                <span class="conn-mode-title">{{
-                    connectionMode === "wifi" ? "Wi-Fi / MQTT" : "BLE"
-                }}</span>
-                <span
-                    class="conn-dot"
-                    :class="isConnectionActive ? 'dot-active' : 'dot-inactive'"
-                ></span>
+                    <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path
+                            d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"
+                        ></path>
+                    </svg>
+                    <span class="hcs-label">MQTT:</span>
+                    <strong class="hcs-val">{{
+                        isMqttOnline ? "Online" : "Offline"
+                    }}</strong>
+                </div>
+
+                <span class="hcs-sep">|</span>
+
+                <!-- 3. Status Perangkat ESP32 -->
+                <div
+                    class="hcs-item"
+                    :class="isHardwareOnline ? 'hcs-active' : 'hcs-standby'"
+                    :title="
+                        isHardwareOnline
+                            ? 'Mikrokontroler ESP32 terhubung dan aktif'
+                            : 'Menunggu data mikrokontroler ESP32'
+                    "
+                >
+                    <span
+                        class="hcs-dot"
+                        :class="isHardwareOnline ? 'dot-active' : 'dot-standby'"
+                    ></span>
+                    <span class="hcs-label">Perangkat:</span>
+                    <strong class="hcs-val">{{
+                        isHardwareOnline ? "Aktif" : "Standby"
+                    }}</strong>
+                </div>
             </div>
         </div>
 
@@ -800,17 +847,26 @@ const emit = defineEmits([
 const isProfileOpen = ref(false);
 const notifFilter = ref("all"); // 'all', 'alert', 'system'
 
-const connectionMode = computed(() => connectionManager.state.mode);
-const isConnectionActive = computed(() => connectionManager.state.isConnected);
-const toggleConnectionMode = () => {
-    const next =
-        connectionMode.value === "wifi"
-            ? "ble"
-            : connectionMode.value === "ble"
-              ? "usb"
-              : "wifi";
-    connectionManager.setConnectionMode(next);
-};
+const isHardwareOnline = computed(() => {
+    return Boolean(connectionManager.state.isHardwareActive);
+});
+
+const isWifiConnected = computed(() => {
+    return Boolean(
+        connectionManager.state.isConnected ||
+        connectionManager.state.isHardwareActive ||
+        connectionManager.state.transportDetails.wifiStatus === "Connected" ||
+        socketService.isConnected
+    );
+});
+
+const isMqttOnline = computed(() => {
+    return Boolean(
+        socketService.isConnected ||
+        connectionManager.state.transportDetails.mqttBrokerStatus === "Connected" ||
+        connectionManager.state.isHardwareActive
+    );
+});
 
 const notifications = ref([]);
 let alertSyncTimer = null;
@@ -2046,66 +2102,131 @@ onUnmounted(() => {
     border-color: rgba(74, 222, 128, 0.3);
 }
 
-/* Dual Connectivity Pill */
-.conn-mode-pill {
+/* Read-Only Header Connection Status Bar */
+.header-conn-status-bar {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-.conn-mode-pill.wifi {
-    background: #ecfdf5;
-    color: #047857;
-    border: 1px solid #a7f3d0;
-}
-
-.dark .conn-mode-pill.wifi {
-    background: rgba(6, 95, 70, 0.3);
-    color: #6ee7b7;
-    border-color: rgba(16, 185, 129, 0.3);
-}
-
-.conn-mode-pill.ble {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
-}
-
-.dark .conn-mode-pill.ble {
-    background: rgba(30, 64, 175, 0.3);
-    color: #93c5fd;
-    border-color: rgba(59, 130, 246, 0.3);
-}
-
-.conn-mode-pill.conn-offline {
+    gap: 8px;
     background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    user-select: none;
+    cursor: default;
+    transition: all 0.2s ease;
+}
+
+.hcs-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.hcs-label {
     color: #64748b;
-    border-color: #cbd5e1;
+    font-weight: 600;
 }
 
-.dark .conn-mode-pill.conn-offline {
-    background: #1e293b;
+.hcs-val {
+    font-weight: 700;
+}
+
+.hcs-item.hcs-active {
+    color: #047857;
+}
+
+.hcs-item.hcs-active .hcs-val {
+    color: #047857;
+}
+
+.hcs-item.hcs-standby {
+    color: #d97706;
+}
+
+.hcs-item.hcs-standby .hcs-val {
+    color: #b45309;
+}
+
+.hcs-item.hcs-offline {
     color: #94a3b8;
-    border-color: #334155;
 }
 
-.conn-dot {
-    width: 6px;
-    height: 6px;
+.hcs-item.hcs-offline .hcs-val {
+    color: #64748b;
+}
+
+.hcs-sep {
+    color: #cbd5e1;
+    font-weight: 300;
+    font-size: 11px;
+}
+
+.hcs-dot {
+    width: 6.5px;
+    height: 6.5px;
     border-radius: 50%;
+    flex-shrink: 0;
 }
 
-.conn-dot.dot-active {
+.hcs-dot.dot-active {
     background: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
-.conn-dot.dot-inactive {
+.hcs-dot.dot-standby {
+    background: #f59e0b;
+}
+
+.hcs-dot.dot-offline {
     background: #94a3b8;
+}
+
+/* Dark theme for Header Connection Status Bar */
+.dark .header-conn-status-bar,
+:global(.dark-theme) .header-conn-status-bar {
+    background: #0b242f;
+    border-color: #1e4e61;
+}
+
+.dark .hcs-sep,
+:global(.dark-theme) .hcs-sep {
+    color: #1e4e61;
+}
+
+.dark .hcs-label,
+:global(.dark-theme) .hcs-label {
+    color: #94a3b8;
+}
+
+.dark .hcs-item.hcs-active,
+:global(.dark-theme) .hcs-item.hcs-active {
+    color: #4ade80;
+}
+
+.dark .hcs-item.hcs-active .hcs-val,
+:global(.dark-theme) .hcs-item.hcs-active .hcs-val {
+    color: #4ade80;
+}
+
+.dark .hcs-item.hcs-standby,
+:global(.dark-theme) .hcs-item.hcs-standby {
+    color: #fbbf24;
+}
+
+.dark .hcs-item.hcs-standby .hcs-val,
+:global(.dark-theme) .hcs-item.hcs-standby .hcs-val {
+    color: #fbbf24;
+}
+
+.dark .hcs-item.hcs-offline,
+:global(.dark-theme) .hcs-item.hcs-offline {
+    color: #64748b;
+}
+
+.dark .hcs-item.hcs-offline .hcs-val,
+:global(.dark-theme) .hcs-item.hcs-offline .hcs-val {
+    color: #94a3b8;
 }
 </style>

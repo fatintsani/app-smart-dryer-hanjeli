@@ -594,6 +594,7 @@ import { settingsService } from '../services/settingsService';
 import bleService from '../services/ble/bleService';
 import usbSerialService from '../services/serial/usbSerialService';
 import authService from '../services/authService';
+import { confirmDialog } from '../services/confirmDialogService';
 
 const { t } = useI18n();
 const emit = defineEmits(['open-wifi-setup']);
@@ -658,7 +659,22 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 
-const switchMode = (mode) => {
+const switchMode = async (mode) => {
+  if (mode === connectionManager.state.mode) return;
+
+  if (mode === 'ble' || mode === 'usb') {
+    const modeName = mode === 'ble' ? 'Bluetooth (BLE)' : 'Kabel USB Serial';
+    const confirmed = await confirmDialog({
+      title: 'Konfirmasi Pengalihan Mode Teknisi',
+      message: `Perangkat Smart Dryer di greenhouse beroperasi otomatis menggunakan jaringan Wi-Fi & Internet (MQTT). Beralih ke mode ${modeName} khusus untuk pengujian teknisi/pemeliharaan dan akan menghentikan pemantauan telemetri cloud secara sementara. Apakah Anda yakin ingin beralih?`,
+      type: 'warning',
+      confirmText: 'Ya, Beralih Mode',
+      cancelText: 'Batal'
+    });
+
+    if (!confirmed) return;
+  }
+
   connectionManager.setConnectionMode(mode);
 };
 
