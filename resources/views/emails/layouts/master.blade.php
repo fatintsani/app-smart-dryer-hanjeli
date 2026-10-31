@@ -468,13 +468,11 @@
                                     <tr>
                                         <td align="center" style="padding: 3px 4px;">
                                             <a href="mailto:stas-rg@telkomuniversity.ac.id" class="footer-contact-pill">
-                                                <span style="color: #34D399; margin-right: 4px;">✉</span>
                                                 <span style="color: #6EE7B7; font-weight: 600;">stas-rg@telkomuniversity.ac.id</span>
                                             </a>
                                         </td>
                                         <td align="center" style="padding: 3px 4px;">
                                             <a href="https://wa.me/6285722182480" class="footer-contact-pill">
-                                                <span style="color: #22C55E; margin-right: 4px;">💬</span>
                                                 <span>Bantuan/WA:</span> <strong style="color: #6EE7B7; font-weight: 700;">0857-2218-2480</strong>
                                             </a>
                                         </td>

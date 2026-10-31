@@ -38,27 +38,29 @@ class TelemetryController extends Controller
         }
 
         $now = Carbon::now();
-        $isLive = $latest && abs($latest->recorded_at->diffInSeconds($now)) <= 20;
+        $diffSeconds = $latest ? abs($latest->recorded_at->diffInSeconds($now)) : null;
+        $isLive = $latest && $diffSeconds <= 90;
         $deviceCode = \App\Models\Device::where('is_active', true)->where('status', 'online')->value('code') 
             ?? \App\Models\Device::where('is_active', true)->value('code') 
             ?? 'inode-AOO2';
 
-        if (!$latest || !$isLive) {
+        if (!$latest) {
             return response()->json([
                 'telemetry' => [
                     'deviceId' => $deviceCode,
-                    'tempInternal' => $latest ? $latest->temp_internal : 0.0,
-                    'humidityInternal' => $latest ? $latest->humidity_internal : 0.0,
-                    'tempExternal' => $latest ? $latest->temp_external : 0.0,
-                    'humidityExternal' => $latest ? $latest->humidity_external : 0.0,
-                    'solarRadiation' => $latest ? $latest->solar_radiation : 0.0,
-                    'grainMoisture' => $latest ? $latest->grain_moisture : 0.0,
-                    'weightCurrentKg' => $latest ? $latest->weight_kg : 0.0,
-                    'heaterStatus' => $latest ? $latest->heater_status : false,
-                    'heaterLevel' => $latest ? $latest->heater_level : 0,
+                    'tempInternal' => 0.0,
+                    'humidityInternal' => 0.0,
+                    'tempExternal' => 0.0,
+                    'humidityExternal' => 0.0,
+                    'solarRadiation' => 0.0,
+                    'isRaining' => false,
+                    'grainMoisture' => 0.0,
+                    'weightCurrentKg' => 0.0,
+                    'heaterStatus' => false,
+                    'heaterLevel' => 0,
                     'hasData' => false,
                     'isLive' => false,
-                    'timestamp' => $latest ? $latest->recorded_at->toIso8601String() : $now->toIso8601String(),
+                    'timestamp' => $now->toIso8601String(),
                 ],
                 'actuators' => [
                     'exhaustFanStatus' => $actuators->exhaust_fan_status,
@@ -77,16 +79,19 @@ class TelemetryController extends Controller
             'telemetry' => [
                 'id' => $latest->id,
                 'deviceId' => $deviceCode,
-                'tempInternal' => $latest->temp_internal,
-                'humidityInternal' => $latest->humidity_internal,
-                'tempExternal' => $latest->temp_external,
-                'humidityExternal' => $latest->humidity_external,
-                'solarRadiation' => $latest->solar_radiation,
-                'grainMoisture' => $latest->grain_moisture,
-                'weightCurrentKg' => $latest->weight_kg,
-                'heaterStatus' => $latest->heater_status,
-                'heaterLevel' => $latest->heater_level,
+                'tempInternal' => (float) $latest->temp_internal,
+                'humidityInternal' => (float) $latest->humidity_internal,
+                'tempExternal' => (float) $latest->temp_external,
+                'humidityExternal' => (float) $latest->humidity_external,
+                'solarRadiation' => (float) $latest->solar_radiation,
+                'isRaining' => (bool) $latest->is_raining,
+                'grainMoisture' => (float) $latest->grain_moisture,
+                'weightCurrentKg' => (float) $latest->weight_kg,
+                'heaterStatus' => (bool) $latest->heater_status,
+                'heaterLevel' => (int) $latest->heater_level,
                 'hasData' => true,
+                'isLive' => $isLive,
+                'lastSeenSeconds' => $diffSeconds,
                 'timestamp' => $latest->recorded_at->toIso8601String(),
             ],
             'actuators' => [

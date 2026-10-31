@@ -30,6 +30,10 @@ class DashboardController extends Controller
         $latestTelemetry = Telemetry::orderBy('recorded_at', 'desc')->first();
         $actuatorState = ActuatorState::first();
 
+        $now = Carbon::now();
+        $diffSeconds = $latestTelemetry ? abs($latestTelemetry->recorded_at->diffInSeconds($now)) : null;
+        $isLive = $latestTelemetry && $diffSeconds <= 90;
+
         $dryingProgressPercent = 0;
         if ($activeBatch) {
             $initM = $activeBatch->initial_moisture_percent ?: 24.5;
@@ -88,8 +92,13 @@ class DashboardController extends Controller
                 'humidityInternal' => $latestTelemetry ? (float) $latestTelemetry->humidity_internal : 0.0,
                 'humidityExternal' => $latestTelemetry ? (float) $latestTelemetry->humidity_external : 0.0,
                 'solarRadiation' => $latestTelemetry ? (float) $latestTelemetry->solar_radiation : 0.0,
+                'isRaining' => $latestTelemetry ? (bool) $latestTelemetry->is_raining : false,
                 'grainMoisture' => $latestTelemetry ? (float) $latestTelemetry->grain_moisture : 0.0,
+                'weightCurrentKg' => $latestTelemetry ? (float) $latestTelemetry->weight_kg : 0.0,
+                'heaterStatus' => $latestTelemetry ? (bool) $latestTelemetry->heater_status : false,
                 'hasData' => $latestTelemetry !== null,
+                'isLive' => $isLive,
+                'lastSeenSeconds' => $diffSeconds,
             ],
             'actuators' => [
                 'exhaustFanStatus' => $actuatorState?->exhaust_fan_status ?? true,

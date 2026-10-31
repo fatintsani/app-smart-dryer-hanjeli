@@ -331,9 +331,9 @@
         </p>
 
         <div class="modal-recap-box">
-          <p>✓ Kadar air saat ini: <strong>{{ selectedBatchToComplete?.finalHumidity }}</strong></p>
-          <p>✓ Data akan tersimpan permanen di riwayat panen</p>
-          <p>✓ Anda dapat langsung mencetak label kemasan QR setelahnya</p>
+          <p><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="recap-check-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>Kadar air saat ini: <strong>{{ selectedBatchToComplete?.finalHumidity }}</strong></p>
+          <p><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="recap-check-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>Data akan tersimpan permanen di riwayat panen</p>
+          <p><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="recap-check-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>Anda dapat langsung mencetak label kemasan QR setelahnya</p>
         </div>
 
         <div class="modal-footer-btns">
@@ -532,7 +532,7 @@ function transformBatch(b) {
     status: isCompleted ? 'completed' : isRunning ? 'running' : 'aborted',
     statusLabel: isCompleted ? 'SELESAI' : isRunning ? 'SEDANG BERJALAN' : (b.status || 'DIBATALKAN'),
     date: startDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
-    time: `${startDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} - ${endDate ? endDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Sekarang'}`,
+    time: `${startDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} - ${endDate ? endDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'Sekarang'} WIB`,
     weight,
     weightNum,
     avgTemp,
@@ -1487,6 +1487,14 @@ function executeExport() {
 
 .modal-recap-box p {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recap-check-icon {
+  flex-shrink: 0;
+  color: #16A34A;
 }
 
 .export-options-list {

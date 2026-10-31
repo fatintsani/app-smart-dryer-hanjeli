@@ -53,8 +53,8 @@
     <div class="quick-heater-bar">
       <div class="qh-status-info">
         <span class="qh-label">Kondisi Pemanas:</span>
-        <strong class="qh-val" :class="actuators.auxHeaterStatus ? 'text-amber' : 'text-green'">
-          {{ actuators.auxHeaterStatus ? 'MENYALA (MEMANASKAN)' : 'MATI (STANDBY)' }}
+        <strong class="qh-val" :class="isHardwareActive && actuators.auxHeaterStatus ? 'text-amber' : (isHardwareActive ? 'text-green' : 'text-neutral')">
+          {{ isHardwareActive ? (actuators.auxHeaterStatus ? 'MENYALA (MEMANASKAN)' : 'MATI (STANDBY)') : 'ALAT BELUM TERHUBUNG' }}
         </strong>
       </div>
 
@@ -194,6 +194,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { actuatorService } from '../services/actuatorService'
 import { telemetryService } from '../services/telemetryService'
 import { socketService } from '../services/socketService'
+import connectionManager from '../services/connectionManager'
 
 defineProps({
   currentLang: {
@@ -203,6 +204,11 @@ defineProps({
 })
 
 const currentTemp = ref(32.0)
+const isLiveTelemetry = ref(false)
+
+const isHardwareActive = computed(() => {
+  return Boolean(connectionManager.state.isHardwareActive || isLiveTelemetry.value)
+})
 
 const actuators = ref({
   exhaustFanStatus: true,
@@ -212,15 +218,15 @@ const actuators = ref({
 })
 
 const isLedRedActive = computed(() => {
-  return currentTemp.value >= 50.0
+  return isHardwareActive.value && currentTemp.value >= 50.0
 })
 
 const isLedYellowActive = computed(() => {
-  return Boolean(actuators.value.auxHeaterStatus) && !isLedRedActive.value
+  return isHardwareActive.value && Boolean(actuators.value.auxHeaterStatus) && !isLedRedActive.value
 })
 
 const isLedGreenActive = computed(() => {
-  return !actuators.value.auxHeaterStatus && !isLedRedActive.value
+  return isHardwareActive.value && !actuators.value.auxHeaterStatus && !isLedRedActive.value
 })
 
 const feedbackMsg = ref('')
@@ -268,6 +274,11 @@ async function toggleOverrideMode() {
 }
 
 async function handleActuatorToggle(field, value) {
+  if (!isHardwareActive.value) {
+    showFeedback('Alat belum terhubung. Nyalakan ESP32 terlebih dahulu.', 'error')
+    return
+  }
+
   const payload = { [field]: value }
   
   if (!actuators.value.isOverrideActive) {
@@ -286,6 +297,11 @@ async function handleActuatorToggle(field, value) {
 }
 
 async function setHeaterManual(state) {
+  if (!isHardwareActive.value) {
+    showFeedback('Alat belum terhubung. Nyalakan ESP32 terlebih dahulu.', 'error')
+    return
+  }
+
   if (state && isLedRedActive.value) {
     showFeedback('Pemanas tidak dapat dinyalakan: Suhu ruangan sudah mencapai batas aman (≥50°C).', 'error')
     return
@@ -325,8 +341,13 @@ onMounted(() => {
   fetchStatus()
 
   telemetryService.getCurrent().then((res) => {
-    if (res?.telemetry?.tempInternal !== undefined) {
-      currentTemp.value = Number(res.telemetry.tempInternal)
+    if (res?.telemetry) {
+      if (res.telemetry.tempInternal !== undefined) {
+        currentTemp.value = Number(res.telemetry.tempInternal)
+      }
+      if (res.telemetry.isLive !== undefined) {
+        isLiveTelemetry.value = Boolean(res.telemetry.isLive)
+      }
     }
   }).catch(() => {})
 
@@ -335,8 +356,24 @@ onMounted(() => {
   })
 
   socketService.on('telemetry_live', (data) => {
-    if (data && data.tempInternal !== undefined) {
-      currentTemp.value = Number(data.tempInternal)
+    if (data) {
+      if (data.tempInternal !== undefined) {
+        currentTemp.value = Number(data.tempInternal)
+      }
+      if (data.isLive !== undefined) {
+        isLiveTelemetry.value = Boolean(data.isLive)
+      }
+    }
+  })
+
+  connectionManager.on('telemetry_live', (data) => {
+    if (data) {
+      if (data.tempInternal !== undefined) {
+        currentTemp.value = Number(data.tempInternal)
+      }
+      if (data.isLive !== undefined) {
+        isLiveTelemetry.value = Boolean(data.isLive)
+      }
     }
   })
 })
@@ -345,6 +382,7 @@ onUnmounted(() => {
   if (feedbackTimer) clearTimeout(feedbackTimer)
   socketService.off('actuator_update')
   socketService.off('telemetry_live')
+  connectionManager.off('telemetry_live')
 })
 </script>
 

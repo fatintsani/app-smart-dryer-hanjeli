@@ -285,7 +285,7 @@
               </button>
             </div>
             <div class="tile-meta" style="margin-top: 8px; font-size: 12px; color: #64748B;">
-              <span>Status: {{ actuatorState.heaterCh1Status ? '⚡ Relai Aktif (Memanaskan)' : '💤 Standby (Terputus)' }}</span>
+              <span>Status: {{ actuatorState.heaterCh1Status ? 'Relai Aktif (Memanaskan)' : 'Standby (Terputus)' }}</span>
             </div>
           </div>
 
@@ -305,7 +305,7 @@
               </button>
             </div>
             <div class="tile-meta" style="margin-top: 8px; font-size: 12px; color: #64748B;">
-              <span>Status: {{ actuatorState.heaterCh2Status ? '⚡ Relai Aktif (Memanaskan)' : '💤 Standby (Terputus)' }}</span>
+              <span>Status: {{ actuatorState.heaterCh2Status ? 'Relai Aktif (Memanaskan)' : 'Standby (Terputus)' }}</span>
             </div>
           </div>
 
@@ -343,7 +343,7 @@
               <span :style="`display:inline-block; width:12px; height:12px; border-radius:50%; background:${(actuatorState.heaterCh1Status || actuatorState.heaterCh2Status) && liveTemp < 50 ? '#EAB308; box-shadow:0 0 8px #EAB308;' : '#D1D5DB;'}`" title="LED Kuning"></span>
               <span :style="`display:inline-block; width:12px; height:12px; border-radius:50%; background:${liveTemp >= 50 ? '#EF4444; box-shadow:0 0 8px #EF4444;' : '#D1D5DB;'}`" title="LED Merah"></span>
               <span style="font-size: 12px; font-weight: 600; color: #475569; margin-left: 4px;">
-                {{ liveTemp >= 50 ? '🔴 Merah: Overheat Lockout (≥50°C)' : ((actuatorState.heaterCh1Status || actuatorState.heaterCh2Status) ? '🟡 Kuning: Pemanas PTC Aktif' : '🟢 Hijau: Standby / Normal') }}
+                {{ liveTemp >= 50 ? 'Merah: Overheat Lockout (≥50°C)' : ((actuatorState.heaterCh1Status || actuatorState.heaterCh2Status) ? 'Kuning: Pemanas PTC Aktif' : 'Hijau: Standby / Normal') }}
               </span>
             </div>
           </div>
@@ -477,7 +477,7 @@ function formatLogTime(timestamp) {
   if (!timestamp) return 'Baru saja'
   try {
     const d = new Date(timestamp)
-    return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
+    return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) + ' WIB'
   } catch {
     return 'Baru saja'
   }

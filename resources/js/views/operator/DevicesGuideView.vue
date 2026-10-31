@@ -221,6 +221,33 @@
             </div>
           </div>
 
+          <!-- Penjelasan Transparansi Sensor & Estimasi Model Pengeringan -->
+          <div class="sop-source-notice-card">
+            <div class="source-notice-icon-box">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </div>
+            <div class="source-notice-content">
+              <h4 class="source-notice-title">Penjelasan Sumber Data Telemetri &amp; Model Estimasi (DHT22, BH1750, Sensor Hujan)</h4>
+              <p class="source-notice-desc">
+                Greenhouse Smart Dryer terhubung dengan 3 sensor fisik utama ESP32: 
+                <strong>DHT22</strong> (suhu &amp; kelembapan ruang), <strong>BH1750</strong> (intensitas cahaya), dan <strong>Sensor Deteksi Hujan</strong>.
+                Sistem saat ini <strong>belum memiliki timbangan digital (Load Cell) maupun sensor khusus kadar air gabah internal</strong>.
+                Nilai <em>Kadar Air Gabah (%)</em> dan <em>Berat Gabah (kg)</em> pada dashboard diperoleh dari <strong>Estimasi Model Pengeringan (Berdasarkan Suhu dan Waktu)</strong> yang dihitung secara matematis dari bobot awal yang diinputkan operator.
+              </p>
+              <div class="source-notice-recommendation">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span><strong>Rekomendasi Petani &amp; Operator:</strong> Lakukan pemeriksaan kadar air secara berkala menggunakan alat <strong>Grain Moisture Meter</strong> fisik untuk memvalidasi kesiapan panen sebelum gabah dikemas.</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Safety & Cleanliness Callout -->
           <div class="sop-safety-card">
             <div class="safety-icon-box">
@@ -301,6 +328,19 @@
               </button>
               <div v-if="openFaq === 3" class="faq-body">
                 <p>{{ $t('guide.faq3Answer') }}</p>
+              </div>
+            </div>
+
+            <!-- FAQ 4 (Transparansi Sensor & Model Estimasi) -->
+            <div class="faq-card" :class="{ open: openFaq === 4 }">
+              <button class="faq-header" @click="openFaq = openFaq === 4 ? null : 4">
+                <span class="faq-question">{{ $t('guide.faq4Question') }}</span>
+                <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div v-if="openFaq === 4" class="faq-body">
+                <p v-html="$t('guide.faq4Answer')"></p>
               </div>
             </div>
           </div>
@@ -1222,6 +1262,84 @@ onMounted(() => {
 
 :global(.dark-theme) .sop-tip-box svg {
   stroke: #86EFAC !important;
+}
+
+.sop-source-notice-card {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+:global(.dark-theme) .sop-source-notice-card {
+  background: rgba(14, 165, 233, 0.1) !important;
+  border-color: rgba(14, 165, 233, 0.25) !important;
+}
+
+.source-notice-icon-box {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #0284C7;
+}
+
+:global(.dark-theme) .source-notice-icon-box {
+  color: #38BDF8 !important;
+}
+
+.source-notice-content {
+  flex: 1;
+}
+
+.source-notice-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0369A1;
+  margin: 0 0 6px 0;
+}
+
+:global(.dark-theme) .source-notice-title {
+  color: #7DD3FC !important;
+}
+
+.source-notice-desc {
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.55;
+  margin: 0 0 10px 0;
+}
+
+:global(.dark-theme) .source-notice-desc {
+  color: #CBD5E1 !important;
+}
+
+.source-notice-recommendation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(2, 132, 199, 0.08);
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: #0369A1;
+  line-height: 1.45;
+}
+
+:global(.dark-theme) .source-notice-recommendation {
+  background: rgba(14, 165, 233, 0.15) !important;
+  color: #BAE6FD !important;
+}
+
+.source-notice-recommendation svg {
+  flex-shrink: 0;
+  stroke: #0284C7;
+}
+
+:global(.dark-theme) .source-notice-recommendation svg {
+  stroke: #38BDF8 !important;
 }
 
 .sop-safety-card {

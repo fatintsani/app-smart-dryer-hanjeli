@@ -93,7 +93,7 @@ function formatTime(timestamp) {
   if (!timestamp) return 'Baru saja'
   try {
     const d = new Date(timestamp)
-    return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
+    return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) + ' WIB'
   } catch {
     return 'Baru saja'
   }

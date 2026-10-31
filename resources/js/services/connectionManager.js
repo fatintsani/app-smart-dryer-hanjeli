@@ -69,11 +69,10 @@ class ConnectionManager {
           const now = Date.now();
           const last = this.state.lastDataTimestamp ? new Date(this.state.lastDataTimestamp).getTime() : 0;
           const diffSec = (now - last) / 1000;
-          // If no fresh live telemetry received in 15 seconds, mark hardware as inactive/standby
-          if (diffSec > 15 && this.state.isHardwareActive) {
+          // If no fresh live telemetry received in 30 seconds, mark hardware as standby (keep real data intact)
+          if (diffSec > 30 && this.state.isHardwareActive) {
             this.state.isHardwareActive = false;
-            this.state.statusText = 'Standby / Menunggu ESP32';
-            this.emitBlankTelemetry();
+            this.state.statusText = 'Standby / Data Terakhir Terekam';
             this.emit('connection_change', this.getStatusSnapshot());
           }
         } else if (this.state.mode === 'ble') {
@@ -81,7 +80,6 @@ class ConnectionManager {
             this.state.isHardwareActive = false;
             this.state.isConnected = false;
             this.state.statusText = 'Disconnected';
-            this.emitBlankTelemetry();
             this.emit('connection_change', this.getStatusSnapshot());
           }
         } else if (this.state.mode === 'usb') {
@@ -89,7 +87,6 @@ class ConnectionManager {
             this.state.isHardwareActive = false;
             this.state.isConnected = false;
             this.state.statusText = 'Disconnected';
-            this.emitBlankTelemetry();
             this.emit('connection_change', this.getStatusSnapshot());
           }
         }
@@ -171,10 +168,14 @@ class ConnectionManager {
           return;
         }
 
-        if (data && data.hasData && data.isLive !== false) {
-          this.state.isHardwareActive = true;
+        if (data && (data.hasData || data.tempInternal > 0 || data.temp_internal > 0)) {
+          const isFresh = Boolean(data.isLive !== false);
+          this.state.isHardwareActive = isFresh;
           this.state.isConnected = true;
-          this.state.lastDataTimestamp = new Date();
+          this.state.statusText = isFresh ? 'Connected (Live)' : 'Connected (Standby)';
+          if (isFresh) {
+            this.state.lastDataTimestamp = new Date();
+          }
           if (data.deviceId || data.device_id) {
             const incomingId = data.deviceId || data.device_id;
             if (incomingId && incomingId !== this.state.deviceId) {
@@ -188,7 +189,6 @@ class ConnectionManager {
         } else if (data && data.hasData === false) {
           this.state.isHardwareActive = false;
           this.state.statusText = 'Standby / Menunggu ESP32';
-          this.emitBlankTelemetry();
         }
       }
     });
@@ -414,7 +414,6 @@ class ConnectionManager {
       await usbSerialService.disconnect();
       this.state.isHardwareActive = false;
     }
-    this.emitBlankTelemetry();
     this.emit('connection_change', this.getStatusSnapshot());
   }
 
@@ -422,20 +421,7 @@ class ConnectionManager {
    * Emit blank/standby telemetry state when hardware is disconnected
    */
   emitBlankTelemetry() {
-    this.emit('telemetry_live', {
-      tempInternal: 0,
-      tempExternal: 0,
-      humidityInternal: 0,
-      humidityExternal: 0,
-      grainMoisture: 0,
-      solarRadiation: 0,
-      weightCurrentKg: 0,
-      isRaining: false,
-      rainVal: null,
-      hasData: false,
-      timestamp: new Date().toISOString(),
-      source: 'offline',
-    });
+    // Preserve last known valid telemetry so UI doesn't suddenly flash empty '--'
   }
 
   /**

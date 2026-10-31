@@ -44,7 +44,12 @@
       <!-- Pending Approval Alert Notice Banner -->
       <div v-if="pendingCount > 0" class="pending-notice-banner">
         <div class="pending-banner-left">
-          <div class="pending-icon-wrap">⏳</div>
+          <div class="pending-icon-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
           <div class="pending-banner-text">
             <strong>Terdapat {{ pendingCount }} Pendaftar Baru Menunggu Persetujuan (ACC)</strong>
             <p>Akun baru dengan role Operator membutuhkan persetujuan Administrator sebelum dapat masuk ke sistem.</p>
@@ -145,13 +150,16 @@
                 </td>
                 <td>
                   <span v-if="u.status === 'PENDING'" class="badge-pill bg-yellow-subtle text-yellow font-bold pulse-badge" title="Menunggu persetujuan Administrator sebelum dapat masuk">
-                    ⏳ Menunggu ACC
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Menunggu ACC
                   </span>
                   <span v-else-if="u.status === 'REJECTED'" class="badge-pill bg-red-subtle text-red font-bold" title="Pendaftaran akun ditolak">
-                    ✕ Ditolak
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    Ditolak
                   </span>
                   <span v-else class="badge-pill bg-green-subtle text-green-dark" title="Akun aktif & disetujui">
-                    ✓ Disetujui
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Disetujui
                   </span>
                 </td>
                 <td>
@@ -351,9 +359,9 @@
           <div class="form-field-group">
             <label class="form-label">Status Persetujuan Akun</label>
             <select v-model="editUser.status" class="modern-input">
-              <option value="APPROVED">✓ Disetujui (APPROVED - Akses Diberikan)</option>
-              <option value="PENDING">⏳ Menunggu ACC (PENDING - Akses Ditahan)</option>
-              <option value="REJECTED">✕ Ditolak (REJECTED - Akses Ditolak)</option>
+              <option value="APPROVED">Disetujui (APPROVED - Akses Diberikan)</option>
+              <option value="PENDING">Menunggu ACC (PENDING - Akses Ditahan)</option>
+              <option value="REJECTED">Ditolak (REJECTED - Akses Ditolak)</option>
             </select>
           </div>
 

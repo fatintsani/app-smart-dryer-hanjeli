@@ -104,7 +104,6 @@
                   Kadar Air Awal: <strong>{{ activeBatch?.initialMoisturePercent || 25 }}%</strong>
                 </span>
                 <span class="track-badge-current">
-                  Saat Ini: <strong>{{ telemetry.grainMoisture.toFixed(1) }}%</strong> (Progres {{ progressPercent }}%)
                   Estimasi Saat Ini: <strong>{{ telemetry.grainMoisture.toFixed(1) }}%</strong> (Progres {{ progressPercent }}%)
                 </span>
                 <span class="track-label-target">
@@ -114,6 +113,23 @@
 
               <div class="progress-bar-container">
                 <div class="progress-bar-fill" :style="{ width: progressPercent + '%' }"></div>
+              </div>
+            </div>
+
+            <!-- Callout Penjelasan Model Estimasi & Rekomendasi Grain Moisture Meter -->
+            <div class="drying-model-notice">
+              <div class="dmn-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+              </div>
+              <div class="dmn-content">
+                <div class="dmn-title">Estimasi Model Pengeringan (Berdasarkan Suhu & Waktu)</div>
+                <p class="dmn-text">
+                  Perangkat IoT ESP32 membaca suhu, kelembapan (DHT22), dan cahaya (BH1750). Nilai kadar air biji dan estimasi bobot dihitung melalui model matematis laju pengeringan (tanpa timbangan digital Load Cell). Operator disarankan memeriksa kadar air secara berkala menggunakan <strong>Grain Moisture Meter</strong> manual sebelum menyelesaikan sesi.
+                </p>
               </div>
             </div>
           </div>
@@ -163,24 +179,29 @@
               </div>
             </div>
 
-            <!-- Kadar Air Biji -->
+            <!-- Cahaya & Cuaca (BH1750 & Sensor Hujan) -->
             <div class="active-kpi-card">
               <div class="kpi-top">
-                <span class="kpi-title">Kadar Air Biji Gabah</span>
-                <div class="icon-wrap icon-purple">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7E22CE" stroke-width="2.2">
-                    <circle cx="12" cy="12" r="9"></circle>
-                    <polyline points="12 7 12 12 15 15"></polyline>
+                <span class="kpi-title">Cahaya & Cuaca (BH1750)</span>
+                <div class="icon-wrap icon-amber">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
                   </svg>
                 </div>
               </div>
               <div class="kpi-val-row">
-                <span class="kpi-num text-purple">{{ telemetry.grainMoisture.toFixed(1) }}</span>
-                <span class="kpi-unit">%</span>
+                <span class="kpi-num">{{ telemetry.solarRadiation.toFixed(0) }}</span>
+                <span class="kpi-unit">Lux</span>
               </div>
               <div class="kpi-footer-status">
-                <span class="badge-chip chip-purple" title="Estimasi berbasis laju pengeringan mikroklimat ruang">
-                  Estimasi Model &bull; Target SNI: {{ activeBatch?.targetMoisturePercent || 12 }}%
+                <span class="badge-chip" :class="telemetry.isRaining ? 'chip-blue' : (telemetry.solarRadiation >= 150 ? 'chip-amber' : 'chip-neutral')">
+                  {{ telemetry.isRaining ? 'Hujan (Sensor Basah)' : (telemetry.solarRadiation >= 150 ? 'Cerah Terik' : 'Redup / Berawan') }}
                 </span>
               </div>
             </div>
@@ -267,6 +288,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { telemetryService } from '../../services/telemetryService'
 import { batchService } from '../../services/batchService'
 import { socketService } from '../../services/socketService'
+import connectionManager from '../../services/connectionManager'
 import { confirmDialog, alertDialog } from '../../services/confirmDialogService'
 import PackagingQrLabelModal from '../../components/PackagingQrLabelModal.vue'
 import ActiveDryingSkeleton from '../../components/ActiveDryingSkeleton.vue'
@@ -475,9 +497,8 @@ async function handleFinishDrying() {
   if (activeBatch.value?.id) {
     try {
       await batchService.complete(activeBatch.value.id, {
-        finalWeightKg: telemetry.value.weightCurrentKg || 125,
-        finalMoisturePercent: telemetry.value.grainMoisture || 12.0,
-        qualityScore: 95,
+        finalWeightKg: telemetry.value.weightCurrentKg || activeBatch.value.currentWeightKg || 120.0,
+        finalMoisturePercent: telemetry.value.grainMoisture || activeBatch.value.currentMoisturePercent || 12.0,
         notes: 'Pengeringan selesai sesuai target.',
       })
     } catch (e) {
@@ -499,15 +520,24 @@ onMounted(async () => {
     }
   }, 1000)
 
-  pollingTimer = setInterval(loadData, 4000)
+  pollingTimer = setInterval(loadData, 3000)
 
   socketService.on('telemetry_live', (data) => {
-    telemetry.value = { ...telemetry.value, ...data }
-    appendHistory(data)
+    if (data) {
+      telemetry.value = { ...telemetry.value, ...data }
+      appendHistory(data)
+    }
   })
 
   socketService.on('actuators_update', (data) => {
-    actuators.value = { ...actuators.value, ...data }
+    if (data) actuators.value = { ...actuators.value, ...data }
+  })
+
+  connectionManager.on('telemetry_live', (data) => {
+    if (data && (data.hasData || data.tempInternal > 0)) {
+      telemetry.value = { ...telemetry.value, ...data }
+      appendHistory(data)
+    }
   })
 })
 
@@ -516,6 +546,7 @@ onUnmounted(() => {
   if (pollingTimer) clearInterval(pollingTimer)
   socketService.off('telemetry_live')
   socketService.off('actuators_update')
+  connectionManager.off('telemetry_live')
 })
 </script>
 
@@ -1081,5 +1112,55 @@ onUnmounted(() => {
 
 :global(.dark-theme) .active-svg text[fill="#7E22CE"] {
   fill: #C084FC;
+}
+
+/* Callout Model Estimasi */
+.drying-model-notice {
+  margin-top: 14px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dmn-icon {
+  color: #166534;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.dmn-content {
+  flex: 1;
+}
+
+.dmn-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 2px;
+}
+
+.dmn-text {
+  font-size: 12px;
+  color: #1F2937;
+  line-height: 1.45;
+  margin: 0;
+}
+
+:global(.dark-theme) .drying-model-notice {
+  background: rgba(22, 101, 52, 0.2);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+:global(.dark-theme) .dmn-icon,
+:global(.dark-theme) .dmn-title {
+  color: #86EFAC;
+}
+
+:global(.dark-theme) .dmn-text {
+  color: #E2E8F0;
 }
 </style>

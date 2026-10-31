@@ -109,6 +109,7 @@ class MqttService
             'temp_external' => (float) ($payload['tempExternal'] ?? $payload['temp_external'] ?? 30.0),
             'humidity_external' => (float) ($payload['humidityExternal'] ?? $payload['humidity_external'] ?? 65.0),
             'solar_radiation' => (float) ($payload['solarRadiation'] ?? $payload['solar_radiation'] ?? $payload['lux'] ?? $payload['light'] ?? 700.0),
+            'is_raining' => (bool) ($payload['isRaining'] ?? $payload['is_raining'] ?? false),
             'grain_moisture' => (float) ($payload['grainMoisture'] ?? $payload['grain_moisture'] ?? $payload['soil'] ?? 14.0),
             'weight_kg' => (float) ($payload['weightKg'] ?? $payload['weight_kg'] ?? 45.0),
             'heater_status' => $heaterActive,
@@ -131,10 +132,22 @@ class MqttService
         if ($batchId) {
             $batch = Batch::find($batchId);
             if ($batch && $batch->status === 'ACTIVE') {
-                $batch->update([
+                $batchData = [
                     'current_moisture_percent' => $telemetry->grain_moisture,
                     'current_weight_kg' => $telemetry->weight_kg,
-                ]);
+                ];
+
+                // Live quality grading calculation from real telemetry
+                try {
+                    $scoringService = app(\App\Services\QualityScoringService::class);
+                    $assessment = $scoringService->evaluateBatchQuality($batch, (float) $telemetry->grain_moisture);
+                    $batchData['quality_score'] = $assessment['qualityScore'];
+                    $batchData['quality_grade'] = $assessment['gradeLabel'];
+                } catch (\Throwable $e) {
+                    Log::warning('Live quality evaluation skipped: ' . $e->getMessage());
+                }
+
+                $batch->update($batchData);
 
                 if ($telemetry->grain_moisture <= ($batch->target_moisture_percent ?? 12.0)) {
                     $alreadyAlerted = SystemAlert::where('batch_id', $batch->id)

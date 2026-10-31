@@ -142,9 +142,21 @@ class BatchController extends Controller
             'started_at' => Carbon::now(),
             'total_duration_hours' => 0.0,
             'energy_kwh' => 0.0,
-            'quality_score' => 95.0,
-            'quality_grade' => 'Grade A',
+            'quality_score' => null,
+            'quality_grade' => null,
         ]);
+
+        // Evaluate initial quality status
+        try {
+            $scoringService = app(\App\Services\QualityScoringService::class);
+            $initialAssessment = $scoringService->evaluateBatchQuality($batch, (float) $initialMoisture);
+            $batch->update([
+                'quality_score' => $initialAssessment['qualityScore'],
+                'quality_grade' => $initialAssessment['gradeLabel'],
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Initial quality assessment: ' . $e->getMessage());
+        }
 
         // Insert initial telemetry point
         Telemetry::create([
@@ -296,10 +308,26 @@ class BatchController extends Controller
 
         $batch->update($updateData);
 
+        // Recalculate real quality score and grade if moisture or weights are updated and no manual grade was forced
+        if (!isset($validated['qualityGrade']) && !isset($validated['quality_grade'])) {
+            try {
+                $batch->refresh();
+                $scoringService = app(\App\Services\QualityScoringService::class);
+                $evalMoisture = (float) ($batch->final_moisture_percent ?? $batch->current_moisture_percent ?? $batch->target_moisture_percent ?? 12.0);
+                $assessment = $scoringService->evaluateBatchQuality($batch, $evalMoisture);
+                $batch->update([
+                    'quality_score' => $assessment['qualityScore'],
+                    'quality_grade' => $assessment['gradeLabel'],
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Quality re-evaluation error: ' . $e->getMessage());
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => "Data batch {$batch->batch_code} berhasil diperbarui.",
-            'batch' => $this->formatBatchDetail($batch),
+            'batch' => $this->formatBatchDetail($batch->fresh()),
         ]);
     }
 
@@ -411,8 +439,8 @@ class BatchController extends Controller
         // Compute automated quality grading evaluation
         $scoringService = app(\App\Services\QualityScoringService::class);
         $qualityAssessment = $scoringService->evaluateBatchQuality($batch, (float) $finalMoisture);
-        $qualityGrade = $batch->quality_grade ?? $qualityAssessment['gradeLabel'];
-        $qualityScore = $batch->quality_score ?? $qualityAssessment['qualityScore'];
+        $qualityGrade = $qualityAssessment['gradeLabel'];
+        $qualityScore = $qualityAssessment['qualityScore'];
 
         // Certificate ID calculation
         $certCode = 'CERT-HJ-' . strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $batch->batch_code));
@@ -580,6 +608,22 @@ class BatchController extends Controller
             ? (float) $b->final_weight_kg 
             : ($b->status === 'COMPLETED' ? $currentWeight : null);
 
+        // Dynamic quality score and grade calculation
+        $evalMoisture = (float) ($finalMoisture ?? $currentMoisture ?? 12.0);
+        $qualityScore = $b->quality_score;
+        $qualityGrade = $b->quality_grade;
+        if ($qualityScore === null || $qualityGrade === null) {
+            try {
+                $scoringService = app(\App\Services\QualityScoringService::class);
+                $assessment = $scoringService->evaluateBatchQuality($b, $evalMoisture);
+                $qualityScore = $qualityScore ?? $assessment['qualityScore'];
+                $qualityGrade = $qualityGrade ?? $assessment['gradeLabel'];
+            } catch (\Throwable $e) {
+                $qualityScore = $qualityScore ?? 90.0;
+                $qualityGrade = $qualityGrade ?? 'Grade A (Standar SNI)';
+            }
+        }
+
         return [
             'id' => $b->id,
             'batchCode' => $b->batch_code,
@@ -598,8 +642,8 @@ class BatchController extends Controller
             'energyKwh' => $energyKwh,
             'avgTemp' => $avgTemp,
             'avgHumidity' => $avgHumidity,
-            'qualityScore' => (float) ($b->quality_score ?? 95.0),
-            'qualityGrade' => $b->quality_grade ?? 'Grade A (Ekspor)',
+            'qualityScore' => (float) $qualityScore,
+            'qualityGrade' => $qualityGrade,
             'operator' => [
                 'name' => $b->operator_name ?? $b->operator?->name ?? 'Operator Green House',
                 'email' => $b->operator?->email ?? 'operator@hanjeli.com',

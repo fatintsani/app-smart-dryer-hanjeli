@@ -17,7 +17,7 @@
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
             <tr>
                 <td style="vertical-align: top;">
-                    <strong style="font-size: 14px; display: block; margin-bottom: 3px; color: #991B1B;">⚠️ Pesan Peringatan Kritis:</strong>
+                    <strong style="font-size: 14px; display: block; margin-bottom: 3px; color: #991B1B;">Pesan Peringatan Kritis:</strong>
                     <div style="font-size: 13.5px; line-height: 1.55; color: #7F1D1D;">
                         {{ $alertMessage }}
                     </div>

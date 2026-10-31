@@ -1,402 +1,623 @@
 <template>
-  <div class="history-detail-skeleton-wrapper" aria-hidden="true">
-    <!-- Header Action Row Placeholder -->
-    <div class="hds-header-row">
-      <div class="hds-title-block">
-        <div class="hds-shimmer hds-back-btn"></div>
-        <div class="hds-title-row">
-          <div class="hds-shimmer hds-title"></div>
-          <div class="hds-shimmer hds-badge-pill"></div>
-          <div class="hds-shimmer hds-badge-pill"></div>
+  <div class="history-detail-skeleton-page" aria-hidden="true">
+    <div class="history-detail-skeleton-container">
+      
+      <!-- 1. Header Card Skeleton (1:1 with detail-header-card) -->
+      <div class="skeleton-card skeleton-detail-header">
+        <div class="sk-header-left">
+          <div class="skeleton-bar sk-back-btn"></div>
+          <div class="sk-title-badge-row">
+            <div class="skeleton-bar sk-batch-code"></div>
+            <div class="skeleton-bar sk-status-pill"></div>
+            <div class="skeleton-bar sk-badge-grade"></div>
+          </div>
+          <div class="skeleton-bar sk-meta-sub"></div>
         </div>
-        <div class="hds-shimmer hds-subtitle"></div>
-      </div>
-      <div class="hds-actions-cluster">
-        <div class="hds-shimmer hds-action-btn-main"></div>
-        <div class="hds-aux-btns">
-          <div class="hds-shimmer hds-action-btn-aux"></div>
-          <div class="hds-shimmer hds-action-btn-aux"></div>
-          <div class="hds-shimmer hds-action-btn-aux"></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- 6 KPI Matrix Cards -->
-    <div class="hds-kpi-grid-6">
-      <div v-for="i in 6" :key="i" class="hds-kpi-card">
-        <div class="hds-kpi-top">
-          <div class="hds-shimmer hds-kpi-lbl"></div>
-          <div class="hds-shimmer hds-kpi-icon"></div>
+        <div class="sk-header-actions">
+          <div class="skeleton-bar sk-btn-main"></div>
+          <div class="sk-action-cluster">
+            <div class="skeleton-bar sk-btn-icon"></div>
+            <div class="skeleton-bar sk-btn-icon"></div>
+            <div class="skeleton-bar sk-btn-icon"></div>
+          </div>
         </div>
-        <div class="hds-kpi-mid">
-          <div class="hds-shimmer hds-kpi-num"></div>
-          <div class="hds-shimmer hds-kpi-chip"></div>
-        </div>
-        <div class="hds-shimmer hds-kpi-sub"></div>
       </div>
-    </div>
 
-    <!-- Master Telemetry Analysis Card -->
-    <div class="hds-chart-card">
-      <div class="hds-chart-top">
-        <div class="hds-chart-titles">
-          <div class="hds-shimmer hds-chart-title"></div>
-          <div class="hds-shimmer hds-chart-sub"></div>
+      <!-- 2. Sertifikasi Mutu Hero Banner Skeleton (1:1 with cert-hero-card) -->
+      <div class="skeleton-card skeleton-cert-hero">
+        <div class="sk-cert-left">
+          <div class="sk-cert-tags">
+            <div class="skeleton-bar sk-cert-tag"></div>
+            <div class="skeleton-bar sk-cert-tag-grade"></div>
+          </div>
+          <div class="skeleton-bar sk-cert-heading"></div>
+          <div class="skeleton-bar sk-cert-desc"></div>
         </div>
-        <div class="hds-chart-toggles">
-          <div class="hds-shimmer hds-toggle-btn" style="width: 120px;"></div>
-          <div class="hds-shimmer hds-toggle-btn" style="width: 100px;"></div>
-        </div>
-      </div>
-      <div class="hds-shimmer hds-chart-canvas"></div>
-    </div>
 
-    <!-- Dual Subpanels: Thermal & Psychrometric Kinetics -->
-    <div class="hds-subpanels-grid">
-      <div class="hds-subpanel-card">
-        <div class="hds-shimmer hds-subpanel-title"></div>
-        <div class="hds-shimmer hds-subpanel-chart"></div>
-        <div class="hds-shimmer hds-subpanel-desc"></div>
+        <div class="sk-cert-score-box">
+          <div class="skeleton-bar sk-score-lbl"></div>
+          <div class="skeleton-bar sk-score-val"></div>
+          <div class="skeleton-bar sk-score-sub"></div>
+        </div>
       </div>
-      <div class="hds-subpanel-card">
-        <div class="hds-shimmer hds-subpanel-title"></div>
-        <div class="hds-shimmer hds-subpanel-chart"></div>
-        <div class="hds-shimmer hds-subpanel-desc"></div>
+
+      <!-- 3. 4 Kartu Hasil Utama Skeleton (1:1 with hero-results-grid) -->
+      <div class="skeleton-results-grid-4">
+        <div v-for="i in 4" :key="'res-skel-' + i" class="skeleton-card skeleton-result-card">
+          <div class="sk-result-top">
+            <div class="skeleton-bar sk-res-title"></div>
+            <div class="skeleton-bar sk-res-icon"></div>
+          </div>
+          <div class="sk-result-val-row">
+            <div class="skeleton-bar sk-res-num"></div>
+            <div class="skeleton-bar sk-res-unit"></div>
+          </div>
+          <div class="skeleton-bar sk-res-badge"></div>
+        </div>
       </div>
+
+      <!-- 4. Simple Trend Chart Card Skeleton (1:1 with chart-card-wrapper) -->
+      <div class="skeleton-card skeleton-chart-card">
+        <div class="sk-chart-header">
+          <div class="sk-chart-titles">
+            <div class="skeleton-bar sk-chart-title"></div>
+            <div class="skeleton-bar sk-chart-subtitle"></div>
+          </div>
+          <div class="sk-chart-legends">
+            <div class="skeleton-bar sk-legend-pill"></div>
+            <div class="skeleton-bar sk-legend-pill"></div>
+          </div>
+        </div>
+
+        <div class="sk-chart-canvas">
+          <div class="sk-chart-grid-line" style="top: 25%;"></div>
+          <div class="sk-chart-grid-line" style="top: 50%;"></div>
+          <div class="sk-chart-grid-line" style="top: 75%;"></div>
+          <div class="sk-mock-curves">
+            <div class="sk-curve-line curve-purple"></div>
+            <div class="sk-curve-line curve-red"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Two Columns: Details on Left, Notes on Right -->
+      <div class="sk-two-cols-layout">
+        <div class="skeleton-card sk-panel-card">
+          <div class="skeleton-bar sk-panel-heading"></div>
+          <div class="sk-panel-rows">
+            <div v-for="p in 5" :key="'sk-prow-' + p" class="sk-panel-row">
+              <div class="skeleton-bar sk-row-lbl"></div>
+              <div class="skeleton-bar sk-row-val"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="skeleton-card sk-panel-card">
+          <div class="skeleton-bar sk-panel-heading"></div>
+          <div class="sk-notes-box">
+            <div class="skeleton-bar sk-note-line"></div>
+            <div class="skeleton-bar sk-note-line" style="width: 85%;"></div>
+            <div class="skeleton-bar sk-note-line" style="width: 70%;"></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-// Skeleton loading component for HistoryDetailView (Detail Riwayat Batch)
+// HistoryDetailSkeleton faithful 1:1 replica of HistoryDetailView
 </script>
 
 <style scoped>
-.history-detail-skeleton-wrapper {
+/* ==========================================================================
+   HISTORY DETAIL SKELETON BASE LAYOUT
+   ========================================================================== */
+.history-detail-skeleton-page {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 32px 40px 60px;
+  min-height: calc(100vh - 72px);
+  background: var(--color-bg-page, #F0F4F2);
   box-sizing: border-box;
+}
+
+:global(.dark-theme) .history-detail-skeleton-page {
+  background: #04131A !important;
+}
+
+.history-detail-skeleton-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .history-detail-skeleton-wrapper {
-    padding: 0;
-    gap: 16px;
-  }
+/* Base Card Skeleton */
+.skeleton-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
 }
 
-/* Shimmer Animation Token */
-.hds-shimmer {
+/* Animated Shimmer Bar */
+.skeleton-bar {
+  background: #E2E8F0;
+  border-radius: 6px;
   position: relative;
   overflow: hidden;
-  background-color: #E2E8F0;
-  border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.hds-shimmer::after {
+.skeleton-bar::after {
+  content: '';
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
   transform: translateX(-100%);
-  background-image: linear-gradient(
+  background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.45) 40%,
-    rgba(255, 255, 255, 0.7) 50%,
-    rgba(255, 255, 255, 0.45) 60%,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
     rgba(255, 255, 255, 0) 100%
   );
-  animation: hdsShimmerSweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  content: '';
+  animation: sk-shimmer 1.6s infinite ease-in-out;
 }
 
-:global(.dark-theme) .hds-shimmer {
-  background-color: #113847 !important;
-}
-
-:global(.dark-theme) .hds-shimmer::after {
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.05) 40%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 60%,
-    rgba(255, 255, 255, 0) 100%
-  ) !important;
-}
-
-@keyframes hdsShimmerSweep {
+@keyframes sk-shimmer {
   100% {
     transform: translateX(100%);
   }
 }
 
-/* Header */
-.hds-header-row {
+/* 1. Header Card */
+.skeleton-detail-header {
+  padding: 22px 26px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 900px) {
-  .hds-header-row {
-    flex-direction: column;
-  }
-}
-
-.hds-title-block {
+.sk-header-left {
+  flex: 1;
+  min-width: 280px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.hds-back-btn {
+.sk-back-btn {
   width: 140px;
-  height: 22px;
-  border-radius: 6px;
-  margin-bottom: 4px;
+  height: 18px;
 }
 
-.hds-title-row {
+.sk-title-badge-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.hds-title {
-  width: 260px;
+.sk-batch-code {
+  width: 160px;
   height: 28px;
-  border-radius: 6px;
 }
 
-.hds-badge-pill {
+.sk-status-pill {
   width: 110px;
   height: 24px;
   border-radius: 20px;
 }
 
-.hds-subtitle {
-  width: 460px;
-  height: 15px;
-  border-radius: 4px;
+.sk-badge-grade {
+  width: 80px;
+  height: 24px;
+  border-radius: 6px;
 }
 
-.hds-actions-cluster {
+.sk-meta-sub {
+  width: 360px;
+  max-width: 95%;
+  height: 14px;
+}
+
+.sk-header-actions {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 900px) {
-  .hds-actions-cluster {
-    align-items: flex-start;
-    width: 100%;
-  }
-}
-
-.hds-action-btn-main {
-  width: 160px;
-  height: 40px;
+.sk-btn-main {
+  width: 150px;
+  height: 44px;
   border-radius: 10px;
 }
 
-.hds-aux-btns {
+.sk-action-cluster {
   display: flex;
   gap: 8px;
 }
 
-.hds-action-btn-aux {
-  width: 100px;
-  height: 34px;
-  border-radius: 8px;
+.sk-btn-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
 }
 
-/* 6 KPI Cards Grid */
-.hds-kpi-grid-6 {
+/* 2. Cert Hero Banner */
+.skeleton-cert-hero {
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+}
+
+.sk-cert-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sk-cert-tags {
+  display: flex;
+  gap: 10px;
+}
+
+.sk-cert-tag {
+  width: 190px;
+  height: 22px;
+  border-radius: 20px;
+}
+
+.sk-cert-tag-grade {
+  width: 130px;
+  height: 22px;
+  border-radius: 20px;
+}
+
+.sk-cert-heading {
+  width: 320px;
+  max-width: 90%;
+  height: 24px;
+}
+
+.sk-cert-desc {
+  width: 480px;
+  max-width: 100%;
+  height: 14px;
+}
+
+.sk-cert-score-box {
+  width: 130px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #FFFFFF;
+  border: 1px solid #BBF7D0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.sk-score-lbl {
+  width: 70px;
+  height: 10px;
+}
+
+.sk-score-val {
+  width: 80px;
+  height: 32px;
+}
+
+.sk-score-sub {
+  width: 75px;
+  height: 10px;
+}
+
+/* 3. 4 Results Cards */
+.skeleton-results-grid-4 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
-@media (max-width: 1024px) {
-  .hds-kpi-grid-6 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .hds-kpi-grid-6 {
-    grid-template-columns: 1fr;
-  }
-}
-
-.hds-kpi-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 14px;
-  padding: 18px 20px;
+.skeleton-result-card {
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-:global(.dark-theme) .hds-kpi-card {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.hds-kpi-top {
+.sk-result-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.hds-kpi-lbl {
-  width: 130px;
+.sk-res-title {
+  width: 120px;
   height: 12px;
-  border-radius: 4px;
 }
 
-.hds-kpi-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.sk-res-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
 }
 
-.hds-kpi-mid {
+.sk-result-val-row {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 6px;
 }
 
-.hds-kpi-num {
-  width: 90px;
+.sk-res-num {
+  width: 65px;
   height: 30px;
+}
+
+.sk-res-unit {
+  width: 24px;
+  height: 16px;
+}
+
+.sk-res-badge {
+  width: 130px;
+  height: 20px;
   border-radius: 6px;
 }
 
-.hds-kpi-chip {
-  width: 70px;
-  height: 18px;
-  border-radius: 12px;
-}
-
-.hds-kpi-sub {
-  width: 140px;
-  height: 12px;
-  border-radius: 4px;
-}
-
-/* Chart Card */
-.hds-chart-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 16px;
+/* 4. Chart Card */
+.skeleton-chart-card {
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-:global(.dark-theme) .hds-chart-card {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.hds-chart-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: 16px;
 }
 
-.hds-chart-titles {
+.sk-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sk-chart-titles {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.hds-chart-title {
-  width: 280px;
+.sk-chart-title {
+  width: 300px;
   height: 20px;
-  border-radius: 4px;
 }
 
-.hds-chart-sub {
+.sk-chart-subtitle {
   width: 420px;
-  height: 13px;
-  border-radius: 4px;
+  max-width: 95%;
+  height: 12px;
 }
 
-.hds-chart-toggles {
+.sk-chart-legends {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
-.hds-toggle-btn {
-  height: 32px;
-  border-radius: 8px;
+.sk-legend-pill {
+  width: 120px;
+  height: 22px;
+  border-radius: 14px;
 }
 
-.hds-chart-canvas {
-  width: 100%;
-  height: 260px;
+.sk-chart-canvas {
+  height: 200px;
   border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Subpanels */
-.hds-subpanels-grid {
+.sk-chart-grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #E2E8F0;
+  border-top: 1px dashed #CBD5E1;
+}
+
+.sk-mock-curves {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sk-curve-line {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 3px;
+  border-radius: 2px;
+  opacity: 0.3;
+}
+
+.sk-curve-line.curve-purple {
+  top: 45%;
+  background: #7E22CE;
+  transform: rotate(-2deg);
+}
+
+.sk-curve-line.curve-red {
+  top: 55%;
+  background: #DC2626;
+  transform: rotate(1deg);
+}
+
+/* 5. Two Columns */
+.sk-two-cols-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
 
+.sk-panel-card {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-panel-heading {
+  width: 200px;
+  height: 18px;
+}
+
+.sk-panel-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sk-panel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed #E2E8F0;
+}
+
+.sk-row-lbl {
+  width: 130px;
+  height: 12px;
+}
+
+.sk-row-val {
+  width: 110px;
+  height: 14px;
+}
+
+.sk-notes-box {
+  padding: 16px;
+  border-radius: 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sk-note-line {
+  width: 100%;
+  height: 12px;
+}
+
+/* ==========================================================================
+   RESPONSIVE (MOBILE & TABLET)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .skeleton-results-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
-  .hds-subpanels-grid {
+  .history-detail-skeleton-container {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .skeleton-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .skeleton-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sk-header-actions {
+    width: 100%;
+  }
+
+  .sk-btn-main {
+    flex: 1;
+  }
+
+  .skeleton-cert-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sk-cert-score-box {
+    width: 100%;
+  }
+
+  .sk-two-cols-layout {
     grid-template-columns: 1fr;
   }
 }
 
-.hds-subpanel-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+@media (max-width: 600px) {
+  .skeleton-results-grid-4 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
-:global(.dark-theme) .hds-subpanel-card {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
+/* ==========================================================================
+   DARK THEME OVERRIDES
+   ========================================================================== */
+:global(.dark-theme) .skeleton-card {
+  background: #0B242F;
+  border-color: #1E4E61;
 }
 
-.hds-subpanel-title {
-  width: 200px;
-  height: 16px;
-  border-radius: 4px;
+:global(.dark-theme) .skeleton-bar {
+  background: #113847 !important;
 }
 
-.hds-subpanel-chart {
-  width: 100%;
-  height: 130px;
-  border-radius: 10px;
+:global(.dark-theme) .skeleton-bar::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
-.hds-subpanel-desc {
-  width: 90%;
-  height: 12px;
-  border-radius: 4px;
+:global(.dark-theme) .skeleton-cert-hero {
+  background: #06281E;
+  border-color: #14532D;
+}
+
+:global(.dark-theme) .sk-cert-score-box,
+:global(.dark-theme) .sk-chart-canvas,
+:global(.dark-theme) .sk-notes-box {
+  background: #071E27;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .sk-panel-row {
+  border-bottom-color: #1E4E61;
 }
 </style>

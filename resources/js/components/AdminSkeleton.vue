@@ -1,60 +1,60 @@
 <template>
-  <div class="admin-skeleton-wrapper" aria-hidden="true">
-    <!-- Header Area -->
-    <div class="as-header">
-      <div class="as-title-block">
-        <div class="as-shimmer as-title"></div>
-        <div class="as-shimmer as-subtitle"></div>
-      </div>
-      <div class="as-actions">
-        <div class="as-shimmer as-btn" style="width: 130px;"></div>
-        <div class="as-shimmer as-btn" style="width: 140px;"></div>
-      </div>
-    </div>
-
-    <!-- 4 Stats Cards Grid -->
-    <div class="as-stats-grid">
-      <div v-for="i in 4" :key="i" class="as-stat-card">
-        <div class="as-stat-top">
-          <div class="as-shimmer as-stat-lbl"></div>
-          <div class="as-shimmer as-stat-icon"></div>
+    <div class="admin-skeleton-wrapper" aria-hidden="true">
+        <!-- Header Area -->
+        <div class="as-header">
+            <div class="as-title-block">
+                <div class="as-shimmer as-title"></div>
+                <div class="as-shimmer as-subtitle"></div>
+            </div>
+            <div class="as-actions">
+                <div class="as-shimmer as-btn" style="width: 130px"></div>
+                <div class="as-shimmer as-btn" style="width: 140px"></div>
+            </div>
         </div>
-        <div class="as-stat-mid">
-          <div class="as-shimmer as-stat-num"></div>
-          <div class="as-shimmer as-stat-chip"></div>
+
+        <!-- 4 Stats Cards Grid -->
+        <div class="as-stats-grid">
+            <div v-for="i in 4" :key="i" class="as-stat-card">
+                <div class="as-stat-top">
+                    <div class="as-shimmer as-stat-lbl"></div>
+                    <div class="as-shimmer as-stat-icon"></div>
+                </div>
+                <div class="as-stat-mid">
+                    <div class="as-shimmer as-stat-num"></div>
+                    <div class="as-shimmer as-stat-chip"></div>
+                </div>
+                <div class="as-shimmer as-stat-sub"></div>
+            </div>
         </div>
-        <div class="as-shimmer as-stat-sub"></div>
-      </div>
-    </div>
 
-    <!-- Main Section Card: Table or Chart -->
-    <div class="as-main-card">
-      <div class="as-card-top">
-        <div class="as-card-titles">
-          <div class="as-shimmer as-card-title"></div>
-          <div class="as-shimmer as-card-sub"></div>
+        <!-- Main Section Card: Table or Chart -->
+        <div class="as-main-card">
+            <div class="as-card-top">
+                <div class="as-card-titles">
+                    <div class="as-shimmer as-card-title"></div>
+                    <div class="as-shimmer as-card-sub"></div>
+                </div>
+                <div class="as-shimmer as-search-box"></div>
+            </div>
+
+            <!-- Table Header & 4 Rows Placeholder -->
+            <div class="as-table-header">
+                <div class="as-shimmer as-th" style="width: 20%"></div>
+                <div class="as-shimmer as-th" style="width: 25%"></div>
+                <div class="as-shimmer as-th" style="width: 20%"></div>
+                <div class="as-shimmer as-th" style="width: 15%"></div>
+                <div class="as-shimmer as-th" style="width: 20%"></div>
+            </div>
+
+            <div v-for="r in 4" :key="r" class="as-table-row">
+                <div class="as-shimmer as-td" style="width: 20%"></div>
+                <div class="as-shimmer as-td" style="width: 25%"></div>
+                <div class="as-shimmer as-td" style="width: 20%"></div>
+                <div class="as-shimmer as-td" style="width: 15%"></div>
+                <div class="as-shimmer as-td" style="width: 20%"></div>
+            </div>
         </div>
-        <div class="as-shimmer as-search-box"></div>
-      </div>
-
-      <!-- Table Header & 4 Rows Placeholder -->
-      <div class="as-table-header">
-        <div class="as-shimmer as-th" style="width: 20%;"></div>
-        <div class="as-shimmer as-th" style="width: 25%;"></div>
-        <div class="as-shimmer as-th" style="width: 20%;"></div>
-        <div class="as-shimmer as-th" style="width: 15%;"></div>
-        <div class="as-shimmer as-th" style="width: 20%;"></div>
-      </div>
-
-      <div v-for="r in 4" :key="r" class="as-table-row">
-        <div class="as-shimmer as-td" style="width: 20%;"></div>
-        <div class="as-shimmer as-td" style="width: 25%;"></div>
-        <div class="as-shimmer as-td" style="width: 20%;"></div>
-        <div class="as-shimmer as-td" style="width: 15%;"></div>
-        <div class="as-shimmer as-td" style="width: 20%;"></div>
-      </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -64,19 +64,19 @@
 <style scoped>
 .admin-skeleton-wrapper {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 32px 40px 60px;
+  padding: 24px 28px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .admin-skeleton-wrapper {
-    padding: 16px 16px 40px;
-    gap: 16px;
+    padding: 0;
+    gap: 12px;
   }
 }
 

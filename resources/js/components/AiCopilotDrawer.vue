@@ -174,7 +174,7 @@
               </div>
               <div class="inspector-item">
                 <span class="ii-label">Pemanas PTC & 3-LED Panel</span>
-                <span class="ii-val">{{ contextSnapshot.heaterStatus ? 'PTC ON (🟡 Memanaskan)' : (contextSnapshot.tempInternal >= 50 ? '🔴 Overheat Lockout' : 'PTC OFF (🟢 Normal)') }}</span>
+                <span class="ii-val">{{ contextSnapshot.heaterStatus ? 'PTC ON (Memanaskan)' : (contextSnapshot.tempInternal >= 50 ? 'Overheat Lockout' : 'PTC OFF (Normal)') }}</span>
               </div>
             </div>
           </div>
@@ -592,7 +592,7 @@ const computedHealthDesc = computed(() => {
 
 function getTimeNow() {
   const d = new Date()
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
 }
 
 async function loadContextAndSuggestions() {

@@ -1,569 +1,392 @@
 <template>
-  <div class="history-skeleton-wrapper" aria-hidden="true">
-    <!-- Header & Action Row Placeholder -->
-    <div class="hs-header-row">
-      <div class="hs-title-block">
-        <div class="hs-shimmer hs-title"></div>
-        <div class="hs-shimmer hs-subtitle"></div>
-      </div>
-      <div class="hs-export-actions">
-        <div class="hs-shimmer hs-btn-export" style="width: 140px;"></div>
-        <div class="hs-shimmer hs-btn-export" style="width: 140px;"></div>
-      </div>
-    </div>
-
-    <!-- 4 Historical KPI Cards -->
-    <div class="hs-kpi-grid">
-      <div v-for="i in 4" :key="i" class="hs-kpi-card">
-        <div class="hs-kpi-top">
-          <div class="hs-shimmer hs-kpi-lbl"></div>
-          <div class="hs-shimmer hs-kpi-icon"></div>
+  <div class="history-skeleton-page" aria-hidden="true">
+    <div class="history-skeleton-container">
+      
+      <!-- 1. Header Card Skeleton (1:1 with history-header-card) -->
+      <div class="skeleton-card skeleton-history-header">
+        <div class="sk-header-left">
+          <div class="skeleton-bar sk-title"></div>
+          <div class="skeleton-bar sk-subtitle"></div>
         </div>
-        <div class="hs-kpi-mid">
-          <div class="hs-shimmer hs-kpi-num"></div>
-          <div class="hs-shimmer hs-kpi-chip"></div>
-        </div>
-        <div class="hs-shimmer hs-kpi-sub"></div>
-      </div>
-    </div>
-
-    <!-- Comparative Batch Performance Chart Card -->
-    <div class="hs-chart-card">
-      <div class="hs-chart-top">
-        <div class="hs-chart-titles">
-          <div class="hs-shimmer hs-chart-title"></div>
-          <div class="hs-shimmer hs-chart-sub"></div>
-        </div>
-        <div class="hs-shimmer hs-badge-pill"></div>
-      </div>
-      <div class="hs-shimmer hs-chart-canvas"></div>
-      <div class="hs-legend-row">
-        <div class="hs-shimmer hs-legend-pill" style="width: 130px;"></div>
-        <div class="hs-shimmer hs-legend-pill" style="width: 160px;"></div>
-        <div class="hs-shimmer hs-legend-pill" style="width: 140px;"></div>
-      </div>
-    </div>
-
-    <!-- Filter & Search Toolbar Card -->
-    <div class="hs-filter-toolbar">
-      <div class="hs-shimmer hs-search-box"></div>
-      <div class="hs-filter-pills">
-        <div class="hs-shimmer hs-pill" style="width: 80px;"></div>
-        <div class="hs-shimmer hs-pill" style="width: 90px;"></div>
-        <div class="hs-shimmer hs-pill" style="width: 90px;"></div>
-      </div>
-      <div class="hs-shimmer hs-date-picker"></div>
-    </div>
-
-    <!-- Batch Records Table Card -->
-    <div class="hs-table-card">
-      <!-- Table Header -->
-      <div class="hs-table-header-row">
-        <div class="hs-shimmer hs-th" style="width: 15%;"></div>
-        <div class="hs-shimmer hs-th" style="width: 25%;"></div>
-        <div class="hs-shimmer hs-th" style="width: 18%;"></div>
-        <div class="hs-shimmer hs-th" style="width: 14%;"></div>
-        <div class="hs-shimmer hs-th" style="width: 12%;"></div>
-        <div class="hs-shimmer hs-th" style="width: 16%;"></div>
-      </div>
-
-      <!-- Table Rows (5 Placeholder rows) -->
-      <div v-for="r in 5" :key="r" class="hs-table-row">
-        <div class="hs-td-batch">
-          <div class="hs-shimmer hs-batch-code"></div>
-          <div class="hs-shimmer hs-batch-tray"></div>
-        </div>
-        <div class="hs-td-variety">
-          <div class="hs-shimmer hs-variety-name"></div>
-          <div class="hs-shimmer hs-variety-date"></div>
-        </div>
-        <div class="hs-td-moisture">
-          <div class="hs-shimmer hs-moisture-val"></div>
-          <div class="hs-shimmer hs-moisture-bar"></div>
-        </div>
-        <div class="hs-td-weight">
-          <div class="hs-shimmer hs-weight-val"></div>
-          <div class="hs-shimmer hs-weight-sub"></div>
-        </div>
-        <div class="hs-td-status">
-          <div class="hs-shimmer hs-status-chip"></div>
-        </div>
-        <div class="hs-td-action">
-          <div class="hs-shimmer hs-action-btn"></div>
+        <div class="sk-header-actions">
+          <div class="skeleton-bar sk-btn-action"></div>
+          <div class="skeleton-bar sk-btn-action"></div>
         </div>
       </div>
 
-      <!-- Pagination -->
-      <div class="hs-pagination-row">
-        <div class="hs-shimmer hs-pag-info"></div>
-        <div class="hs-pag-btns">
-          <div class="hs-shimmer hs-pag-btn"></div>
-          <div class="hs-shimmer hs-pag-btn"></div>
-          <div class="hs-shimmer hs-pag-btn"></div>
+      <!-- 2. 3 Historical KPI Metric Cards (1:1 with kpi-summary-grid) -->
+      <div class="skeleton-kpi-grid-3">
+        <div v-for="i in 3" :key="'kpi-skel-' + i" class="skeleton-card skeleton-kpi-card">
+          <div class="sk-kpi-left">
+            <div class="skeleton-bar sk-kpi-label"></div>
+            <div class="sk-kpi-number-row">
+              <div class="skeleton-bar sk-kpi-num"></div>
+              <div class="skeleton-bar sk-kpi-unit"></div>
+            </div>
+            <div class="skeleton-bar sk-kpi-hint"></div>
+          </div>
+          <div class="skeleton-bar sk-kpi-icon-box"></div>
         </div>
       </div>
+
+      <!-- 3. Filter Toolbar Card Skeleton (1:1 with history-filter-card) -->
+      <div class="skeleton-card skeleton-filter-card">
+        <div class="sk-filter-top-row">
+          <div class="skeleton-bar sk-search-box"></div>
+          <div class="sk-filter-pills">
+            <div class="skeleton-bar sk-filter-pill"></div>
+            <div class="skeleton-bar sk-filter-pill"></div>
+            <div class="skeleton-bar sk-filter-pill"></div>
+          </div>
+        </div>
+        <div class="sk-filter-bottom-row">
+          <div class="skeleton-bar sk-date-input"></div>
+          <div class="skeleton-bar sk-sort-select"></div>
+        </div>
+      </div>
+
+      <!-- 4. Batch Records Table Card Skeleton (1:1 with history-list-card) -->
+      <div class="skeleton-card skeleton-table-card">
+        <div class="sk-table-header-row">
+          <div class="skeleton-bar sk-col-th" style="width: 130px;"></div>
+          <div class="skeleton-bar sk-col-th" style="width: 160px;"></div>
+          <div class="skeleton-bar sk-col-th" style="width: 140px;"></div>
+          <div class="skeleton-bar sk-col-th" style="width: 100px;"></div>
+          <div class="skeleton-bar sk-col-th" style="width: 110px;"></div>
+          <div class="skeleton-bar sk-col-th" style="width: 90px;"></div>
+          <div class="skeleton-bar sk-col-th" style="width: 110px;"></div>
+        </div>
+
+        <div class="sk-table-rows">
+          <div v-for="r in 5" :key="'sk-row-' + r" class="sk-table-row">
+            <div class="skeleton-bar sk-col-td" style="width: 120px; height: 18px;"></div>
+            <div class="skeleton-bar sk-col-td" style="width: 150px; height: 16px;"></div>
+            <div class="skeleton-bar sk-col-td" style="width: 130px; height: 14px;"></div>
+            <div class="skeleton-bar sk-col-td" style="width: 90px; height: 14px;"></div>
+            <div class="skeleton-bar sk-col-td" style="width: 100px; height: 16px;"></div>
+            <div class="skeleton-bar sk-col-td" style="width: 80px; height: 22px; border-radius: 20px;"></div>
+            <div class="skeleton-bar sk-col-td" style="width: 95px; height: 32px; border-radius: 8px;"></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-// Skeleton loading component for HistoryView (Riwayat Batch Pengeringan)
+// HistorySkeleton faithful 1:1 replica of HistoryView
 </script>
 
 <style scoped>
-.history-skeleton-wrapper {
+/* ==========================================================================
+   HISTORY SKELETON BASE LAYOUT
+   ========================================================================== */
+.history-skeleton-page {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 32px 40px 60px;
+  min-height: calc(100vh - 72px);
+  background: var(--color-bg-page, #F0F4F2);
   box-sizing: border-box;
+}
+
+:global(.dark-theme) .history-skeleton-page {
+  background: #04131A !important;
+}
+
+.history-skeleton-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .history-skeleton-wrapper {
-    padding: 0;
-    gap: 16px;
-  }
+/* Base Card Skeleton */
+.skeleton-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
 }
 
-/* Shimmer Animation Token */
-.hs-shimmer {
+/* Animated Shimmer Bar */
+.skeleton-bar {
+  background: #E2E8F0;
+  border-radius: 6px;
   position: relative;
   overflow: hidden;
-  background-color: #E2E8F0;
-  border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.hs-shimmer::after {
+.skeleton-bar::after {
+  content: '';
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
   transform: translateX(-100%);
-  background-image: linear-gradient(
+  background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.45) 40%,
-    rgba(255, 255, 255, 0.7) 50%,
-    rgba(255, 255, 255, 0.45) 60%,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
     rgba(255, 255, 255, 0) 100%
   );
-  animation: hsShimmerSweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  content: '';
+  animation: sk-shimmer 1.6s infinite ease-in-out;
 }
 
-:global(.dark-theme) .hs-shimmer {
-  background-color: #113847 !important;
-}
-
-:global(.dark-theme) .hs-shimmer::after {
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.05) 40%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 60%,
-    rgba(255, 255, 255, 0) 100%
-  ) !important;
-}
-
-@keyframes hsShimmerSweep {
+@keyframes sk-shimmer {
   100% {
     transform: translateX(100%);
   }
 }
 
-/* Header */
-.hs-header-row {
+/* 1. Header Card */
+.skeleton-history-header {
+  padding: 22px 26px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 768px) {
-  .hs-header-row {
-    flex-direction: column;
-  }
-}
-
-.hs-title-block {
+.sk-header-left {
+  flex: 1;
+  min-width: 260px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.hs-title {
-  width: 280px;
+.sk-title {
+  width: 260px;
   height: 28px;
-  border-radius: 6px;
 }
 
-.hs-subtitle {
+.sk-subtitle {
   width: 440px;
-  height: 15px;
-  border-radius: 4px;
+  max-width: 95%;
+  height: 14px;
 }
 
-.hs-export-actions {
+.sk-header-actions {
   display: flex;
   gap: 10px;
 }
 
-.hs-btn-export {
-  height: 40px;
+.sk-btn-action {
+  width: 140px;
+  height: 42px;
   border-radius: 10px;
 }
 
-/* 4 Historical KPI Cards Grid */
-.hs-kpi-grid {
+/* 2. 3 KPI Metric Cards */
+.skeleton-kpi-grid-3 {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
-@media (max-width: 1100px) {
-  .hs-kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .hs-kpi-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.hs-kpi-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 14px;
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-:global(.dark-theme) .hs-kpi-card {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.hs-kpi-top {
+.skeleton-kpi-card {
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 14px;
 }
 
-.hs-kpi-lbl {
-  width: 140px;
-  height: 12px;
-  border-radius: 4px;
-}
-
-.hs-kpi-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-
-.hs-kpi-mid {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.hs-kpi-num {
-  width: 80px;
-  height: 30px;
-  border-radius: 6px;
-}
-
-.hs-kpi-chip {
-  width: 70px;
-  height: 18px;
-  border-radius: 12px;
-}
-
-.hs-kpi-sub {
-  width: 160px;
-  height: 12px;
-  border-radius: 4px;
-}
-
-/* Chart Card */
-.hs-chart-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-:global(.dark-theme) .hs-chart-card {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.hs-chart-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.hs-chart-titles {
+.sk-kpi-left {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.hs-chart-title {
-  width: 300px;
-  height: 20px;
-  border-radius: 4px;
+.sk-kpi-label {
+  width: 160px;
+  height: 12px;
 }
 
-.hs-chart-sub {
-  width: 440px;
-  height: 13px;
-  border-radius: 4px;
-}
-
-.hs-badge-pill {
-  width: 130px;
-  height: 24px;
-  border-radius: 20px;
-}
-
-.hs-chart-canvas {
-  width: 100%;
-  height: 220px;
-  border-radius: 12px;
-}
-
-.hs-legend-row {
+.sk-kpi-number-row {
   display: flex;
-  gap: 12px;
+  align-items: baseline;
+  gap: 6px;
 }
 
-.hs-legend-pill {
-  height: 20px;
-  border-radius: 10px;
+.sk-kpi-num {
+  width: 55px;
+  height: 28px;
 }
 
-/* Filter Toolbar */
-.hs-filter-toolbar {
+.sk-kpi-unit {
+  width: 28px;
+  height: 16px;
+}
+
+.sk-kpi-hint {
+  width: 130px;
+  height: 11px;
+}
+
+.sk-kpi-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* 3. Filter Toolbar Card */
+.skeleton-filter-card {
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sk-filter-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  background: #FFFFFF;
-  padding: 14px 20px;
-  border-radius: 14px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
   flex-wrap: wrap;
 }
 
-:global(.dark-theme) .hs-filter-toolbar {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.hs-search-box {
-  width: 280px;
+.sk-search-box {
+  flex: 1;
+  min-width: 240px;
   height: 40px;
   border-radius: 10px;
 }
 
-.hs-filter-pills {
+.sk-filter-pills {
   display: flex;
   gap: 8px;
 }
 
-.hs-pill {
+.sk-filter-pill {
+  width: 90px;
   height: 36px;
-  border-radius: 20px;
+  border-radius: 8px;
 }
 
-.hs-date-picker {
-  width: 180px;
+.sk-filter-bottom-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sk-date-input {
+  width: 200px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
-/* Table Card */
-.hs-table-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 16px;
-  padding: 20px 24px;
+.sk-sort-select {
+  width: 160px;
+  height: 38px;
+  border-radius: 8px;
+}
+
+/* 4. Table Card */
+.skeleton-table-card {
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   overflow-x: auto;
 }
 
-:global(.dark-theme) .hs-table-card {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.hs-table-header-row {
-  display: flex;
-  align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  gap: 16px;
-}
-
-:global(.dark-theme) .hs-table-header-row {
-  border-color: #1E4E61 !important;
-}
-
-.hs-th {
-  height: 14px;
-  border-radius: 4px;
-}
-
-.hs-table-row {
-  display: flex;
-  align-items: center;
-  padding: 14px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.4);
-  gap: 16px;
-}
-
-:global(.dark-theme) .hs-table-row {
-  border-color: rgba(30, 78, 97, 0.4) !important;
-}
-
-.hs-td-batch {
-  width: 15%;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.hs-batch-code {
-  width: 100px;
-  height: 16px;
-  border-radius: 4px;
-}
-
-.hs-batch-tray {
-  width: 70px;
-  height: 12px;
-  border-radius: 3px;
-}
-
-.hs-td-variety {
-  width: 25%;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.hs-variety-name {
-  width: 160px;
-  height: 15px;
-  border-radius: 4px;
-}
-
-.hs-variety-date {
-  width: 110px;
-  height: 11px;
-  border-radius: 3px;
-}
-
-.hs-td-moisture {
-  width: 18%;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.hs-moisture-val {
-  width: 90px;
-  height: 14px;
-  border-radius: 4px;
-}
-
-.hs-moisture-bar {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-}
-
-.hs-td-weight {
-  width: 14%;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.hs-weight-val {
-  width: 75px;
-  height: 14px;
-  border-radius: 4px;
-}
-
-.hs-weight-sub {
-  width: 60px;
-  height: 11px;
-  border-radius: 3px;
-}
-
-.hs-td-status {
-  width: 12%;
-}
-
-.hs-status-chip {
-  width: 75px;
-  height: 24px;
-  border-radius: 12px;
-}
-
-.hs-td-action {
-  width: 16%;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.hs-action-btn {
-  width: 95px;
-  height: 34px;
-  border-radius: 8px;
-}
-
-/* Pagination Row */
-.hs-pagination-row {
+.sk-table-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E2E8F0;
+  gap: 16px;
+  min-width: 700px;
 }
 
-.hs-pag-info {
-  width: 140px;
-  height: 14px;
-  border-radius: 4px;
+.sk-col-th {
+  height: 13px;
 }
 
-.hs-pag-btns {
+.sk-table-rows {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 700px;
 }
 
-.hs-pag-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+.sk-table-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px dashed #E2E8F0;
+  gap: 16px;
+}
+
+/* ==========================================================================
+   RESPONSIVE (MOBILE & TABLET)
+   ========================================================================== */
+@media (max-width: 900px) {
+  .history-skeleton-container {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .skeleton-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .skeleton-history-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sk-header-actions {
+    width: 100%;
+  }
+
+  .sk-btn-action {
+    flex: 1;
+  }
+
+  .skeleton-kpi-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   DARK THEME OVERRIDES
+   ========================================================================== */
+:global(.dark-theme) .skeleton-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .skeleton-bar {
+  background: #113847 !important;
+}
+
+:global(.dark-theme) .skeleton-bar::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+:global(.dark-theme) .sk-table-header-row {
+  border-bottom-color: #1E4E61;
+}
+
+:global(.dark-theme) .sk-table-row {
+  border-bottom-color: rgba(30, 78, 97, 0.4);
 }
 </style>

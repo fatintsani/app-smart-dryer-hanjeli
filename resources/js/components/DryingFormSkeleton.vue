@@ -1,553 +1,467 @@
 <template>
-  <div class="drying-form-skeleton-wrapper" aria-hidden="true">
-    <!-- Header Placeholder -->
-    <div class="dfs-header">
-      <div class="dfs-title-block">
-        <div class="dfs-shimmer dfs-title"></div>
-        <div class="dfs-shimmer dfs-subtitle"></div>
+  <div class="drying-form-skeleton-page" aria-hidden="true">
+    <div class="drying-form-skeleton-container">
+      
+      <!-- 1. Header Card Skeleton (1:1 with form-header-card) -->
+      <div class="skeleton-card skeleton-header-card">
+        <div class="skeleton-bar sk-title"></div>
+        <div class="skeleton-bar sk-subtitle"></div>
       </div>
-    </div>
 
-    <!-- Quick Preset Selector Bar Skeleton -->
-    <div class="dfs-preset-bar">
-      <div class="dfs-shimmer dfs-preset-lbl"></div>
-      <div class="dfs-preset-pills">
-        <div class="dfs-shimmer dfs-pill" style="width: 170px;"></div>
-        <div class="dfs-shimmer dfs-pill" style="width: 140px;"></div>
-        <div class="dfs-shimmer dfs-pill" style="width: 130px;"></div>
-        <div class="dfs-shimmer dfs-pill" style="width: 130px;"></div>
-      </div>
-    </div>
-
-    <!-- Hardware Status Banner Skeleton -->
-    <div class="dfs-hw-banner">
-      <div class="dfs-shimmer dfs-hw-icon"></div>
-      <div class="dfs-hw-info">
-        <div class="dfs-shimmer dfs-hw-title"></div>
-        <div class="dfs-shimmer dfs-hw-text"></div>
-      </div>
-    </div>
-
-    <!-- 2 Columns Grid: Form on Left, Predictive Summary on Right -->
-    <div class="dfs-grid">
-      <!-- Left: Form Sections -->
-      <div class="dfs-form-card">
-        <!-- Section 1 -->
-        <div class="dfs-section">
-          <div class="dfs-sec-head">
-            <div class="dfs-shimmer dfs-sec-num"></div>
-            <div class="dfs-sec-titles">
-              <div class="dfs-shimmer dfs-sec-title" style="width: 240px;"></div>
-              <div class="dfs-shimmer dfs-sec-sub" style="width: 320px;"></div>
-            </div>
-          </div>
-          <div class="dfs-inputs-row-2">
-            <div class="dfs-input-group">
-              <div class="dfs-shimmer dfs-input-lbl"></div>
-              <div class="dfs-shimmer dfs-input-box"></div>
-            </div>
-            <div class="dfs-input-group">
-              <div class="dfs-shimmer dfs-input-lbl"></div>
-              <div class="dfs-shimmer dfs-input-box"></div>
-            </div>
-          </div>
-          <div class="dfs-input-group">
-            <div class="dfs-shimmer dfs-input-lbl"></div>
-            <div class="dfs-shimmer dfs-input-box"></div>
-          </div>
-        </div>
-
-        <!-- Section 2 -->
-        <div class="dfs-section">
-          <div class="dfs-sec-head">
-            <div class="dfs-shimmer dfs-sec-num"></div>
-            <div class="dfs-sec-titles">
-              <div class="dfs-shimmer dfs-sec-title" style="width: 280px;"></div>
-              <div class="dfs-shimmer dfs-sec-sub" style="width: 360px;"></div>
-            </div>
-          </div>
-          <div class="dfs-inputs-row-3">
-            <div class="dfs-input-group">
-              <div class="dfs-shimmer dfs-input-lbl"></div>
-              <div class="dfs-shimmer dfs-input-box"></div>
-            </div>
-            <div class="dfs-input-group">
-              <div class="dfs-shimmer dfs-input-lbl"></div>
-              <div class="dfs-shimmer dfs-input-box"></div>
-            </div>
-            <div class="dfs-input-group">
-              <div class="dfs-shimmer dfs-input-lbl"></div>
-              <div class="dfs-shimmer dfs-input-box"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 3 -->
-        <div class="dfs-section">
-          <div class="dfs-sec-head">
-            <div class="dfs-shimmer dfs-sec-num"></div>
-            <div class="dfs-sec-titles">
-              <div class="dfs-shimmer dfs-sec-title" style="width: 260px;"></div>
-              <div class="dfs-shimmer dfs-sec-sub" style="width: 300px;"></div>
-            </div>
-          </div>
-          <div class="dfs-mode-cards-grid">
-            <div class="dfs-shimmer dfs-mode-card"></div>
-            <div class="dfs-shimmer dfs-mode-card"></div>
-            <div class="dfs-shimmer dfs-mode-card"></div>
-          </div>
+      <!-- 2. Preset Box Skeleton (1:1 with preset-box) -->
+      <div class="skeleton-card skeleton-preset-box">
+        <div class="skeleton-bar sk-preset-title"></div>
+        <div class="sk-preset-btns">
+          <div class="skeleton-bar sk-preset-btn"></div>
+          <div class="skeleton-bar sk-preset-btn"></div>
         </div>
       </div>
 
-      <!-- Right: Agritech Predictive Calculations & Action Box -->
-      <div class="dfs-sidebar-card">
-        <div class="dfs-shimmer dfs-sidebar-title"></div>
-        <div class="dfs-shimmer dfs-sidebar-sub"></div>
+      <!-- 3. Form Grid Layout: Inputs on Left, Summary on Right -->
+      <div class="sk-grid-layout">
+        <!-- Left: Form Sections -->
+        <div class="sk-inputs-col">
+          
+          <!-- Section 1: Data Gabah Hanjeli -->
+          <div class="skeleton-card sk-form-section">
+            <div class="skeleton-bar sk-sec-heading"></div>
+            <div class="skeleton-bar sk-sec-desc"></div>
 
-        <div class="dfs-kpi-stack">
-          <div class="dfs-kpi-item">
-            <div class="dfs-shimmer dfs-kpi-dot"></div>
-            <div class="dfs-kpi-texts">
-              <div class="dfs-shimmer dfs-kpi-lbl"></div>
-              <div class="dfs-shimmer dfs-kpi-val"></div>
+            <div class="sk-two-cols">
+              <div class="sk-field">
+                <div class="skeleton-bar sk-field-label"></div>
+                <div class="skeleton-bar sk-field-input"></div>
+              </div>
+              <div class="sk-field">
+                <div class="skeleton-bar sk-field-label"></div>
+                <div class="skeleton-bar sk-field-input"></div>
+              </div>
+            </div>
+
+            <div class="sk-two-cols" style="margin-top: 14px;">
+              <div class="sk-field">
+                <div class="skeleton-bar sk-field-label"></div>
+                <div class="skeleton-bar sk-field-input"></div>
+              </div>
+              <div class="sk-field">
+                <div class="skeleton-bar sk-field-label"></div>
+                <div class="skeleton-bar sk-field-input"></div>
+              </div>
+            </div>
+
+            <div class="sk-field" style="margin-top: 14px;">
+              <div class="skeleton-bar sk-field-label"></div>
+              <div class="skeleton-bar sk-field-input"></div>
             </div>
           </div>
-          <div class="dfs-kpi-item">
-            <div class="dfs-shimmer dfs-kpi-dot"></div>
-            <div class="dfs-kpi-texts">
-              <div class="dfs-shimmer dfs-kpi-lbl"></div>
-              <div class="dfs-shimmer dfs-kpi-val"></div>
+
+          <!-- Section 2: Mode Waktu & Pengaturan Jadwal -->
+          <div class="skeleton-card sk-form-section">
+            <div class="sk-sec-header-row">
+              <div>
+                <div class="skeleton-bar sk-sec-heading"></div>
+                <div class="skeleton-bar sk-sec-desc"></div>
+              </div>
+              <div class="skeleton-bar sk-timing-switch"></div>
+            </div>
+
+            <!-- Auto predict banner placeholder -->
+            <div class="sk-predict-banner">
+              <div class="sk-predict-badge-row">
+                <div class="skeleton-bar sk-chip-pill"></div>
+                <div class="skeleton-bar sk-chip-pill"></div>
+              </div>
+              <div class="sk-timeline-quad">
+                <div v-for="q in 4" :key="'sk-q-' + q" class="sk-quad-item">
+                  <div class="skeleton-bar sk-quad-lbl"></div>
+                  <div class="skeleton-bar sk-quad-val"></div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="dfs-kpi-item">
-            <div class="dfs-shimmer dfs-kpi-dot"></div>
-            <div class="dfs-kpi-texts">
-              <div class="dfs-shimmer dfs-kpi-lbl"></div>
-              <div class="dfs-shimmer dfs-kpi-val"></div>
-            </div>
-          </div>
-          <div class="dfs-kpi-item">
-            <div class="dfs-shimmer dfs-kpi-dot"></div>
-            <div class="dfs-kpi-texts">
-              <div class="dfs-shimmer dfs-kpi-lbl"></div>
-              <div class="dfs-shimmer dfs-kpi-val"></div>
-            </div>
-          </div>
+
         </div>
 
-        <div class="dfs-summary-box">
-          <div class="dfs-shimmer dfs-sum-line" style="width: 90%;"></div>
-          <div class="dfs-shimmer dfs-sum-line" style="width: 75%;"></div>
-          <div class="dfs-shimmer dfs-sum-line" style="width: 85%;"></div>
-        </div>
+        <!-- Right: Summary Card (Sticky) -->
+        <div class="sk-summary-col">
+          <div class="skeleton-card sk-summary-card">
+            <div class="skeleton-bar sk-sum-title"></div>
+            <div class="skeleton-bar sk-sum-desc"></div>
 
-        <div class="dfs-shimmer dfs-btn-start"></div>
-        <div class="dfs-shimmer dfs-btn-cancel"></div>
+            <div class="sk-summary-list">
+              <div v-for="s in 5" :key="'sk-sum-row-' + s" class="sk-summary-row">
+                <div class="skeleton-bar sk-sum-lbl"></div>
+                <div class="skeleton-bar sk-sum-val"></div>
+              </div>
+            </div>
+
+            <div class="skeleton-bar sk-btn-submit"></div>
+          </div>
+        </div>
       </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-// Skeleton placeholder for Drying Form initialization view
+// DryingFormSkeleton faithful 1:1 replica of DryingFormView
 </script>
 
 <style scoped>
-.drying-form-skeleton-wrapper {
+/* ==========================================================================
+   DRYING FORM SKELETON BASE LAYOUT
+   ========================================================================== */
+.drying-form-skeleton-page {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 32px 40px 60px;
+  min-height: calc(100vh - 72px);
+  background: var(--color-bg-page, #F0F4F2);
   box-sizing: border-box;
+}
+
+:global(.dark-theme) .drying-form-skeleton-page {
+  background: #04131A !important;
+}
+
+.drying-form-skeleton-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .drying-form-skeleton-wrapper {
-    padding: 16px 16px 40px;
-    gap: 16px;
-  }
+/* Base Card Skeleton */
+.skeleton-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
 }
 
-/* Shimmer Animation Token */
-.dfs-shimmer {
+/* Animated Shimmer Bar */
+.skeleton-bar {
+  background: #E2E8F0;
+  border-radius: 6px;
   position: relative;
   overflow: hidden;
-  background-color: #E2E8F0;
-  border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.dfs-shimmer::after {
+.skeleton-bar::after {
+  content: '';
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
   transform: translateX(-100%);
-  background-image: linear-gradient(
+  background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.45) 40%,
-    rgba(255, 255, 255, 0.7) 50%,
-    rgba(255, 255, 255, 0.45) 60%,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
     rgba(255, 255, 255, 0) 100%
   );
-  animation: dfsShimmerSweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  content: '';
+  animation: sk-shimmer 1.6s infinite ease-in-out;
 }
 
-:global(.dark-theme) .dfs-shimmer {
-  background-color: #113847 !important;
-}
-
-:global(.dark-theme) .dfs-shimmer::after {
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.05) 40%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 60%,
-    rgba(255, 255, 255, 0) 100%
-  ) !important;
-}
-
-@keyframes dfsShimmerSweep {
+@keyframes sk-shimmer {
   100% {
     transform: translateX(100%);
   }
 }
 
-/* Header */
-.dfs-header {
+/* 1. Header Card */
+.skeleton-header-card {
+  padding: 22px 26px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.dfs-title {
+.sk-title {
   width: 340px;
+  max-width: 85%;
   height: 28px;
-  border-radius: 6px;
-  margin-bottom: 8px;
 }
 
-.dfs-subtitle {
-  width: 520px;
-  height: 16px;
-  border-radius: 4px;
+.sk-subtitle {
+  width: 480px;
+  max-width: 95%;
+  height: 14px;
 }
 
-/* Preset Bar */
-.dfs-preset-bar {
+/* 2. Preset Box */
+.skeleton-preset-box {
+  padding: 16px 20px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 12px;
-  background: #FFFFFF;
-  padding: 12px 18px;
-  border-radius: 12px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-}
-
-:global(.dark-theme) .dfs-preset-bar {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.dfs-preset-lbl {
-  width: 90px;
-  height: 14px;
-  border-radius: 4px;
-}
-
-.dfs-preset-pills {
-  display: flex;
-  gap: 8px;
   flex-wrap: wrap;
 }
 
-.dfs-pill {
-  height: 34px;
-  border-radius: 20px;
-}
-
-/* Hardware Status Banner */
-.dfs-hw-banner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: #FFFFFF;
-  padding: 18px 24px;
-  border-radius: 14px;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-}
-
-:global(.dark-theme) .dfs-hw-banner {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.dfs-hw-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  flex-shrink: 0;
-}
-
-.dfs-hw-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
-
-.dfs-hw-title {
-  width: 220px;
-  height: 16px;
-  border-radius: 4px;
-}
-
-.dfs-hw-text {
-  width: 80%;
+.sk-preset-title {
+  width: 150px;
   height: 14px;
-  border-radius: 4px;
 }
 
-/* Grid Layout */
-.dfs-grid {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 24px;
-  align-items: start;
-}
-
-@media (max-width: 1024px) {
-  .dfs-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Form Card */
-.dfs-form-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 16px;
-  padding: 28px;
+.sk-preset-btns {
   display: flex;
-  flex-direction: column;
-  gap: 28px;
+  gap: 10px;
 }
 
-:global(.dark-theme) .dfs-form-card {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
+.sk-preset-btn {
+  width: 220px;
+  height: 38px;
+  border-radius: 8px;
 }
 
-.dfs-section {
+/* 3. Grid Layout */
+.sk-grid-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+}
+
+.sk-inputs-col {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
 }
 
-:global(.dark-theme) .dfs-section {
-  border-color: rgba(30, 78, 97, 0.4) !important;
+.sk-form-section {
+  padding: 22px;
 }
 
-.dfs-section:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+.sk-sec-heading {
+  width: 200px;
+  height: 18px;
+  margin-bottom: 6px;
 }
 
-.dfs-sec-head {
-  display: flex;
-  align-items: center;
+.sk-sec-desc {
+  width: 320px;
+  max-width: 90%;
+  height: 12px;
+  margin-bottom: 16px;
+}
+
+.sk-two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
 
-.dfs-sec-num {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.dfs-sec-titles {
+.sk-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.dfs-sec-title {
-  height: 18px;
-  border-radius: 4px;
-}
-
-.dfs-sec-sub {
-  height: 13px;
-  border-radius: 4px;
-}
-
-.dfs-inputs-row-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.dfs-inputs-row-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 640px) {
-  .dfs-inputs-row-2,
-  .dfs-inputs-row-3 {
-    grid-template-columns: 1fr;
-  }
-}
-
-.dfs-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.dfs-input-lbl {
+.sk-field-label {
   width: 120px;
-  height: 13px;
-  border-radius: 4px;
+  height: 12px;
 }
 
-.dfs-input-box {
+.sk-field-input {
   width: 100%;
   height: 44px;
   border-radius: 10px;
 }
 
-.dfs-mode-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.sk-sec-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 640px) {
-  .dfs-mode-cards-grid {
-    grid-template-columns: 1fr;
-  }
+.sk-timing-switch {
+  width: 230px;
+  height: 36px;
+  border-radius: 10px;
 }
 
-.dfs-mode-card {
-  height: 110px;
-  border-radius: 12px;
+.sk-predict-banner {
+  padding: 16px;
+  border-radius: 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* Sidebar Card */
-.dfs-sidebar-card {
+.sk-predict-badge-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sk-chip-pill {
+  width: 160px;
+  height: 22px;
+  border-radius: 20px;
+}
+
+.sk-timeline-quad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.sk-quad-item {
+  padding: 10px;
+  border-radius: 8px;
   background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sk-quad-lbl {
+  width: 70px;
+  height: 10px;
+}
+
+.sk-quad-val {
+  width: 90px;
+  height: 16px;
+}
+
+/* Summary Card (Right) */
+.sk-summary-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.sk-summary-card {
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-:global(.dark-theme) .dfs-sidebar-card {
-  background: #0B242F !important;
-  border-color: #1E4E61 !important;
-}
-
-.dfs-sidebar-title {
+.sk-sum-title {
   width: 180px;
-  height: 18px;
-  border-radius: 4px;
+  height: 20px;
 }
 
-.dfs-sidebar-sub {
-  width: 240px;
-  height: 13px;
-  border-radius: 4px;
-  margin-bottom: 4px;
-}
-
-.dfs-kpi-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dfs-kpi-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: #F8FAFC;
-  border-radius: 10px;
-}
-
-:global(.dark-theme) .dfs-kpi-item {
-  background: #071E27 !important;
-  border: 1px solid #1E4E61 !important;
-}
-
-.dfs-kpi-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.dfs-kpi-texts {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.dfs-kpi-lbl {
-  width: 110px;
-  height: 11px;
-  border-radius: 3px;
-}
-
-.dfs-kpi-val {
-  width: 70px;
-  height: 16px;
-  border-radius: 4px;
-}
-
-.dfs-summary-box {
-  background: #F8FAFC;
-  padding: 14px;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-:global(.dark-theme) .dfs-summary-box {
-  background: #071E27 !important;
-  border: 1px solid #1E4E61 !important;
-}
-
-.dfs-sum-line {
+.sk-sum-desc {
+  width: 260px;
+  max-width: 95%;
   height: 12px;
-  border-radius: 4px;
 }
 
-.dfs-btn-start {
+.sk-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.sk-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sk-sum-lbl {
+  width: 100px;
+  height: 12px;
+}
+
+.sk-sum-val {
+  width: 110px;
+  height: 14px;
+}
+
+.sk-btn-submit {
   width: 100%;
-  height: 48px;
+  height: 50px;
   border-radius: 12px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
-.dfs-btn-cancel {
-  width: 100%;
-  height: 38px;
-  border-radius: 10px;
+/* ==========================================================================
+   RESPONSIVE (MOBILE & TABLET)
+   ========================================================================== */
+@media (max-width: 900px) {
+  .drying-form-skeleton-container {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .skeleton-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .sk-grid-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sk-preset-btns {
+    width: 100%;
+  }
+
+  .sk-preset-btn {
+    flex: 1;
+  }
+
+  .sk-timeline-quad {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .sk-two-cols {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .sk-preset-btns {
+    flex-direction: column;
+  }
+}
+
+/* ==========================================================================
+   DARK THEME OVERRIDES
+   ========================================================================== */
+:global(.dark-theme) .skeleton-card {
+  background: #0B242F;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .skeleton-bar {
+  background: #113847 !important;
+}
+
+:global(.dark-theme) .skeleton-bar::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+:global(.dark-theme) .sk-predict-banner,
+:global(.dark-theme) .sk-quad-item {
+  background: #071E27;
+  border-color: #1E4E61;
+}
+
+:global(.dark-theme) .sk-summary-list {
+  border-color: #1E4E61;
 }
 </style>

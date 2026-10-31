@@ -1,59 +1,59 @@
 <template>
-  <div class="settings-skeleton-wrapper" aria-hidden="true">
-    <!-- Header -->
-    <div class="ss-header">
-      <div class="ss-title-block">
-        <div class="ss-shimmer ss-title"></div>
-        <div class="ss-shimmer ss-subtitle"></div>
-      </div>
-      <div class="ss-shimmer ss-save-btn"></div>
-    </div>
+    <div class="settings-skeleton-wrapper" aria-hidden="true">
+        <!-- Header -->
+        <div class="ss-header">
+            <div class="ss-title-block">
+                <div class="ss-shimmer ss-title"></div>
+                <div class="ss-shimmer ss-subtitle"></div>
+            </div>
+            <div class="ss-shimmer ss-save-btn"></div>
+        </div>
 
-    <!-- Tabs Navigation Bar -->
-    <div class="ss-tabs-bar">
-      <div class="ss-shimmer ss-tab" style="width: 140px;"></div>
-      <div class="ss-shimmer ss-tab" style="width: 130px;"></div>
-      <div class="ss-shimmer ss-tab" style="width: 150px;"></div>
-      <div class="ss-shimmer ss-tab" style="width: 130px;"></div>
-    </div>
+        <!-- Tabs Navigation Bar -->
+        <div class="ss-tabs-bar">
+            <div class="ss-shimmer ss-tab" style="width: 140px"></div>
+            <div class="ss-shimmer ss-tab" style="width: 130px"></div>
+            <div class="ss-shimmer ss-tab" style="width: 150px"></div>
+            <div class="ss-shimmer ss-tab" style="width: 130px"></div>
+        </div>
 
-    <!-- Main Settings Card 1 -->
-    <div class="ss-card">
-      <div class="ss-card-header">
-        <div class="ss-shimmer ss-card-icon"></div>
-        <div class="ss-card-titles">
-          <div class="ss-shimmer ss-card-title"></div>
-          <div class="ss-shimmer ss-card-sub"></div>
+        <!-- Main Settings Card 1 -->
+        <div class="ss-card">
+            <div class="ss-card-header">
+                <div class="ss-shimmer ss-card-icon"></div>
+                <div class="ss-card-titles">
+                    <div class="ss-shimmer ss-card-title"></div>
+                    <div class="ss-shimmer ss-card-sub"></div>
+                </div>
+            </div>
+            <div class="ss-options-grid-3">
+                <div class="ss-shimmer ss-option-card"></div>
+                <div class="ss-shimmer ss-option-card"></div>
+                <div class="ss-shimmer ss-option-card"></div>
+            </div>
         </div>
-      </div>
-      <div class="ss-options-grid-3">
-        <div class="ss-shimmer ss-option-card"></div>
-        <div class="ss-shimmer ss-option-card"></div>
-        <div class="ss-shimmer ss-option-card"></div>
-      </div>
-    </div>
 
-    <!-- Main Settings Card 2 -->
-    <div class="ss-card">
-      <div class="ss-card-header">
-        <div class="ss-shimmer ss-card-icon"></div>
-        <div class="ss-card-titles">
-          <div class="ss-shimmer ss-card-title"></div>
-          <div class="ss-shimmer ss-card-sub"></div>
+        <!-- Main Settings Card 2 -->
+        <div class="ss-card">
+            <div class="ss-card-header">
+                <div class="ss-shimmer ss-card-icon"></div>
+                <div class="ss-card-titles">
+                    <div class="ss-shimmer ss-card-title"></div>
+                    <div class="ss-shimmer ss-card-sub"></div>
+                </div>
+            </div>
+            <div class="ss-form-rows">
+                <div class="ss-form-row">
+                    <div class="ss-shimmer ss-row-lbl"></div>
+                    <div class="ss-shimmer ss-row-input"></div>
+                </div>
+                <div class="ss-form-row">
+                    <div class="ss-shimmer ss-row-lbl"></div>
+                    <div class="ss-shimmer ss-row-input"></div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="ss-form-rows">
-        <div class="ss-form-row">
-          <div class="ss-shimmer ss-row-lbl"></div>
-          <div class="ss-shimmer ss-row-input"></div>
-        </div>
-        <div class="ss-form-row">
-          <div class="ss-shimmer ss-row-lbl"></div>
-          <div class="ss-shimmer ss-row-input"></div>
-        </div>
-      </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -63,19 +63,19 @@
 <style scoped>
 .settings-skeleton-wrapper {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 32px 40px 60px;
+  padding: 24px 28px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .settings-skeleton-wrapper {
     padding: 0;
-    gap: 16px;
+    gap: 12px;
   }
 }
 

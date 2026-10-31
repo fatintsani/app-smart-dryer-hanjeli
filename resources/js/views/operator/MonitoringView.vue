@@ -8,9 +8,9 @@
           <!-- 1. Header Bar: Status Alat & Tombol Unduh -->
           <div class="monitoring-header-card">
             <div class="header-left">
-              <div class="header-status-pill" :class="isDataActive ? 'status-online' : 'status-offline'">
+              <div class="header-status-pill" :class="connectionStatusClass">
                 <span class="status-dot"></span>
-                <span>{{ isDataActive ? 'Alat Sensor Terhubung (Live)' : 'Alat Sensor Belum Terhubung' }}</span>
+                <span>{{ connectionStatusLabel }}</span>
               </div>
               <h1 class="page-title">Pemantauan Sensor Ruang Pengering</h1>
               <p class="page-subtitle">
@@ -138,11 +138,11 @@
             <div class="chart-header">
               <div class="chart-header-left">
                 <div class="chart-title-row">
-                  <h2 class="chart-title">Analisis Perkembangan Suhu & Kelembapan</h2>
+                  <h2 class="chart-title">Perkembangan Suhu & Kelembapan</h2>
                   <span class="period-active-chip">{{ periodLabel }}</span>
                 </div>
                 <p class="chart-subtitle">
-                  Pantau kestabilan mikroklimat ruang pengering, evaluasi pemenuhan standar SNI (40°C – 50°C), dan tren kelembapan gabah.
+                  Grafik kestabilan suhu dan kelembapan ruang pengering selama proses.
                 </p>
               </div>
 
@@ -199,100 +199,42 @@
               </div>
             </div>
 
-            <!-- Analytical Summary KPI Cards -->
-            <div class="chart-analytics-summary-grid">
-              <!-- KPI 1: Rata-Rata Suhu -->
-              <div class="analytic-stat-card">
-                <div class="stat-card-icon-box icon-red">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
-                  </svg>
-                </div>
-                <div class="stat-card-info">
-                  <span class="stat-card-lbl">RATA-RATA SUHU</span>
-                  <div class="stat-card-main-val">
-                    <span class="stat-num text-red">{{ analyticsData.avgTemp }}</span>
-                    <span class="stat-unit">°C</span>
-                  </div>
-                  <span class="stat-card-sub">Min {{ analyticsData.minTemp }}°C • Max {{ analyticsData.maxTemp }}°C</span>
-                </div>
+            <!-- Ringkasan Metrik Ringkas & User-Friendly (Simple & Clean) -->
+            <div class="simple-metric-badges">
+              <div class="metric-chip">
+                <span class="metric-dot dot-red"></span>
+                <span class="metric-name">Rata-rata Suhu:</span>
+                <strong class="metric-val text-red">{{ analyticsData.avgTemp }}°C</strong>
+                <span class="metric-range">({{ analyticsData.minTemp }}° – {{ analyticsData.maxTemp }}°)</span>
               </div>
 
-              <!-- KPI 2: Rata-Rata Kelembapan -->
-              <div class="analytic-stat-card">
-                <div class="stat-card-icon-box icon-blue">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-                  </svg>
-                </div>
-                <div class="stat-card-info">
-                  <span class="stat-card-lbl">RATA-RATA KELEMBAPAN</span>
-                  <div class="stat-card-main-val">
-                    <span class="stat-num text-blue">{{ analyticsData.avgHumidity }}</span>
-                    <span class="stat-unit">% RH</span>
-                  </div>
-                  <span class="stat-card-sub">Min {{ analyticsData.minHumidity }}% • Max {{ analyticsData.maxHumidity }}%</span>
-                </div>
+              <div class="metric-chip">
+                <span class="metric-dot dot-blue"></span>
+                <span class="metric-name">Rata-rata Kelembapan:</span>
+                <strong class="metric-val text-blue">{{ analyticsData.avgHumidity }}% RH</strong>
               </div>
 
-              <!-- KPI 3: Kepatuhan Standar SNI 40-50°C -->
-              <div class="analytic-stat-card">
-                <div class="stat-card-icon-box icon-green">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </div>
-                <div class="stat-card-info">
-                  <span class="stat-card-lbl">KUALITAS SUHU SNI</span>
-                  <div class="stat-card-main-val">
-                    <span class="stat-num text-green">{{ analyticsData.idealRatioPercent }}</span>
-                    <span class="stat-unit">% Waktu</span>
-                  </div>
-                  <span class="stat-card-sub text-green-bold">{{ analyticsData.stabilityLabel }}</span>
-                </div>
+              <div class="metric-chip">
+                <span class="metric-dot dot-green"></span>
+                <span class="metric-name">Suhu Ideal SNI:</span>
+                <strong class="metric-val text-green">{{ analyticsData.idealRatioPercent }}% Optimal</strong>
               </div>
 
-              <!-- KPI 4: Aktivitas Pemanas Tambahan -->
-              <div class="analytic-stat-card">
-                <div class="stat-card-icon-box icon-amber">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                  </svg>
-                </div>
-                <div class="stat-card-info">
-                  <span class="stat-card-lbl">AKTIVITAS PEMANAS PTC</span>
-                  <div class="stat-card-main-val">
-                    <span class="stat-num text-amber">{{ analyticsData.heaterActivePercent }}</span>
-                    <span class="stat-unit">% Sesi</span>
-                  </div>
-                  <span class="stat-card-sub">Bekerja otomatis saat dingin</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Farmer-Friendly Insight Banner -->
-            <div class="analytics-insight-banner">
-              <div class="insight-banner-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-              </div>
-              <div class="insight-banner-content">
-                <strong class="insight-banner-title">Ringkasan Analisis Petani:</strong>
-                <p class="insight-banner-text">{{ analyticsData.insightMessage }}</p>
+              <div class="metric-chip">
+                <span class="metric-dot dot-amber"></span>
+                <span class="metric-name">Aktivitas Pemanas:</span>
+                <strong class="metric-val text-amber">{{ analyticsData.heaterActivePercent }}% Sesi</strong>
               </div>
             </div>
 
             <!-- Legend & Hint Row -->
             <div class="chart-legend-bar">
               <div class="chart-legend-row">
-                <span class="legend-pill"><span class="legend-color-dot dot-red"></span> Suhu (°C)</span>
-                <span class="legend-pill"><span class="legend-color-dot dot-blue"></span> Kelembapan (%)</span>
+                <span class="legend-pill"><span class="legend-color-dot dot-red"></span> Suhu Ruang (°C)</span>
+                <span class="legend-pill"><span class="legend-color-dot dot-blue"></span> Kelembapan Udara (%)</span>
+                <span class="legend-pill"><span class="legend-color-dot dot-green"></span> Suhu Ideal SNI (40°C – 50°C)</span>
               </div>
-              <span class="chart-hint-text">Arahkan kursor atau sentuh kurva untuk melihat rincian di setiap titik waktu</span>
+              <span class="chart-hint-text">Arahkan kursor atau sentuh kurva untuk melihat rincian waktu</span>
             </div>
 
             <!-- Chart Canvas Layout: Y-Axis + SVG Canvas + Overlay Badges -->
@@ -464,8 +406,22 @@ const actuators = ref({
 
 const livePoints = ref([])
 
+const isHardwareActive = computed(() => {
+  return Boolean(connectionManager.state.isHardwareActive || telemetry.value.isLive)
+})
+
 const isDataActive = computed(() => {
-  return connectionManager.state.isHardwareActive && telemetry.value.hasData
+  return Boolean(isHardwareActive.value && (telemetry.value.tempInternal > 0 || telemetry.value.humidityInternal > 0))
+})
+
+const connectionStatusLabel = computed(() => {
+  if (isHardwareActive.value) return 'Alat Sensor Terhubung (Live)'
+  return 'Alat Sensor Belum Terhubung'
+})
+
+const connectionStatusClass = computed(() => {
+  if (isHardwareActive.value) return 'status-online'
+  return 'status-offline'
 })
 
 const tempChipLabel = computed(() => {
@@ -657,6 +613,9 @@ function exportTelemetryCsv() {
 
 function pushLivePoint(data) {
   if (selectedPeriod.value !== '1d') return
+  if (!data || (!data.isLive && !connectionManager.state.isHardwareActive)) {
+    return
+  }
   const now = new Date()
   const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
   const fullDateFormatted = now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + ' WIB'
@@ -680,21 +639,7 @@ function pushLivePoint(data) {
 }
 
 function seedPoints() {
-  const initial = []
-  const count = 12
-  const baseTime = new Date(Date.now() - count * 5 * 60000)
-  for (let i = 0; i < count; i++) {
-    const t = new Date(baseTime.getTime() + i * 5 * 60000)
-    const progress = i / (count - 1)
-    const temp = 42.0 + progress * 4.0 + Math.sin(i) * 0.5
-    const hum = 65.0 - progress * 9.0 + Math.sin(i) * 1.0
-    initial.push({
-      time: t.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      tempInternal: Number(temp.toFixed(1)),
-      humidityInternal: Number(hum.toFixed(0)),
-    })
-  }
-  livePoints.value = initial
+  livePoints.value = []
 }
 
 function mapToSvg(values, minVal, maxVal, width = 1000, height = 180, xOffset = 0, yOffset = 20) {
@@ -809,9 +754,11 @@ function handleMonitoringMouseLeave() {
 async function loadData() {
   try {
     const res = await telemetryService.getCurrent()
-    if (res?.telemetry?.hasData) {
-      telemetry.value = { ...telemetry.value, ...res.telemetry, hasData: true }
-      pushLivePoint(res.telemetry)
+    if (res?.telemetry) {
+      telemetry.value = { ...telemetry.value, ...res.telemetry }
+      if (res.telemetry.isLive) {
+        pushLivePoint(res.telemetry)
+      }
     }
     if (res?.actuators) {
       actuators.value = { ...actuators.value, ...res.actuators }
@@ -1202,211 +1149,93 @@ onUnmounted(() => {
   color: #FFFFFF;
 }
 
-/* 4 Analytical Summary KPI Cards */
-.chart-analytics-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-@media (max-width: 992px) {
-  .chart-analytics-summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 540px) {
-  .chart-analytics-summary-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.analytic-stat-card {
+/* Ringkasan Metrik Sederhana (Simple & Clean Badges) */
+.simple-metric-badges {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 8px 12px;
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 12px;
 }
 
-.analytic-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-:global(.dark-theme) .analytic-stat-card {
+:global(.dark-theme) .simple-metric-badges {
   background: #071E27;
   border-color: #1E4E61;
 }
 
-.stat-card-icon-box {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
+.metric-chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  font-size: 13px;
+  color: #334155;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-.stat-card-icon-box.icon-red {
-  background: #FEE2E2;
-  color: #DC2626;
-}
-
-.stat-card-icon-box.icon-blue {
-  background: #E0F2FE;
-  color: #0284C7;
-}
-
-.stat-card-icon-box.icon-green {
-  background: #DCFCE7;
-  color: #166534;
-}
-
-.stat-card-icon-box.icon-amber {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-:global(.dark-theme) .stat-card-icon-box.icon-red {
-  background: rgba(220, 38, 38, 0.2);
-  color: #F87171;
-}
-
-:global(.dark-theme) .stat-card-icon-box.icon-blue {
-  background: rgba(2, 132, 199, 0.2);
-  color: #38BDF8;
-}
-
-:global(.dark-theme) .stat-card-icon-box.icon-green {
-  background: rgba(22, 101, 52, 0.25);
-  color: #86EFAC;
-}
-
-:global(.dark-theme) .stat-card-icon-box.icon-amber {
-  background: rgba(217, 119, 6, 0.2);
-  color: #FBBF24;
-}
-
-.stat-card-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.stat-card-lbl {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #64748B;
-  margin-bottom: 2px;
-}
-
-:global(.dark-theme) .stat-card-lbl {
-  color: #94A3B8;
-}
-
-.stat-card-main-val {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.stat-num {
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-unit {
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748B;
-}
-
-:global(.dark-theme) .stat-unit {
-  color: #94A3B8;
-}
-
-.stat-card-sub {
-  font-size: 11px;
-  color: #64748B;
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-:global(.dark-theme) .stat-card-sub {
-  color: #94A3B8;
-}
-
-.text-green-bold {
-  color: #166534;
-  font-weight: 700;
-}
-
-:global(.dark-theme) .text-green-bold {
-  color: #86EFAC;
-}
-
-/* Farmer Insight Banner */
-.analytics-insight-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  margin-bottom: 16px;
-}
-
-:global(.dark-theme) .analytics-insight-banner {
-  background: rgba(22, 101, 52, 0.2);
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.insight-banner-icon {
-  margin-top: 1px;
-  flex-shrink: 0;
-}
-
-:global(.dark-theme) .insight-banner-icon svg {
-  stroke: #86EFAC;
-}
-
-.insight-banner-content {
-  flex: 1;
-}
-
-.insight-banner-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #166534;
-  margin-right: 6px;
-}
-
-:global(.dark-theme) .insight-banner-title {
-  color: #86EFAC;
-}
-
-.insight-banner-text {
-  display: inline;
-  font-size: 12px;
-  color: #1F2937;
-  line-height: 1.4;
-  margin: 0;
-}
-
-:global(.dark-theme) .insight-banner-text {
+:global(.dark-theme) .metric-chip {
+  background: #0B242F;
+  border-color: #1E4E61;
   color: #E2E8F0;
+}
+
+.metric-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-red { background: #DC2626; }
+.dot-blue { background: #0284C7; }
+.dot-green { background: #16A34A; }
+.dot-amber { background: #D97706; }
+
+.metric-name {
+  color: #64748B;
+  font-size: 12px;
+}
+
+:global(.dark-theme) .metric-name {
+  color: #94A3B8;
+}
+
+.metric-val {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.metric-range {
+  font-size: 11px;
+  color: #94A3B8;
+  margin-left: 2px;
+}
+
+@media (max-width: 900px) {
+  .simple-metric-badges {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .metric-chip {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .simple-metric-badges {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Legend & Hint Row */
