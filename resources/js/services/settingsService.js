@@ -6,7 +6,7 @@ export const systemState = reactive({
   isSystemActive: true,
   iotMode: 'HARDWARE', // Always HARDWARE for production direct device connection
   environmentMode: 'PRODUCTION', // PRODUCTION
-  maxSafeTemp: 55.0,
+  maxSafeTemp: 50.0,
   minSafeTemp: 35.0,
   targetMoistureDefault: 12.0,
   samplingIntervalSeconds: 5,

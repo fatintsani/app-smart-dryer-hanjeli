@@ -230,9 +230,9 @@ const isAiCopilotOpen = ref(false);
 const isAlertToastOpen = ref(false);
 const currentAlertToast = ref({
     type: "critical",
-    title: "Peringatan Suhu Kritis (>55°C)",
+    title: "Peringatan Batas Suhu Maksimal (≥50°C)",
     message:
-        "Sensor DHT22 mendeteksi suhu melebihi batas keselamatan (55.8°C). Sistem pengering siaga.",
+        "Sensor DHT22 mendeteksi suhu melebihi batas keselamatan (≥50°C). Sistem pengering siaga.",
     time: "Baru saja",
     actionLabel: "Cek Monitoring",
     actionRoute: "/monitoring",

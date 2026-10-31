@@ -147,7 +147,7 @@ class AiAssistantService
             'heaterLevel' => $actuator?->aux_heater_level ?? 0,
             'circFanStatus' => (bool)($actuator?->circ_fan_status ?? true),
             'activeAlertsCount' => $activeAlerts->count(),
-            'maxSafeTemp' => $setting?->max_safe_temp ?? 55.0,
+            'maxSafeTemp' => $setting?->max_safe_temp ?? 50.0,
             'minSafeTemp' => $setting?->min_safe_temp ?? 35.0,
             'dryingRatePerHour' => $prediction['dryingRatePerHour'] ?? $dryingRate ?? 1.2,
             'estimatedCompletionFormatted' => $prediction['estimatedCompletionFormatted'] ?? 'Belum terhitung',
@@ -277,7 +277,7 @@ Your core tasks:
 1. Help operators monitor and optimize the drying process of Hanjeli grains (Coix lacryma-jobi).
 2. Provide scientific and practical insights based on live IoT telemetry.
 3. Guidelines:
-   - Safe thermal range: 40°C - 50°C (Absolute max: 55°C).
+   - Safe thermal range: 40°C - 50°C (Safety max: 50°C, lockout threshold).
    - Safe storage moisture: 12% - 14% (Wet harvest initial: 24% - 32%).
    - Relative humidity (RH): If RH > 70%, evacuate moisture with exhaust fan.
    - Auxiliary Heater: Turn on during night/rain/low solar radiation (<300 W/m²).
@@ -370,9 +370,9 @@ TEXT;
                     : '**In Progress**: Progressing towards target ' . $s['targetMoisture'] . '%.';
 
                 $tempStatus = ($s['tempInternal'] >= $s['minSafeTemp'] && $s['tempInternal'] <= $s['maxSafeTemp'])
-                    ? '**Optimal** (' . $s['tempInternal'] . '°C, within 35-55°C safe range).'
+                    ? '**Optimal** (' . $s['tempInternal'] . '°C, within 35-50°C safe range).'
                     : ($s['tempInternal'] > $s['maxSafeTemp'] 
-                        ? '**Overheating Alert** (' . $s['tempInternal'] . '°C > 55°C limit). Turn on exhaust fans immediately!'
+                        ? '**Overheating Alert** (' . $s['tempInternal'] . '°C > 50°C limit). Turn on exhaust fans immediately!'
                         : '**Below Target** (' . $s['tempInternal'] . '°C < 35°C). Auxiliary Heater activation recommended.');
 
                 $heaterMsg = $s['heaterStatus'] ? "Active (Level {$s['heaterLevel']})" : "Off";
@@ -402,9 +402,9 @@ MD;
                     : '**Sedang Proses**: Menuju target ' . $s['targetMoisture'] . '%.';
 
                 $tempStatus = ($s['tempInternal'] >= $s['minSafeTemp'] && $s['tempInternal'] <= $s['maxSafeTemp'])
-                    ? '**Optimal** (' . $s['tempInternal'] . '°C, dalam rentang aman 35-55°C).'
+                    ? '**Optimal** (' . $s['tempInternal'] . '°C, dalam rentang aman 35-50°C).'
                     : ($s['tempInternal'] > $s['maxSafeTemp'] 
-                        ? '**Peringatan Panas Berlebih** (' . $s['tempInternal'] . '°C > batas aman 55°C). Segera buka exhaust fan!'
+                        ? '**Peringatan Panas Berlebih** (' . $s['tempInternal'] . '°C > batas aman 50°C). Segera buka exhaust fan!'
                         : '**Di Bawah Target** (' . $s['tempInternal'] . '°C < 35°C). Disarankan aktifkan Auxiliary Heater.');
 
                 $heaterMsg = $s['heaterStatus'] ? "Aktif (Level {$s['heaterLevel']})" : "Mati";
@@ -532,7 +532,7 @@ MD;
 Key post-harvest preservation guidelines for Hanjeli (*Coix lacryma-jobi*):
 
 * **Critical Mold/Aflatoxin Threshold**: Occurs when grain moisture stays $>18\%$ with chamber RH $>75\%$ for over 8 hours. Current internal RH: **{$s['humidityInternal']}%** (safe with active ventilation).
-* **Maximum Temperature Threshold**: Never exceed **55°C**. Temperatures $>55°C$ degrade protein/starch quality and trigger grain cracking (*case hardening*).
+* **Maximum Temperature Threshold**: Never exceed **50°C**. Temperatures $\ge 50°C$ trigger automatic heater lockout to avoid degrading protein/starch quality and grain cracking (*case hardening*).
 * **Safe Packaging Standard**: Target equilibrium moisture content is **12% - 14%**. At this level, grains can be safely stored in airtight packaging for 6-12 months without mold or pest infestation.
 MD;
             } else {
@@ -542,7 +542,7 @@ MD;
 Pengeringan biji Hanjeli (*Coix lacryma-jobi*) memiliki titik kritis pascapanen:
 
 * **Titik Kritis Aflatoksin/Jamur**: Terjadi bila biji dibiarkan pada kadar air $>18\%$ dengan RH ruang $>75\%$ selama lebih dari 8 jam. Kondisi saat ini: RH ruang **{$s['humidityInternal']}%** (relatif aman jika ventilasi berjalan).
-* **Batas Maksimal Suhu**: Jangan melebihi **55°C**. Suhu $>55°C$ dapat merusak kandungan karbohidrat kompleks/protein dan menyebabkan biji mudah pecah (*case hardening*).
+* **Batas Maksimal Suhu**: Jangan melebihi **50°C**. Suhu $\ge 50°C$ memicu lockout otomatis pemanas untuk mencegah kerusakan karbohidrat kompleks/protein dan mencegah biji pecah (*case hardening*).
 * **Target Standar Nasional / SNI**: Kadar air simpan optimal adalah **12% - 14%**. Pada kadar ini, biji dapat disimpan hingga 6-12 bulan dalam kemasan kedap udara tanpa risiko apek atau berkutu.
 MD;
             }

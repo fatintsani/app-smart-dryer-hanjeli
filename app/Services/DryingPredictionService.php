@@ -477,12 +477,12 @@ class DryingPredictionService
         }
 
         // 3. Thermal safety warning
-        if ($tempInternal > 52.0) {
+        if ($tempInternal >= 50.0) {
             $recs[] = [
                 'type' => 'danger',
                 'icon' => 'alert-triangle',
-                'title' => 'Suhu Mendekati Ambang Batas 55°C',
-                'description' => "Suhu ruang terlampau panas ({$tempInternal}°C). Buka ventilasi penuh untuk mencegah kerusakan struktur nutrisi dan daya kecambah biji Hanjeli.",
+                'title' => 'Suhu Mencapai Batas Keselamatan 50°C',
+                'description' => "Suhu ruang mencapai batas keselamatan ({$tempInternal}°C). Pemanas dinonaktifkan otomatis dan buka ventilasi untuk mencegah kerusakan struktur nutrisi biji Hanjeli.",
                 'actionText' => 'Buka Ventilasi 100%',
             ];
         } else {

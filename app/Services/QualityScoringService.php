@@ -172,10 +172,10 @@ class QualityScoringService
         // Score based on stdDev: <= 2.5 is 100, drops as fluctuation rises
         $baseScore = 100.0 - (max(0, $stdDev - 2.0) * 6.0);
 
-        // Overheating penalty if max temp > 55.0°C
+        // Overheating penalty if max temp > 50.0°C
         $overheatPenalty = 0.0;
-        if ($maxTemp > 55.0) {
-            $overheatPenalty = min(20.0, ($maxTemp - 55.0) * 4.0);
+        if ($maxTemp > 50.0) {
+            $overheatPenalty = min(20.0, ($maxTemp - 50.0) * 4.0);
         }
 
         // Ideal average temp is 44°C - 53°C
@@ -296,10 +296,10 @@ class QualityScoringService
                 'description' => $finalMoisture <= 13.8 ? 'Memenuhi ambang batas aman penyimpanan jangka panjang' : 'Sedikit di atas standar ekspor',
             ],
             [
-                'title' => 'Stabilitas Suhu Ruangan (< 55°C)',
-                'passed' => $tempAssessment['maxTemp'] <= 56.0,
+                'title' => 'Stabilitas Suhu Ruangan (≤ 50°C)',
+                'passed' => $tempAssessment['maxTemp'] <= 50.5,
                 'value' => "Maks {$tempAssessment['maxTemp']}°C (Deviasi ±{$tempAssessment['stdDev']}°C)",
-                'description' => $tempAssessment['maxTemp'] <= 56.0 ? 'Bebas dari kerusakan termal / overheating' : 'Terdeteksi lonjakan suhu di atas 56°C',
+                'description' => $tempAssessment['maxTemp'] <= 50.5 ? 'Bebas dari kerusakan termal / overheating (sesuai standar SNI)' : 'Terdeteksi lonjakan suhu melebihi batas 50°C',
             ],
             [
                 'title' => 'Keseragaman Kurva Pengeringan',

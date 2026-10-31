@@ -214,7 +214,7 @@ class MqttService
 
         // 4. Threshold Checks & Alerts
         $setting = SystemSetting::first();
-        $maxSafeTemp = $setting?->max_safe_temp ?? 55.0;
+        $maxSafeTemp = $setting?->max_safe_temp ?? 50.0;
         $minSafeTemp = $setting?->min_safe_temp ?? 35.0;
 
         if ($telemetry->temp_internal > $maxSafeTemp) {

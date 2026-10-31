@@ -28,7 +28,7 @@ class SettingController extends Controller
             'is_system_active' => true,
             'iot_mode' => 'HARDWARE',
             'environment_mode' => 'PRODUCTION',
-            'max_safe_temp' => 55.0,
+            'max_safe_temp' => 50.0,
             'min_safe_temp' => 35.0,
             'target_moisture_default' => 12.0,
             'sampling_interval_seconds' => 5,

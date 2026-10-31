@@ -249,7 +249,7 @@ const masterSettings = reactive({
   isSystemActive: true,
   iotMode: 'HARDWARE',
   environmentMode: 'PRODUCTION',
-  maxSafeTemp: 55.0,
+  maxSafeTemp: 50.0,
   minHumidityTrigger: 70.0,
   targetMoistureDefault: 12.0,
   exhaustAutoThreshold: 48.0,
@@ -348,7 +348,7 @@ async function handleResetDefaults() {
   const confirmed = await confirmDialog({
     title: 'Reset Parameter ke Nilai Standar?',
     message: 'Seluruh nilai parameter ambang batas operasional akan dikembalikan ke setelan pabrik / riset STAS-RG.',
-    details: 'Max Temp: 55°C • Target Moisture: 12% • Sampling: 5s',
+    details: 'Max Temp: 50°C • Target Moisture: 12% • Sampling: 5s',
     type: 'warning',
     confirmText: 'Ya, Kembalikan ke Standar',
     cancelText: 'Batal',
@@ -358,7 +358,7 @@ async function handleResetDefaults() {
     masterSettings.isSystemActive = true
     masterSettings.iotMode = 'SIMULATION'
     masterSettings.environmentMode = 'LOCAL'
-    masterSettings.maxSafeTemp = 55.0
+    masterSettings.maxSafeTemp = 50.0
     masterSettings.minHumidityTrigger = 70.0
     masterSettings.targetMoistureDefault = 12.0
     masterSettings.exhaustAutoThreshold = 48.0

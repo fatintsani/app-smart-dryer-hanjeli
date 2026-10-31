@@ -393,8 +393,8 @@
               <div class="diag-metric-card">
                 <div class="dm-head">
                   <span>{{ t('aiCopilot.diagTempInternal') }}</span>
-                  <span class="dm-badge" :class="contextSnapshot.tempInternal > 55 ? 'dm-danger' : 'dm-good'">
-                    {{ contextSnapshot.tempInternal > 55 ? t('aiCopilot.diagTempCritical') : t('aiCopilot.diagTempNormal') }}
+                  <span class="dm-badge" :class="contextSnapshot.tempInternal >= 50 ? 'dm-danger' : 'dm-good'">
+                    {{ contextSnapshot.tempInternal >= 50 ? t('aiCopilot.diagTempCritical') : t('aiCopilot.diagTempNormal') }}
                   </span>
                 </div>
                 <div class="dm-val">{{ contextSnapshot.tempInternal }}°C</div>
@@ -570,7 +570,7 @@ const computedWeightLossPercent = computed(() => {
 const computedHealthScore = computed(() => {
   if (!contextSnapshot.value) return 92
   let score = 100
-  if (contextSnapshot.value.tempInternal > 55) score -= 25
+  if (contextSnapshot.value.tempInternal >= 50) score -= 25
   if (contextSnapshot.value.humidityInternal > 70) score -= 15
   if (contextSnapshot.value.activeAlertsCount > 0) score -= 10
   return Math.max(50, score)
@@ -585,7 +585,7 @@ const computedHealthStatus = computed(() => {
 
 const computedHealthDesc = computed(() => {
   if (!contextSnapshot.value) return t('aiCopilot.diagDescOptimal')
-  if (contextSnapshot.value.tempInternal > 55) return t('aiCopilot.diagDescHighTemp')
+  if (contextSnapshot.value.tempInternal >= 50) return t('aiCopilot.diagDescHighTemp')
   if (contextSnapshot.value.humidityInternal > 70) return t('aiCopilot.diagDescHighRh')
   return t('aiCopilot.diagDescDefault')
 })

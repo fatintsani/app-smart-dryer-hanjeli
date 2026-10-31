@@ -482,10 +482,10 @@ void readSensors() {
     if (!dhtOK) {
       heaterState = false;
     } else {
-      if (temp < 55.0) {
-        heaterState = true;
-      } else if (temp > 60.0) {
-        heaterState = false;
+      if (temp >= 50.0) {
+        heaterState = false; // Batas Keselamatan SNI (Lockout)
+      } else if (temp <= 48.0) {
+        heaterState = true;  // Pemulihan Suhu Otomatis
       }
     }
     applyActuators();
@@ -726,7 +726,7 @@ export const ESP32_SIMULATOR_CODE = `/*
  * 
  * Deskripsi:
  * Firmware simulator untuk pengujian sistem TANPA SENSOR FISIK.
- * Menghasilkan data realistis (Suhu 55-60°C target, Kelembapan, Lux, Hujan)
+ * Menghasilkan data realistis (Suhu 40-50°C target SNI, Kelembapan, Lux, Hujan)
  * dan memancarkannya via Bluetooth Low Energy (BLE), Wi-Fi MQTT & Web Serial.
  * 
  * Target Hardware: ESP32 DevKit V1 (Cukup tancap kabel USB ke laptop)
@@ -785,12 +785,12 @@ unsigned long simStepCounter = 0;
 void updateSimulationPhysics() {
   simStepCounter++;
 
-  // Simulasi fluktuasi termal di sekitar 55°C - 58°C
+  // Simulasi fluktuasi termal di sekitar rentang SNI 40°C - 50°C
   float thermalNoise = (((rand() % 21) - 10) / 20.0);
   
-  if (simTempInternal < 55.0) {
+  if (simTempInternal <= 48.0) {
     heaterStatus = true;
-  } else if (simTempInternal > 60.0) {
+  } else if (simTempInternal >= 50.0) {
     heaterStatus = false;
   }
 
@@ -800,8 +800,8 @@ void updateSimulationPhysics() {
     simTempInternal -= 0.25 - (thermalNoise * 0.1);
   }
 
-  if (simTempInternal < 45.0) simTempInternal = 45.0;
-  if (simTempInternal > 62.0) simTempInternal = 62.0;
+  if (simTempInternal < 35.0) simTempInternal = 35.0;
+  if (simTempInternal > 52.0) simTempInternal = 52.0;
 
   simHumidityInternal = 65.0 - ((simTempInternal - 35.0) * 0.8) + thermalNoise;
   if (simHumidityInternal < 25.0) simHumidityInternal = 25.0;
