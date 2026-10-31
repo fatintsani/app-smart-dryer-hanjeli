@@ -411,7 +411,7 @@
       </div>
 
       <!-- Partnership & Developer Section -->
-      <div class="collab-strip-card" style="margin-top: 24px;">
+      <div class="collab-strip-card">
         <div class="collab-item">
           <HanjeliLogo :size="44" />
           <div class="collab-text">
@@ -420,7 +420,6 @@
             <p class="collab-desc">{{ $t('guide.collabOwnerDesc') }}</p>
           </div>
         </div>
-        <div class="collab-divider"></div>
         <div class="collab-item">
           <StasLogo :size="44" />
           <div class="collab-text">
@@ -1001,25 +1000,32 @@ onMounted(() => {
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  padding: 18px 24px;
+  padding: 14px 16px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 14px;
 }
 
-:global(.dark-theme) .collab-strip-card {
-  background: #0B242F;
-  border-color: rgba(30, 78, 97, 0.6);
+@media (min-width: 768px) {
+  .collab-strip-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 18px 24px;
+    margin-top: 20px;
+  }
 }
 
 .collab-item {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 12px;
   flex: 1;
-  min-width: 280px;
+  width: 100%;
 }
 
 .collab-text {
@@ -1042,29 +1048,11 @@ onMounted(() => {
   color: var(--color-text-title);
 }
 
-:global(.dark-theme) .collab-name {
-  color: #FFFFFF;
-}
-
 .collab-desc {
   font-size: 11.5px;
   color: var(--color-text-muted);
   margin: 0;
   line-height: 1.35;
-}
-
-:global(.dark-theme) .collab-desc {
-  color: #94A3B8;
-}
-
-.collab-divider {
-  width: 1px;
-  height: 48px;
-  background: var(--color-border-subtle, rgba(191, 202, 186, 0.4));
-}
-
-:global(.dark-theme) .collab-divider {
-  background: rgba(30, 78, 97, 0.5);
 }
 
 /* SOP Styles */
@@ -2296,11 +2284,36 @@ onMounted(() => {
   display: block;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .devices-guide-page {
+    padding: 0;
+  }
+
+  .guide-container {
+    gap: 12px;
+  }
+
+  .sop-container,
+  .faq-container {
+    gap: 10px;
+  }
+
+  .sop-item-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+
+  .page-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
   .manual-hero-card {
     flex-direction: column;
     align-items: flex-start;
-    padding: 18px;
+    padding: 16px;
+    border-radius: 14px;
   }
   .manual-hero-actions {
     width: 100%;
@@ -2311,7 +2324,7 @@ onMounted(() => {
     justify-content: center;
   }
   .manual-pdf-iframe {
-    height: 600px;
+    height: 520px;
   }
   .viewer-hint {
     display: none;

@@ -3,8 +3,7 @@
  * 
  * Hardware Pinout Sesuai Alat Fisik:
  * - DHT22 (Suhu & RH Ruang) : GPIO 25
- * - Relai Pemanas PTC 1     : GPIO 26
- * - Relai Pemanas PTC 2     : GPIO 27
+ * - Relai Pemanas Ruang PTC : GPIO 26
  * - Sensor Hujan (ADC)      : GPIO 34
  * - I2C (BH1750 & LCD 20x4) : SDA GPIO 21, SCL GPIO 22
  * - LCD I2C Address         : 0x27 (20 Kolom x 4 Baris)
@@ -18,16 +17,15 @@ export const ESP32_PHYSICAL_STANDALONE_CODE = `/*
  * 
  * Pinout Hardware:
  *   - DHT22 (Suhu & Kelembapan)  : GPIO 25
- *   - Relay CH1 (Pemanas PTC 1)  : GPIO 26
- *   - Relay CH2 (Pemanas PTC 2)  : GPIO 27
+ *   - Relay Pemanas Ruang (PTC)  : GPIO 26
  *   - Sensor Hujan (Analog ADC)  : GPIO 34
  *   - I2C Bus (SDA / SCL)        : GPIO 21 / GPIO 22
  *   - Sensor Cahaya (BH1750)     : I2C (0x23 / Auto)
  *   - LCD Display 20x4           : I2C (0x27)
  * 
  * Logika Operasional & Keselamatan:
- *   - Suhu < 55.0 °C  -> Pemanas PTC 1 & 2 Otomatis ON
- *   - Suhu > 60.0 °C  -> Pemanas PTC 1 & 2 Otomatis OFF
+ *   - Suhu < 48.0 °C  -> Pemanas PTC Otomatis ON
+ *   - Suhu >= 50.0 °C -> Pemanas PTC Otomatis OFF (Lockout Safety)
  *   - Sensor DHT22 Error >= 3x berturut-turut -> SHUT-OFF Pemanas (Safety)
  *   - LCD 20x4 Switch Halaman Otomatis (Monitoring & Diagnostik Sistem)
  *   - Output Serial: Log Human-Readable & Stream JSON Telemetri untuk Web Serial
@@ -44,8 +42,7 @@ export const ESP32_PHYSICAL_STANDALONE_CODE = `/*
 // ==========================================
 #define DHTPIN        25      // Pin DATA DHT22
 #define DHTTYPE       DHT22
-#define RELAY_CH1     26      // Control Relay PTC 1
-#define RELAY_CH2     27      // Control Relay PTC 2
+#define RELAY_CH1     26      // Control Relay Pemanas PTC Ruang
 #define RAIN_PIN      34      // Input ADC Sensor Hujan
 
 #define RAIN_THRESH   2000    // Threshold ADC Hujan (< 2000 = Hujan)
@@ -86,9 +83,7 @@ void setup() {
 
   // Config Pin Relay
   pinMode(RELAY_CH1, OUTPUT);
-  pinMode(RELAY_CH2, OUTPUT);
   digitalWrite(RELAY_CH1, LOW); 
-  digitalWrite(RELAY_CH2, LOW);
   pinMode(RAIN_PIN, INPUT);
 
   Wire.begin(21, 22);
@@ -153,23 +148,22 @@ void loop() {
     isRaining = (rainVal < RAIN_THRESH);
 
     // =========================================================
-    // LOGIKA KONTROL HEATER (DI BAWAH 55 ON / DI ATAS 60 OFF)
+    // LOGIKA KONTROL HEATER (DI BAWAH 48 ON / DI ATAS 50 LOCKOUT OFF)
     // =========================================================
     if (!dhtOK) {
       heaterState = false; // Matikan heater jika sensor fault
     } 
     else {
-      if (temp < 55.0) {
+      if (temp < 48.0) {
         heaterState = true;
       } 
-      else if (temp > 60.0) {
+      else if (temp >= 50.0) {
         heaterState = false;
       }
     }
 
-    // Terapkan status ke pin Relay
+    // Terapkan status ke pin Relay Tunggal (Pin 26)
     digitalWrite(RELAY_CH1, heaterState ? HIGH : LOW);
-    digitalWrite(RELAY_CH2, heaterState ? HIGH : LOW);
 
     printToSerial();
   }
@@ -281,8 +275,7 @@ export const ESP32_DUAL_MODE_CODE = `/*
  * 
  * Pinout Sesuai Alat Fisik:
  *   - DHT22 (Suhu & Kelembapan)  : GPIO 25
- *   - Relay CH1 (Pemanas PTC 1)  : GPIO 26
- *   - Relay CH2 (Pemanas PTC 2)  : GPIO 27
+ *   - Relay Pemanas Ruang (PTC)  : GPIO 26
  *   - Sensor Hujan (Analog ADC)  : GPIO 34
  *   - I2C (BH1750 & LCD 20x4)    : SDA GPIO 21 / SCL GPIO 22
  *   - LCD I2C Address            : 0x27
@@ -316,8 +309,7 @@ export const ESP32_DUAL_MODE_CODE = `/*
 // ==============================================================================
 #define DHTPIN        25      // Pin DATA DHT22
 #define DHTTYPE       DHT22
-#define RELAY_CH1     26      // Control Relay PTC 1
-#define RELAY_CH2     27      // Control Relay PTC 2
+#define RELAY_CH1     26      // Control Relay Pemanas PTC Ruang
 #define RAIN_PIN      34      // Input ADC Sensor Hujan
 #define STATUS_LED_PIN 2      // Onboard LED status
 
@@ -456,7 +448,6 @@ void applyActuators() {
     heaterState = false; // Safety shutoff
   }
   digitalWrite(RELAY_CH1, heaterState ? HIGH : LOW);
-  digitalWrite(RELAY_CH2, heaterState ? HIGH : LOW);
 }
 
 void readSensors() {
@@ -637,11 +628,9 @@ void updateLCD() {
 void setup() {
   Serial.begin(115200);
   pinMode(RELAY_CH1, OUTPUT);
-  pinMode(RELAY_CH2, OUTPUT);
   pinMode(STATUS_LED_PIN, OUTPUT);
   pinMode(RAIN_PIN, INPUT);
   digitalWrite(RELAY_CH1, LOW);
-  digitalWrite(RELAY_CH2, LOW);
 
   Wire.begin(21, 22);
   Wire.setClock(100000);

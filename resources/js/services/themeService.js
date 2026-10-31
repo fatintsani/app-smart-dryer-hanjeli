@@ -1,40 +1,43 @@
 import { ref } from 'vue'
 
-// Read stored theme preference (default to 'light' if not set)
-const savedTheme = localStorage.getItem('theme') || 'light'
-export const isDark = ref(savedTheme === 'dark')
+// Permanent Light Mode (Dark mode completely disabled)
+export const isDark = ref(false)
 
 /**
- * Toggle between light and dark themes globally
+ * Toggle theme disabled (no-op)
  */
 export function toggleTheme() {
-  setTheme(!isDark.value ? 'dark' : 'light')
+  // Permanently disabled
 }
 
 /**
- * Set theme explicitly to 'dark' or 'light'
- * @param {'dark' | 'light'} theme 
+ * Force light theme
  */
-export function setTheme(theme) {
-  isDark.value = theme === 'dark'
+export function setTheme() {
+  isDark.value = false
   try {
-    localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+    localStorage.removeItem('theme')
     if (typeof document !== 'undefined') {
-      document.documentElement.classList.toggle('dark-theme', isDark.value)
+      document.documentElement.classList.remove('dark-theme')
       if (document.body) {
-        document.body.classList.toggle('dark-theme', isDark.value)
+        document.body.classList.remove('dark-theme')
       }
     }
   } catch (e) {
-    console.warn('Storage theme sync warning:', e)
+    // Ignore storage errors
   }
 }
 
-// Initialize on load
+// Clean up any stale dark-theme classes from DOM and localStorage
 if (typeof document !== 'undefined') {
-  document.documentElement.classList.toggle('dark-theme', isDark.value)
-  if (document.body) {
-    document.body.classList.toggle('dark-theme', isDark.value)
+  try {
+    localStorage.removeItem('theme')
+    document.documentElement.classList.remove('dark-theme')
+    if (document.body) {
+      document.body.classList.remove('dark-theme')
+    }
+  } catch (e) {
+    // Ignore storage errors
   }
 }
 

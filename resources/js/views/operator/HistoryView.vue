@@ -1552,6 +1552,54 @@ function executeExport() {
   cursor: pointer;
 }
 
+@media (max-width: 900px) {
+  .history-main-container {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .history-header-card {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-header-secondary,
+  .btn-header-primary {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .kpi-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .kpi-metric-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+
+  .filter-toolbar-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .batch-cards-container {
+    gap: 10px;
+  }
+
+  .batch-item-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+}
+
 /* ==========================================================================
    DARK THEME OVERRIDES FOR HISTORY VIEW
    ========================================================================== */

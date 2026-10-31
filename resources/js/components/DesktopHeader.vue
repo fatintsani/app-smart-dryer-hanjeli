@@ -64,15 +64,14 @@
                 <span class="status-sub">Smart Room Dryer</span>
             </div>
 
-            <!-- 2. Dual Connectivity Pill (Wi-Fi/MQTT vs BLE) -->
+            <!-- 2. Dual Connectivity Pill (Wi-Fi/MQTT Production Mode) -->
             <div
-                class="conn-mode-pill cursor-pointer"
+                class="conn-mode-pill"
                 :class="[
                     connectionMode,
                     { 'conn-offline': !isConnectionActive },
                 ]"
-                @click="toggleConnectionMode"
-                :title="`Mode Koneksi: ${connectionMode === 'wifi' ? 'Wi-Fi + MQTT' : 'Bluetooth BLE'} (Klik untuk beralih mode)`"
+                :title="`Koneksi Perangkat: ${connectionMode === 'wifi' ? 'Wi-Fi & Server Cloud' : connectionMode.toUpperCase()}`"
             >
                 <svg
                     v-if="connectionMode === 'wifi'"
@@ -111,123 +110,9 @@
             </div>
         </div>
 
-        <!-- Right: Language, Theme Toggle, Notification & Profile Menu -->
+        <!-- Right: Notification & Profile Menu -->
         <div class="header-right">
-            <!-- 1. Language Selector Button (Vector SVG Flag Only) -->
-            <div class="lang-selector-wrapper" ref="langDropdownRef">
-                <button
-                    class="header-action-btn lang-btn"
-                    @click="isLangOpen = !isLangOpen"
-                    :title="
-                        currentLang === 'id'
-                            ? 'Bahasa: Indonesia (Klik untuk ganti)'
-                            : 'Language: English (Click to change)'
-                    "
-                >
-                    <FlagIcon :code="currentLang" :size="22" />
-                </button>
-
-                <!-- Lang Dropdown Popup -->
-                <div v-if="isLangOpen" class="lang-dropdown-menu">
-                    <button
-                        class="lang-option"
-                        :class="{ active: currentLang === 'id' }"
-                        @click="selectLang('id')"
-                    >
-                        <div class="lang-option-lead">
-                            <FlagIcon code="id" :size="18" />
-                            <span>Bahasa Indonesia</span>
-                        </div>
-                        <svg
-                            v-if="currentLang === 'id'"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#1B5E20"
-                            stroke-width="3"
-                        >
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </button>
-
-                    <button
-                        class="lang-option"
-                        :class="{ active: currentLang === 'en' }"
-                        @click="selectLang('en')"
-                    >
-                        <div class="lang-option-lead">
-                            <FlagIcon code="en" :size="18" />
-                            <span>English</span>
-                        </div>
-                        <svg
-                            v-if="currentLang === 'en'"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#1B5E20"
-                            stroke-width="3"
-                        >
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 2. Dark / Light Mode Toggle Button (Icon Only) -->
-            <button
-                class="header-action-btn theme-toggle-btn"
-                @click="$emit('toggle-theme')"
-                :title="
-                    isDark
-                        ? currentLang === 'id'
-                            ? 'Beralih ke Mode Terang'
-                            : 'Switch to Light Mode'
-                        : currentLang === 'id'
-                          ? 'Beralih ke Mode Gelap'
-                          : 'Switch to Dark Mode'
-                "
-            >
-                <!-- Sun icon (When in dark mode, click to go light) -->
-                <svg
-                    v-if="isDark"
-                    class="theme-icon sun-icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#FBBF24"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <!-- Moon icon (When in light mode, click to go dark) -->
-                <svg
-                    v-else
-                    class="theme-icon moon-icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#0F172A"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <path
-                        d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                    ></path>
-                </svg>
-            </button>
-
-            <!-- 3. Notifications Bell with Alert Templates -->
+            <!-- Notifications Bell with Alert Templates -->
             <div class="notif-wrapper" ref="notifDropdownRef">
                 <button
                     class="header-action-btn notif-btn"
@@ -650,7 +535,16 @@
                             <strong class="ph-name">{{ user.name }}</strong>
                             <span class="ph-email">
                                 {{ user.email }}
-                                <span v-if="user.username" class="ph-username" style="opacity: 0.8; font-size: 11px; margin-left: 2px;">(@{{ user.username }})</span>
+                                <span
+                                    v-if="user.username"
+                                    class="ph-username"
+                                    style="
+                                        opacity: 0.8;
+                                        font-size: 11px;
+                                        margin-left: 2px;
+                                    "
+                                    >(@{{ user.username }})</span
+                                >
                             </span>
                             <span class="ph-location">{{ user.location }}</span>
                         </div>
@@ -868,17 +762,12 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import FlagIcon from "./FlagIcon.vue";
 import { alertService } from "../services/alertService";
 import { socketService } from "../services/socketService";
 import { settingsService, systemState } from "../services/settingsService";
 import connectionManager from "../services/connectionManager";
 
 const props = defineProps({
-    isDark: {
-        type: Boolean,
-        default: false,
-    },
     isSidebarCollapsed: {
         type: Boolean,
         default: false,
@@ -901,8 +790,6 @@ const props = defineProps({
 
 const emit = defineEmits([
     "toggle-sidebar",
-    "toggle-theme",
-    "change-lang",
     "edit-profile",
     "settings",
     "navigate",
@@ -911,7 +798,6 @@ const emit = defineEmits([
 ]);
 
 const isProfileOpen = ref(false);
-const isLangOpen = ref(false);
 const notifFilter = ref("all"); // 'all', 'alert', 'system'
 
 const connectionMode = computed(() => connectionManager.state.mode);
@@ -929,39 +815,59 @@ const toggleConnectionMode = () => {
 const notifications = ref([]);
 let alertSyncTimer = null;
 
-function simplifyAlert(title = '', message = '') {
-    let cleanTitle = title || 'Pemberitahuan Sistem';
-    let cleanMsg = message || '';
+function simplifyAlert(title = "", message = "") {
+    let cleanTitle = title || "Pemberitahuan Sistem";
+    let cleanMsg = message || "";
 
     // Bersihkan prefix teknis pada judul
     cleanTitle = cleanTitle
-        .replace(/^Anomali Termal:\s*/i, '')
-        .replace(/^Anomali Sensor:\s*/i, '')
-        .replace(/^Anomali Kadar Air:\s*/i, '')
-        .replace(/^Anomali Suhu:\s*/i, '')
-        .replace(/^Peringatan:\s*/i, '')
+        .replace(/^Anomali Termal:\s*/i, "")
+        .replace(/^Anomali Sensor:\s*/i, "")
+        .replace(/^Anomali Kadar Air:\s*/i, "")
+        .replace(/^Anomali Suhu:\s*/i, "")
+        .replace(/^Peringatan:\s*/i, "")
         .trim();
 
-    if (cleanTitle.toLowerCase().includes('pintu greenhouse terbuka') || cleanTitle.toLowerCase().includes('drop suhu')) {
-        cleanTitle = 'Pintu Terbuka / Suhu Drop';
-    } else if (cleanTitle.toLowerCase().includes('penurunan suhu mendadak')) {
-        cleanTitle = 'Suhu Ruangan Turun';
-    } else if (cleanTitle.toLowerCase().includes('lonjakan kelembaban') || cleanTitle.toLowerCase().includes('lonjakan kadar air')) {
-        cleanTitle = 'Kadar Air Biji Naik';
-    } else if (cleanTitle.toLowerCase().includes('pembacaan macet') || cleanTitle.toLowerCase().includes('flatline')) {
-        cleanTitle = 'Koneksi Sensor Macet';
+    if (
+        cleanTitle.toLowerCase().includes("pintu greenhouse terbuka") ||
+        cleanTitle.toLowerCase().includes("drop suhu")
+    ) {
+        cleanTitle = "Pintu Terbuka / Suhu Drop";
+    } else if (cleanTitle.toLowerCase().includes("penurunan suhu mendadak")) {
+        cleanTitle = "Suhu Ruangan Turun";
+    } else if (
+        cleanTitle.toLowerCase().includes("lonjakan kelembaban") ||
+        cleanTitle.toLowerCase().includes("lonjakan kadar air")
+    ) {
+        cleanTitle = "Kadar Air Biji Naik";
+    } else if (
+        cleanTitle.toLowerCase().includes("pembacaan macet") ||
+        cleanTitle.toLowerCase().includes("flatline")
+    ) {
+        cleanTitle = "Koneksi Sensor Macet";
     }
 
     // Sederhanakan pesan menjadi bahasa petani yang jelas dan ringkas
-    if (cleanMsg.includes('Auxiliary Heater') || cleanMsg.includes('LEBIH RENDAH')) {
+    if (
+        cleanMsg.includes("Auxiliary Heater") ||
+        cleanMsg.includes("LEBIH RENDAH")
+    ) {
         const tempMatch = cleanMsg.match(/Suhu ruang pengering \(([^)]+)\)/i);
-        const temp = tempMatch ? tempMatch[1] : 'ruangan';
+        const temp = tempMatch ? tempMatch[1] : "ruangan";
         cleanMsg = `Suhu ${temp} lebih dingin dari luar saat pemanas aktif. Mohon periksa apakah pintu greenhouse tertutup rapat.`;
-    } else if (cleanMsg.toLowerCase().includes('flatline') || cleanMsg.toLowerCase().includes('tidak berubah sama sekali')) {
-        cleanMsg = 'Data sensor tidak bergerak. Periksa sambungan kabel sensor atau catu daya alat.';
-    } else if (cleanMsg.toLowerCase().includes('melonjak naik') || cleanMsg.toLowerCase().includes('kebocoran atap')) {
-        cleanMsg = 'Kadar air biji naik mendadak. Periksa apakah ada tetesan air atau atap bocor di atas rak.';
-    } else if (cleanMsg.includes('Rekomendasi Aksi:')) {
+    } else if (
+        cleanMsg.toLowerCase().includes("flatline") ||
+        cleanMsg.toLowerCase().includes("tidak berubah sama sekali")
+    ) {
+        cleanMsg =
+            "Data sensor tidak bergerak. Periksa sambungan kabel sensor atau catu daya alat.";
+    } else if (
+        cleanMsg.toLowerCase().includes("melonjak naik") ||
+        cleanMsg.toLowerCase().includes("kebocoran atap")
+    ) {
+        cleanMsg =
+            "Kadar air biji naik mendadak. Periksa apakah ada tetesan air atau atap bocor di atas rak.";
+    } else if (cleanMsg.includes("Rekomendasi Aksi:")) {
         const parts = cleanMsg.split(/Rekomendasi Aksi:\s*/i);
         cleanMsg = parts[1] ? parts[1].trim() : parts[0].trim();
     }
@@ -1028,7 +934,7 @@ function deduplicateNotifications(items) {
     const result = [];
     for (const item of items) {
         if (!item) continue;
-        const key = `${(item.title || '').trim().toLowerCase()}_${item.unread ? 'u' : 'r'}`;
+        const key = `${(item.title || "").trim().toLowerCase()}_${item.unread ? "u" : "r"}`;
         if (!seen.has(key)) {
             seen.add(key);
             result.push(item);
@@ -1041,7 +947,9 @@ async function loadAlerts() {
     try {
         const res = await alertService.getAll();
         const list = Array.isArray(res) ? res : res?.alerts || [];
-        notifications.value = deduplicateNotifications(list.map(transformAlert));
+        notifications.value = deduplicateNotifications(
+            list.map(transformAlert),
+        );
     } catch (err) {
         console.warn("Could not load alerts from DB:", err.message);
     }
@@ -1056,8 +964,10 @@ onMounted(() => {
     socketService.on("alert_new", (newAlert) => {
         if (!newAlert) return;
         const transformed = transformAlert(newAlert);
-        const key = (transformed.title || '').trim().toLowerCase();
-        const filtered = notifications.value.filter(n => (n.title || '').trim().toLowerCase() !== key);
+        const key = (transformed.title || "").trim().toLowerCase();
+        const filtered = notifications.value.filter(
+            (n) => (n.title || "").trim().toLowerCase() !== key,
+        );
         notifications.value = [transformed, ...filtered];
     });
 });
@@ -1138,7 +1048,6 @@ function triggerAlertAction(notif) {
 
 const isNotifOpen = ref(false);
 const profileDropdownRef = ref(null);
-const langDropdownRef = ref(null);
 const notifDropdownRef = ref(null);
 
 const userInitials = computed(() => {
@@ -1149,11 +1058,6 @@ const userInitials = computed(() => {
     }
     return parts[0].slice(0, 2).toUpperCase();
 });
-
-function selectLang(lang) {
-    emit("change-lang", lang);
-    isLangOpen.value = false;
-}
 
 function handleAdminDashboard() {
     isProfileOpen.value = false;
@@ -1186,9 +1090,6 @@ function handleClickOutside(e) {
         !profileDropdownRef.value.contains(e.target)
     ) {
         isProfileOpen.value = false;
-    }
-    if (langDropdownRef.value && !langDropdownRef.value.contains(e.target)) {
-        isLangOpen.value = false;
     }
     if (notifDropdownRef.value && !notifDropdownRef.value.contains(e.target)) {
         isNotifOpen.value = false;
@@ -1238,7 +1139,7 @@ onUnmounted(() => {
 .pulse-indicator {
     width: 8px;
     height: 8px;
-    background: #1B5E20;
+    background: #1b5e20;
     border-radius: 50%;
     animation: pulse 2s infinite;
 }
@@ -1254,7 +1155,7 @@ onUnmounted(() => {
 
 .status-title {
     font-weight: 700;
-    color: #1B5E20;
+    color: #1b5e20;
 }
 
 .status-sep {
@@ -1269,7 +1170,7 @@ onUnmounted(() => {
 .header-version-tag {
     font-size: 10px;
     font-weight: 700;
-    color: #1B5E20;
+    color: #1b5e20;
     background: #e8f5e9;
     border: 1px solid #c8e6c9;
     padding: 1px 5px;
@@ -1525,7 +1426,7 @@ onUnmounted(() => {
 
 .lang-option.active {
     background: #e8f5e9;
-    color: #1B5E20;
+    color: #1b5e20;
     font-weight: 700;
 }
 
@@ -1584,7 +1485,7 @@ onUnmounted(() => {
 .notif-count {
     font-size: 11px;
     background: #e8f5e9;
-    color: #1B5E20;
+    color: #1b5e20;
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 10px;
@@ -1593,7 +1494,7 @@ onUnmounted(() => {
 .btn-text-action {
     font-size: 12px;
     font-weight: 600;
-    color: #1B5E20;
+    color: #1b5e20;
     background: transparent;
     padding: 4px 8px;
     border-radius: 6px;
@@ -1629,8 +1530,8 @@ onUnmounted(() => {
 }
 
 .notif-filter-chip.active {
-    background: #1B5E20;
-    border-color: #1B5E20;
+    background: #1b5e20;
+    border-color: #1b5e20;
     color: #ffffff;
 }
 
@@ -1762,7 +1663,7 @@ onUnmounted(() => {
     gap: 5px;
     font-size: 11.5px;
     font-weight: 700;
-    color: #1B5E20;
+    color: #1b5e20;
     background: #e8f5e9;
     padding: 4px 10px;
     border-radius: 6px;
@@ -1772,7 +1673,7 @@ onUnmounted(() => {
 }
 
 .notif-action-btn:hover {
-    background: #1B5E20;
+    background: #1b5e20;
     color: #ffffff;
 }
 
@@ -1908,7 +1809,7 @@ onUnmounted(() => {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2e7d32 0%, #1B5E20 100%);
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
     color: #ffffff;
     font-size: 13px;
     font-weight: 700;
@@ -1986,7 +1887,7 @@ onUnmounted(() => {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2e7d32 0%, #1B5E20 100%);
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
     color: #ffffff;
     font-size: 15px;
     font-weight: 700;
@@ -2022,7 +1923,7 @@ onUnmounted(() => {
 
 .ph-location {
     font-size: 11px;
-    color: #1B5E20;
+    color: #1b5e20;
     font-weight: 600;
     margin-top: 2px;
 }
@@ -2062,7 +1963,7 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #1B5E20;
+    color: #1b5e20;
     flex-shrink: 0;
 }
 
@@ -2120,7 +2021,7 @@ onUnmounted(() => {
 }
 
 .profile-menu-version-info strong {
-    color: #1B5E20;
+    color: #1b5e20;
     font-weight: 700;
 }
 

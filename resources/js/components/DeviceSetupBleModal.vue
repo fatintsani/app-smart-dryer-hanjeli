@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <transition name="modal-fade">
-      <div v-if="isOpen" class="ble-modal-overlay" :class="{ 'dark-theme': isDark }" @click.self="close">
+      <div v-if="isOpen" class="ble-modal-overlay" @click.self="close">
         <div class="ble-modal-container" role="dialog" aria-modal="true">
           <!-- Modal Header -->
           <div class="ble-modal-header">
@@ -241,7 +241,6 @@
 import { ref, reactive, computed, watch } from 'vue';
 import connectionManager from '../services/connectionManager';
 import bleService from '../services/ble/bleService';
-import { isDark } from '../services/themeService';
 
 const props = defineProps({
   isOpen: {

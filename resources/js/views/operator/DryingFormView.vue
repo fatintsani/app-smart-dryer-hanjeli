@@ -1078,9 +1078,31 @@ async function handleStart() {
     color: #0f291e;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .drying-form-main-content {
+        padding: 0;
+        gap: 12px;
+    }
+
+    .form-header-card {
         padding: 16px;
+        border-radius: 14px;
+    }
+
+    .active-batch-lock-banner {
+        padding: 14px 16px;
+        border-radius: 14px;
+        gap: 12px;
+    }
+
+    .form-card-section,
+    .summary-card {
+        padding: 16px;
+        border-radius: 14px;
+    }
+
+    .form-inputs-col {
+        gap: 12px;
     }
 }
 

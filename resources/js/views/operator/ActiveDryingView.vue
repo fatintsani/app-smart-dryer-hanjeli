@@ -105,6 +105,7 @@
                 </span>
                 <span class="track-badge-current">
                   Saat Ini: <strong>{{ telemetry.grainMoisture.toFixed(1) }}%</strong> (Progres {{ progressPercent }}%)
+                  Estimasi Saat Ini: <strong>{{ telemetry.grainMoisture.toFixed(1) }}%</strong> (Progres {{ progressPercent }}%)
                 </span>
                 <span class="track-label-target">
                   Target Standar SNI: <strong>{{ activeBatch?.targetMoisturePercent || 12 }}%</strong>
@@ -178,8 +179,8 @@
                 <span class="kpi-unit">%</span>
               </div>
               <div class="kpi-footer-status">
-                <span class="badge-chip chip-purple">
-                  Target SNI: {{ activeBatch?.targetMoisturePercent || 12 }}%
+                <span class="badge-chip chip-purple" title="Estimasi berbasis laju pengeringan mikroklimat ruang">
+                  Estimasi Model &bull; Target SNI: {{ activeBatch?.targetMoisturePercent || 12 }}%
                 </span>
               </div>
             </div>
@@ -948,14 +949,17 @@ onUnmounted(() => {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .active-drying-main-content {
-    padding: 16px;
-    gap: 16px;
+    padding: 0;
+    gap: 12px;
   }
 
-  .active-header-card {
-    padding: 18px;
+  .active-header-card,
+  .progress-drying-card,
+  .active-chart-card {
+    padding: 16px;
+    border-radius: 14px;
   }
 
   .batch-title {

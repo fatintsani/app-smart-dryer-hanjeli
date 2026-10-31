@@ -154,7 +154,7 @@
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
         </div>
-        <span>{{ $t('nav.guide') }}</span>
+        <span>{{ currentLang === 'id' ? 'Panduan' : 'Guide' }}</span>
       </button>
     </template>
   </nav>
@@ -171,6 +171,10 @@ const props = defineProps({
   user: {
     type: Object,
     default: () => ({ role: 'OPERATOR' })
+  },
+  currentLang: {
+    type: String,
+    default: 'id'
   }
 })
 
@@ -187,77 +191,80 @@ defineEmits(['update:activeTab'])
   bottom: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  width: 100%;
+  max-width: 100%;
+  height: 60px;
   background: #FFFFFF;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid #E2E8F0;
   display: flex;
-  justify-content: space-around;
   align-items: center;
-  z-index: 40;
-  max-width: 480px;
-  margin: 0 auto;
+  justify-content: space-around;
+  padding: 0 4px;
+  box-sizing: border-box;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
 }
 
 .nav-tab {
+  flex: 1 1 0;
+  min-width: 0;
   background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
-  color: #40493D;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 6px 12px;
-  border-radius: 20px;
-  transition: all 0.2s;
+  color: #64748B;
+  padding: 4px 2px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
   border: none;
   cursor: pointer;
+  text-decoration: none;
+}
+
+.nav-tab span {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .icon-container {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
 }
 
 .icon-container svg {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
 }
 
 .nav-tab.active {
   color: #1B5E20;
 }
 
+.nav-tab.active span {
+  font-weight: 700;
+  color: #1B5E20;
+}
+
 .nav-tab.active .icon-container {
   background: #1B5E20;
   color: #FFFFFF;
-  border-radius: 9999px;
-  padding: 4px;
 }
 
 .nav-tab.active .icon-container svg {
-  width: 16px;
-  height: 16px;
-}
-
-:global(.dark-theme) .mobile-bottom-nav {
-  background: #0B242F;
-  border-top-color: #1E4E61;
-}
-
-:global(.dark-theme) .nav-tab {
-  color: #CBD5E1;
-}
-
-:global(.dark-theme) .nav-tab.active {
-  color: #4ADE80;
-}
-
-:global(.dark-theme) .nav-tab.active .icon-container {
-  background: #16A34A;
-  color: #FFFFFF;
+  width: 15px;
+  height: 15px;
 }
 </style>

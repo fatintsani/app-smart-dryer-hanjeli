@@ -1,605 +1,1026 @@
 <template>
-  <Teleport to="body">
-    <div v-if="isOpen" class="qr-modal-overlay" @click.self="$emit('close')">
-      <div class="qr-modal-card" role="dialog" aria-modal="true">
-        <!-- 1. Header Sederhana -->
-        <div class="qr-modal-header">
-          <div class="header-title-flex">
-            <div class="header-icon-box">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.2">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-            </div>
-            <div>
-              <h2 class="qr-modal-title">Cetak Label & QR Kemasan</h2>
-              <p class="qr-modal-subtitle">Pilih jenis stiker untuk ditempel pada kemasan gabah / beras hanjeli.</p>
-            </div>
-          </div>
-          <button class="close-btn" @click="$emit('close')" title="Tutup">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-
-        <!-- 2. Pilihan Format Cetak (Tabs Sederhana) -->
-        <div class="label-mode-tabs">
-          <button 
-            type="button" 
-            class="mode-tab-btn" 
-            :class="{ active: activeTemplate === 'retail' }"
-            @click="activeTemplate = 'retail'"
-          >
-            <span class="tab-emoji">🏷️</span>
-            <span>Stiker Satuan</span>
-          </button>
-
-          <button 
-            type="button" 
-            class="mode-tab-btn" 
-            :class="{ active: activeTemplate === 'thermal' }"
-            @click="activeTemplate = 'thermal'"
-          >
-            <span class="tab-emoji">🧾</span>
-            <span>Printer Kasir (Thermal)</span>
-          </button>
-
-          <button 
-            type="button" 
-            class="mode-tab-btn" 
-            :class="{ active: activeTemplate === 'a4_grid' }"
-            @click="activeTemplate = 'a4_grid'"
-          >
-            <span class="tab-emoji">📄</span>
-            <span>Kertas A4 (Banyak Stiker)</span>
-          </button>
-        </div>
-
-        <!-- 3. Konten Modal: Preview di Kiri, Pengaturan Sederhana di Kanan -->
-        <div class="qr-modal-body custom-scrollbar">
-          <div class="label-workspace-grid">
-            <!-- Left: Preview Stiker -->
-            <div class="preview-section">
-              <div class="preview-header-bar">
-                <span class="preview-tag">
-                  Pratinjau: <strong>{{ templateTitle }}</strong>
-                </span>
-              </div>
-
-              <div class="label-preview-stage">
-                <!-- 1. RETAIL COLOR STICKER TEMPLATE -->
-                <div 
-                  v-if="activeTemplate === 'retail'"
-                  id="sticker-node-retail" 
-                  class="packaging-sticker-card retail-theme"
-                >
-                  <!-- Top Header -->
-                  <div class="sticker-top">
-                    <div class="sticker-logos">
-                      <img src="/assets/img/hanjeli.png" alt="Logo Hanjeli" class="sticker-logo-img" />
-                      <div class="sticker-brand-info">
-                        <span class="sticker-org">DESA WISATA HANJELI</span>
-                        <span class="sticker-sub">WALURAN SUKABUMI &bull; STAS-RG</span>
-                      </div>
+    <Teleport to="body">
+        <div
+            v-if="isOpen"
+            class="qr-modal-overlay"
+            @click.self="$emit('close')"
+        >
+            <div class="qr-modal-card" role="dialog" aria-modal="true">
+                <!-- 1. Header Sederhana -->
+                <div class="qr-modal-header">
+                    <div class="header-title-flex">
+                        <div class="header-icon-box">
+                            <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#1B5E20"
+                                stroke-width="2.2"
+                            >
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="qr-modal-title">
+                                Cetak Label & QR Kemasan
+                            </h2>
+                            <p class="qr-modal-subtitle">
+                                Pilih jenis stiker untuk ditempel pada kemasan
+                                gabah / beras hanjeli.
+                            </p>
+                        </div>
                     </div>
-                    <div 
-                      v-if="formCustom.showGrade"
-                      class="sticker-badge-grade"
-                      :class="gradeBadgeClass"
+                    <button
+                        class="close-btn"
+                        @click="$emit('close')"
+                        title="Tutup"
                     >
-                      GRADE {{ currentGradeLetter }}
-                    </div>
-                  </div>
-
-                  <div class="sticker-divider"></div>
-
-                  <!-- Main Content -->
-                  <div class="sticker-main-content">
-                    <div class="sticker-qr-box">
-                      <canvas ref="qrCanvasRetail" class="qr-canvas"></canvas>
-                      <span class="sticker-scan-hint">SCAN TRACEABILITY</span>
-                    </div>
-
-                    <div class="sticker-details">
-                      <div class="sticker-product-name">
-                        {{ formCustom.productName || batch?.cropVariety || 'Biji Hanjeli Pilihan Super' }}
-                      </div>
-                      <div class="sticker-netto-badge" v-if="formCustom.netto">
-                        Netto: {{ formCustom.netto }}
-                      </div>
-                      
-                      <div class="sticker-meta-grid">
-                        <div class="sticker-meta-item">
-                          <span class="meta-label">NO. BATCH:</span>
-                          <span class="meta-value font-mono font-bold">{{ batchCode }}</span>
-                        </div>
-
-                        <div class="sticker-meta-item" v-if="formCustom.showMoisture">
-                          <span class="meta-label">KADAR AIR:</span>
-                          <span class="meta-value text-green font-bold">{{ finalMoisture }}% <small class="meta-sub-sni">(SNI)</small></span>
-                        </div>
-
-                        <div class="sticker-meta-item">
-                          <span class="meta-label">TGL KERING:</span>
-                          <span class="meta-value">{{ formattedDate }}</span>
-                        </div>
-
-                        <div class="sticker-meta-item" v-if="formCustom.expiryDate">
-                          <span class="meta-label">BAIK DIGUNAKAN:</span>
-                          <span class="meta-value font-bold">{{ formCustom.expiryDate }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="sticker-divider"></div>
-
-                  <!-- Footer -->
-                  <div class="sticker-footer">
-                    <div class="cert-guarantee">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B5E20" stroke-width="2.5">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                        <polyline points="9 12 11 14 15 10"></polyline>
-                      </svg>
-                      <span>{{ formCustom.pirt || 'P-IRT & SNI Terverifikasi' }}</span>
-                    </div>
-                    <span class="cert-id font-mono">{{ certificateNumber }}</span>
-                  </div>
-                </div>
-
-                <!-- 2. THERMAL MONOCHROME PRINTER TEMPLATE -->
-                <div 
-                  v-else-if="activeTemplate === 'thermal'"
-                  id="sticker-node-thermal" 
-                  class="packaging-sticker-card thermal-theme"
-                >
-                  <div class="thermal-header">
-                    <h4 class="thermal-title">DESA WISATA HANJELI</h4>
-                    <p class="thermal-subtitle">SMART SOLAR DRYER &bull; SUKABUMI</p>
-                    <div class="thermal-line"></div>
-                  </div>
-
-                  <div class="thermal-product-block">
-                    <h3 class="thermal-prod-name">{{ formCustom.productName || batch?.cropVariety || 'BIJI HANJELI KERING' }}</h3>
-                    <div class="thermal-grade-netto">GRADE: {{ currentGradeLetter }} &bull; NETTO: {{ formCustom.netto || '500g' }}</div>
-                  </div>
-
-                  <div class="thermal-qr-container">
-                    <div class="thermal-canvas-wrap">
-                      <canvas ref="qrCanvasThermal" class="thermal-qr-canvas"></canvas>
-                    </div>
-                    <div class="thermal-specs">
-                      <div class="thermal-row">BATCH: <strong>{{ batchCode }}</strong></div>
-                      <div class="thermal-row">KA: <strong>{{ finalMoisture }}% (SNI)</strong></div>
-                      <div class="thermal-row">TGL: <strong>{{ formattedDate }}</strong></div>
-                      <div class="thermal-row">EXP: <strong>{{ formCustom.expiryDate }}</strong></div>
-                    </div>
-                  </div>
-
-                  <div class="thermal-line"></div>
-                  <div class="thermal-footer">
-                    <div>SCAN QR UNTUK SERTIFIKAT MUTU</div>
-                    <div class="thermal-cert-code">{{ certificateNumber }}</div>
-                  </div>
-                </div>
-
-                <!-- 3. A4 MULTI-STICKER GRID PREVIEW -->
-                <div 
-                  v-else-if="activeTemplate === 'a4_grid'"
-                  class="a4-sheet-preview-frame"
-                >
-                  <div class="a4-grid-info-bar">
-                    <span>Layout Lembaran A4: <strong>{{ a4GridCount }} Stiker per Halaman</strong></span>
-                  </div>
-                  <div class="a4-mini-grid" :class="`cols-${a4GridCols}`">
-                    <div 
-                      v-for="n in a4GridCount" 
-                      :key="n" 
-                      class="a4-mini-sticker-cell"
-                    >
-                      <div class="mini-sticker-header">
-                        <span class="mini-title">{{ formCustom.productName || 'Hanjeli' }} (Grade {{ currentGradeLetter }})</span>
-                        <span class="mini-ka" v-if="formCustom.showMoisture">{{ finalMoisture }}%</span>
-                      </div>
-                      <div class="mini-sticker-body">
-                        <div class="mini-qr-placeholder">
-                          <img :src="qrDataUrl" alt="QR Code" class="mini-qr-img" />
-                        </div>
-                        <div class="mini-details">
-                          <div class="mini-row"><span class="lbl">BATCH:</span> <strong class="val">{{ batchCode }}</strong></div>
-                          <div class="mini-row"><span class="lbl">NETTO:</span> <span class="val">{{ formCustom.netto }}</span></div>
-                          <div class="mini-row"><span class="lbl">TGL:</span> <span class="val">{{ formattedDate }}</span></div>
-                          <div class="mini-row" v-if="formCustom.expiryDate"><span class="lbl">EXP:</span> <span class="val">{{ formCustom.expiryDate }}</span></div>
-                        </div>
-                      </div>
-                      <div class="mini-sticker-foot">
-                        <span class="mini-pirt">{{ formCustom.pirt }}</span>
-                        <span class="mini-cert">{{ certificateNumber }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right: Panel Pengaturan Sederhana -->
-            <div class="customizer-panel">
-              <div class="panel-header-simple">
-                <h3 class="panel-section-title">Isi Data Stiker</h3>
-                <p class="panel-section-sub">Atur berat dan masa simpan gabah sebelum dicetak.</p>
-              </div>
-              
-              <div class="form-fields-stack">
-                <!-- Pilihan Cepat Berat Kemasan (Netto) -->
-                <div class="field-item">
-                  <label class="field-lbl">Pilihan Berat Kemasan (Netto)</label>
-                  <div class="netto-pills-row">
-                    <button 
-                      type="button" 
-                      v-for="opt in ['250g', '500g', '1 kg', '5 kg', '10 kg']" 
-                      :key="opt"
-                      class="netto-pill-btn"
-                      :class="{ active: formCustom.netto.startsWith(opt.replace('g', ' gram')) || formCustom.netto.startsWith(opt) }"
-                      @click="formCustom.netto = opt.includes('g') && !opt.includes('kg') ? opt.replace('g', ' gram') : opt"
-                    >
-                      {{ opt }}
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
                     </button>
-                  </div>
                 </div>
 
-                <!-- Nama Produk & Masa Simpan -->
-                <div class="grid-2-fields">
-                  <div class="field-item">
-                    <label class="field-lbl">Nama Produk</label>
-                    <input 
-                      type="text" 
-                      v-model="formCustom.productName" 
-                      placeholder="Nama varietas"
-                      class="settings-input" 
-                    />
-                  </div>
+                <!-- 2. Pilihan Format Cetak (Tabs Sederhana) -->
+                <div class="label-mode-tabs">
+                    <button
+                        type="button"
+                        class="mode-tab-btn"
+                        :class="{ active: activeTemplate === 'retail' }"
+                        @click="activeTemplate = 'retail'"
+                    >
+                        <span class="tab-emoji">🏷️</span>
+                        <span>Stiker Satuan</span>
+                    </button>
 
-                  <div class="field-item">
-                    <label class="field-lbl">Baik Digunakan Hingga</label>
-                    <input 
-                      type="text" 
-                      v-model="formCustom.expiryDate" 
-                      placeholder="Contoh: Okt 2027" 
-                      class="settings-input" 
-                    />
-                  </div>
+                    <button
+                        type="button"
+                        class="mode-tab-btn"
+                        :class="{ active: activeTemplate === 'thermal' }"
+                        @click="activeTemplate = 'thermal'"
+                    >
+                        <span class="tab-emoji">🧾</span>
+                        <span>Printer Kasir (Thermal)</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="mode-tab-btn"
+                        :class="{ active: activeTemplate === 'a4_grid' }"
+                        @click="activeTemplate = 'a4_grid'"
+                    >
+                        <span class="tab-emoji">📄</span>
+                        <span>Kertas A4 (Banyak Stiker)</span>
+                    </button>
                 </div>
 
-                <!-- Template Specific Configs for A4 Grid -->
-                <div v-if="activeTemplate === 'a4_grid'" class="field-item a4-settings-card">
-                  <label class="field-lbl">Jumlah Stiker per Lembar A4:</label>
-                  <div class="a4-buttons-group">
-                    <button 
-                      type="button" 
-                      class="size-btn" 
-                      :class="{ active: a4GridCount === 8 }"
-                      @click="setA4Grid(8, 2)"
-                    >
-                      8 Stiker (Besar)
-                    </button>
-                    <button 
-                      type="button" 
-                      class="size-btn" 
-                      :class="{ active: a4GridCount === 12 }"
-                      @click="setA4Grid(12, 3)"
-                    >
-                      12 Stiker (Sedang)
-                    </button>
-                    <button 
-                      type="button" 
-                      class="size-btn" 
-                      :class="{ active: a4GridCount === 24 }"
-                      @click="setA4Grid(24, 4)"
-                    >
-                      24 Stiker (Kompak)
-                    </button>
-                  </div>
+                <!-- 3. Konten Modal: Preview di Kiri, Pengaturan Sederhana di Kanan -->
+                <div class="qr-modal-body custom-scrollbar">
+                    <div class="label-workspace-grid">
+                        <!-- Left: Preview Stiker -->
+                        <div class="preview-section">
+                            <div class="preview-header-bar">
+                                <span class="preview-tag">
+                                    Pratinjau:
+                                    <strong>{{ templateTitle }}</strong>
+                                </span>
+                            </div>
+
+                            <div class="label-preview-stage">
+                                <!-- 1. RETAIL COLOR STICKER TEMPLATE -->
+                                <div
+                                    v-if="activeTemplate === 'retail'"
+                                    id="sticker-node-retail"
+                                    class="packaging-sticker-card retail-theme"
+                                >
+                                    <!-- Top Header -->
+                                    <div class="sticker-top">
+                                        <div class="sticker-logos">
+                                            <img
+                                                src="/assets/img/hanjeli.png"
+                                                alt="Logo Hanjeli"
+                                                class="sticker-logo-img"
+                                            />
+                                            <div class="sticker-brand-info">
+                                                <span class="sticker-org"
+                                                    >DESA WISATA HANJELI</span
+                                                >
+                                                <span class="sticker-sub"
+                                                    >WALURAN SUKABUMI &bull;
+                                                    STAS-RG</span
+                                                >
+                                            </div>
+                                        </div>
+                                        <div
+                                            v-if="formCustom.showGrade"
+                                            class="sticker-badge-grade"
+                                            :class="gradeBadgeClass"
+                                        >
+                                            GRADE {{ currentGradeLetter }}
+                                        </div>
+                                    </div>
+
+                                    <div class="sticker-divider"></div>
+
+                                    <!-- Main Content -->
+                                    <div class="sticker-main-content">
+                                        <div class="sticker-qr-box">
+                                            <canvas
+                                                ref="qrCanvasRetail"
+                                                class="qr-canvas"
+                                            ></canvas>
+                                            <span class="sticker-scan-hint"
+                                                >SCAN TRACEABILITY</span
+                                            >
+                                        </div>
+
+                                        <div class="sticker-details">
+                                            <div class="sticker-product-name">
+                                                {{
+                                                    formCustom.productName ||
+                                                    batch?.cropVariety ||
+                                                    "Biji Hanjeli Pilihan Super"
+                                                }}
+                                            </div>
+                                            <div
+                                                class="sticker-netto-badge"
+                                                v-if="formCustom.netto"
+                                            >
+                                                Netto: {{ formCustom.netto }}
+                                            </div>
+
+                                            <div class="sticker-meta-grid">
+                                                <div class="sticker-meta-item">
+                                                    <span class="meta-label"
+                                                        >NO. BATCH:</span
+                                                    >
+                                                    <span
+                                                        class="meta-value font-mono font-bold"
+                                                        >{{ batchCode }}</span
+                                                    >
+                                                </div>
+
+                                                <div
+                                                    class="sticker-meta-item"
+                                                    v-if="
+                                                        formCustom.showMoisture
+                                                    "
+                                                >
+                                                    <span class="meta-label"
+                                                        >KADAR AIR:</span
+                                                    >
+                                                    <span
+                                                        class="meta-value text-green font-bold"
+                                                        >{{ finalMoisture }}%
+                                                        <small
+                                                            class="meta-sub-sni"
+                                                            >(SNI)</small
+                                                        ></span
+                                                    >
+                                                </div>
+
+                                                <div class="sticker-meta-item">
+                                                    <span class="meta-label"
+                                                        >TGL KERING:</span
+                                                    >
+                                                    <span class="meta-value">{{
+                                                        formattedDate
+                                                    }}</span>
+                                                </div>
+
+                                                <div
+                                                    class="sticker-meta-item"
+                                                    v-if="formCustom.expiryDate"
+                                                >
+                                                    <span class="meta-label"
+                                                        >BAIK DIGUNAKAN:</span
+                                                    >
+                                                    <span
+                                                        class="meta-value font-bold"
+                                                        >{{
+                                                            formCustom.expiryDate
+                                                        }}</span
+                                                    >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="sticker-divider"></div>
+
+                                    <!-- Footer -->
+                                    <div class="sticker-footer">
+                                        <div class="cert-guarantee">
+                                            <svg
+                                                width="13"
+                                                height="13"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="#1B5E20"
+                                                stroke-width="2.5"
+                                            >
+                                                <path
+                                                    d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                                                ></path>
+                                                <polyline
+                                                    points="9 12 11 14 15 10"
+                                                ></polyline>
+                                            </svg>
+                                            <span>{{
+                                                formCustom.pirt ||
+                                                "P-IRT & SNI Terverifikasi"
+                                            }}</span>
+                                        </div>
+                                        <span class="cert-id font-mono">{{
+                                            certificateNumber
+                                        }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- 2. THERMAL MONOCHROME PRINTER TEMPLATE -->
+                                <div
+                                    v-else-if="activeTemplate === 'thermal'"
+                                    id="sticker-node-thermal"
+                                    class="packaging-sticker-card thermal-theme"
+                                >
+                                    <div class="thermal-header">
+                                        <h4 class="thermal-title">
+                                            DESA WISATA HANJELI
+                                        </h4>
+                                        <p class="thermal-subtitle">
+                                            SMART SOLAR DRYER &bull; SUKABUMI
+                                        </p>
+                                        <div class="thermal-line"></div>
+                                    </div>
+
+                                    <div class="thermal-product-block">
+                                        <h3 class="thermal-prod-name">
+                                            {{
+                                                formCustom.productName ||
+                                                batch?.cropVariety ||
+                                                "BIJI HANJELI KERING"
+                                            }}
+                                        </h3>
+                                        <div class="thermal-grade-netto">
+                                            GRADE:
+                                            {{ currentGradeLetter }} &bull;
+                                            NETTO:
+                                            {{ formCustom.netto || "500g" }}
+                                        </div>
+                                    </div>
+
+                                    <div class="thermal-qr-container">
+                                        <div class="thermal-canvas-wrap">
+                                            <canvas
+                                                ref="qrCanvasThermal"
+                                                class="thermal-qr-canvas"
+                                            ></canvas>
+                                        </div>
+                                        <div class="thermal-specs">
+                                            <div class="thermal-row">
+                                                BATCH:
+                                                <strong>{{ batchCode }}</strong>
+                                            </div>
+                                            <div class="thermal-row">
+                                                KA:
+                                                <strong
+                                                    >{{ finalMoisture }}%
+                                                    (SNI)</strong
+                                                >
+                                            </div>
+                                            <div class="thermal-row">
+                                                TGL:
+                                                <strong>{{
+                                                    formattedDate
+                                                }}</strong>
+                                            </div>
+                                            <div class="thermal-row">
+                                                EXP:
+                                                <strong>{{
+                                                    formCustom.expiryDate
+                                                }}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="thermal-line"></div>
+                                    <div class="thermal-footer">
+                                        <div>SCAN QR UNTUK SERTIFIKAT MUTU</div>
+                                        <div class="thermal-cert-code">
+                                            {{ certificateNumber }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. A4 MULTI-STICKER GRID PREVIEW -->
+                                <div
+                                    v-else-if="activeTemplate === 'a4_grid'"
+                                    class="a4-sheet-preview-frame"
+                                >
+                                    <div class="a4-grid-info-bar">
+                                        <span
+                                            >Layout Lembaran A4:
+                                            <strong
+                                                >{{ a4GridCount }} Stiker per
+                                                Halaman</strong
+                                            ></span
+                                        >
+                                    </div>
+                                    <div
+                                        class="a4-mini-grid"
+                                        :class="`cols-${a4GridCols}`"
+                                    >
+                                        <div
+                                            v-for="n in a4GridCount"
+                                            :key="n"
+                                            class="a4-mini-sticker-cell"
+                                        >
+                                            <div class="mini-sticker-header">
+                                                <span class="mini-title"
+                                                    >{{
+                                                        formCustom.productName ||
+                                                        "Hanjeli"
+                                                    }}
+                                                    (Grade
+                                                    {{
+                                                        currentGradeLetter
+                                                    }})</span
+                                                >
+                                                <span
+                                                    class="mini-ka"
+                                                    v-if="
+                                                        formCustom.showMoisture
+                                                    "
+                                                    >{{ finalMoisture }}%</span
+                                                >
+                                            </div>
+                                            <div class="mini-sticker-body">
+                                                <div
+                                                    class="mini-qr-placeholder"
+                                                >
+                                                    <img
+                                                        :src="qrDataUrl"
+                                                        alt="QR Code"
+                                                        class="mini-qr-img"
+                                                    />
+                                                </div>
+                                                <div class="mini-details">
+                                                    <div class="mini-row">
+                                                        <span class="lbl"
+                                                            >BATCH:</span
+                                                        >
+                                                        <strong class="val">{{
+                                                            batchCode
+                                                        }}</strong>
+                                                    </div>
+                                                    <div class="mini-row">
+                                                        <span class="lbl"
+                                                            >NETTO:</span
+                                                        >
+                                                        <span class="val">{{
+                                                            formCustom.netto
+                                                        }}</span>
+                                                    </div>
+                                                    <div class="mini-row">
+                                                        <span class="lbl"
+                                                            >TGL:</span
+                                                        >
+                                                        <span class="val">{{
+                                                            formattedDate
+                                                        }}</span>
+                                                    </div>
+                                                    <div
+                                                        class="mini-row"
+                                                        v-if="
+                                                            formCustom.expiryDate
+                                                        "
+                                                    >
+                                                        <span class="lbl"
+                                                            >EXP:</span
+                                                        >
+                                                        <span class="val">{{
+                                                            formCustom.expiryDate
+                                                        }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mini-sticker-foot">
+                                                <span class="mini-pirt">{{
+                                                    formCustom.pirt
+                                                }}</span>
+                                                <span class="mini-cert">{{
+                                                    certificateNumber
+                                                }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Panel Pengaturan Sederhana -->
+                        <div class="customizer-panel">
+                            <div class="panel-header-simple">
+                                <h3 class="panel-section-title">
+                                    Isi Data Stiker
+                                </h3>
+                                <p class="panel-section-sub">
+                                    Atur berat dan masa simpan gabah sebelum
+                                    dicetak.
+                                </p>
+                            </div>
+
+                            <div class="form-fields-stack">
+                                <!-- Pilihan Cepat Berat Kemasan (Netto) -->
+                                <div class="field-item">
+                                    <label class="field-lbl"
+                                        >Pilihan Berat Kemasan (Netto)</label
+                                    >
+                                    <div class="netto-pills-row">
+                                        <button
+                                            type="button"
+                                            v-for="opt in [
+                                                '250g',
+                                                '500g',
+                                                '1 kg',
+                                                '5 kg',
+                                                '10 kg',
+                                            ]"
+                                            :key="opt"
+                                            class="netto-pill-btn"
+                                            :class="{
+                                                active:
+                                                    formCustom.netto.startsWith(
+                                                        opt.replace(
+                                                            'g',
+                                                            ' gram',
+                                                        ),
+                                                    ) ||
+                                                    formCustom.netto.startsWith(
+                                                        opt,
+                                                    ),
+                                            }"
+                                            @click="
+                                                formCustom.netto =
+                                                    opt.includes('g') &&
+                                                    !opt.includes('kg')
+                                                        ? opt.replace(
+                                                              'g',
+                                                              ' gram',
+                                                          )
+                                                        : opt
+                                            "
+                                        >
+                                            {{ opt }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Nama Produk & Masa Simpan -->
+                                <div class="grid-2-fields">
+                                    <div class="field-item">
+                                        <label class="field-lbl"
+                                            >Nama Produk</label
+                                        >
+                                        <input
+                                            type="text"
+                                            v-model="formCustom.productName"
+                                            placeholder="Nama varietas"
+                                            class="settings-input"
+                                        />
+                                    </div>
+
+                                    <div class="field-item">
+                                        <label class="field-lbl"
+                                            >Baik Digunakan Hingga</label
+                                        >
+                                        <input
+                                            type="text"
+                                            v-model="formCustom.expiryDate"
+                                            placeholder="Contoh: Okt 2027"
+                                            class="settings-input"
+                                        />
+                                    </div>
+                                </div>
+
+                                <!-- Template Specific Configs for A4 Grid -->
+                                <div
+                                    v-if="activeTemplate === 'a4_grid'"
+                                    class="field-item a4-settings-card"
+                                >
+                                    <label class="field-lbl"
+                                        >Jumlah Stiker per Lembar A4:</label
+                                    >
+                                    <div class="a4-buttons-group">
+                                        <button
+                                            type="button"
+                                            class="size-btn"
+                                            :class="{
+                                                active: a4GridCount === 8,
+                                            }"
+                                            @click="setA4Grid(8, 2)"
+                                        >
+                                            8 Stiker (Besar)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="size-btn"
+                                            :class="{
+                                                active: a4GridCount === 12,
+                                            }"
+                                            @click="setA4Grid(12, 3)"
+                                        >
+                                            12 Stiker (Sedang)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="size-btn"
+                                            :class="{
+                                                active: a4GridCount === 24,
+                                            }"
+                                            @click="setA4Grid(24, 4)"
+                                        >
+                                            24 Stiker (Kompak)
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Pengaturan Tambahan (P-IRT, Mutu & Link) - Collapsible -->
+                                <div class="advanced-collapsible-box">
+                                    <button
+                                        type="button"
+                                        class="btn-toggle-advanced-opts"
+                                        @click="
+                                            isAdvancedOpen = !isAdvancedOpen
+                                        "
+                                    >
+                                        <div class="adv-left">
+                                            <svg
+                                                width="15"
+                                                height="15"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                            >
+                                                <circle
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="3"
+                                                ></circle>
+                                                <path
+                                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                                                ></path>
+                                            </svg>
+                                            <span
+                                                >Opsi Tambahan (P-IRT, Mutu &
+                                                Link)</span
+                                            >
+                                        </div>
+                                        <svg
+                                            class="adv-arrow"
+                                            :class="{
+                                                'is-rotated': isAdvancedOpen,
+                                            }"
+                                            width="14"
+                                            height="14"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2.5"
+                                        >
+                                            <polyline
+                                                points="6 9 12 15 18 9"
+                                            ></polyline>
+                                        </svg>
+                                    </button>
+
+                                    <div
+                                        v-if="isAdvancedOpen"
+                                        class="advanced-content-body"
+                                    >
+                                        <div class="field-item">
+                                            <label class="field-lbl"
+                                                >Nomor P-IRT / Izin Usaha</label
+                                            >
+                                            <input
+                                                type="text"
+                                                v-model="formCustom.pirt"
+                                                placeholder="Nomor izin P-IRT"
+                                                class="settings-input"
+                                            />
+                                        </div>
+
+                                        <div class="field-item">
+                                            <label class="field-lbl"
+                                                >Tampilkan di Stiker:</label
+                                            >
+                                            <div class="checkbox-options-stack">
+                                                <label
+                                                    class="checkbox-label-row"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        v-model="
+                                                            formCustom.showGrade
+                                                        "
+                                                        class="custom-chk"
+                                                    />
+                                                    <span
+                                                        >Sertakan Badge Mutu
+                                                        (Grade)</span
+                                                    >
+                                                </label>
+                                                <label
+                                                    class="checkbox-label-row"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        v-model="
+                                                            formCustom.showMoisture
+                                                        "
+                                                        class="custom-chk"
+                                                    />
+                                                    <span
+                                                        >Sertakan Kadar Air
+                                                        (SNI)</span
+                                                    >
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="url-copy-box">
+                                            <span class="url-label"
+                                                >Link Verifikasi Pembeli:</span
+                                            >
+                                            <div class="url-input-group">
+                                                <input
+                                                    type="text"
+                                                    readonly
+                                                    :value="verificationUrl"
+                                                    class="url-input"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    class="btn-copy"
+                                                    @click="copyVerificationUrl"
+                                                >
+                                                    <span>{{
+                                                        isCopied
+                                                            ? "Tersalin!"
+                                                            : "Salin"
+                                                    }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Pengaturan Tambahan (P-IRT, Mutu & Link) - Collapsible -->
-                <div class="advanced-collapsible-box">
-                  <button 
-                    type="button" 
-                    class="btn-toggle-advanced-opts"
-                    @click="isAdvancedOpen = !isAdvancedOpen"
-                  >
-                    <div class="adv-left">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                      </svg>
-                      <span>Opsi Tambahan (P-IRT, Mutu & Link)</span>
-                    </div>
-                    <svg 
-                      class="adv-arrow" 
-                      :class="{ 'is-rotated': isAdvancedOpen }"
-                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                <!-- 4. Footer Tindakan Cepat -->
+                <div class="qr-modal-footer">
+                    <button
+                        type="button"
+                        class="btn-secondary"
+                        @click="openPublicVerificationTab"
                     >
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </button>
-
-                  <div v-if="isAdvancedOpen" class="advanced-content-body">
-                    <div class="field-item">
-                      <label class="field-lbl">Nomor P-IRT / Izin Usaha</label>
-                      <input 
-                        type="text" 
-                        v-model="formCustom.pirt" 
-                        placeholder="Nomor izin P-IRT" 
-                        class="settings-input" 
-                      />
-                    </div>
-
-                    <div class="field-item">
-                      <label class="field-lbl">Tampilkan di Stiker:</label>
-                      <div class="checkbox-options-stack">
-                        <label class="checkbox-label-row">
-                          <input type="checkbox" v-model="formCustom.showGrade" class="custom-chk" />
-                          <span>Sertakan Badge Mutu (Grade)</span>
-                        </label>
-                        <label class="checkbox-label-row">
-                          <input type="checkbox" v-model="formCustom.showMoisture" class="custom-chk" />
-                          <span>Sertakan Kadar Air (SNI)</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div class="url-copy-box">
-                      <span class="url-label">Link Verifikasi Pembeli:</span>
-                      <div class="url-input-group">
-                        <input type="text" readonly :value="verificationUrl" class="url-input" />
-                        <button type="button" class="btn-copy" @click="copyVerificationUrl">
-                          <span>{{ isCopied ? 'Tersalin!' : 'Salin' }}</span>
+                        <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                            ></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                        <span>Buka Web Verifikasi</span>
+                    </button>
+                    <div class="footer-secondary-group">
+                        <button
+                            type="button"
+                            class="btn-secondary"
+                            @click="openPublicVerificationTab"
+                        >
+                            <svg
+                                width="15"
+                                height="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                                ></path>
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                            <span>Web Verifikasi</span>
                         </button>
-                      </div>
+
+                        <div class="footer-primary-group">
+                            <button
+                                type="button"
+                                class="btn-outline"
+                                @click="downloadStickerPng"
+                            >
+                                <svg
+                                    width="15"
+                                    height="15"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                                    ></path>
+                                    <polyline
+                                        points="7 10 12 15 17 10"
+                                    ></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Unduh Gambar</span>
+                            </button>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn-primary btn-print-main"
+                            @click="handleMainPrint"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                <path
+                                    d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                                ></path>
+                                <rect x="6" y="14" width="12" height="8"></rect>
+                            </svg>
+                            <span>{{ printButtonLabel }}</span>
+                        </button>
                     </div>
-                  </div>
                 </div>
-
-              </div>
             </div>
-          </div>
         </div>
-
-        <!-- 4. Footer Tindakan Cepat -->
-        <div class="qr-modal-footer">
-          <button type="button" class="btn-secondary" @click="openPublicVerificationTab">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-            <span>Buka Web Verifikasi</span>
-          </button>
-
-          <div class="footer-primary-group">
-            <button type="button" class="btn-outline" @click="downloadStickerPng">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span>Unduh Gambar</span>
-            </button>
-
-            <button 
-              type="button" 
-              class="btn-primary btn-print-main" 
-              @click="handleMainPrint"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                <rect x="6" y="14" width="12" height="8"></rect>
-              </svg>
-              <span>{{ printButtonLabel }}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </Teleport>
+    </Teleport>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, nextTick } from 'vue'
-import QRCode from 'qrcode'
+import { ref, reactive, computed, watch, nextTick } from "vue";
+import QRCode from "qrcode";
 
 const props = defineProps({
-  isOpen: {
-    type: Boolean,
-    default: false
-  },
-  batch: {
-    type: Object,
-    default: () => ({})
-  }
-})
+    isOpen: {
+        type: Boolean,
+        default: false,
+    },
+    batch: {
+        type: Object,
+        default: () => ({}),
+    },
+});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
-const activeTemplate = ref('retail') // 'retail', 'thermal', 'a4_grid'
-const isCopied = ref(false)
-const isAdvancedOpen = ref(false)
-const qrDataUrl = ref('')
+const activeTemplate = ref("retail"); // 'retail', 'thermal', 'a4_grid'
+const isCopied = ref(false);
+const isAdvancedOpen = ref(false);
+const qrDataUrl = ref("");
 
-const qrCanvasRetail = ref(null)
-const qrCanvasThermal = ref(null)
+const qrCanvasRetail = ref(null);
+const qrCanvasThermal = ref(null);
 
-const a4GridCount = ref(8)
-const a4GridCols = ref(2)
+const a4GridCount = ref(8);
+const a4GridCols = ref(2);
 
 function setA4Grid(count, cols) {
-  a4GridCount.value = count
-  a4GridCols.value = cols
+    a4GridCount.value = count;
+    a4GridCols.value = cols;
 }
 
 const formCustom = reactive({
-  productName: '',
-  netto: '1 kg',
-  expiryDate: '',
-  pirt: 'P-IRT No. 2153202010482-26',
-  showGrade: true,
-  showMoisture: true,
-})
+    productName: "",
+    netto: "1 kg",
+    expiryDate: "",
+    pirt: "P-IRT No. 2153202010482-26",
+    showGrade: true,
+    showMoisture: true,
+});
 
-const batchCode = computed(() => props.batch?.batchCode || 'HNJ-20260904-01')
+const batchCode = computed(() => props.batch?.batchCode || "HNJ-20260904-01");
 
 const verificationUrl = computed(() => {
-  const origin = window.location.origin || 'http://localhost:8000'
-  return `${origin}/verify/${encodeURIComponent(batchCode.value)}`
-})
+    const origin = window.location.origin || "http://localhost:8000";
+    return `${origin}/verify/${encodeURIComponent(batchCode.value)}`;
+});
 
 const finalMoisture = computed(() => {
-  return props.batch?.finalMoisturePercent ?? props.batch?.currentMoisturePercent ?? props.batch?.targetMoisturePercent ?? 12.0
-})
+    return (
+        props.batch?.finalMoisturePercent ??
+        props.batch?.currentMoisturePercent ??
+        props.batch?.targetMoisturePercent ??
+        12.0
+    );
+});
 
 const formattedDate = computed(() => {
-  const dateStr = props.batch?.completedAt || props.batch?.startedAt || props.batch?.createdAt
-  if (!dateStr) return new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-  try {
-    return new Date(dateStr).toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    })
-  } catch {
-    return dateStr
-  }
-})
+    const dateStr =
+        props.batch?.completedAt ||
+        props.batch?.startedAt ||
+        props.batch?.createdAt;
+    if (!dateStr)
+        return new Date().toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        });
+    try {
+        return new Date(dateStr).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        });
+    } catch {
+        return dateStr;
+    }
+});
 
 const certificateNumber = computed(() => {
-  return 'CERT-HJ-' + String(batchCode.value).replace(/[^A-Za-z0-9]/g, '').toUpperCase()
-})
+    return (
+        "CERT-HJ-" +
+        String(batchCode.value)
+            .replace(/[^A-Za-z0-9]/g, "")
+            .toUpperCase()
+    );
+});
 
 const currentGradeLetter = computed(() => {
-  const gradeStr = String(props.batch?.qualityGrade || 'A').toUpperCase()
-  if (gradeStr.includes('GRADE B') || gradeStr === 'B') return 'B'
-  if (gradeStr.includes('GRADE C') || gradeStr === 'C') return 'C'
-  return 'A'
-})
+    const gradeStr = String(props.batch?.qualityGrade || "A").toUpperCase();
+    if (gradeStr.includes("GRADE B") || gradeStr === "B") return "B";
+    if (gradeStr.includes("GRADE C") || gradeStr === "C") return "C";
+    return "A";
+});
 
 const gradeBadgeClass = computed(() => {
-  if (currentGradeLetter.value === 'A') return 'badge-grade-a'
-  if (currentGradeLetter.value === 'B') return 'badge-grade-b'
-  return 'badge-grade-c'
-})
+    if (currentGradeLetter.value === "A") return "badge-grade-a";
+    if (currentGradeLetter.value === "B") return "badge-grade-b";
+    return "badge-grade-c";
+});
 
 const templateTitle = computed(() => {
-  if (activeTemplate.value === 'thermal') return 'Struk Thermal Kasir (58/80mm)'
-  if (activeTemplate.value === 'a4_grid') return `Lembaran Kertas A4 (${a4GridCount.value} Stiker)`
-  return 'Stiker Satuan Warna'
-})
+    if (activeTemplate.value === "thermal")
+        return "Struk Thermal Kasir (58/80mm)";
+    if (activeTemplate.value === "a4_grid")
+        return `Lembaran Kertas A4 (${a4GridCount.value} Stiker)`;
+    return "Stiker Satuan Warna";
+});
 
 function handleMainPrint() {
-  if (activeTemplate.value === 'thermal') {
-    printThermal()
-  } else if (activeTemplate.value === 'a4_grid') {
-    printA4Grid()
-  } else {
-    printRetailLabel()
-  }
+    if (activeTemplate.value === "thermal") {
+        printThermal();
+    } else if (activeTemplate.value === "a4_grid") {
+        printA4Grid();
+    } else {
+        printRetailLabel();
+    }
 }
 
 const printButtonLabel = computed(() => {
-  if (activeTemplate.value === 'thermal') return 'Cetak Struk Kasir'
-  if (activeTemplate.value === 'a4_grid') return `Cetak Lembar A4 (${a4GridCount.value} Label)`
-  return 'Cetak Label Stiker'
-})
+    if (activeTemplate.value === "thermal") return "Cetak Struk Kasir";
+    if (activeTemplate.value === "a4_grid")
+        return `Cetak Lembar A4 (${a4GridCount.value} Label)`;
+    return "Cetak Label Stiker";
+});
 
 // Initialize form defaults when batch changes
-watch(() => props.batch, (b) => {
-  if (b) {
-    formCustom.productName = b.cropVariety || 'Hanjeli Ketan Sukabumi (Grade A)'
-    const d = new Date()
-    d.setFullYear(d.getFullYear() + 1)
-    formCustom.expiryDate = d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
-  }
-}, { immediate: true, deep: true })
+watch(
+    () => props.batch,
+    (b) => {
+        if (b) {
+            formCustom.productName =
+                b.cropVariety || "Hanjeli Ketan Sukabumi (Grade A)";
+            const d = new Date();
+            d.setFullYear(d.getFullYear() + 1);
+            formCustom.expiryDate = d.toLocaleDateString("id-ID", {
+                month: "short",
+                year: "numeric",
+            });
+        }
+    },
+    { immediate: true, deep: true },
+);
 
 async function generateQr() {
-  await nextTick()
-  try {
-    qrDataUrl.value = await QRCode.toDataURL(verificationUrl.value, {
-      width: 260,
-      margin: 1,
-      color: { dark: '#071E27', light: '#FFFFFF' },
-      errorCorrectionLevel: 'M'
-    })
+    await nextTick();
+    try {
+        qrDataUrl.value = await QRCode.toDataURL(verificationUrl.value, {
+            width: 260,
+            margin: 1,
+            color: { dark: "#071E27", light: "#FFFFFF" },
+            errorCorrectionLevel: "M",
+        });
 
-    if (qrCanvasRetail.value) {
-      await QRCode.toCanvas(qrCanvasRetail.value, verificationUrl.value, {
-        width: 130,
-        margin: 1,
-        color: { dark: '#071E27', light: '#FFFFFF' },
-        errorCorrectionLevel: 'M'
-      })
-    }
+        if (qrCanvasRetail.value) {
+            await QRCode.toCanvas(qrCanvasRetail.value, verificationUrl.value, {
+                width: 130,
+                margin: 1,
+                color: { dark: "#071E27", light: "#FFFFFF" },
+                errorCorrectionLevel: "M",
+            });
+        }
 
-    if (qrCanvasThermal.value) {
-      await QRCode.toCanvas(qrCanvasThermal.value, verificationUrl.value, {
-        width: 120,
-        margin: 1,
-        color: { dark: '#000000', light: '#FFFFFF' },
-        errorCorrectionLevel: 'M'
-      })
+        if (qrCanvasThermal.value) {
+            await QRCode.toCanvas(
+                qrCanvasThermal.value,
+                verificationUrl.value,
+                {
+                    width: 120,
+                    margin: 1,
+                    color: { dark: "#000000", light: "#FFFFFF" },
+                    errorCorrectionLevel: "M",
+                },
+            );
+        }
+    } catch (err) {
+        console.error("Failed to generate QR Code:", err);
     }
-  } catch (err) {
-    console.error('Failed to generate QR Code:', err)
-  }
 }
 
-watch(() => props.isOpen, (newVal) => {
-  if (newVal) {
-    setTimeout(generateQr, 60)
-  }
-})
+watch(
+    () => props.isOpen,
+    (newVal) => {
+        if (newVal) {
+            setTimeout(generateQr, 60);
+        }
+    },
+);
 
-watch(() => activeTemplate.value, () => {
-  setTimeout(generateQr, 60)
-})
+watch(
+    () => activeTemplate.value,
+    () => {
+        setTimeout(generateQr, 60);
+    },
+);
 
 async function copyVerificationUrl() {
-  try {
-    await navigator.clipboard.writeText(verificationUrl.value)
-    isCopied.value = true
-    setTimeout(() => {
-      isCopied.value = false
-    }, 2500)
-  } catch (err) {
-    console.error('Failed to copy URL:', err)
-  }
+    try {
+        await navigator.clipboard.writeText(verificationUrl.value);
+        isCopied.value = true;
+        setTimeout(() => {
+            isCopied.value = false;
+        }, 2500);
+    } catch (err) {
+        console.error("Failed to copy URL:", err);
+    }
 }
 
 function openPublicVerificationTab() {
-  window.open(verificationUrl.value, '_blank')
+    window.open(verificationUrl.value, "_blank");
 }
 
 function downloadStickerPng() {
-  if (!qrDataUrl.value) return
-  const link = document.createElement('a')
-  link.download = `STIKER-${batchCode.value}-${activeTemplate.value}.png`
-  link.href = qrDataUrl.value
-  link.click()
+    if (!qrDataUrl.value) return;
+    const link = document.createElement("a");
+    link.download = `STIKER-${batchCode.value}-${activeTemplate.value}.png`;
+    link.href = qrDataUrl.value;
+    link.click();
 }
 
 function printRetailLabel() {
-  const printWindow = window.open('', '_blank', 'width=650,height=520')
-  printWindow.document.write(`
+    const printWindow = window.open("", "_blank", "width=650,height=520");
+    printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
       <title>Cetak Label Stiker Retail - ${batchCode.value}</title>
-      ${'<' + 'style>'}
+      ${"<" + "style>"}
         @page { size: 70mm 50mm; margin: 0; }
         * { box-sizing: border-box; }
         body { 
@@ -640,7 +1061,7 @@ function printRetailLabel() {
         .meta-value { color: #071E27; font-weight: 700; font-size: 7.5px; }
         .sticker-footer { display: flex; justify-content: space-between; align-items: center; font-size: 7px; color: #64748B; margin-top: auto; padding-top: 2px; }
         .cert-guarantee { color: #1B5E20; font-weight: 700; }
-      ${'<' + '/style>'}
+      ${"<" + "/style>"}
     </head>
     <body>
       <div class="retail-card">
@@ -652,7 +1073,7 @@ function printRetailLabel() {
               <span class="sticker-sub">WALURAN SUKABUMI &bull; STAS-RG</span>
             </div>
           </div>
-          ${formCustom.showGrade ? `<div class="sticker-badge-grade">GRADE ${currentGradeLetter.value}</div>` : ''}
+          ${formCustom.showGrade ? `<div class="sticker-badge-grade">GRADE ${currentGradeLetter.value}</div>` : ""}
         </div>
 
         <div class="sticker-divider"></div>
@@ -663,19 +1084,19 @@ function printRetailLabel() {
             <span class="sticker-scan-hint">SCAN TRACEABILITY</span>
           </div>
           <div class="sticker-details">
-            <div class="sticker-product-name">${formCustom.productName || 'Biji Hanjeli Pilihan Super'}</div>
-            ${formCustom.netto ? `<div class="sticker-netto-badge">Netto: ${formCustom.netto}</div>` : ''}
+            <div class="sticker-product-name">${formCustom.productName || "Biji Hanjeli Pilihan Super"}</div>
+            ${formCustom.netto ? `<div class="sticker-netto-badge">Netto: ${formCustom.netto}</div>` : ""}
             <div class="sticker-meta-grid">
               <div>
                 <span class="meta-label">NO. BATCH:</span>
                 <span class="meta-value">${batchCode.value}</span>
               </div>
-              ${formCustom.showMoisture ? `<div><span class="meta-label">KADAR AIR:</span><span class="meta-value" style="color:#1B5E20;">${finalMoisture.value}% (SNI)</span></div>` : ''}
+              ${formCustom.showMoisture ? `<div><span class="meta-label">KADAR AIR:</span><span class="meta-value" style="color:#1B5E20;">${finalMoisture.value}% (SNI)</span></div>` : ""}
               <div>
                 <span class="meta-label">TGL KERING:</span>
                 <span class="meta-value">${formattedDate.value}</span>
               </div>
-              ${formCustom.expiryDate ? `<div><span class="meta-label">BAIK DIGUNAKAN:</span><span class="meta-value">${formCustom.expiryDate}</span></div>` : ''}
+              ${formCustom.expiryDate ? `<div><span class="meta-label">BAIK DIGUNAKAN:</span><span class="meta-value">${formCustom.expiryDate}</span></div>` : ""}
             </div>
           </div>
         </div>
@@ -683,27 +1104,27 @@ function printRetailLabel() {
         <div class="sticker-divider"></div>
 
         <div class="sticker-footer">
-          <span class="cert-guarantee">&#10004; ${formCustom.pirt || 'P-IRT & SNI Terverifikasi'}</span>
+          <span class="cert-guarantee">&#10004; ${formCustom.pirt || "P-IRT & SNI Terverifikasi"}</span>
           <span style="font-family: monospace;">${certificateNumber.value}</span>
         </div>
       </div>
-      ${'<' + 'script>'}
+      ${"<" + "script>"}
         window.onload = function() { window.print(); window.close(); }
-      ${'<' + '/script>'}
+      ${"<" + "/script>"}
     </body>
     </html>
-  `)
-  printWindow.document.close()
+  `);
+    printWindow.document.close();
 }
 
 function printThermal() {
-  const printWindow = window.open('', '_blank', 'width=420,height=600')
-  printWindow.document.write(`
+    const printWindow = window.open("", "_blank", "width=420,height=600");
+    printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
       <title>Cetak Thermal - ${batchCode.value}</title>
-      ${'<' + 'style>'}
+      ${"<" + "style>"}
         @page { size: 58mm auto; margin: 0; }
         * { box-sizing: border-box; }
         body { 
@@ -724,15 +1145,15 @@ function printThermal() {
         .thermal-qr-img { width: 26mm; height: 26mm; object-fit: contain; }
         .thermal-specs { text-align: left; font-size: 8.5px; }
         .thermal-foot { font-size: 8px; margin-top: 3px; }
-      ${'<' + '/style>'}
+      ${"<" + "/style>"}
     </head>
     <body>
       <div class="thermal-wrap">
         <div class="thermal-title">DESA WISATA HANJELI</div>
         <div class="thermal-sub">SMART SOLAR DRYER &bull; SUKABUMI</div>
         <div class="thermal-line"></div>
-        <div class="thermal-prod">${formCustom.productName || 'BIJI HANJELI KERING'}</div>
-        <div style="font-size: 9px; font-weight: bold;">GRADE: ${currentGradeLetter.value} &bull; NETTO: ${formCustom.netto || '500g'}</div>
+        <div class="thermal-prod">${formCustom.productName || "BIJI HANJELI KERING"}</div>
+        <div style="font-size: 9px; font-weight: bold;">GRADE: ${currentGradeLetter.value} &bull; NETTO: ${formCustom.netto || "500g"}</div>
         
         <div class="thermal-qr-row">
           <img src="${qrDataUrl.value}" class="thermal-qr-img" alt="QR" />
@@ -750,26 +1171,26 @@ function printThermal() {
           <div style="font-weight: bold; margin-top: 2px;">${certificateNumber.value}</div>
         </div>
       </div>
-      ${'<' + 'script>'}
+      ${"<" + "script>"}
         window.onload = function() { window.print(); window.close(); }
-      ${'<' + '/script>'}
+      ${"<" + "/script>"}
     </body>
     </html>
-  `)
-  printWindow.document.close()
+  `);
+    printWindow.document.close();
 }
 
 function printA4Grid() {
-  const printWindow = window.open('', '_blank', 'width=950,height=750')
-  
-  let stickersHtml = ''
-  for (let i = 0; i < a4GridCount.value; i++) {
-    stickersHtml += `
+    const printWindow = window.open("", "_blank", "width=950,height=750");
+
+    let stickersHtml = "";
+    for (let i = 0; i < a4GridCount.value; i++) {
+        stickersHtml += `
       <div class="a4-sticker-card">
         <div class="a4-card-top">
           <div class="a4-brand-col">
             <span class="a4-brand-title">DESA WISATA HANJELI</span>
-            <span class="a4-product-title">${formCustom.productName || 'Hanjeli Ketan Sukabumi'}</span>
+            <span class="a4-product-title">${formCustom.productName || "Hanjeli Ketan Sukabumi"}</span>
           </div>
           <span class="a4-grade-chip">GRADE ${currentGradeLetter.value}</span>
         </div>
@@ -780,23 +1201,23 @@ function printA4Grid() {
             <div class="a4-row"><span>KADAR AIR:</span> <strong>${finalMoisture.value}% (SNI)</strong></div>
             <div class="a4-row"><span>NETTO:</span> <strong>${formCustom.netto}</strong></div>
             <div class="a4-row"><span>TGL KERING:</span> <strong>${formattedDate.value}</strong></div>
-            ${formCustom.expiryDate ? `<div class="a4-row"><span>EXP:</span> <strong>${formCustom.expiryDate}</strong></div>` : ''}
+            ${formCustom.expiryDate ? `<div class="a4-row"><span>EXP:</span> <strong>${formCustom.expiryDate}</strong></div>` : ""}
           </div>
         </div>
         <div class="a4-card-foot">
-          <span>${formCustom.pirt || 'P-IRT & SNI Terverifikasi'}</span>
+          <span>${formCustom.pirt || "P-IRT & SNI Terverifikasi"}</span>
           <span class="a4-cert-num">${certificateNumber.value}</span>
         </div>
       </div>
-    `
-  }
+    `;
+    }
 
-  printWindow.document.write(`
+    printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
       <title>Lembar Stiker A4 (${a4GridCount.value} Label) - ${batchCode.value}</title>
-      ${'<' + 'style>'}
+      ${"<" + "style>"}
         @page { size: A4 portrait; margin: 8mm 8mm; }
         * { box-sizing: border-box; }
         body { 
@@ -822,7 +1243,7 @@ function printA4Grid() {
           justify-content: space-between;
           background: #FFFFFF;
           page-break-inside: avoid;
-          min-height: ${a4GridCount.value === 8 ? '58mm' : (a4GridCount.value === 12 ? '42mm' : '30mm')};
+          min-height: ${a4GridCount.value === 8 ? "58mm" : a4GridCount.value === 12 ? "42mm" : "30mm"};
         }
         .a4-card-top { 
           display: flex; 
@@ -843,19 +1264,19 @@ function printA4Grid() {
         .a4-row strong { color: #071E27; font-weight: 800; }
         .a4-card-foot { display: flex; justify-content: space-between; font-size: 6px; color: #64748B; border-top: 1px solid #E2E8F0; padding-top: 1mm; margin-top: auto; }
         .a4-cert-num { font-family: monospace; font-weight: 700; }
-      ${'<' + '/style>'}
+      ${"<" + "/style>"}
     </head>
     <body>
       <div class="a4-grid-container">
         ${stickersHtml}
       </div>
-      ${'<' + 'script>'}
+      ${"<" + "script>"}
         window.onload = function() { window.print(); window.close(); }
-      ${'<' + '/script>'}
+      ${"<" + "/script>"}
     </body>
     </html>
-  `)
-  printWindow.document.close()
+  `);
+    printWindow.document.close();
 }
 </script>
 
@@ -982,6 +1403,12 @@ function printA4Grid() {
   padding: 4px 16px;
   gap: 8px;
   overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.label-mode-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 :global(.dark-theme) .label-mode-tabs {
@@ -1892,8 +2319,9 @@ function printA4Grid() {
   border-top-color: #1E4E61;
 }
 
-.footer-primary-group {
+.footer-secondary-group {
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
@@ -1967,5 +2395,127 @@ function printA4Grid() {
 
 :global(.dark-theme) .btn-print-main:hover {
   background: #15803D;
+}
+
+/* ==========================================================================
+   RESPONSIVE MOBILE OVERRIDES FOR LABEL MODAL
+   ========================================================================== */
+@media (max-width: 640px) {
+  .qr-modal-overlay {
+    padding: 8px;
+  }
+
+  .qr-modal-card {
+    border-radius: 16px;
+    max-height: 95vh;
+  }
+
+  .qr-modal-header {
+    padding: 12px 14px;
+  }
+
+  .header-icon-box {
+    width: 32px;
+    height: 32px;
+  }
+
+  .qr-modal-title {
+    font-size: 1rem;
+  }
+
+  .qr-modal-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .label-mode-tabs {
+    padding: 4px 10px;
+    gap: 4px;
+  }
+
+  .mode-tab-btn {
+    padding: 8px 10px;
+    font-size: 11.5px;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .qr-modal-body {
+    padding: 12px 14px;
+  }
+
+  .label-workspace-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .label-preview-stage {
+    padding: 10px;
+    min-height: unset;
+  }
+
+  .packaging-sticker-card.retail-theme {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 12px;
+  }
+
+  .sticker-main-content {
+    gap: 8px;
+  }
+
+  .sticker-qr-box {
+    width: 80px;
+  }
+
+  .qr-canvas {
+    width: 75px !important;
+    height: 75px !important;
+  }
+
+  .netto-pills-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+
+  .netto-pill-btn {
+    padding: 6px 2px;
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .grid-2-fields {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .qr-modal-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .footer-secondary-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .footer-secondary-group .btn-secondary,
+  .footer-secondary-group .btn-outline {
+    width: 100%;
+    padding: 9px 8px;
+    font-size: 12px;
+    justify-content: center;
+  }
+
+  .btn-print-main {
+    width: 100%;
+    padding: 11px 16px;
+    font-size: 13.5px;
+    justify-content: center;
+  }
 }
 </style>

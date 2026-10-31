@@ -78,29 +78,34 @@
             <span>QR Kemasan</span>
           </button>
 
-          <!-- Unduh CSV -->
-          <button
-            type="button"
-            class="btn-icon"
-            @click="exportBatchCsv"
-            title="Unduh Data CSV"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </button>
+          <!-- Tombol Aksi Sekunder (CSV & Edit) -->
+          <div class="header-icon-btns">
+            <!-- Unduh CSV -->
+            <button
+              type="button"
+              class="btn-icon"
+              @click="exportBatchCsv"
+              title="Unduh Data CSV"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span class="btn-icon-label">Unduh CSV</span>
+            </button>
 
-          <!-- Edit Catatan -->
-          <button
-            type="button"
-            class="btn-icon"
-            @click="openEditBatchModal"
-            title="Ubah Data / Catatan"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
+            <!-- Edit Catatan -->
+            <button
+              type="button"
+              class="btn-icon"
+              @click="openEditBatchModal"
+              title="Ubah Data / Catatan"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <span class="btn-icon-label">Ubah Catatan</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -862,8 +867,15 @@ watch(() => activeBatchId.value, () => {
   color: #7E22CE;
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  line-height: 1.4;
+  word-break: break-word;
+  white-space: normal;
+  box-sizing: border-box;
 }
 
 .meta-subtitle {
@@ -877,6 +889,16 @@ watch(() => activeBatchId.value, () => {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.header-icon-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-icon-label {
+  display: none;
 }
 
 .btn-act {
@@ -1043,18 +1065,6 @@ watch(() => activeBatchId.value, () => {
   gap: 16px;
 }
 
-@media (max-width: 900px) {
-  .metrics-quad-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 540px) {
-  .metrics-quad-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .metric-card {
   background: #FFFFFF;
   border-radius: 16px;
@@ -1187,12 +1197,6 @@ watch(() => activeBatchId.value, () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
-}
-
-@media (max-width: 800px) {
-  .details-twin-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .info-box-card {
@@ -1385,6 +1389,207 @@ watch(() => activeBatchId.value, () => {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN FOR MOBILE & TABLET (<= 900px)
+   ========================================================================== */
+@media (max-width: 900px) {
+  .history-detail-container {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .detail-header-card {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 14px;
+  }
+
+  .header-left {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .batch-title {
+    font-size: 20px;
+    word-break: break-all;
+  }
+
+  .title-badge-row {
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .badge-grade {
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .meta-subtitle {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .header-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .header-actions .btn-act {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 16px;
+  }
+
+  .header-icon-btns {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .header-icon-btns .btn-icon {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  .btn-icon-label {
+    display: inline;
+  }
+
+  .cert-hero-card {
+    padding: 16px;
+    border-radius: 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .cert-left {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .cert-tag-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .cert-badge {
+    font-size: 9px;
+  }
+
+  .cert-star {
+    font-size: 11px;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .cert-heading {
+    font-size: 18px;
+  }
+
+  .cert-desc {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .cert-score-box {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 12px;
+  }
+
+  .score-lbl {
+    font-size: 10px;
+  }
+
+  .score-num {
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .score-sni {
+    font-size: 11px;
+  }
+
+  .metrics-quad-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .metric-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .metric-card-lbl {
+    font-size: 10px;
+  }
+
+  .metric-card-val {
+    font-size: 20px;
+  }
+
+  .chart-section-card {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+
+  .chart-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .chart-legend-box {
+    gap: 12px;
+  }
+
+  .chart-canvas-box {
+    padding: 10px;
+  }
+
+  .details-twin-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .info-box-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .notes-body-display {
+    padding: 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 540px) {
+  .modal-dialog-box {
+    padding: 18px 16px;
+    border-radius: 14px;
+    margin: 10px;
+  }
+
+  .form-row-twin {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 /* ==========================================================================

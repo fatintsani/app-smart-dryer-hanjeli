@@ -1740,14 +1740,25 @@ onUnmounted(() => {
   transform: translateY(-4px);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .monitoring-main-container {
-    padding: 16px;
-    gap: 16px;
+    padding: 0;
+    gap: 12px;
   }
 
-  .monitoring-header-card {
-    padding: 18px;
+  .monitoring-header-card,
+  .chart-full-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .sensor-cards-grid {
+    gap: 10px;
+  }
+
+  .sensor-metric-card {
+    padding: 14px 16px;
+    border-radius: 14px;
   }
 
   .btn-export-csv {

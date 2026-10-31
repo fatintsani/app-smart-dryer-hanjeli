@@ -2372,18 +2372,28 @@ onUnmounted(() => {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .dashboard-main-content {
-    padding: 16px;
-    gap: 16px;
+    padding: 0;
+    gap: 12px;
   }
 
   .dash-welcome-card {
-    padding: 18px 20px;
+    padding: 16px;
+    border-radius: 14px;
   }
 
   .welcome-title {
-    font-size: 20px;
+    font-size: 19px;
+  }
+
+  .hero-indicators-grid {
+    gap: 10px;
+  }
+
+  .indicator-card {
+    padding: 14px 16px;
+    border-radius: 14px;
   }
 
   .btn-action-main {
@@ -2392,7 +2402,14 @@ onUnmounted(() => {
   }
 
   .active-batch-banner {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+
+  .simple-chart-card,
+  .alerts-simple-card {
     padding: 16px;
+    border-radius: 14px;
   }
 
   .ab-right {
@@ -2405,7 +2422,7 @@ onUnmounted(() => {
   }
 
   .simple-svg-wrapper {
-    height: 220px;
+    height: 200px;
   }
 
   .ideal-zone-pill {

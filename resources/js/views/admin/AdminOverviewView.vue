@@ -1303,22 +1303,19 @@ onMounted(() => {
 .text-orange { color: #B45000; }
 
 @media (max-width: 900px) {
-  .header-action-row { flex-direction: column; align-items: stretch; gap: 12px; }
-  .system-status-card { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .system-status-right { align-items: flex-start; }
-}
-
-@media (max-width: 768px) {
   .admin-content {
     padding: 0;
-    gap: 16px;
+    gap: 12px;
   }
+  .header-action-row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .system-status-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .system-status-right { align-items: flex-start; }
   .page-title {
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1.3;
   }
   .page-subtitle {
-    font-size: 13.5px;
+    font-size: 13px;
   }
 }
 
