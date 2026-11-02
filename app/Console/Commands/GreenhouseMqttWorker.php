@@ -77,14 +77,27 @@ class GreenhouseMqttWorker extends Command
                     $data = json_decode($message, true);
                     if (is_array($data)) {
                         $state = ActuatorState::firstOrCreate([], []);
-                        $state->update(array_filter([
+                        $actUpdates = array_filter([
                             'exhaust_fan_status' => isset($data['exhaustFanStatus']) ? (bool) $data['exhaustFanStatus'] : null,
                             'exhaust_fan_speed' => isset($data['exhaustFanSpeed']) ? (int) $data['exhaustFanSpeed'] : null,
                             'intake_fan_status' => isset($data['intakeFanStatus']) ? (bool) $data['intakeFanStatus'] : null,
                             'circ_fan_status' => isset($data['circFanStatus']) ? (bool) $data['circFanStatus'] : null,
-                            'aux_heater_status' => isset($data['auxHeaterStatus']) ? (bool) $data['auxHeaterStatus'] : null,
+                            'aux_heater_status' => isset($data['auxHeaterStatus']) ? (bool) $data['auxHeaterStatus'] : (isset($data['heaterStatus']) ? (bool) $data['heaterStatus'] : null),
+                            'heater_ch1_status' => isset($data['heaterCh1Status']) ? (bool) $data['heaterCh1Status'] : (isset($data['relayCh1']) ? (bool) $data['relayCh1'] : null),
+                            'heater_ch2_status' => isset($data['heaterCh2Status']) ? (bool) $data['heaterCh2Status'] : (isset($data['relayCh2']) ? (bool) $data['relayCh2'] : null),
+                            'aux_heater2_status' => isset($data['auxHeater2Status']) ? (bool) $data['auxHeater2Status'] : (isset($data['heaterCh2Status']) ? (bool) $data['heaterCh2Status'] : null),
                             'aux_heater_level' => isset($data['auxHeaterLevel']) ? (int) $data['auxHeaterLevel'] : null,
-                        ], fn($v) => !is_null($v)));
+                        ], fn($v) => !is_null($v));
+
+                        try {
+                            $actCols = \Illuminate\Support\Facades\Schema::hasTable('actuator_states')
+                                ? \Illuminate\Support\Facades\Schema::getColumnListing('actuator_states')
+                                : [];
+                            $cleanUpdates = !empty($actCols) ? array_intersect_key($actUpdates, array_flip($actCols)) : $actUpdates;
+                            $state->update($cleanUpdates);
+                        } catch (\Throwable $e) {
+                            $state->update(array_intersect_key($actUpdates, array_flip(['exhaust_fan_status', 'exhaust_fan_speed', 'intake_fan_status', 'circ_fan_status', 'aux_heater_status', 'aux_heater_level'])));
+                        }
 
                         event(new ActuatorUpdated($state));
                         $this->info("✓ Updated actuator state from hardware feedback -> Broadcasted to WebSockets.");

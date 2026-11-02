@@ -84,7 +84,9 @@ Dikirimkan via HTTP POST setiap 5 detik ke `https://hanjeli-dryer.stas-rg.com/ap
   "is_raining": false,
   "dht_ok": true,
   "bh1750_ok": true,
-  "heater_on": false
+  "heater_on": false,
+  "heaterCh1Status": false,
+  "heaterCh2Status": false
 }
 ```
 

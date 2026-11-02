@@ -342,6 +342,8 @@ class UsbSerialService {
     const intakeFan = data.intakeFanStatus ?? data.intake_fan_status ?? data.intakeFan;
     const circFan = data.circFanStatus ?? data.circ_fan_status ?? data.circFan;
     const heater = data.heaterStatus ?? data.heater_status ?? data.auxHeaterStatus ?? data.heaters ?? data.heater ?? data.relayHeater;
+    const heaterCh1 = data.heaterCh1Status ?? data.heater1 ?? data.relayCh1 ?? heater;
+    const heaterCh2 = data.heaterCh2Status ?? data.heater2 ?? data.auxHeater2Status ?? data.relayCh2 ?? heater;
     const heaterLevel = data.heaterLevel ?? data.heater_level ?? data.auxHeaterLevel ?? 0;
     const isOverride = data.isOverrideActive ?? data.isManualOverride ?? data.manualOverride;
     const overrideMode = data.overrideMode ?? data.controlMode;
@@ -353,6 +355,10 @@ class UsbSerialService {
         intakeFanStatus: Boolean(intakeFan),
         circFanStatus: Boolean(circFan),
         auxHeaterStatus: Boolean(heater),
+        heaterStatus: Boolean(heater),
+        heaterCh1Status: Boolean(heaterCh1),
+        heaterCh2Status: Boolean(heaterCh2),
+        auxHeater2Status: Boolean(heaterCh2),
         auxHeaterLevel: Number(heaterLevel) || 0,
         controlMode: overrideMode || (isOverride ? 'MANUAL' : 'AUTOMATIC'),
       };

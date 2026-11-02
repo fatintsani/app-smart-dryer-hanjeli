@@ -14,7 +14,8 @@
 // ==============================================================================
 #define DHTPIN 25 // Sensor Suhu & Kelembapan Ruang (DHT22)
 #define DHTTYPE DHT22
-#define RELAY_CH1 26 // Relay Pemanas Ruang (PTC Heater Tunggal)
+#define RELAY_CH1 26 // Relay Channel 1: Heater (PTC Pemanas 1 / Utama)
+#define RELAY_CH2 27 // Relay Channel 2: Heater (PTC Pemanas 2 / Sekunder)
 #define RAIN_PIN 34  // Sensor Hujan (Analog ADC Pin)
 
 // ==============================================================================
@@ -128,7 +129,8 @@ float lux = 0.0;
 int rainVal = 4095;
 bool isRaining = false;
 
-bool heaterState = false; // Status Relay Pemanas PTC Ruang (Relay CH1 Pin 26)
+bool heaterState = false;  // Status Relay Pemanas PTC 1 (Relay CH1 Pin 26)
+bool heater2State = false; // Status Relay Pemanas PTC 2 (Relay CH2 Pin 27)
 
 bool dhtOK = false;
 bool bh1750Ready = false;
@@ -141,7 +143,8 @@ bool dawnHumidityDemand = false;
 
 // Override kendali heater jarak jauh (Remote Control via MQTT/Web)
 bool remoteHeaterOverrideActive = false;
-bool remoteHeaterRequest = false;
+bool remoteHeater1Request = false;
+bool remoteHeater2Request = false;
 
 byte dhtErrorCount = 0;
 byte currentPage = 0;
@@ -181,6 +184,7 @@ const unsigned long NTP_CHECK_INTERVAL = 1000;
 // Status telemetri terakhir yang berhasil dipublikasikan
 bool hasPublishedHeaterState = false;
 bool lastPublishedHeaterState = false;
+bool lastPublishedHeater2State = false;
 
 // Status pengiriman data untuk monitoring Serial & LCD
 bool hasMqttPublishResult = false;
@@ -224,9 +228,11 @@ void setup() {
 
   // Inisialisasi pin relay dan tetapkan kondisi awal aman (OFF)
   pinMode(RELAY_CH1, OUTPUT);
+  pinMode(RELAY_CH2, OUTPUT);
   pinMode(RAIN_PIN, INPUT);
 
   digitalWrite(RELAY_CH1, RELAY_OFF_LEVEL);
+  digitalWrite(RELAY_CH2, RELAY_OFF_LEVEL);
 
   // Inisialisasi Bus I2C (SDA=21, SCL=22)
   Wire.begin(21, 22);
@@ -313,7 +319,8 @@ void loop() {
   // Responsif terhadap perubahan status heater (kirim segera jika heater
   // berubah, jeda min 1s)
   const bool heaterStateChanged =
-      hasPublishedHeaterState && (heaterState != lastPublishedHeaterState);
+      hasPublishedHeaterState && ((heaterState != lastPublishedHeaterState) ||
+                                  (heater2State != lastPublishedHeater2State));
   const bool firstPublishDue =
       !hasPublishedHeaterState && hasCompletedSensorRead &&
       (WiFi.status() == WL_CONNECTED) && (now - prevSendMillis >= 1000UL);
@@ -325,6 +332,7 @@ void loop() {
 
     if (sendTelemetry()) {
       lastPublishedHeaterState = heaterState;
+      lastPublishedHeater2State = heater2State;
       hasPublishedHeaterState = true;
     }
 
@@ -476,7 +484,7 @@ const char *heaterReasonName() {
     return "OVER_TEMPERATURE_LOCKOUT";
   }
   if (ENABLE_REMOTE_CONTROL && remoteHeaterOverrideActive) {
-    return remoteHeaterRequest ? "REMOTE_ON_WEB" : "REMOTE_OFF_WEB";
+    return (heaterState || heater2State) ? "REMOTE_ON_WEB" : "REMOTE_OFF_WEB";
   }
   if (!dhtOK) {
     return "DHT22_ERROR";
@@ -516,9 +524,10 @@ void updateHeaterControl() {
     }
   }
 
-  // Interlock Keselamatan Mutlak Suhu Kritis (≥ 50°C): Wajib mematikan heater
+  // Interlock Keselamatan Mutlak Suhu Kritis (≥ 50°C): Wajib mematikan kedua heater
   if (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C)) {
     heaterState = false;
+    heater2State = false;
     return;
   }
 
@@ -528,8 +537,10 @@ void updateHeaterControl() {
   if (ENABLE_REMOTE_CONTROL && remoteHeaterOverrideActive) {
     if (temperatureLockout) {
       heaterState = false;
+      heater2State = false;
     } else {
-      heaterState = remoteHeaterRequest;
+      heaterState = remoteHeater1Request;
+      heater2State = remoteHeater2Request;
     }
     return;
   }
@@ -537,6 +548,7 @@ void updateHeaterControl() {
   // Syarat sensor valid:
   if (!dhtOK || temperatureLockout) {
     heaterState = false;
+    heater2State = false;
     return;
   }
 
@@ -563,14 +575,16 @@ void updateHeaterControl() {
       coldDemand = false;
     }
 
-    // Di luar jadwal (siang hari), heater menyala otomatis jika:
+    // Di luar jadwal (siang hari), kedua heater menyala otomatis jika:
     // Terdeteksi Hujan || Kelembapan Tinggi >= 70% || Suhu Dingin <= 35°C
-    heaterState = (isRaining || humidityDemand || coldDemand);
+    bool autoDemand = (isRaining || humidityDemand || coldDemand);
+    heaterState = autoDemand;
+    heater2State = autoDemand;
 
   } else {
-    // Dalam jadwal operasional malam (18:00 - 05:00 WIB), heater otomatis ON
-    // penuh
+    // Dalam jadwal operasional malam (18:00 - 05:00 WIB), kedua heater otomatis ON penuh
     heaterState = true;
+    heater2State = true;
   }
 }
 
@@ -578,9 +592,13 @@ void updateHeaterControl() {
 // 14. TERAPKAN KONDISI RELAY AKTIF
 // ==============================================================================
 void applyRelayState() {
-  // Pemanas PTC Ruangan Tunggal (Relay Pin 26)
+  // Pemanas PTC Ruang Saluran 1 (Relay CH1 Pin 26)
   uint8_t relayCh1Level = heaterState ? RELAY_ON_LEVEL : RELAY_OFF_LEVEL;
   digitalWrite(RELAY_CH1, relayCh1Level);
+
+  // Pemanas PTC Ruang Saluran 2 (Relay CH2 Pin 27)
+  uint8_t relayCh2Level = heater2State ? RELAY_ON_LEVEL : RELAY_OFF_LEVEL;
+  digitalWrite(RELAY_CH2, relayCh2Level);
 }
 
 // ==============================================================================
@@ -662,7 +680,8 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
 
   if (setAutoMode) {
     remoteHeaterOverrideActive = false;
-    remoteHeaterRequest = false;
+    remoteHeater1Request = false;
+    remoteHeater2Request = false;
     updateHeaterControl();
     applyRelayState();
     publishMqttTelemetry(); // Kirim konfirmasi instan kembali ke website
@@ -672,53 +691,111 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
   }
 
   // Format 2: Perintah Langsung ON / OFF Relay Heater dari Web
-  bool requestedState = false;
-  bool hasState = false;
+  bool hasCh1 = false;
+  bool reqCh1 = false;
+  bool hasCh2 = false;
+  bool reqCh2 = false;
 
+  // Periksa perintah spesifik Channel 1
+  if (command["data"].containsKey("heaterCh1Status")) {
+    reqCh1 = command["data"]["heaterCh1Status"].as<bool>();
+    hasCh1 = true;
+  } else if (command.containsKey("heaterCh1Status")) {
+    reqCh1 = command["heaterCh1Status"].as<bool>();
+    hasCh1 = true;
+  } else if (command["data"].containsKey("heater1")) {
+    reqCh1 = command["data"]["heater1"].as<bool>();
+    hasCh1 = true;
+  } else if (command.containsKey("heater1")) {
+    reqCh1 = command["heater1"].as<bool>();
+    hasCh1 = true;
+  } else if (command["data"].containsKey("relayCh1")) {
+    reqCh1 = command["data"]["relayCh1"].as<bool>();
+    hasCh1 = true;
+  } else if (command.containsKey("relayCh1")) {
+    reqCh1 = command["relayCh1"].as<bool>();
+    hasCh1 = true;
+  }
+
+  // Periksa perintah spesifik Channel 2
+  if (command["data"].containsKey("heaterCh2Status")) {
+    reqCh2 = command["data"]["heaterCh2Status"].as<bool>();
+    hasCh2 = true;
+  } else if (command.containsKey("heaterCh2Status")) {
+    reqCh2 = command["heaterCh2Status"].as<bool>();
+    hasCh2 = true;
+  } else if (command["data"].containsKey("heater2")) {
+    reqCh2 = command["data"]["heater2"].as<bool>();
+    hasCh2 = true;
+  } else if (command.containsKey("heater2")) {
+    reqCh2 = command["heater2"].as<bool>();
+    hasCh2 = true;
+  } else if (command["data"].containsKey("auxHeater2Status")) {
+    reqCh2 = command["data"]["auxHeater2Status"].as<bool>();
+    hasCh2 = true;
+  } else if (command.containsKey("auxHeater2Status")) {
+    reqCh2 = command["auxHeater2Status"].as<bool>();
+    hasCh2 = true;
+  } else if (command["data"].containsKey("relayCh2")) {
+    reqCh2 = command["data"]["relayCh2"].as<bool>();
+    hasCh2 = true;
+  } else if (command.containsKey("relayCh2")) {
+    reqCh2 = command["relayCh2"].as<bool>();
+    hasCh2 = true;
+  }
+
+  // Periksa perintah umum/master heater
+  bool hasMaster = false;
+  bool reqMaster = false;
   if (command["data"].containsKey("auxHeaterStatus")) {
-    requestedState = command["data"]["auxHeaterStatus"].as<bool>();
-    hasState = true;
+    reqMaster = command["data"]["auxHeaterStatus"].as<bool>();
+    hasMaster = true;
   } else if (command.containsKey("auxHeaterStatus")) {
-    requestedState = command["auxHeaterStatus"].as<bool>();
-    hasState = true;
+    reqMaster = command["auxHeaterStatus"].as<bool>();
+    hasMaster = true;
   } else if (command["data"].containsKey("heaterStatus")) {
-    requestedState = command["data"]["heaterStatus"].as<bool>();
-    hasState = true;
+    reqMaster = command["data"]["heaterStatus"].as<bool>();
+    hasMaster = true;
   } else if (command.containsKey("heaterStatus")) {
-    requestedState = command["heaterStatus"].as<bool>();
-    hasState = true;
+    reqMaster = command["heaterStatus"].as<bool>();
+    hasMaster = true;
   } else if (command["data"].containsKey("heater_status")) {
-    requestedState = command["data"]["heater_status"].as<bool>();
-    hasState = true;
+    reqMaster = command["data"]["heater_status"].as<bool>();
+    hasMaster = true;
   } else if (command.containsKey("heater_status")) {
-    requestedState = command["heater_status"].as<bool>();
-    hasState = true;
+    reqMaster = command["heater_status"].as<bool>();
+    hasMaster = true;
   } else if (command["data"].containsKey("heater")) {
-    requestedState = command["data"]["heater"].as<bool>();
-    hasState = true;
+    reqMaster = command["data"]["heater"].as<bool>();
+    hasMaster = true;
   } else if (command.containsKey("heater")) {
-    requestedState = command["heater"].as<bool>();
-    hasState = true;
+    reqMaster = command["heater"].as<bool>();
+    hasMaster = true;
   } else if (command.containsKey("target") &&
              String(command["target"].as<const char *>()) == "AUX_HEATER") {
     if (command.containsKey("state")) {
-      requestedState = command["state"].as<bool>();
-      hasState = true;
+      reqMaster = command["state"].as<bool>();
+      hasMaster = true;
     }
   }
 
-  if (!hasState) {
+  if (!hasCh1 && !hasCh2 && !hasMaster) {
     return;
   }
 
+  bool nextCh1 = hasCh1 ? reqCh1 : (hasMaster ? reqMaster : heaterState);
+  bool nextCh2 = hasCh2 ? reqCh2 : (hasMaster ? reqMaster : heater2State);
+
   // Interlock Keselamatan Mutlak: Tolak menyalakan heater jika suhu kritis >=
   // 50°C
-  if (requestedState && (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C))) {
-    Serial.println("[MQTT] DITOLAK: Suhu >= 50°C (Overheat Lockout). Heater "
+  if ((nextCh1 || nextCh2) && (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C))) {
+    Serial.println("[MQTT] DITOLAK: Suhu >= 50°C (Overheat Lockout). Kedua Heater "
                    "tetap OFF demi keselamatan gabah.");
     heaterState = false;
+    heater2State = false;
     remoteHeaterOverrideActive = true;
-    remoteHeaterRequest = false;
+    remoteHeater1Request = false;
+    remoteHeater2Request = false;
     applyRelayState();
     publishMqttTelemetry(); // Segera beri feedback ke Web bahwa heater ditolak
     return;
@@ -726,15 +803,18 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
 
   // Terapkan override manual relay dari website
   remoteHeaterOverrideActive = true;
-  remoteHeaterRequest = requestedState;
-  heaterState = requestedState;
+  remoteHeater1Request = nextCh1;
+  remoteHeater2Request = nextCh2;
+  heaterState = nextCh1;
+  heater2State = nextCh2;
   applyRelayState();
   publishMqttTelemetry(); // Kirim konfirmasi instan kembali ke website tanpa
                           // jeda
 
   Serial.printf(
-      "[MQTT] Perintah Web Diterapkan -> RELAY HEATER: %s (Pin 26)\n",
-      requestedState ? "ON (MENYALA)" : "OFF (MATI)");
+      "[MQTT] Perintah Web Diterapkan -> RELAY CH1 (Pin 26): %s | RELAY CH2 (Pin 27): %s\n",
+      heaterState ? "ON (MENYALA)" : "OFF (MATI)",
+      heater2State ? "ON (MENYALA)" : "OFF (MATI)");
 }
 
 // ==============================================================================
@@ -779,16 +859,29 @@ bool publishMqttTelemetry() {
   doc["bh1750Ok"] = bh1750Ready && luxReadingValid;
   doc["dayPhase"] = phaseName();
 
-  // Status Aktuator Heater (1 Relay Tunggal Pin 26)
-  doc["auxHeater"] = heaterState;
-  doc["auxHeaterStatus"] = heaterState;
-  doc["heaterState"] = heaterState;
-  doc["heaterOn"] = heaterState;
-  doc["heaterStatus"] = heaterState;
+  // Status Aktuator Dual Heater (Relay CH1 Pin 26 & Relay CH2 Pin 27)
+  const bool anyHeaterOn = heaterState || heater2State;
+  doc["auxHeater"] = anyHeaterOn;
+  doc["auxHeaterStatus"] = anyHeaterOn;
+  doc["heaterState"] = anyHeaterOn;
+  doc["heaterOn"] = anyHeaterOn;
+  doc["heaterStatus"] = anyHeaterOn;
   doc["relayCh1"] = heaterState;
+  doc["relayCh2"] = heater2State;
+  doc["heater1"] = heaterState;
+  doc["heater2"] = heater2State;
+  doc["heaterCh1Status"] = heaterState;
+  doc["heaterCh2Status"] = heater2State;
+  doc["auxHeater2Status"] = heater2State;
   doc["relayPin"] = RELAY_CH1;
-  doc["heaterStatusText"] = heaterState ? "ON" : "OFF";
-  doc["relayStatus"] = heaterState ? "ON" : "OFF";
+  doc["relayPinCh1"] = RELAY_CH1;
+  doc["relayPinCh2"] = RELAY_CH2;
+  doc["heaterStatusText"] = anyHeaterOn ? "ON" : "OFF";
+  doc["heater1StatusText"] = heaterState ? "ON" : "OFF";
+  doc["heater2StatusText"] = heater2State ? "ON" : "OFF";
+  doc["relayStatus"] = anyHeaterOn ? "ON" : "OFF";
+  doc["relayCh1Status"] = heaterState ? "ON" : "OFF";
+  doc["relayCh2Status"] = heater2State ? "ON" : "OFF";
   doc["heaterReason"] = heaterReasonName();
   doc["relayActiveLow"] = RELAY_ACTIVE_LOW;
   doc["heaterScheduleStart"] = "18:00";
@@ -913,9 +1006,16 @@ bool sendHttpTelemetry() {
   httpDoc["is_raining"] = isRaining;
   httpDoc["dht_ok"] = dhtOK;
   httpDoc["bh1750_ok"] = (bh1750Ready && luxReadingValid);
-  httpDoc["heater_on"] = heaterState;
-  httpDoc["heaterStatus"] = heaterState;
-  httpDoc["auxHeaterStatus"] = heaterState;
+  const bool anyHeaterOn = (heaterState || heater2State);
+  httpDoc["heater_on"] = anyHeaterOn;
+  httpDoc["heaterStatus"] = anyHeaterOn;
+  httpDoc["auxHeaterStatus"] = anyHeaterOn;
+  httpDoc["heaterCh1Status"] = heaterState;
+  httpDoc["heaterCh2Status"] = heater2State;
+  httpDoc["heater1"] = heaterState;
+  httpDoc["heater2"] = heater2State;
+  httpDoc["relayCh1"] = heaterState;
+  httpDoc["relayCh2"] = heater2State;
   httpDoc["is_override_active"] = remoteHeaterOverrideActive;
   httpDoc["override_mode"] = remoteHeaterOverrideActive ? "MANUAL" : "AUTO";
   httpDoc["heaterReason"] = heaterReasonName();
@@ -952,24 +1052,38 @@ bool sendHttpTelemetry() {
         const char *mode = acts["overrideMode"].as<const char *>();
 
         if (isOverride && mode && String(mode) == "MANUAL") {
-          bool reqState = acts["auxHeaterStatus"].as<bool>();
-          if (reqState &&
-              (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C))) {
-            reqState = false;
+          bool req1 = acts.containsKey("heaterCh1Status")
+                          ? acts["heaterCh1Status"].as<bool>()
+                          : acts["auxHeaterStatus"].as<bool>();
+          bool req2 = acts.containsKey("heaterCh2Status")
+                          ? acts["heaterCh2Status"].as<bool>()
+                          : (acts.containsKey("auxHeater2Status")
+                                 ? acts["auxHeater2Status"].as<bool>()
+                                 : acts["auxHeaterStatus"].as<bool>());
+
+          if (temperatureLockout || (dhtOK && temp >= MAX_TEMP_C)) {
+            req1 = false;
+            req2 = false;
           }
-          if (!remoteHeaterOverrideActive || remoteHeaterRequest != reqState) {
+
+          if (!remoteHeaterOverrideActive || remoteHeater1Request != req1 ||
+              remoteHeater2Request != req2) {
             remoteHeaterOverrideActive = true;
-            remoteHeaterRequest = reqState;
-            heaterState = reqState;
+            remoteHeater1Request = req1;
+            remoteHeater2Request = req2;
+            heaterState = req1;
+            heater2State = req2;
             applyRelayState();
             Serial.printf(
-                "[HTTP Sync] Relay Heater DISINKRONKAN dari Web: %s\n",
-                reqState ? "ON (MENYALA)" : "OFF (MATI)");
+                "[HTTP Sync] Dual Relay Heater DISINKRONKAN dari Web: CH1=%s | CH2=%s\n",
+                req1 ? "ON (MENYALA)" : "OFF (MATI)",
+                req2 ? "ON (MENYALA)" : "OFF (MATI)");
           }
         } else if (!isOverride || (mode && String(mode) == "AUTO")) {
           if (remoteHeaterOverrideActive) {
             remoteHeaterOverrideActive = false;
-            remoteHeaterRequest = false;
+            remoteHeater1Request = false;
+            remoteHeater2Request = false;
             updateHeaterControl();
             applyRelayState();
             Serial.println("[HTTP Sync] Mode AUTO disinkronkan dari Web.");
@@ -1152,8 +1266,10 @@ void printFriendlyDashboard() {
                     : (heaterScheduleActive ? "AKTIF (18:00 - 05:00 WIB)"
                                             : "DI LUAR JADWAL (OFF)"));
 
-  Serial.printf("Pemanas (PTC)   : %s\n",
+  Serial.printf("Pemanas CH1 (PTC Pin 26): %s\n",
                 heaterState ? "ON - MENYALA" : "OFF - STANDBY");
+  Serial.printf("Pemanas CH2 (PTC Pin 27): %s\n",
+                heater2State ? "ON - MENYALA" : "OFF - STANDBY");
 
   Serial.printf("Alasan Kontrol  : %s\n", heaterReasonName());
   Serial.printf("Lockout Suhu    : %s\n",
@@ -1223,9 +1339,11 @@ void updateLCD() {
     lightRainLine += (isRaining ? "YES" : "NO");
     printLCDLine(2, lightRainLine);
 
-    // Baris 4: Tampilkan status Heater & Status Koneksi Web Jelas!
-    String statusLine = "H:";
-    statusLine += (heaterState ? "ON " : "OFF");
+    // Baris 4: Tampilkan status Heater CH1 & CH2 serta Status Koneksi Jelas!
+    String statusLine = "H1:";
+    statusLine += (heaterState ? "ON" : "OF");
+    statusLine += " H2:";
+    statusLine += (heater2State ? "ON" : "OF");
     statusLine += "|NET:";
     if (WiFi.status() == WL_CONNECTED) {
       if (lastHttpPublishOk) {

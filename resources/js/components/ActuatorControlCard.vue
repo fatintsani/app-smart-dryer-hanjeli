@@ -84,7 +84,7 @@
       <div class="qh-status-info">
         <span class="qh-label">Kondisi Pemanas:</span>
         <strong class="qh-val" :class="isHardwareActive && actuators.auxHeaterStatus ? 'text-amber' : (isHardwareActive ? 'text-green' : 'text-neutral')">
-          {{ isHardwareActive ? (actuators.auxHeaterStatus ? 'MENYALA (MEMANASKAN)' : 'MATI (STANDBY)') : 'ALAT BELUM TERHUBUNG' }}
+          {{ isHardwareActive ? (actuators.auxHeaterStatus ? (actuators.heaterCh1Status && actuators.heaterCh2Status ? '2 PEMANAS MENYALA' : (actuators.heaterCh1Status ? 'PEMANAS CH1 AKTIF' : 'PEMANAS CH2 AKTIF')) : 'MATI (STANDBY)') : 'ALAT BELUM TERHUBUNG' }}
         </strong>
         <span v-if="isHardwareActive" class="qh-reason-chip" :class="actuators.auxHeaterStatus ? 'chip-reason-on' : 'chip-reason-off'">
           {{ heaterTriggerReason }}
@@ -98,7 +98,7 @@
           :class="{ active: actuators.isOverrideActive && actuators.auxHeaterStatus }"
           :disabled="isLedRedActive"
           @click="setHeaterManual(true)"
-          title="Nyalakan pemanas secara manual"
+          title="Nyalakan seluruh pemanas secara manual"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline>
@@ -111,7 +111,7 @@
           class="btn-qh btn-qh-off"
           :class="{ active: actuators.isOverrideActive && !actuators.auxHeaterStatus }"
           @click="setHeaterManual(false)"
-          title="Matikan pemanas secara manual"
+          title="Matikan seluruh pemanas secara manual"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -164,38 +164,69 @@
     <!-- Kartu Sakelar Alat Satuan -->
     <div class="actuator-cards-grid">
       
-      <!-- 1. Pemanas Listrik Tambahan -->
+      <!-- 1. Pemanas PTC Ruang Saluran 1 (GPIO 26) -->
       <div class="actuator-item">
         <div class="ai-left">
-          <div class="ai-icon" :class="actuators.auxHeaterStatus ? 'icon-amber' : 'icon-neutral'">
+          <div class="ai-icon" :class="actuators.heaterCh1Status ? 'icon-amber' : 'icon-neutral'">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
           </div>
           <div>
             <div class="ai-name-row">
-              <h4 class="ai-name">Pemanas Ruangan (Heater)</h4>
-              <span class="ai-badge-status" :class="actuators.auxHeaterStatus ? 'badge-on' : 'badge-standby'">
-                Status: {{ isHardwareActive ? (actuators.auxHeaterStatus ? 'MENYALA' : 'STANDBY') : 'MENUNGGU ALAT' }}
+              <h4 class="ai-name">Pemanas Ruangan Saluran 1 (Relay CH1)</h4>
+              <span class="ai-badge-status" :class="actuators.heaterCh1Status ? 'badge-on' : 'badge-standby'">
+                Status: {{ isHardwareActive ? (actuators.heaterCh1Status ? 'MENYALA' : 'STANDBY') : 'MENUNGGU ALAT' }}
               </span>
             </div>
             <p class="ai-desc">
-              <span class="ai-desc-label">Alasan:</span> {{ heaterReasonInfo.fullReason }}
+              <span class="ai-desc-label">Pin GPIO 26 • Elemen Utama:</span> {{ heaterReasonInfo.fullReason }}
             </p>
           </div>
         </div>
         <label class="switch-toggle">
           <input 
             type="checkbox" 
-            v-model="actuators.auxHeaterStatus" 
-            :disabled="isLedRedActive && !actuators.auxHeaterStatus"
-            @change="handleActuatorToggle('auxHeaterStatus', actuators.auxHeaterStatus)"
+            v-model="actuators.heaterCh1Status" 
+            :disabled="isLedRedActive && !actuators.heaterCh1Status"
+            @change="handleActuatorToggle('heaterCh1Status', actuators.heaterCh1Status)"
           />
           <span class="slider"></span>
         </label>
       </div>
 
-      <!-- 2. Kipas Pembuang Udara Lembap (Exhaust Fan) -->
+      <!-- 2. Pemanas PTC Ruang Saluran 2 (GPIO 27) -->
+      <div class="actuator-item">
+        <div class="ai-left">
+          <div class="ai-icon" :class="actuators.heaterCh2Status ? 'icon-amber' : 'icon-neutral'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <div>
+            <div class="ai-name-row">
+              <h4 class="ai-name">Pemanas Ruangan Saluran 2 (Relay CH2)</h4>
+              <span class="ai-badge-status" :class="actuators.heaterCh2Status ? 'badge-on' : 'badge-standby'">
+                Status: {{ isHardwareActive ? (actuators.heaterCh2Status ? 'MENYALA' : 'STANDBY') : 'MENUNGGU ALAT' }}
+              </span>
+            </div>
+            <p class="ai-desc">
+              <span class="ai-desc-label">Pin GPIO 27 • Elemen Sekunder:</span> Elemen pemanas bantu cadangan untuk percepatan pengeringan gabah hanjeli.
+            </p>
+          </div>
+        </div>
+        <label class="switch-toggle">
+          <input 
+            type="checkbox" 
+            v-model="actuators.heaterCh2Status" 
+            :disabled="isLedRedActive && !actuators.heaterCh2Status"
+            @change="handleActuatorToggle('heaterCh2Status', actuators.heaterCh2Status)"
+          />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- 3. Kipas Pembuang Udara Lembap (Exhaust Fan) -->
       <div class="actuator-item">
         <div class="ai-left">
           <div class="ai-icon" :class="actuators.exhaustFanStatus ? 'icon-blue' : 'icon-neutral'">
@@ -315,6 +346,8 @@ const isHardwareActive = computed(() => {
 const actuators = ref({
   exhaustFanStatus: true,
   auxHeaterStatus: false,
+  heaterCh1Status: false,
+  heaterCh2Status: false,
   isOverrideActive: false,
   overrideMode: 'AUTO'
 })
@@ -348,7 +381,15 @@ async function fetchStatus() {
   try {
     const res = await actuatorService.getStatus()
     if (res) {
-      actuators.value = { ...actuators.value, ...res }
+      const ch1 = res.heaterCh1Status !== undefined ? Boolean(res.heaterCh1Status) : Boolean(res.auxHeaterStatus)
+      const ch2 = res.heaterCh2Status !== undefined ? Boolean(res.heaterCh2Status) : (res.auxHeater2Status !== undefined ? Boolean(res.auxHeater2Status) : Boolean(res.auxHeaterStatus))
+      actuators.value = {
+        ...actuators.value,
+        ...res,
+        heaterCh1Status: ch1,
+        heaterCh2Status: ch2,
+        auxHeaterStatus: Boolean(res.auxHeaterStatus ?? (ch1 || ch2))
+      }
     }
   } catch (err) {
     console.warn('Failed to load actuator status:', err)
@@ -382,6 +423,23 @@ async function handleActuatorToggle(field, value) {
   }
 
   const payload = { [field]: value }
+
+  if (field === 'heaterCh1Status') {
+    actuators.value.heaterCh1Status = value
+    actuators.value.auxHeaterStatus = value || actuators.value.heaterCh2Status
+    payload.auxHeaterStatus = actuators.value.auxHeaterStatus
+  } else if (field === 'heaterCh2Status') {
+    actuators.value.heaterCh2Status = value
+    actuators.value.auxHeaterStatus = actuators.value.heaterCh1Status || value
+    payload.auxHeaterStatus = actuators.value.auxHeaterStatus
+    payload.auxHeater2Status = value
+  } else if (field === 'auxHeaterStatus') {
+    actuators.value.auxHeaterStatus = value
+    actuators.value.heaterCh1Status = value
+    actuators.value.heaterCh2Status = value
+    payload.heaterCh1Status = value
+    payload.heaterCh2Status = value
+  }
   
   if (!actuators.value.isOverrideActive) {
     actuators.value.isOverrideActive = true
@@ -411,14 +469,18 @@ async function setHeaterManual(state) {
   actuators.value.isOverrideActive = true
   actuators.value.overrideMode = 'MANUAL'
   actuators.value.auxHeaterStatus = state
+  actuators.value.heaterCh1Status = state
+  actuators.value.heaterCh2Status = state
 
   try {
     await actuatorService.updateStatus({
       auxHeaterStatus: state,
+      heaterCh1Status: state,
+      heaterCh2Status: state,
       isOverrideActive: true,
       overrideMode: 'MANUAL'
     })
-    showFeedback(state ? 'Pemanas berhasil dinyalakan (ON).' : 'Pemanas berhasil dimatikan (OFF).')
+    showFeedback(state ? 'Kedua pemanas PTC (CH1 & CH2) berhasil dinyalakan (ON).' : 'Semua pemanas PTC berhasil dimatikan (OFF).')
   } catch (err) {
     showFeedback('Gagal mengirim perintah pemanas.', 'error')
   }
@@ -465,7 +527,17 @@ onMounted(() => {
   }).catch(() => {})
 
   socketService.on('actuator_update', (data) => {
-    if (data) actuators.value = { ...actuators.value, ...data }
+    if (data) {
+      const ch1 = data.heaterCh1Status !== undefined ? Boolean(data.heaterCh1Status) : (data.auxHeaterStatus !== undefined ? Boolean(data.auxHeaterStatus) : actuators.value.heaterCh1Status)
+      const ch2 = data.heaterCh2Status !== undefined ? Boolean(data.heaterCh2Status) : (data.auxHeater2Status !== undefined ? Boolean(data.auxHeater2Status) : (data.auxHeaterStatus !== undefined ? Boolean(data.auxHeaterStatus) : actuators.value.heaterCh2Status))
+      actuators.value = {
+        ...actuators.value,
+        ...data,
+        heaterCh1Status: ch1,
+        heaterCh2Status: ch2,
+        auxHeaterStatus: Boolean(data.auxHeaterStatus ?? (ch1 || ch2))
+      }
+    }
   })
 
   socketService.on('telemetry_live', (data) => {
@@ -484,6 +556,16 @@ onMounted(() => {
       }
       if (data.heaterReason !== undefined) {
         currentHeaterReason.value = String(data.heaterReason || '')
+      }
+      if (data.heaterCh1Status !== undefined) {
+        actuators.value.heaterCh1Status = Boolean(data.heaterCh1Status)
+      }
+      if (data.heaterCh2Status !== undefined) {
+        actuators.value.heaterCh2Status = Boolean(data.heaterCh2Status)
+      }
+      if (data.heaterStatus !== undefined && data.heaterCh1Status === undefined) {
+        actuators.value.heaterCh1Status = Boolean(data.heaterStatus)
+        actuators.value.heaterCh2Status = Boolean(data.heaterStatus)
       }
     }
   })
@@ -504,6 +586,16 @@ onMounted(() => {
       }
       if (data.heaterReason !== undefined) {
         currentHeaterReason.value = String(data.heaterReason || '')
+      }
+      if (data.heaterCh1Status !== undefined) {
+        actuators.value.heaterCh1Status = Boolean(data.heaterCh1Status)
+      }
+      if (data.heaterCh2Status !== undefined) {
+        actuators.value.heaterCh2Status = Boolean(data.heaterCh2Status)
+      }
+      if (data.heaterStatus !== undefined && data.heaterCh1Status === undefined) {
+        actuators.value.heaterCh1Status = Boolean(data.heaterStatus)
+        actuators.value.heaterCh2Status = Boolean(data.heaterStatus)
       }
     }
   })

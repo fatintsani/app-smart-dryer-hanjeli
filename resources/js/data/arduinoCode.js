@@ -42,7 +42,9 @@ export const ESP32_PHYSICAL_STANDALONE_CODE = `/*
 // ==========================================
 #define DHTPIN        25      // Pin DATA DHT22
 #define DHTTYPE       DHT22
-#define RELAY_CH1     26      // Control Relay Pemanas PTC Ruang
+#define RELAY_CH1     26      // Control Relay Pemanas PTC Ruang (Channel 1)
+#define RELAY_CH2     27      // Control Relay Pemanas PTC Ruang (Channel 2) (Channel 1)
+#define RELAY_CH2     27      // Control Relay Pemanas PTC Ruang (Channel 2)
 #define RAIN_PIN      34      // Input ADC Sensor Hujan
 
 #define RAIN_THRESH   2000    // Threshold ADC Hujan (< 2000 = Hujan)
@@ -81,9 +83,11 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F("\\n[BOOT] Starting System Smart Room Dryer Hanjeli..."));
 
-  // Config Pin Relay
+  // Config Pin Relay Pemanas Ganda (CH1 GPIO 26 & CH2 GPIO 27)
   pinMode(RELAY_CH1, OUTPUT);
+  pinMode(RELAY_CH2, OUTPUT);
   digitalWrite(RELAY_CH1, LOW); 
+  digitalWrite(RELAY_CH2, LOW); 
   pinMode(RAIN_PIN, INPUT);
 
   Wire.begin(21, 22);
@@ -162,8 +166,9 @@ void loop() {
       }
     }
 
-    // Terapkan status ke pin Relay Tunggal (Pin 26)
+    // Terapkan status ke pin Relay Ganda (Pin 26 & Pin 27)
     digitalWrite(RELAY_CH1, heaterState ? HIGH : LOW);
+    digitalWrite(RELAY_CH2, heaterState ? HIGH : LOW);
 
     printToSerial();
   }
@@ -309,7 +314,8 @@ export const ESP32_DUAL_MODE_CODE = `/*
 // ==============================================================================
 #define DHTPIN        25      // Pin DATA DHT22
 #define DHTTYPE       DHT22
-#define RELAY_CH1     26      // Control Relay Pemanas PTC Ruang
+#define RELAY_CH1     26      // Control Relay Pemanas PTC Ruang (Channel 1)
+#define RELAY_CH2     27      // Control Relay Pemanas PTC Ruang (Channel 2)
 #define RAIN_PIN      34      // Input ADC Sensor Hujan
 #define STATUS_LED_PIN 2      // Onboard LED status
 
@@ -448,6 +454,7 @@ void applyActuators() {
     heaterState = false; // Safety shutoff
   }
   digitalWrite(RELAY_CH1, heaterState ? HIGH : LOW);
+  digitalWrite(RELAY_CH2, heaterState ? HIGH : LOW);
 }
 
 void readSensors() {
@@ -628,9 +635,11 @@ void updateLCD() {
 void setup() {
   Serial.begin(115200);
   pinMode(RELAY_CH1, OUTPUT);
+  pinMode(RELAY_CH2, OUTPUT);
   pinMode(STATUS_LED_PIN, OUTPUT);
   pinMode(RAIN_PIN, INPUT);
   digitalWrite(RELAY_CH1, LOW);
+  digitalWrite(RELAY_CH2, LOW);
 
   Wire.begin(21, 22);
   Wire.setClock(100000);
@@ -889,8 +898,8 @@ export const ARDUINO_PROGRAMS = [
     filename: 'esp32_smart_dryer_physical_fixed.ino',
     badge: 'Produksi / Hardware Fix Langsung',
     badgeClass: 'badge-prod',
-    desc: 'Program resmi mikrokontroler ESP32 untuk hardware greenhouse fisik: Sensor DHT22 (Pin 25), BH1750 I2C (Pin 21/22), Sensor Hujan (Pin 34), Relay PTC Heater (Pin 26), LCD 20x4 I2C (0x27) dengan kontrol cerdas histeresis (hujan, dingin <=35°C, lembap >=70%) serta proteksi lockout 50°C.',
-    target: 'ESP32 DevKit V1 (DHT22 Pin 25, Relay 26, Rain 34, I2C 21/22)',
+    desc: 'Program resmi mikrokontroler ESP32 untuk hardware greenhouse fisik: Sensor DHT22 (Pin 25), BH1750 I2C (Pin 21/22), Sensor Hujan (Pin 34), Dual Relay PTC Heater (CH1 Pin 26 & CH2 Pin 27), LCD 20x4 I2C (0x27) dengan kontrol cerdas histeresis (hujan, dingin <=35°C, lembap >=70%) serta proteksi lockout 50°C.',
+    target: 'ESP32 DevKit V1 (DHT22 Pin 25, Dual Relay CH1 Pin 26 & CH2 Pin 27, Rain 34, I2C 21/22)',
     libraries: ['DHT sensor library (Adafruit)', 'BH1750 (Christopher Laws)', 'LiquidCrystal_I2C', 'Wire.h'],
     baudrate: 115200,
     code: ESP32_PHYSICAL_STANDALONE_CODE,
@@ -902,7 +911,7 @@ export const ARDUINO_PROGRAMS = [
     badge: 'Hardware Nyata + Sinkronisasi Cloud/Web',
     badgeClass: 'badge-prod',
     desc: 'Program ESP32 untuk hardware fisik dengan tambahan konektivitas ganda: Wi-Fi MQTT broker (HiveMQ), sinkronisasi waktu NTP WIB (jadwal malam 18:00 - 05:00 WIB), dan Web Bluetooth BLE / Web Serial untuk kendali nirkabel jarak jauh dari dashboard operator.',
-    target: 'ESP32 DevKit V1 (DHT22 Pin 25, Relay 26, Rain 34, I2C 21/22)',
+    target: 'ESP32 DevKit V1 (DHT22 Pin 25, Dual Relay CH1 Pin 26 & CH2 Pin 27, Rain 34, I2C 21/22)',
     libraries: ['DHT sensor library', 'BH1750', 'LiquidCrystal_I2C', 'PubSubClient', 'ArduinoJson (v6/v7)', 'WiFi.h', 'BLEDevice.h', 'Preferences.h'],
     baudrate: 115200,
     code: ESP32_DUAL_MODE_CODE,

@@ -218,7 +218,7 @@
               </div>
               <div class="kpi-val-row">
                 <span class="kpi-status-text" :class="actuators.auxHeaterStatus ? 'text-amber' : 'text-green'">
-                  {{ actuators.auxHeaterStatus ? 'MENYALA' : 'STANDBY' }}
+                  {{ actuators.auxHeaterStatus ? (actuators.heaterCh1Status && actuators.heaterCh2Status ? '2 PEMANAS MENYALA' : (actuators.heaterCh1Status ? 'PEMANAS CH1 AKTIF' : (actuators.heaterCh2Status ? 'PEMANAS CH2 AKTIF' : 'MENYALA'))) : 'STANDBY' }}
                 </span>
               </div>
               <div class="kpi-footer-status">
@@ -336,11 +336,15 @@ const telemetry = ref({
   weightCurrentKg: 126.5,
   isRaining: false,
   heaterStatus: false,
+  heaterCh1Status: false,
+  heaterCh2Status: false,
   heaterReason: null,
 })
 
 const actuators = ref({
   auxHeaterStatus: false,
+  heaterCh1Status: false,
+  heaterCh2Status: false,
   controlMode: 'AUTOMATIC',
 })
 

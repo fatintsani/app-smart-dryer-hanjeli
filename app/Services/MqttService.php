@@ -124,6 +124,25 @@ class MqttService
             }
         }
 
+        // Resolusi status kedua pemanas CH1 (Pin 26) & CH2 (Pin 27)
+        $heaterCh1 = isset($payload['heaterCh1Status'])
+            ? (bool) $payload['heaterCh1Status']
+            : (isset($payload['heater1'])
+                ? (bool) $payload['heater1']
+                : (isset($payload['relayCh1'])
+                    ? (bool) $payload['relayCh1']
+                    : $heaterActive));
+
+        $heaterCh2 = isset($payload['heaterCh2Status'])
+            ? (bool) $payload['heaterCh2Status']
+            : (isset($payload['heater2'])
+                ? (bool) $payload['heater2']
+                : (isset($payload['auxHeater2Status'])
+                    ? (bool) $payload['auxHeater2Status']
+                    : (isset($payload['relayCh2'])
+                        ? (bool) $payload['relayCh2']
+                        : $heaterActive)));
+
         // Resolusi alasan kontrol pemanas (heaterReason) dari ESP32 atau evaluasi sensor
         $incomingReason = $payload['heaterReason'] ?? $payload['heater_reason'] ?? null;
         if (!empty($incomingReason)) {
@@ -144,7 +163,7 @@ class MqttService
             }
         }
 
-        $telemetry = Telemetry::create([
+        $telemetryData = [
             'batch_id' => $batchId,
             'temp_internal' => $tempVal,
             'humidity_internal' => $humVal,
@@ -155,20 +174,52 @@ class MqttService
             'grain_moisture' => (float) ($payload['grainMoisture'] ?? $payload['grain_moisture'] ?? $payload['soil'] ?? 14.0),
             'weight_kg' => (float) ($payload['weightKg'] ?? $payload['weight_kg'] ?? 45.0),
             'heater_status' => $heaterActive,
+            'heater_ch1_status' => $heaterCh1,
+            'heater_ch2_status' => $heaterCh2,
             'heater_reason' => $heaterReason,
             'heater_level' => (int) ($payload['heaterLevel'] ?? $payload['heater_level'] ?? ($heaterActive ? 100 : 0)),
             'exhaust_fan_status' => (bool) ($payload['exhaustFanStatus'] ?? $payload['exhaust_fan_status'] ?? ($payload['fan'] ?? '') === 'ON'),
             'exhaust_fan_speed' => (int) ($payload['exhaustFanSpeed'] ?? $payload['exhaust_fan_speed'] ?? 50),
             'recorded_at' => Carbon::now(),
-        ]);
+        ];
+
+        try {
+            $telemetryCols = \Illuminate\Support\Facades\Schema::hasTable('telemetries')
+                ? \Illuminate\Support\Facades\Schema::getColumnListing('telemetries')
+                : [];
+            $insertData = !empty($telemetryCols)
+                ? array_intersect_key($telemetryData, array_flip($telemetryCols))
+                : $telemetryData;
+            $telemetry = Telemetry::create($insertData);
+        } catch (\Throwable $e) {
+            $telemetry = Telemetry::create([
+                'batch_id' => $batchId,
+                'temp_internal' => $tempVal,
+                'humidity_internal' => $humVal,
+                'heater_status' => $heaterActive,
+                'recorded_at' => Carbon::now(),
+            ]);
+        }
 
         // Sync ActuatorState when system is running in AUTO (non-override) mode
         $actuatorState = ActuatorState::first();
         if ($actuatorState && !$actuatorState->is_override_active) {
-            $actuatorState->update([
+            $actUpdates = [
                 'aux_heater_status' => $heaterActive,
+                'heater_ch1_status' => $heaterCh1,
+                'heater_ch2_status' => $heaterCh2,
+                'aux_heater2_status' => $heaterCh2,
                 'aux_heater_level' => $heaterActive ? 100 : 0,
-            ]);
+            ];
+            try {
+                $actCols = \Illuminate\Support\Facades\Schema::hasTable('actuator_states')
+                    ? \Illuminate\Support\Facades\Schema::getColumnListing('actuator_states')
+                    : [];
+                $cleanActUpdates = !empty($actCols) ? array_intersect_key($actUpdates, array_flip($actCols)) : $actUpdates;
+                $actuatorState->update($cleanActUpdates);
+            } catch (\Throwable $e) {
+                // Ignore if column not found
+            }
         }
 
         // 3. Update Batch Current Metrics & Check Moisture Target
@@ -292,6 +343,10 @@ class MqttService
                 'intakeFanStatus' => (bool) $actuators->intake_fan_status,
                 'circFanStatus' => (bool) $actuators->circ_fan_status,
                 'auxHeaterStatus' => (bool) $actuators->aux_heater_status,
+                'heaterStatus' => (bool) $actuators->aux_heater_status,
+                'heaterCh1Status' => (bool) ($actuators->heater_ch1_status ?? $heaterCh1 ?? $actuators->aux_heater_status),
+                'heaterCh2Status' => (bool) ($actuators->heater_ch2_status ?? $actuators->aux_heater2_status ?? $heaterCh2 ?? $actuators->aux_heater_status),
+                'auxHeater2Status' => (bool) ($actuators->aux_heater2_status ?? $actuators->heater_ch2_status ?? $heaterCh2 ?? $actuators->aux_heater_status),
                 'auxHeaterLevel' => (int) $actuators->aux_heater_level,
                 'isOverrideActive' => (bool) $actuators->is_override_active,
                 'overrideMode' => (string) $actuators->override_mode,

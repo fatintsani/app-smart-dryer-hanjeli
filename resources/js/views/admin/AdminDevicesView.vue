@@ -1412,19 +1412,12 @@
                                         ></span>
                                         <div>
                                             <strong
-                                                >Relai Pemanas Ganda PTC 1 &
-                                                2</strong
+                                                >Relai Pemanas Ganda PTC (CH1 &
+                                                CH2)</strong
                                             >
                                             <p class="sensor-sub-desc">
                                                 Pin: CH1 GPIO 26, CH2 GPIO 27 •
                                                 Kontrol Histeresis (48°C - 50°C)
-                                            </p>
-                                            <strong
-                                                >Relai Pemanas Ruang PTC</strong
-                                            >
-                                            <p class="sensor-sub-desc">
-                                                Pin: GPIO 26 • Kontrol
-                                                Histeresis (48°C - 50°C)
                                             </p>
                                         </div>
                                     </div>
@@ -1433,9 +1426,9 @@
                                     >
                                         {{
                                             telemetry.hasData
-                                                ? telemetry.auxHeaterStatus
-                                                    ? "Pemanas AKTIF (ON)"
-                                                    : "Pemanas STANDBY (OFF)"
+                                                ? (telemetry.heaterCh1Status !== undefined || telemetry.heaterCh2Status !== undefined)
+                                                    ? (telemetry.heaterCh1Status && telemetry.heaterCh2Status ? "CH1: ON • CH2: ON" : (telemetry.heaterCh1Status ? "CH1: ON • CH2: OFF" : (telemetry.heaterCh2Status ? "CH1: OFF • CH2: ON" : "Pemanas STANDBY (OFF)")))
+                                                    : (telemetry.auxHeaterStatus ? "Pemanas AKTIF (ON)" : "Pemanas STANDBY (OFF)")
                                                 : "Siaga"
                                         }}
                                     </span>
@@ -2647,8 +2640,8 @@ const arduinoPrograms = computed(() => [
         filename: "esp32_smart_dryer_physical_fixed.ino",
         badge: "Produksi / Hardware Fix Langsung",
         badgeClass: "badge-prod",
-        desc: "Program resmi mikrokontroler ESP32 untuk hardware greenhouse fisik: Sensor DHT22 (Pin 25), BH1750 I2C (Pin 21/22), Sensor Hujan (Pin 34), Relay PTC Heater (Pin 26), LCD 20x4 I2C (0x27) dengan sinkronisasi waktu NTP WIB (jadwal 18:00 - 05:00 WIB & histeresis otomatis dingin/hujan/lembap) serta proteksi lockout 50°C.",
-        target: "ESP32 DevKit V1 (DHT22 Pin 25, Relay 26, Rain 34, I2C 21/22)",
+        desc: "Program resmi mikrokontroler ESP32 untuk hardware greenhouse fisik: Sensor DHT22 (Pin 25), BH1750 I2C (Pin 21/22), Sensor Hujan (Pin 34), Dual Relay PTC Heater (CH1 Pin 26 & CH2 Pin 27), LCD 20x4 I2C (0x27) dengan sinkronisasi waktu NTP WIB (jadwal 18:00 - 05:00 WIB & histeresis otomatis dingin/hujan/lembap) serta proteksi lockout 50°C.",
+        target: "ESP32 DevKit V1 (DHT22 Pin 25, Dual Relay CH1 Pin 26 & CH2 Pin 27, Rain 34, I2C 21/22)",
         libraries: [
             "DHT sensor library (Adafruit)",
             "BH1750 (Christopher Laws)",
@@ -2740,16 +2733,11 @@ const hardwareCatalog = computed(() => [
     {
         id: "relay-ptc",
         name: "Modul Dual Relay Pemanas Keramik PTC 1 & 2",
-        name: "Modul Relay Pemanas Keramik PTC",
         category: "Aktuator Pemanas Bantu (Auxiliary)",
         purpose:
             "Kontrol otomatis elemen pemanas keramik PTC ganda berbasis histeresis cerdas untuk menjaga kestabilan suhu pengeringan hanjeli.",
-        specs: "Dual Relay 5V/10A Songle, Elemen PTC Ceramic",
+        specs: "Dual Relay 5V/10A Songle, 2x Elemen PTC Ceramic",
         pinout: "Pin CH1 GPIO 26 & CH2 GPIO 27",
-        purpose:
-            "Kontrol otomatis elemen pemanas keramik PTC berbasis histeresis cerdas untuk menjaga kestabilan suhu pengeringan hanjeli.",
-        specs: "Relay 5V/10A Songle, Elemen PTC Ceramic",
-        pinout: "Pin GPIO 26",
         location: "Chamber Pemanas Greenhouse",
         iconType: "relay",
         iconBoxClass: "icon-orange-subtle",

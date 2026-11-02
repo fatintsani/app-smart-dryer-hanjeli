@@ -35,6 +35,10 @@ class ActuatorController extends Controller
             'intakeFanStatus' => $state->intake_fan_status,
             'circFanStatus' => $state->circ_fan_status,
             'auxHeaterStatus' => $state->aux_heater_status,
+            'heaterStatus' => $state->aux_heater_status,
+            'heaterCh1Status' => (bool) ($state->heater_ch1_status ?? $state->aux_heater_status),
+            'heaterCh2Status' => (bool) ($state->heater_ch2_status ?? $state->aux_heater2_status ?? $state->aux_heater_status),
+            'auxHeater2Status' => (bool) ($state->aux_heater2_status ?? $state->heater_ch2_status ?? $state->aux_heater_status),
             'auxHeaterLevel' => $state->aux_heater_level,
             'uvLightStatus' => $state->uv_light_status ?? false,
             'rotaryTrayStatus' => $state->rotary_tray_status ?? false,
@@ -70,6 +74,18 @@ class ActuatorController extends Controller
         if ($request->has('intakeFanStatus')) $updates['intake_fan_status'] = (bool) $request->intakeFanStatus;
         if ($request->has('circFanStatus')) $updates['circ_fan_status'] = (bool) $request->circFanStatus;
 
+        if ($request->has('heaterCh1Status')) {
+            $updates['heater_ch1_status'] = (bool) $request->heaterCh1Status;
+        }
+        if ($request->has('heaterCh2Status')) {
+            $updates['heater_ch2_status'] = (bool) $request->heaterCh2Status;
+            $updates['aux_heater2_status'] = (bool) $request->heaterCh2Status;
+        }
+        if ($request->has('auxHeater2Status')) {
+            $updates['heater_ch2_status'] = (bool) $request->auxHeater2Status;
+            $updates['aux_heater2_status'] = (bool) $request->auxHeater2Status;
+        }
+
         if ($request->has('auxHeaterStatus')) {
             $updates['aux_heater_status'] = (bool) $request->auxHeaterStatus;
         } elseif ($request->has('heaterStatus')) {
@@ -80,6 +96,21 @@ class ActuatorController extends Controller
             $updates['aux_heater_status'] = (bool) $request->heater;
         } elseif ($request->has('aux_heater_status')) {
             $updates['aux_heater_status'] = (bool) $request->aux_heater_status;
+        }
+
+        // Sinkronisasi status master pemanas dan individual saluran CH1 / CH2
+        if (isset($updates['aux_heater_status'])) {
+            if (!isset($updates['heater_ch1_status'])) {
+                $updates['heater_ch1_status'] = $updates['aux_heater_status'];
+            }
+            if (!isset($updates['heater_ch2_status'])) {
+                $updates['heater_ch2_status'] = $updates['aux_heater_status'];
+                $updates['aux_heater2_status'] = $updates['aux_heater_status'];
+            }
+        } elseif (isset($updates['heater_ch1_status']) || isset($updates['heater_ch2_status'])) {
+            $ch1 = $updates['heater_ch1_status'] ?? $state->heater_ch1_status ?? $state->aux_heater_status;
+            $ch2 = $updates['heater_ch2_status'] ?? $state->heater_ch2_status ?? $state->aux_heater_status;
+            $updates['aux_heater_status'] = (bool) ($ch1 || $ch2);
         }
 
         if ($request->has('auxHeaterLevel')) $updates['aux_heater_level'] = (int) $request->auxHeaterLevel;
@@ -97,7 +128,17 @@ class ActuatorController extends Controller
 
         if (!empty($updates)) {
             $updates['updated_by'] = $request->user()?->id;
-            $state->update($updates);
+            try {
+                $tableColumns = \Illuminate\Support\Facades\Schema::hasTable('actuator_states')
+                    ? \Illuminate\Support\Facades\Schema::getColumnListing('actuator_states')
+                    : [];
+                $dbUpdates = !empty($tableColumns)
+                    ? array_intersect_key($updates, array_flip($tableColumns))
+                    : $updates;
+                $state->update($dbUpdates);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('ActuatorState DB update warning: ' . $e->getMessage());
+            }
 
             if (isset($updates['is_override_active']) && $updates['is_override_active']) {
                 $alert = SystemAlert::create([
@@ -121,6 +162,11 @@ class ActuatorController extends Controller
                 'auxHeaterStatus' => (bool) $state->aux_heater_status,
                 'heaterStatus' => (bool) $state->aux_heater_status,
                 'heater' => (bool) $state->aux_heater_status,
+                'heaterCh1Status' => (bool) ($updates['heater_ch1_status'] ?? $state->heater_ch1_status ?? $state->aux_heater_status),
+                'heaterCh2Status' => (bool) ($updates['heater_ch2_status'] ?? $state->heater_ch2_status ?? $state->aux_heater2_status ?? $state->aux_heater_status),
+                'heater1' => (bool) ($updates['heater_ch1_status'] ?? $state->heater_ch1_status ?? $state->aux_heater_status),
+                'heater2' => (bool) ($updates['heater_ch2_status'] ?? $state->heater_ch2_status ?? $state->aux_heater2_status ?? $state->aux_heater_status),
+                'auxHeater2Status' => (bool) ($updates['aux_heater2_status'] ?? $state->aux_heater2_status ?? $state->heater_ch2_status ?? $state->aux_heater_status),
                 'auxHeaterLevel' => (int) $state->aux_heater_level,
                 'uvLightStatus' => (bool) $state->uv_light_status,
                 'rotaryTrayStatus' => (bool) $state->rotary_tray_status,
@@ -140,6 +186,10 @@ class ActuatorController extends Controller
                 'intakeFanStatus' => $state->intake_fan_status,
                 'circFanStatus' => $state->circ_fan_status,
                 'auxHeaterStatus' => $state->aux_heater_status,
+                'heaterStatus' => $state->aux_heater_status,
+                'heaterCh1Status' => (bool) ($updates['heater_ch1_status'] ?? $state->heater_ch1_status ?? $state->aux_heater_status),
+                'heaterCh2Status' => (bool) ($updates['heater_ch2_status'] ?? $state->heater_ch2_status ?? $state->aux_heater2_status ?? $state->aux_heater_status),
+                'auxHeater2Status' => (bool) ($updates['aux_heater2_status'] ?? $state->aux_heater2_status ?? $state->heater_ch2_status ?? $state->aux_heater_status),
                 'auxHeaterLevel' => $state->aux_heater_level,
                 'uvLightStatus' => $state->uv_light_status,
                 'rotaryTrayStatus' => $state->rotary_tray_status,

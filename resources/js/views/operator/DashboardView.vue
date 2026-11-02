@@ -480,7 +480,7 @@
                                         {{
                                             isHardwareActive
                                                 ? isHeaterActive
-                                                    ? "Pemanas Nyala"
+                                                    ? (actuators.heaterCh1Status && actuators.heaterCh2Status ? "2 Pemanas Nyala" : (actuators.heaterCh1Status ? "Pemanas CH1 Nyala" : (actuators.heaterCh2Status ? "Pemanas CH2 Nyala" : "Pemanas Nyala")))
                                                     : "Pemanas Mati"
                                                 : "Menunggu Alat"
                                         }}
@@ -516,11 +516,27 @@
                                     </button>
                                 </div>
                                 <!-- Alasan Otomatisasi Pemanas (Heater Reason) -->
-                                <div class="heater-reason-box" :class="heaterReasonInfo.statusClass">
+                                <div
+                                    class="heater-reason-box"
+                                    :class="heaterReasonInfo.statusClass"
+                                >
                                     <div class="hrb-row">
                                         <span class="hrb-label">Status:</span>
-                                        <strong class="hrb-status-text" :class="isHeaterActive ? 'text-amber' : (heaterReasonInfo.isWarning ? 'text-rose' : 'text-neutral')">
-                                            {{ isHardwareActive ? heaterReasonInfo.statusText : 'MENUNGGU ALAT' }}
+                                        <strong
+                                            class="hrb-status-text"
+                                            :class="
+                                                isHeaterActive
+                                                    ? 'text-amber'
+                                                    : heaterReasonInfo.isWarning
+                                                      ? 'text-rose'
+                                                      : 'text-neutral'
+                                            "
+                                        >
+                                            {{
+                                                isHardwareActive
+                                                    ? heaterReasonInfo.statusText
+                                                    : "MENUNGGU ALAT"
+                                            }}
                                         </strong>
                                     </div>
                                     <div class="hrb-row hrb-reason-row">
@@ -1073,6 +1089,8 @@ const telemetry = ref({
     solarRadiation: 0,
     isRaining: false,
     heaterStatus: false,
+    heaterCh1Status: false,
+    heaterCh2Status: false,
     heaterReason: null,
     grainMoisture: 0,
     weightCurrentKg: 0,
@@ -1082,6 +1100,8 @@ const telemetry = ref({
 
 const actuators = ref({
     auxHeaterStatus: false,
+    heaterCh1Status: false,
+    heaterCh2Status: false,
     controlMode: "AUTOMATIC",
 });
 
@@ -1208,14 +1228,14 @@ const weatherHintText = computed(() => {
 
 function getWibHour() {
     const now = new Date();
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const wib = new Date(utc + (7 * 3600000));
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const wib = new Date(utc + 7 * 3600000);
     return wib.getHours();
 }
 
 const isWithinNtpSchedule = computed(() => {
     const h = getWibHour();
-    return (h >= 18 || h < 5);
+    return h >= 18 || h < 5;
 });
 
 const heaterScheduleHint = computed(() => {
@@ -1250,11 +1270,18 @@ const heaterScheduleHint = computed(() => {
 const heaterReasonInfo = computed(() => {
     return resolveHeaterReason(telemetry.value.heaterReason, {
         isHeaterActive: isHeaterActive.value,
-        tempInternal: isHardwareActive.value ? telemetry.value.tempInternal : null,
-        humidityInternal: isHardwareActive.value ? telemetry.value.humidityInternal : null,
+        tempInternal: isHardwareActive.value
+            ? telemetry.value.tempInternal
+            : null,
+        humidityInternal: isHardwareActive.value
+            ? telemetry.value.humidityInternal
+            : null,
         isRaining: Boolean(telemetry.value.isRaining),
         isWithinNtpSchedule: isWithinNtpSchedule.value,
-        isOverrideActive: Boolean(actuators.value.controlMode === "MANUAL" || actuators.value.isOverrideActive),
+        isOverrideActive: Boolean(
+            actuators.value.controlMode === "MANUAL" ||
+            actuators.value.isOverrideActive,
+        ),
         isHardwareActive: isHardwareActive.value,
     });
 });
@@ -1317,11 +1344,17 @@ async function handleToggleHeater() {
     try {
         await actuatorService.updateStatus({
             auxHeaterStatus: nextStatus,
+            heaterCh1Status: nextStatus,
+            heaterCh2Status: nextStatus,
             isOverrideActive: true,
             overrideMode: "MANUAL",
         });
         telemetry.value.heaterStatus = nextStatus;
+        telemetry.value.heaterCh1Status = nextStatus;
+        telemetry.value.heaterCh2Status = nextStatus;
         actuators.value.auxHeaterStatus = nextStatus;
+        actuators.value.heaterCh1Status = nextStatus;
+        actuators.value.heaterCh2Status = nextStatus;
     } catch (err) {
         console.warn("Gagal mengubah sakelar pemanas:", err);
     } finally {

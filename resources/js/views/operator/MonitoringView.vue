@@ -394,6 +394,8 @@ const telemetry = ref({
   solarRadiation: 0,
   isRaining: false,
   heaterStatus: false,
+  heaterCh1Status: false,
+  heaterCh2Status: false,
   heaterReason: null,
   grainMoisture: 0,
   weightCurrentKg: 0,
@@ -402,6 +404,8 @@ const telemetry = ref({
 
 const actuators = ref({
   auxHeaterStatus: false,
+  heaterCh1Status: false,
+  heaterCh2Status: false,
   controlMode: 'AUTOMATIC',
 })
 
