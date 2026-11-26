@@ -61,11 +61,10 @@ flowchart TB
         Rain Drop (Sensor Presipitasi)
         Grain Moisture Probe (Kadar Air)"]
         ESP32["Mikrokontroler ESP32 Dual-Core 240MHz"]
-        Actuators["Relay 4-Channel:
-        - Exhaust Fan (Pembuang Lembap)
-        - Intake Fan (Udara Segar)
-        - Circulation Fan (Sirkulasi)
-        - Pemanas Keramik PTC"]
+        Actuators["Modul Aktuator:
+        - Relay CH1: Pemanas PTC 1 (GPIO 26)
+        - Relay CH2: Pemanas PTC 2 (GPIO 27)
+        - Extended: Exhaust & Circulation Fans"]
         LCD["Display LCD 20x4 I2C"]
         
         Sensors -->|GPIO / I2C / ADC| ESP32
@@ -132,16 +131,21 @@ Firmware mikrokontroler menggunakan board **ESP32-WROOM-32** (Dual-Core Tensilic
 | **BH1750 (Clock)** | I2C Clock (SCL) | `GPIO 22` | `I2C` | Sinyal clock bus I2C BH1750 dan LCD 20x4. |
 | **Rain Drop Sensor** | Analog ADC | `GPIO 34` | `ANALOG (ADC1_CH6)`| Deteksi presipitasi air hujan pada atap. Nilai ADC: $0$ (Basah Ekstrem) s.d. $4095$ (Kering). Threshold hujan: $< 2000$. |
 | **LCD 20x4 I2C** | I2C Bus | `GPIO 21, 22` | `I2C` | Penampil diagnostik lokal 4 baris 20 karakter. Address I2C: `0x27`. |
-| **Relay 1 — Pemanas PTC 1** | Digital Output | `GPIO 26` | `OUTPUT` | Saklar Pemanas Keramik PTC Saluran 1 (Active-Low / Active-High relay). |
-| **Relay 2 — Pemanas PTC 2** | Digital Output | `GPIO 27` | `OUTPUT` | Saklar Pemanas Keramik PTC Saluran 2. |
-| **Relay 3 — Exhaust Fan** | Digital / PWM | `GPIO 14` | `OUTPUT` | Saklar Kipas Pembuang Uap Udara Lembap ke luar greenhouse. |
-| **Relay 4 — Circulation Fan**| Digital Output | `GPIO 12` | `OUTPUT` | Saklar Kipas Perata Suhu & Sirkulasi Internal Ruang. |
+| **Relay CH1 — Pemanas PTC 1** | Digital Output | `GPIO 26` | `OUTPUT` | Saklar Pemanas Keramik PTC Saluran 1 (Utama). |
+| **Relay CH2 — Pemanas PTC 2** | Digital Output | `GPIO 27` | `OUTPUT` | Saklar Pemanas Keramik PTC Saluran 2 (Bantu / Sekunder). |
+| **Relay Extended — Exhaust Fan** | Digital / PWM | `GPIO 14` | `OUTPUT` | Saklar Kipas Pembuang Uap Udara Lembap ke luar greenhouse (Opsional). |
+| **Relay Extended — Circulation Fan**| Digital Output | `GPIO 12` | `OUTPUT` | Saklar Kipas Perata Suhu & Sirkulasi Internal Ruang (Opsional). |
 
-### Logika Safety Cutoff Pemanas PTC:
-Untuk menjamin keamanan termal dan mencegah risiko kebakaran atau kerusakan biji hanjeli:
-1. **Auto ON**: Pemanas aktif jika Suhu Ruang $< 40.0^\circ\text{C}$ dan Kelembaban Ruang $> 60\%$ (saat batch berstatus `ACTIVE`).
-2. **Auto OFF**: Pemanas wajib dimatikan seketika saat Suhu Ruang $\ge 55.0^\circ\text{C}$.
-3. **Emergency Interlock**: Jika terjadi kegagalan pembacaan sensor DHT22 sebanyak 3 siklus berturut-turut (nilai bernilai `NaN`), mikrokontroler secara otomatis memutus relay pemanas seketika.
+### Logika Safety Cutoff Pemanas PTC & Jadwal Operasional:
+Untuk menjamin mutu pengeringan hanjeli dan kepatuhan standar keselamatan termal:
+1. **Safety Cutoff / Lockout Termal**: Pemanas **wajib MATI (OFF)** seketika saat Suhu Ruang $\ge 50.0^\circ\text{C}$ (fail-safe over-temperature protection). Pemanas baru dapat diizinkan aktif kembali setelah suhu mendingin hingga $\le 48.0^\circ\text{C}$ (histeresis pengaman $2.0^\circ\text{C}$).
+2. **Jadwal Operasional Otomatis (NTP WIB)**: Pemanas beroperasi secara otomatis pada siklus malam hari (pukul **18:00 hingga sebelum 05:00 WIB**).
+3. **Pemicu Iklim Mikro Otomatis**: Di dalam siklus pengeringan aktif, pemanas otomatis menyala jika:
+   - Terdeteksi hujan (`isRaining = true` / ADC $< 2000$).
+   - Suhu udara dingin di bawah ambang batas ($\le 35.0^\circ\text{C}$).
+   - Kelembaban udara jenuh ($\ge 70.0\%$).
+4. **Emergency Interlock**: Jika terjadi kegagalan pembacaan sensor DHT22 sebanyak 3 siklus berturut-turut (nilai bernilai `NaN`), mikrokontroler secara otomatis memutus seluruh relay pemanas seketika.
+5. **Dual-Channel Override**: Operator dan administrator dapat mengendalikan Saluran 1 (`GPIO 26`) dan Saluran 2 (`GPIO 27`) secara mandiri maupun secara serentak melalui tombol *Master Aux Heater* di antarmuka web.
 
 ---
 
@@ -158,7 +162,7 @@ Sistem menerapkan prinsip *Redundant Communication Pipeline* untuk menjamin data
 #### Payload Format — Telemetri Masuk (ESP32 $\rightarrow$ Server):
 ```json
 {
-  "deviceId": "ESP32-HANJELI-01",
+  "deviceId": "SRD-001",
   "tempInternal": 48.5,
   "humidityInternal": 42.0,
   "tempExternal": 31.2,
@@ -170,6 +174,9 @@ Sistem menerapkan prinsip *Redundant Communication Pipeline* untuk menjamin data
   "intakeFan": false,
   "circFan": true,
   "auxHeater": false,
+  "heaterCh1Status": false,
+  "heaterCh2Status": false,
+  "isRaining": false,
   "batteryLevel": 98,
   "timestamp": 1725883200
 }
@@ -178,13 +185,14 @@ Sistem menerapkan prinsip *Redundant Communication Pipeline* untuk menjamin data
 #### Payload Format — Kontrol Aktuator (Server $\rightarrow$ ESP32):
 ```json
 {
-  "target": "EXHAUST_FAN",
+  "target": "HEATER_CH1",
   "state": true,
-  "speed": 80,
+  "speed": 100,
   "mode": "MANUAL",
   "timestamp": 1725883200
 }
 ```
+*(Atau format batch: `{"auxHeaterStatus":true,"heaterCh1Status":true,"heaterCh2Status":false,"overrideMode":"MANUAL"}`)*
 
 ---
 
@@ -336,7 +344,10 @@ erDiagram
         float grain_moisture
         float weight_kg
         boolean heater_status
+        boolean heater_ch1_status
+        boolean heater_ch2_status
         boolean exhaust_fan_status
+        boolean is_raining
         timestamp recorded_at
     }
 
@@ -347,6 +358,8 @@ erDiagram
         boolean intake_fan_status
         boolean circ_fan_status
         boolean aux_heater_status
+        boolean heater_ch1_status
+        boolean heater_ch2_status
         string override_mode "AUTO | MANUAL"
         bigint updated_by FK
     }

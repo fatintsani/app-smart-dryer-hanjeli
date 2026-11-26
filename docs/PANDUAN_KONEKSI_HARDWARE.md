@@ -60,24 +60,30 @@ graph TD
 
 ### Komponen yang Digunakan
 1. **Mikrokontroler**: ESP32 DevKit V1 (30-pin atau 38-pin).
-2. **Sensor Suhu & Kelembaban Ruang**: DHT22 (AM2302) atau SHT31.
-3. **Sensor Kadar Air Gabah / Analog**: Moisture Probe / Soil & Grain Moisture Sensor.
-4. **Modul Aktuator**: Modul Relay 4-Channel 5V (Active LOW).
-5. **Catu Daya**: Adaptor DC 5V 2A / Step-down Buck Converter LM2596.
+2. **Sensor Suhu & Kelembaban Ruang**: DHT22 (AM2302) pada `GPIO 25`.
+3. **Sensor Intensitas Cahaya / Surya**: BH1750 (I2C SDA `GPIO 21`, SCL `GPIO 22`).
+4. **Sensor Presipitasi Hujan**: Rain Drop Sensor Analog (ADC1 `GPIO 34`).
+5. **Display Diagnostik Lokal**: LCD 20x4 I2C (`GPIO 21/22`, Alamat `0x27`).
+6. **Modul Aktuator**: Modul Relay Dual-Channel / 4-Channel 5V (Active LOW):
+   - Relay CH1 (`GPIO 26`): Pemanas Keramik PTC Saluran 1 (Utama)
+   - Relay CH2 (`GPIO 27`): Pemanas Keramik PTC Saluran 2 (Bantu)
+   - Extended: Kipas Exhaust (`GPIO 14`) & Kipas Sirkulasi (`GPIO 12`)
+7. **Catu Daya**: Adaptor DC 5V 2A / Step-down Buck Converter LM2596.
 
 ### Tabel Pinout ESP32
 
 | Komponen Hardware | Pin Komponen | Pin ESP32 (GPIO) | Catatan Khusus |
 | :--- | :--- | :--- | :--- |
-| **Sensor DHT22** | VCC | **3V3 / 5V** | Hubungkan ke sumber daya stabil |
-| | DATA | **GPIO 4** | Tambahkan resistor pull-up 10kΩ ke VCC |
-| | GND | **GND** | Ground bersama |
-| **Relay 1 (Exhaust Fan)** | IN 1 | **GPIO 18** | Mengendalikan blower pembuang udara lembab |
-| **Relay 2 (Intake Fan)** | IN 2 | **GPIO 19** | Mengendalikan kipas pemasok udara segar |
-| **Relay 3 (Circulation Fan)**| IN 3 | **GPIO 21** | Mengendalikan kipas perata panas ruangan |
-| **Relay 4 (Heater PTC)** | IN 4 | **GPIO 22** | Mengendalikan elemen pemanas listrik bantuan |
-| **Relay VCC & GND** | VCC / GND | **5V / GND** | Sebaiknya gunakan catu daya eksternal 5V untuk relay |
-| **Sensor Moisture (ADC)** | AOUT | **GPIO 34** | Pin Analog Input Only (ADC1) |
+| **Sensor DHT22** | VCC / GND | **3V3 / GND** | Hubungkan ke sumber daya stabil 3.3V |
+| | DATA | **GPIO 25** | Jalur One-Wire (Pull-up 10kΩ) |
+| **Sensor Cahaya BH1750** | SDA / SCL | **GPIO 21 / 22** | Bus I2C (Address default `0x23`) |
+| **Layar LCD 20x4 I2C** | SDA / SCL | **GPIO 21 / 22** | Bus I2C (Address default `0x27`) |
+| **Sensor Hujan (Rain Drop)** | AOUT | **GPIO 34** | Input ADC1 (Threshold < 2000 = Hujan) |
+| **Relay CH1 (Pemanas PTC 1)** | IN 1 | **GPIO 26** | Mengendalikan Pemanas Keramik PTC Saluran 1 (Utama) |
+| **Relay CH2 (Pemanas PTC 2)** | IN 2 | **GPIO 27** | Mengendalikan Pemanas Keramik PTC Saluran 2 (Bantu) |
+| **Relay Extended (Exhaust Fan)** | IN 3 | **GPIO 14** | Mengendalikan blower pembuang udara lembab (opsional) |
+| **Relay Extended (Circ Fan)** | IN 4 | **GPIO 12** | Mengendalikan kipas perata panas ruangan (opsional) |
+| **Relay VCC & GND** | VCC / GND | **5V / GND** | Gunakan catu daya eksternal 5V terisolasi untuk relay |
 | **LED Indikator Status** | Anoda (+) | **GPIO 2** | LED Onboard ESP32 untuk indikator koneksi |
 
 ---
@@ -119,24 +125,24 @@ const char* TOPIC_CONTROL   = "hanjeli/greenhouse/control";   // Penerimaan kont
 // ==============================================================================
 // 2. PIN HARDWARE & SENSOR
 // ==============================================================================
-#define DHTPIN 4
+#define DHTPIN 25
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-#define SENSOR_MOISTURE_ADC 34
+#define SENSOR_RAIN_ADC 34
+#define STATUS_LED       2
 
-// Pin Relay (Umumnya Active-LOW: LOW = ON, HIGH = OFF)
-#define RELAY_EXHAUST_FAN  18
-#define RELAY_INTAKE_FAN   19
-#define RELAY_CIRC_FAN     21
-#define RELAY_HEATER       22
-#define STATUS_LED          2
+// Pin Relay Dual Pemanas PTC (Active-LOW: LOW = ON, HIGH = OFF)
+#define RELAY_CH1       26     // Relay Channel 1: Pemanas PTC Saluran 1 (Utama)
+#define RELAY_CH2       27     // Relay Channel 2: Pemanas PTC Saluran 2 (Bantu)
 
 // Status Aktual Aktuator
-bool stateExhaust = false;
-bool stateIntake  = false;
-bool stateCirc    = false;
-bool stateHeater  = false;
+bool stateHeaterCh1 = false;
+bool stateHeaterCh2 = false;
+bool stateAuxHeater = false;
+bool stateExhaust   = false;
+bool stateIntake    = false;
+bool stateCirc      = false;
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -149,10 +155,8 @@ const unsigned long SEND_INTERVAL = 3000; // Interval pengiriman: tiap 3 detik
 // ==============================================================================
 void applyRelays() {
   // Relay Active-LOW logic
-  digitalWrite(RELAY_EXHAUST_FAN, stateExhaust ? LOW : HIGH);
-  digitalWrite(RELAY_INTAKE_FAN,  stateIntake  ? LOW : HIGH);
-  digitalWrite(RELAY_CIRC_FAN,    stateCirc    ? LOW : HIGH);
-  digitalWrite(RELAY_HEATER,      stateHeater  ? LOW : HIGH);
+  digitalWrite(RELAY_CH1, stateHeaterCh1 ? LOW : HIGH);
+  digitalWrite(RELAY_CH2, stateHeaterCh2 ? LOW : HIGH);
 }
 
 // ==============================================================================
@@ -174,22 +178,32 @@ void mqttCallback(char* topic, byte* message, unsigned int length) {
     return;
   }
 
-  // 1. Format Perintah Single Target: {"target":"EXHAUST_FAN","state":true}
+  // 1. Format Perintah Single Target: {"target":"HEATER_CH1","state":true}
   if (doc.containsKey("target")) {
     String target = doc["target"].as<String>();
     bool state = doc["state"].as<bool>();
 
-    if (target == "EXHAUST_FAN")      stateExhaust = state;
-    else if (target == "INTAKE_FAN")  stateIntake  = state;
-    else if (target == "CIRC_FAN")    stateCirc    = state;
-    else if (target == "AUX_HEATER")  stateHeater  = state;
+    if (target == "HEATER_CH1" || target == "HEATER_1") {
+      stateHeaterCh1 = state;
+      stateAuxHeater = stateHeaterCh1 || stateHeaterCh2;
+    } else if (target == "HEATER_CH2" || target == "HEATER_2") {
+      stateHeaterCh2 = state;
+      stateAuxHeater = stateHeaterCh1 || stateHeaterCh2;
+    } else if (target == "AUX_HEATER") {
+      stateAuxHeater = state;
+      stateHeaterCh1 = state;
+      stateHeaterCh2 = state;
+    } else if (target == "EXHAUST_FAN") {
+      stateExhaust = state;
+    } else if (target == "CIRC_FAN") {
+      stateCirc = state;
+    }
   }
-  // 2. Format Perintah Batch Status: {"exhaustFanStatus":true,"intakeFanStatus":false,...}
-  else if (doc.containsKey("exhaustFanStatus")) {
-    stateExhaust = doc["exhaustFanStatus"];
-    stateIntake  = doc["intakeFanStatus"];
-    stateCirc    = doc["circFanStatus"];
-    stateHeater  = doc["auxHeaterStatus"];
+  // 2. Format Perintah Batch Status: {"heaterCh1Status":true,"heaterCh2Status":false,...}
+  else if (doc.containsKey("heaterCh1Status") || doc.containsKey("auxHeaterStatus")) {
+    if (doc.containsKey("heaterCh1Status")) stateHeaterCh1 = doc["heaterCh1Status"];
+    if (doc.containsKey("heaterCh2Status")) stateHeaterCh2 = doc["heaterCh2Status"];
+    if (doc.containsKey("auxHeaterStatus")) stateAuxHeater = doc["auxHeaterStatus"];
   }
 
   // Terapkan perubahan ke pin relay
@@ -256,10 +270,8 @@ void setup() {
   dht.begin();
 
   pinMode(STATUS_LED, OUTPUT);
-  pinMode(RELAY_EXHAUST_FAN, OUTPUT);
-  pinMode(RELAY_INTAKE_FAN, OUTPUT);
-  pinMode(RELAY_CIRC_FAN, OUTPUT);
-  pinMode(RELAY_HEATER, OUTPUT);
+  pinMode(RELAY_CH1, OUTPUT);
+  pinMode(RELAY_CH2, OUTPUT);
 
   // Default awal semua relay mati (HIGH pada active-low)
   applyRelays();
@@ -293,10 +305,17 @@ void loop() {
         if (sDoc.containsKey("target")) {
           String target = sDoc["target"].as<String>();
           bool state = sDoc["state"].as<bool>();
-          if (target == "EXHAUST_FAN")     stateExhaust = state;
-          else if (target == "INTAKE_FAN") stateIntake  = state;
-          else if (target == "CIRC_FAN")   stateCirc    = state;
-          else if (target == "AUX_HEATER") stateHeater  = state;
+          if (target == "HEATER_CH1" || target == "HEATER_1") {
+            stateHeaterCh1 = state;
+            stateAuxHeater = stateHeaterCh1 || stateHeaterCh2;
+          } else if (target == "HEATER_CH2" || target == "HEATER_2") {
+            stateHeaterCh2 = state;
+            stateAuxHeater = stateHeaterCh1 || stateHeaterCh2;
+          } else if (target == "AUX_HEATER") {
+            stateAuxHeater = state;
+            stateHeaterCh1 = state;
+            stateHeaterCh2 = state;
+          }
           applyRelays();
         }
       }
@@ -318,10 +337,9 @@ void loop() {
       h = 52.0;
     }
 
-    // 2. Pembacaan Moisture Analog (Gabah Hanjeli)
-    int rawMoisture = analogRead(SENSOR_MOISTURE_ADC);
-    float grainMoisture = map(rawMoisture, 4095, 1200, 100, 300) / 10.0;
-    if (grainMoisture < 10.0 || grainMoisture > 40.0) grainMoisture = 14.5;
+    // 2. Pembacaan Sensor Hujan Analog
+    int rawRain = analogRead(SENSOR_RAIN_ADC);
+    bool isRaining = (rawRain < 2000);
 
     // 3. Serialisasi Format JSON Telemetri
     StaticJsonDocument<512> doc;
@@ -331,12 +349,15 @@ void loop() {
     doc["tempExternal"]     = 30.2;
     doc["humidityExternal"] = 68.0;
     doc["solarRadiation"]   = 740;
-    doc["grainMoisture"]    = grainMoisture;
+    doc["grainMoisture"]    = 14.5;
     doc["weightKg"]         = 45.0;
     doc["exhaustFan"]       = stateExhaust;
     doc["intakeFan"]        = stateIntake;
     doc["circFan"]          = stateCirc;
-    doc["auxHeater"]        = stateHeater;
+    doc["auxHeater"]        = stateAuxHeater;
+    doc["heaterCh1Status"]  = stateHeaterCh1;
+    doc["heaterCh2Status"]  = stateHeaterCh2;
+    doc["isRaining"]        = isRaining;
 
     char jsonOutput[512];
     serializeJson(doc, jsonOutput);
@@ -451,14 +472,16 @@ Metode tercepat (*plug-and-play*) untuk kalibrasi teknis di meja operator:
 
 Setelah salah satu metode koneksi di atas terhubung, lakukan uji coba kendali perangkat keras:
 
-1. Buka menu **Kontrol Aktuator** di halaman dashboard web.
+1. Buka kartu **Kontrol Aktuator** di halaman Dashboard atau Monitoring.
 2. Ubah mode kontrol dari **AUTO** menjadi **MANUAL**.
-3. Klik saklar togol pada **Exhaust Fan**:
-   - **Di Web**: Indikator relay exhaust fan berubah warna menjadi menyala (hijau/biru).
-   - **Di Hardware**: Modul Relay 1 (GPIO 18) akan mengeluarkan bunyi klik (*cetik*) dan lampu LED indikator relay akan menyala.
-4. Klik saklar togol pada **Pemanas Bantu (Heater)**:
-   - Modul Relay 4 (GPIO 22) akan aktif seketika.
-5. Uji tombol **Emergency Cut-Off**: seluruh relay akan dipadamkan seketika demi keselamatan kerja greenhouse.
+3. Klik saklar togol pada **Pemanas Ruang Saluran 1**:
+   - **Di Web**: Indikator relay Saluran 1 berubah warna menjadi aktif (merah/oranye).
+   - **Di Hardware**: Modul Relay CH1 (GPIO 26) mengeluarkan bunyi klik (*cetik*) dan lampu LED indikator relay menyala, mengalirkan arus ke Pemanas PTC 1.
+4. Klik saklar togol pada **Pemanas Ruang Saluran 2**:
+   - Modul Relay CH2 (GPIO 27) akan aktif seketika untuk pemanas cadangan.
+5. Klik saklar master **Auxiliary Heater**:
+   - Menyalakan atau mematikan kedua saluran pemanas secara simultan.
+6. Uji tombol **Safety Cut-Off**: seluruh relay pemanas akan dipadamkan seketika (terkunci otomatis jika suhu $\ge 50.0^\circ\text{C}$).
 
 ---
 
@@ -488,7 +511,7 @@ Setelah salah satu metode koneksi di atas terhubung, lakukan uji coba kendali pe
 
 ## 🔗 Referensi File Terkait
 
-- [esp32_smart_dryer_dual_mode.ino](file:///d:/INTERN/Green%20House%20Hanjeli%20Smart%20Dryer/WEBSITE/app-smart-dryer-hanjeli/docs/esp32_smart_dryer_dual_mode/esp32_smart_dryer_dual_mode.ino) — Source code lengkap firmware ESP32
+- [esp32_smart_dryer_hardware.ino](file:///d:/INTERN/Green%20House%20Hanjeli%20Smart%20Dryer/WEBSITE/app-smart-dryer-hanjeli/docs/esp32_smart_dryer_hardware/esp32_smart_dryer_hardware.ino) — Source code lengkap firmware ESP32 (Dual PTC Heater Relay CH1 GPIO 26 & CH2 GPIO 27)
 - [GreenhouseMqttWorker.php](file:///d:/INTERN/Green%20House%20Hanjeli%20Smart%20Dryer/WEBSITE/app-smart-dryer-hanjeli/app/Console/Commands/GreenhouseMqttWorker.php) — Daemon MQTT Worker di Laravel
 - [connectionManager.js](file:///d:/INTERN/Green%20House%20Hanjeli%20Smart%20Dryer/WEBSITE/app-smart-dryer-hanjeli/resources/js/services/connectionManager.js) — Unified Connection State Manager Frontend
 - [DOKUMENTASI_SISTEM.md](file:///d:/INTERN/Green%20House%20Hanjeli%20Smart%20Dryer/WEBSITE/app-smart-dryer-hanjeli/docs/DOKUMENTASI_SISTEM.md) — Arsitektur teknis menyeluruh sistem

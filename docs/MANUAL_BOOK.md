@@ -429,9 +429,9 @@ Panel kendali aktuator dapat dioperasikan dalam dua mode utama:
 #### 1. Mode Otomatis (Algoritma Histeresis Cerdas - Direkomendasikan)
 - **Kipas Pembuang Lembap (Exhaust Fan)**: Otomatis menyala saat kelembaban udara ruang $> 60\%$ untuk mengeluarkan uap air jenuh hasil penguapan biji ke luar ruangan.
 - **Kipas Sirkulasi Ruang (Circulation Fan)**: Berputar kontinu untuk meratakan distribusi udara panas dari atap polikarbonat ke seluruh rak baki biji.
-- **Pemanas Bantu Keramik PTC (Auxiliary Heater)**:
-  - Menyala otomatis jika suhu ruangan turun di bawah $38^\circ\text{C}$ (misal saat hujan lebat atau malam hari).
-  - **Fitur Proteksi Suhu Kritis (*Safety Interlock Cut-off*)**: Jika suhu ruang menyentuh $\ge 50^\circ\text{C} - 55^\circ\text{C}$, sistem server dan mikrokontroler ESP32 secara instan memutus aliran listrik ke pemanas PTC dan membuka kipas exhaust secara penuh untuk mencegah kerusakan gabah.
+- **Pemanas Bantu Keramik PTC (Auxiliary Heater — Dual Relay CH1 GPIO 26 & CH2 GPIO 27)**:
+  - Menyala otomatis pada jadwal operasional malam (pukul 18:00 - 05:00 WIB) atau jika suhu ruangan dingin ($\le 35.0^\circ\text{C}$), kelembaban tinggi ($\ge 70\%$), atau saat terdeteksi presipitasi hujan.
+  - **Fitur Proteksi Suhu Kritis (*Safety Interlock Cut-off*)**: Jika suhu ruang menyentuh $\ge 50.0^\circ\text{C}$, sistem server dan mikrokontroler ESP32 secara instan memutus aliran listrik ke pemanas PTC (*Safety Lockout*) dan baru mengizinkan pemulihan jika suhu turun $\le 48.0^\circ\text{C}$ untuk mencegah kerusakan gabah.
 
 #### 2. Mode Manual (Intervensi Teknisi / Operator)
 - Klik toggle saklar ke posisi **MANUAL**.

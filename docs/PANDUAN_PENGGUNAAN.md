@@ -198,19 +198,19 @@ Komponen kendali aktuator dapat diakses dari dashboard maupun halaman monitoring
 │                                                        │
 │  4. Pemanas Bantu Keramik PTC (Auxiliary Heater)       │
 │     Saluran 1: [ OFF ]   Saluran 2: [ OFF ]            │
-│     Suhu Ruang Saat Ini: 48.5°C (Ambang Cutoff: 55°C)  │
+│     Suhu Ruang: 43.5°C (Safety Cutoff: 50°C / Rec: 48°C)│
 └────────────────────────────────────────────────────────┘
 ```
 
 #### Cara Mengoperasikan:
 1. **Mode OTOMATIS (Direkomendasikan)**:
    - Sistem mikrokontroler & server secara otomatis menyalakan Kipas Exhaust saat kelembaban ruang $> 65\%$ untuk mengeluarkan uap air jenuh.
-   - Pemanas PTC otomatis menyala jika suhu ruang turun di bawah $40^\circ\text{C}$ (misal saat hujan atau malam hari).
-   - Fitur keamanan (*safety interlock*): Pemanas otomatis diputus (*OFF*) seketika jika suhu menembus $55.0^\circ\text{C} - 60.0^\circ\text{C}$ untuk mencegah biji gosong atau retak.
+   - Pemanas PTC otomatis menyala pada jadwal operasional malam (pukul **18:00 - 05:00 WIB**) atau jika suhu ruang turun dingin ($\le 35.0^\circ\text{C}$) / terdeteksi presipitasi hujan.
+   - Fitur keamanan (*safety interlock*): Pemanas otomatis diputus (*OFF*) seketika jika suhu menembus $\ge 50.0^\circ\text{C}$ dan baru diizinkan aktif kembali setelah suhu turun $\le 48.0^\circ\text{C}$ untuk mencegah biji hanjeli gosong atau rusak.
 2. **Mode MANUAL (Override Operator)**:
    - Klik tombol **MANUAL**.
    - Operator dapat menyalakan/mematikan saklar relay masing-masing kipas dan mengatur slider kecepatan kipas ($0\% - 100\%$).
-   - Operator dapat mengaktifkan Pemanas Keramik PTC secara mandiri jika diperlukan pemanasan intensif.
+   - Operator dapat mengaktifkan Pemanas Keramik PTC Saluran 1 (`GPIO 26`) dan Saluran 2 (`GPIO 27`) secara mandiri atau serentak (*Master Aux Heater*).
 
 ---
 
@@ -392,7 +392,7 @@ Modul terpadu pengawasan keamanan, firmware, sensor, dan aktuator mikrokontroler
 
 7. **Sub-Modul 7: Program Arduino / Source Code ESP32 (2) (`arduino`)**:
    - Menyediakan tampilan kode sumber firmware C++ mikrokontroler secara langsung di peramban:
-     - `esp32_smart_dryer_dual_mode.ino`: Firmware utama produksi greenhouse.
+     - `esp32_smart_dryer_hardware.ino`: Firmware utama produksi greenhouse.
      - `esp32_smart_dryer_simulator.ino`: Firmware pengujian dan simulasi laboratorium.
    - Tersedia tombol **Salin Kode** dan **Unduh File .ino** untuk mempermudah teknisi saat flashing via Arduino IDE atau PlatformIO.
 
@@ -420,8 +420,8 @@ Sistem mengadopsi integrasi multi-saluran terpadu:
 
 ### 7.5. Pengaturan Master Parameter & Ambang Batas (`/admin/parameters` atau `/settings`)
 Pengaturan nilai batas toleransi yang mengatur seluruh otomatisasi sistem:
-- **Ambang Suhu Aman Maksimum (`max_safe_temp`)**: Default `55.0°C`. Jika suhu melewati angka ini, sistem otomatis mematikan pemanas PTC dan menyalakan kipas exhaust $100\%$ serta mengirim notifikasi bahaya.
-- **Ambang Suhu Minimum (`min_safe_temp`)**: Default `35.0°C`. Jika suhu di bawah batas ini saat siang hari, pemanas tambahan dapat dipicu aktif.
+- **Ambang Suhu Aman Maksimum (`max_safe_temp`)**: Default `50.0°C - 55.0°C`. Jika suhu mencapai $\ge 50.0^\circ\text{C}$, sistem otomatis mematikan pemanas PTC (*Safety Lockout*), menyalakan kipas exhaust $100\%$, serta mengirim notifikasi bahaya. Pemanas baru dapat aktif kembali jika suhu $\le 48.0^\circ\text{C}$.
+- **Ambang Suhu Minimum (`min_safe_temp`)**: Default `35.0°C`. Jika suhu di bawah batas ini saat operasional atau cuaca dingin, pemanas tambahan dapat dipicu aktif.
 - **Target Kadar Air Default (`target_moisture_default`)**: Default `12.0%`.
 - **Interval Pengambilan Sampel (`sampling_interval_seconds`)**: Default `5 detik`.
 - **Konfigurasi MQTT Broker**: Host (`broker.hivemq.com` atau broker lokal), Port (`1883`), dan root topik.

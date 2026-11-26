@@ -28,7 +28,7 @@ Panduan production Docker (PHP 8.4, MySQL 8.4, Reverb, MQTT, queue dan scheduler
   <img src="https://img.shields.io/badge/Tailwind_CSS-4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" />
   <img src="https://img.shields.io/badge/Laravel_Reverb-WebSocket-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel Reverb" />
   <img src="https://img.shields.io/badge/MQTT-HiveMQ%20%2F%20Mosquitto-660066?style=for-the-badge&logo=eclipsemosquitto&logoColor=white" alt="MQTT Protocol" />
-  <img src="https://img.shields.io/badge/ESP32-Dual_Mode_IoT-E7352C?style=for-the-badge&logo=espressif&logoColor=white" alt="ESP32 Dual-Mode" />
+  <img src="https://img.shields.io/badge/ESP32-Smart_Dryer_IoT-E7352C?style=for-the-badge&logo=espressif&logoColor=white" alt="ESP32 Smart Dryer IoT" />
   <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions CI/CD" />
   <img src="https://img.shields.io/badge/PWA-Ready-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA Ready" />
 </p>
@@ -81,7 +81,7 @@ Aplikasi ini hadir sebagai solusi holistik dengan mengintegrasikan:
 
 ### ⚙️ 2. Smart Climate Automation & Manual Overrides
 - **Multi-Fan Control**: Kendali terpisah untuk *Exhaust Fan*, *Intake Fan*, dan *Circulation Fan* dengan dukungan tingkat kecepatan variabel (PWM 0-100%).
-- **Auxiliary Heater Automation**: Pemanas cadangan otomatis aktif saat malam hari atau cuaca hujan ketika suhu ruang berada di bawah target setpoint ($45^\circ\text{C} - 55^\circ\text{C}$) dengan proteksi *safety interlock cutoff* seketika jika suhu $\ge 55^\circ\text{C} - 60^\circ\text{C}$.
+- **Auxiliary Heater Automation**: Pemanas cadangan otomatis aktif saat malam hari (jadwal NTP 18:00 - 05:00 WIB) atau kondisi cuaca hujan/dingin ($\le 35^\circ\text{C}$ / RH $\ge 70\%$) dengan kendali ganda Dual Relay (Saluran 1 GPIO 26 & Saluran 2 GPIO 27) serta proteksi *safety interlock cutoff* seketika jika suhu $\ge 50.0^\circ\text{C}$ (recovery $\le 48.0^\circ\text{C}$).
 - **Dual Mode Operation**: Pengalihan fleksibel antara mode **OTOMATIS** (berbasis *threshold rules*) dan mode **MANUAL** (kendali langsung oleh operator).
 
 ### 🌾 3. Manajemen Siklus Batch Pengeringan & Kinetika ETA
@@ -265,10 +265,11 @@ app-smart-dryer-hanjeli/
 │   └── seeders/                        # Data awal akun admin/operator & batch demo
 ├── docs/
 │   ├── README.md                       # Indeks dokumentasi resmi sistem
+│   ├── DOKUMEN_HKI.md                  # Dokumen pendaftaran Hak Cipta / HKI (DJKI Kemenkumham RI)
 │   ├── PANDUAN_PENGGUNAAN.md           # Panduan lengkap pengguna (User Manual Operator/Admin/Petani)
 │   ├── DOKUMENTASI_SISTEM.md           # Dokumentasi arsitektur teknis, hardware, API & deployment
 │   ├── DESIGN.md                       # Standarisasi Zero-Shadow UI/UX Design System
-│   ├── esp32_smart_dryer_dual_mode/    # Source code firmware ESP32 lengkap (WiFi, MQTT, BLE, Serial)
+│   ├── esp32_smart_dryer_hardware/     # Source code firmware ESP32 lengkap (WiFi, MQTT, Dual Relay PTC, LCD, Sensor)
 │   └── esp32_smart_dryer_simulator/   # Firmware simulator ESP32 untuk pengujian
 ├── resources/
 │   ├── css/
@@ -454,7 +455,7 @@ Setelah menjalankan `php artisan migrate --seed`, akun demo berikut siap digunak
 
 ## 🔌 Integrasi Hardware ESP32 & Pinout
 
-Firmware ESP32 lengkap tersedia di folder [`docs/esp32_smart_dryer_dual_mode/`](docs/esp32_smart_dryer_dual_mode/).
+Firmware ESP32 lengkap tersedia di folder [`docs/esp32_smart_dryer_hardware/`](docs/esp32_smart_dryer_hardware/).
 
 ### Tabel Konfigurasi Pinout ESP32:
 | Perangkat / Sensor | Tipe Sinyal | Pin ESP32 | Keterangan |
@@ -462,14 +463,16 @@ Firmware ESP32 lengkap tersedia di folder [`docs/esp32_smart_dryer_dual_mode/`](
 | **Sensor DHT22 (Internal)** | Digital Data (One-Wire) | `GPIO 25` | Pembacaan Suhu (°C) & Kelembaban (% RH) Ruang |
 | **Sensor Cahaya BH1750** | I2C (SDA / SCL) | `GPIO 21 (SDA)` / `GPIO 22 (SCL)` | Intensitas Cahaya / Radiasi Surya (0 - 65535 Lux) |
 | **Sensor Hujan (Rain Drop)**| Analog ADC | `GPIO 34 (ADC1_CH6)` | Deteksi Presipitasi Hujan (Threshold ADC < 2000) |
-| **Relay CH1 — Pemanas PTC 1**| Digital Output | `GPIO 26` | Kontrol Pemanas Keramik PTC Saluran 1 |
-| **Relay CH2 — Pemanas PTC 2**| Digital Output | `GPIO 27` | Kontrol Pemanas Keramik PTC Saluran 2 |
+| **Relay CH1 — Pemanas PTC 1**| Digital Output | `GPIO 26` | Kontrol Pemanas Keramik PTC Saluran 1 (Utama) |
+| **Relay CH2 — Pemanas PTC 2**| Digital Output | `GPIO 27` | Kontrol Pemanas Keramik PTC Saluran 2 (Bantu) |
 | **Layar LCD 20x4 I2C** | I2C (Address `0x27`) | `GPIO 21 (SDA)` / `GPIO 22 (SCL)` | Display Diagnostik & Monitoring Lokal 20 Karakter x 4 Baris |
 
 ### Logika Kontrol Pemanas PTC & Safety Cutoff:
-- **Pemanas Otomatis ON**: Ketika Suhu Ruang $< 55.0^\circ\text{C}$.
-- **Pemanas Otomatis OFF**: Ketika Suhu Ruang $> 60.0^\circ\text{C}$.
-- **Safety Shut-Off**: Jika pembacaan sensor DHT22 gagal 3 kali berturut-turut, pemanas langsung dimatikan demi keamanan sistem.
+- **Batas Kritis Safety Lockout**: Pemanas **wajib MATI (OFF)** seketika jika suhu ruangan $\ge 50.0^\circ\text{C}$. Pemanas baru diizinkan menyala kembali jika suhu telah turun $\le 48.0^\circ\text{C}$ (histeresis proteksi termal SNI).
+- **Jadwal Operasional NTP WIB**: Pemanas aktif otomatis pada malam hari (pukul **18:00 hingga sebelum 05:00 WIB**).
+- **Pemicu Kondisi Iklim Mikro**: Di dalam siklus pengeringan aktif, pemanas otomatis menyala jika terdeteksi hujan (`isRaining = true`), suhu udara dingin ($\le 35.0^\circ\text{C}$), atau kelembaban udara jenuh ($\ge 70\%$).
+- **Emergency Interlock**: Jika pembacaan sensor DHT22 gagal 3 kali berturut-turut, pemanas langsung dimatikan secara *fail-safe*.
+- **Kontrol Dual Channel**: Mendukung kendali mandiri untuk Pemanas Saluran 1 (`GPIO 26`), Pemanas Saluran 2 (`GPIO 27`), maupun saklar master (*Auxiliary Heater*) melalui antarmuka web dan pesan MQTT.
 
 ---
 
@@ -481,7 +484,7 @@ Firmware ESP32 lengkap tersedia di folder [`docs/esp32_smart_dryer_dual_mode/`](
 - **Format JSON**:
 ```json
 {
-  "deviceId": "ESP32-HANJELI-01",
+  "deviceId": "SRD-001",
   "tempInternal": 48.5,
   "humidityInternal": 42.0,
   "tempExternal": 31.2,
@@ -492,23 +495,25 @@ Firmware ESP32 lengkap tersedia di folder [`docs/esp32_smart_dryer_dual_mode/`](
   "intakeFan": false,
   "circFan": true,
   "auxHeater": false,
-  "batteryLevel": 98,
+  "heaterCh1Status": false,
+  "heaterCh2Status": false,
+  "isRaining": false,
   "timestamp": 1725883200
 }
 ```
 
 ### 2. Perintah Kontrol Aktuator (Server $\rightarrow$ ESP32)
-- **Topik**: `hanjeli/greenhouse/command` atau `hanjeli/greenhouse/actuators`
+- **Topik**: `hanjeli/greenhouse/control` atau `hanjeli/greenhouse/actuators`
 - **Format JSON**:
 ```json
 {
-  "target": "EXHAUST_FAN",
+  "target": "HEATER_CH1",
   "state": true,
-  "speed": 100,
   "mode": "MANUAL",
   "timestamp": 1725883200
 }
 ```
+*(Atau format batch: `{"auxHeaterStatus":true,"heaterCh1Status":true,"heaterCh2Status":false,"overrideMode":"MANUAL"}`)*
 
 ---
 

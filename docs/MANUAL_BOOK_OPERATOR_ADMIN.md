@@ -292,16 +292,16 @@ Panel aktuator dapat diakses dari halaman `/dashboard` maupun `/drying/active`:
 - Sistem menjalankan otomasi histeresis:
   - **Kipas Exhaust**: Otomatis menyala jika kelembaban ruang $> 60\%$ untuk menyedot uap air jenuh ke luar.
   - **Kipas Sirkulasi**: Berputar terus menerus untuk meratakan panas di semua rak baki.
-  - **Pemanas Keramik PTC**: Otomatis menyala saat suhu turun di bawah $38^\circ\text{C}$ (misal malam hari atau saat hujan).
-  - **Safety Interlock**: Pemanas **otomatis dimatikan seketika** jika suhu ruang mencapai $\ge 50^\circ\text{C} - 55^\circ\text{C}$ demi mencegah kerusakan nutrisi gabah.
+  - **Pemanas Keramik PTC**: Otomatis menyala pada jadwal operasional malam (pukul 18:00 - 05:00 WIB) atau jika suhu ruangan dingin ($\le 35.0^\circ\text{C}$) / saat terdeteksi hujan lebat.
+  - **Safety Interlock**: Pemanas **otomatis dimatikan seketika** jika suhu ruang mencapai $\ge 50.0^\circ\text{C}$ (*Safety Lockout*) dan baru diizinkan aktif kembali saat suhu turun $\le 48.0^\circ\text{C}$ demi mencegah kerusakan nutrisi gabah.
 
 #### Mode 2: Mode MANUAL (Khusus Keperluan Uji Coba atau Kondisi Darurat)
 - Klik saklar pada posisi **MANUAL**.
 - Operator memiliki kendali penuh:
   - Menghidupkan/mematikan tombol Kipas Exhaust dan mengatur slider kecepatannya ($0\% - 100\%$).
   - Menghidupkan/mematikan Kipas Intake dan Kipas Sirkulasi.
-  - Menghidupkan/mematikan Pemanas PTC Saluran 1 dan Saluran 2 secara mandiri.
-  - *Catatan*: Fitur keselamatan suhu $\ge 55^\circ\text{C}$ tetap aktif sebagai pelindung mutlak perangkat keras.
+  - Menghidupkan/mematikan Pemanas PTC Saluran 1 (GPIO 26) dan Saluran 2 (GPIO 27) secara mandiri atau serentak (*Master Aux Heater*).
+  - *Catatan*: Fitur keselamatan suhu $\ge 50.0^\circ\text{C}$ (recovery $\le 48.0^\circ\text{C}$) tetap aktif sebagai pelindung mutlak perangkat keras.
 
 ---
 
