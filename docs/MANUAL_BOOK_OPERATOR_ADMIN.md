@@ -292,7 +292,7 @@ Panel aktuator dapat diakses dari halaman `/dashboard` maupun `/drying/active`:
 - Sistem menjalankan otomasi histeresis:
   - **Kipas Exhaust**: Otomatis menyala jika kelembaban ruang $> 60\%$ untuk menyedot uap air jenuh ke luar.
   - **Kipas Sirkulasi**: Berputar terus menerus untuk meratakan panas di semua rak baki.
-  - **Pemanas Keramik PTC**: Otomatis menyala pada jadwal operasional malam (pukul 18:00 - 05:00 WIB) atau jika suhu ruangan dingin ($\le 35.0^\circ\text{C}$) / saat terdeteksi hujan lebat.
+  - **Pemanas Keramik PTC**: Otomatis menyala pada jadwal operasional malam (pukul 18:00 hingga sebelum 05:00 WIB) atau jika suhu ruangan dingin ($\le 35.0^\circ\text{C}$) / saat terdeteksi hujan lebat.
   - **Safety Interlock**: Pemanas **otomatis dimatikan seketika** jika suhu ruang mencapai $\ge 50.0^\circ\text{C}$ (*Safety Lockout*) dan baru diizinkan aktif kembali saat suhu turun $\le 48.0^\circ\text{C}$ demi mencegah kerusakan nutrisi gabah.
 
 #### Mode 2: Mode MANUAL (Khusus Keperluan Uji Coba atau Kondisi Darurat)

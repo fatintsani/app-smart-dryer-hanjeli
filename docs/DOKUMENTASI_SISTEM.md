@@ -216,12 +216,11 @@ Digunakan untuk konfigurasi lapangan (*local device provisioning*) tanpa jaringa
 ---
 
 ### 4.4. Web Serial API (USB Direct Transmission)
-Digunakan sebagai jalur darurat (*zero-network fallback*) dan stasiun diagnostik langsung di workstation greenhouse ketika jaringan Wi-Fi dan Bluetooth tidak tersedia:
-- **API Browser**: W3C Web Serial API (didukung penuh pada peramban berbasis Chromium seperti Google Chrome dan Microsoft Edge).
+Digunakan sebagai jalur pemantauan langsung (*workstation diagnostics*) di workstation greenhouse ketika mikrokontroler dihubungkan ke laptop/PC melalui kabel USB:
+- **API Browser**: W3C Web Serial API (didukung pada peramban berbasis Chromium seperti Google Chrome dan Microsoft Edge).
 - **Kecepatan Baud (Baud Rate)**: `115200` bps, 8 data bits, no parity, 1 stop bit (`8-N-1`).
-- **Mekanisme Framing**: Text line stream dengan delimiter karakter baris baru (`\n`).
-- **Format Paket Data Masuk**: String JSON yang identik dengan kontrak telemetri MQTT (dibaca secara reaktif melalui `ReadableStreamDefaultReader`).
-- **Kontrol Balik**: Perintah kontrol aktuator atau kalibrasi dikirim balik ke ESP32 melalui `WritableStreamDefaultWriter` secara langsung tanpa transit ke internet.
+- **Aliran Data**: Membaca streaming log telemetri dan diagnostik sistem yang dipancarkan secara berkala oleh port serial UART ESP32.
+- **Karakteristik Pengendalian**: Seluruh perintah kendali aktuator dua arah dieksekusi secara aman melalui protokol MQTT (`hanjeli/greenhouse/control`) dan respons transaksi HTTP REST terotentikasi.
 
 ---
 
@@ -561,7 +560,7 @@ Seluruh endpoint diawali dengan prefix `/api/` (atau `/api/v1/`). Format respon 
 | `GET` | `/api/public/verify/{batch_code}`| Public | Portal verifikasi mutu & traceability publik konsumen |
 | `GET` | `/api/telemetry/current` | Operator / Admin | Pembacaan sensor terkini |
 | `GET` | `/api/telemetry/history` | Operator / Admin | Riwayat telemetri berfilter rentang waktu |
-| `POST` | `/api/telemetry/ingest` | Public / Device | Endpoint HTTP fallback untuk pengiriman data ESP32 |
+| `POST` | `/api/telemetry` | Public / Device | Endpoint HTTP Ingestion data telemetri ESP32 (Didukung alias: `/api/telemetry/ingest`) |
 | `POST` | `/api/telemetry/downsample`| Admin | Menjalankan agregasi pemadatan data historis |
 | `GET` | `/api/telemetry/storage-stats`| Admin | Statistik utilisasi penyimpanan database telemetri |
 | `GET` | `/api/actuators/status` | Operator / Admin | Mendapatkan status relay aktuator saat ini |

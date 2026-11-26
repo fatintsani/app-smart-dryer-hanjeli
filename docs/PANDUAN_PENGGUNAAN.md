@@ -205,7 +205,7 @@ Komponen kendali aktuator dapat diakses dari dashboard maupun halaman monitoring
 #### Cara Mengoperasikan:
 1. **Mode OTOMATIS (Direkomendasikan)**:
    - Sistem mikrokontroler & server secara otomatis menyalakan Kipas Exhaust saat kelembaban ruang $> 65\%$ untuk mengeluarkan uap air jenuh.
-   - Pemanas PTC otomatis menyala pada jadwal operasional malam (pukul **18:00 - 05:00 WIB**) atau jika suhu ruang turun dingin ($\le 35.0^\circ\text{C}$) / terdeteksi presipitasi hujan.
+   - Pemanas PTC otomatis menyala pada jadwal operasional malam (pukul **18:00 hingga sebelum 05:00 WIB**) atau jika suhu ruang turun dingin ($\le 35.0^\circ\text{C}$) / terdeteksi presipitasi hujan.
    - Fitur keamanan (*safety interlock*): Pemanas otomatis diputus (*OFF*) seketika jika suhu menembus $\ge 50.0^\circ\text{C}$ dan baru diizinkan aktif kembali setelah suhu turun $\le 48.0^\circ\text{C}$ untuk mencegah biji hanjeli gosong atau rusak.
 2. **Mode MANUAL (Override Operator)**:
    - Klik tombol **MANUAL**.

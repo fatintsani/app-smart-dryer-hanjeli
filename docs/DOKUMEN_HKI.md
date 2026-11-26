@@ -2,8 +2,8 @@
 ## Deskripsi Ciptaan Program Komputer & Spesifikasi Inovasi Sistem Cerdas
 ### Smart Room Dryer Hanjeli — IoT Greenhouse Monitoring & Control System
 
-> **Klasifikasi Dokumen**: Deskripsi Resmi Ciptaan Program Komputer (Surat Permohonan Hak Cipta DJKI Kemenkumham RI) & Draft Spesifikasi Inovasi Paten Sederhana  
-> **Kategori Ciptaan**: Program Komputer (Software & Embedded Firmware)  
+> **Klasifikasi Dokumen**: Deskripsi Resmi Ciptaan Program Komputer (Format Surat Permohonan Hak Cipta DJKI Kemenkumham RI) & Draft Spesifikasi Inovasi Paten Sederhana  
+> **Kategori Ciptaan**: Program Komputer (Software Aplikasi Web, Backend Real-Time, & Embedded Firmware IoT)  
 > **Tanggal Penyusunan**: 2026  
 > **Lembaga Pengusul**: Center of Excellence Smart Telecommunication, Automation & System - Research Group (**CoE STAS-RG**)  
 > **Mitra Lapangan**: Desa Wisata Hanjeli, Waluran Mandiri, Kab. Sukabumi, Jawa Barat  
@@ -13,16 +13,17 @@
 ## 📋 DAFTAR ISI
 
 1. [Identitas Ciptaan & Data Pengusul](#1-identitas-ciptaan--data-pengusul)
-2. [Latar Belakang & Urgensi Masalah Pascapanen Hanjeli](#2-latar-belakang--urgensi-masalah-pascapanen-hanjeli)
-3. [Ringkasan Eksekutif & Karakteristik Inovasi (Novelty)](#3-ringkasan-eksekutif--karakteristik-inovasi-novelty)
-4. [Arsitektur Sistem & Spesifikasi Teknis Program Komputer](#4-arsitektur-sistem--spesifikasi-teknis-program-komputer)
-5. [Diagram Alir Sistem (Flowchart & Blok Diagram)](#5-diagram-alir-sistem-flowchart--blok-diagram)
-6. [Deskripsi Modul Fungsional & Fitur Program Komputer](#6-deskripsi-modul-fungsional--fitur-program-komputer)
-7. [Inovasi Logika Kontrol Dual-Channel & Safety Interlock](#7-inovasi-logika-kontrol-dual-channel--safety-interlock)
-8. [Penggalan Kode Sumber Program Komputer (Source Code Samples)](#8-penggalan-kode-sumber-program-komputer-source-code-samples)
-9. [Deskripsi Antarmuka Pengguna (User Interface Specification)](#9-deskripsi-antarmuka-pengguna-user-interface-specification)
-10. [Klaim Inovasi & Potensi Paten Sederhana](#10-klaim-inovasi--potensi-paten-sederhana)
-11. [Surat Pernyataan Keaslian & Pengalihan Hak Cipta](#11-surat-pernyataan-keaslian--pengalihan-hak-cipta)
+2. [Uraian Singkat Gambar (Gambar 1 s.d. Gambar 7)](#2-uraian-singkat-gambar-gambar-1-sd-gambar-7)
+3. [Latar Belakang & Urgensi Masalah Pascapanen Hanjeli](#3-latar-belakang--urgensi-masalah-pascapanen-hanjeli)
+4. [Ringkasan Eksekutif & Karakteristik Inovasi (Novelty)](#4-ringkasan-eksekutif--karakteristik-inovasi-novelty)
+5. [Spesifikasi Teknis & Arsitektur Perangkat Lunak](#5-spesifikasi-teknis--arsitektur-perangkat-lunak)
+6. [Deskripsi Lengkap Blok Diagram Arsitektur Sistem (Gambar 7 dengan Nomor Referensi (1)-(14))](#6-deskripsi-lengkap-blok-diagram-arsitektur-sistem-gambar-7-dengan-nomor-referensi-1-14)
+7. [Deskripsi Lengkap Diagram Alir Siklus Batch & AI ETA (Gambar 6)](#7-deskripsi-lengkap-diagram-alir-siklus-batch--ai-eta-gambar-6)
+8. [Deskripsi Lengkap Diagram Alir Kontrol Suhu & Safety Cutoff (Gambar 5)](#8-deskripsi-lengkap-diagram-alir-kontrol-suhu--safety-cutoff-gambar-5)
+9. [Deskripsi Modul Fungsional & Fitur Utama Aplikasi](#9-deskripsi-modul-fungsional--fitur-utama-aplikasi)
+10. [Penggalan Kode Sumber Program Komputer (Source Code Samples)](#10-penggalan-kode-sumber-program-komputer-source-code-samples)
+11. [Klaim Inovasi Paten Sederhana & Hak Cipta (Klaim 1 s.d. 8)](#11-klaim-inovasi-paten-sederhana--hak-cipta-klaim-1-sd-8)
+12. [Surat Pernyataan Keaslian & Pengalihan Hak Cipta](#12-surat-pernyataan-keaslian--pengalihan-hak-cipta)
 
 ---
 
@@ -51,242 +52,280 @@
 
 ---
 
-## 2. LATAR BELAKANG & URGENSI MASALAH PASCAPANEN HANJELI
+## 2. URAIAN SINGKAT GAMBAR (GAMBAR 1 S.D. GAMBAR 7)
 
-Hanjeli (*Coix lacryma-jobi L.*) merupakan komoditas serealia pangan fungsional unggulan asal Waluran, Sukabumi yang kaya akan nutrisi, bebas gluten, dan memiliki indeks glikemik rendah. Namun, proses pascapanen biji hanjeli menghadapi tantangan kritis dalam tahapan pengeringan:
+Berikut adalah daftar dan uraian singkat gambar lampiran spesifikasi teknis ciptaan yang disusun secara berurutan:
 
-1. **Struktur Biji yang Padat dan Berkadar Air Tinggi**:
-   Biji hanjeli saat panen mengandung kadar air berkisar antara $24\% - 28\%$. Untuk mencapai standar simpan aman jangka panjang dan mutu giling prima (SNI), kadar air harus diturunkan hingga $\le 12\% - 14\%$.
-2. **Ketergantungan Cuaca pada Pengeringan Tradisional (*Sun Drying*)**:
-   Pengeringan konvensional di lantai jemur terbuka sangat terganggu saat musim hujan atau langit mendung. Proses penjemuran membutuhkan waktu 5 sampai 7 hari, menyebabkan biji mengalami pembusukan, timbulnya jamur, dan risiko kontaminasi toksin aflatoksin.
-3. **Fluktuasi Suhu dan Kelembaban Malam Hari**:
-   Pada malam hari, kelembaban udara perkebunan melonjak di atas $85\%$, memicu penyerapan kembali uap air (*moisture re-absorption*) oleh biji yang sedang dikeringkan.
-4. **Ketiadaan Data dan Kendali Presisi**:
-   Petani tidak memiliki alat ukur objektif untuk memantau laju pengeringan, kadar air gabah harian, serta stabilitas temperatur ruang.
-
-Untuk menjawab permasalahan tersebut, diciptakan sistem terpadu **Smart Room Dryer Hanjeli** yang menggabungkan greenhouse beratap polikarbonat, mikrokontroler IoT, sensor lingkungan ganda, pemanas keramik PTC ganda (*Dual Relay PTC Heater*), kipas sirkulasi, serta platform web analitik dengan latensi sub-detik.
+- **Gambar 1**: Tampilan Antarmuka Dasbor Monitoring & Telemetri Real-Time, yang memperlihatkan visualisasi indikator instrumen melingkar (*radial gauges*) untuk suhu ruang, kelembapan udara relatif, intensitas radiasi matahari, kadar air biji hanjeli, serta indikator multi-koneksi jaringan (*live network indicator*).
+- **Gambar 2**: Visualisasi Grafik Analitik Interaktif Multi-Sumbu Riwayat Pengeringan, yang memperlihatkan kurva fluktuasi suhu internal/eksternal, kelembapan udara, intensitas cahaya surya, dan estimasi susut bobot gabah dengan selector rentang waktu dinamis.
+- **Gambar 3**: Kartu Kendali Aktuator Cerdas Dual-Channel (*Actuator Control Card*), yang memperlihatkan antarmuka pengalihan mode Otomatis/Manual, saklar togol individual Pemanas Saluran 1 (`GPIO 26`), Pemanas Saluran 2 (`GPIO 27`), saklar master *Auxiliary Heater*, kendali kipas, serta tombol pemutus darurat (*Emergency Cut-Off*).
+- **Gambar 4**: Antarmuka Pusat Manajemen Armada IoT & Pembaruan Firmware Jarak Jauh (*OTA Firmware Management*) pada Portal Administrator, yang memperlihatkan 7 sub-modul kendali node IoT, validasi token keamanan, repositori biner `.bin`, dan penampil kode sumber Arduino.
+- **Gambar 5**: Diagram Alir Logika Kontrol Pemanas PTC & Mekanisme Pengaman Termal Berlapis (*Dual-Tier Safety Architecture*), yang memperlihatkan percabangan evaluasi keselamatan mikrokontroler (hard-lockout $\ge 50.0^\circ\text{C}$, recovery $\le 48.0^\circ\text{C}$), integrasi batas aman server (`max_safe_temp` $50.0^\circ\text{C} - 55.0^\circ\text{C}$), jadwal malam waktu nyata NTP WIB (pukul 18.00 hingga sebelum 05.00 WIB), dan auto-trigger presipitasi hujan.
+- **Gambar 6**: Diagram Alir Siklus Manajemen Batch Pengeringan, yang memperlihatkan alur kerja sistem mulai dari inisiasi batch baru, **penghitungan estimasi sisa waktu pengeringan (*Predictive ETA*) berbasis kinetika difusi lapisan tipis yang dijalankan secara berkala selama batch berstatus aktif**, hingga prosedur penyelesaian batch (*complete*) yang mengunci data dan melakukan penilaian mutu komposit (*Quality Scoring Grade A/B/C*) serta penerbitan sertifikat QR ketertelusuran publik.
+- **Gambar 7**: Blok Diagram Arsitektur Sistem Terintegrasi End-to-End dari ESP32 hingga Antarmuka Web, yang memperlihatkan hubungan fungsional antara perangkat mikrokontroler, modul sensor, modul aktuator relai, jalur komunikasi nirkabel, broker MQTT, server backend Laravel, server WebSocket Reverb, basis data, dan klien peramban web dengan penomoran referensi **(1) sampai (14)**.
 
 ---
 
-## 3. RINGKASAN EKSEKUTIF & KARAKTERISTIK INOVASI (NOVELTY)
+## 3. LATAR BELAKANG & URGENSI MASALAH PASCAPANEN HANJELI
 
-Program komputer ini memiliki sejumlah kebaruan dan karakteristik teknis distingtif yang membedakannya dari sistem otomasi pertanian konvensional:
+Hanjeli (*Coix lacryma-jobi L.*) merupakan komoditas pangan fungsional unggulan asal Waluran, Kabupaten Sukabumi yang memiliki kandungan gizi tinggi, kaya serat larut, bebas gluten (*gluten-free*), dan memiliki indeks glikemik rendah. Namun, proses pascapanen biji hanjeli menghadapi tantangan kritis pada fase pengeringan:
 
-1. **Arsitektur Transmisi Multi-Saluran (Tri-Mode Connectivity)**:
-   - *Mode 1 (Wi-Fi & MQTT/WebSockets)*: Transmisi awan jarak jauh via MQTT broker dan Laravel Reverb WebSocket untuk pemantauan terpusat.
-   - *Mode 2 (Web Bluetooth Low Energy / BLE)*: Koneksi nirkabel jarak dekat langsung dari peramban ke ESP32 tanpa jaringan internet untuk konfigurasi lapangan dan kalibrasi sensor.
-   - *Mode 3 (W3C Web Serial API)*: Komunikasi kabel serial USB (115200 baud) berlatensi sub-50ms untuk stasiun kerja tanpa ketergantungan sinyal nirkabel.
-2. **Kendali Cerdas Dual Relay Pemanas PTC (Saluran 1 & Saluran 2)**:
-   - Kendali modular dua kanal terpisah (`GPIO 26` dan `GPIO 27`) untuk pemanas keramik PTC utama dan pemanas bantu.
-   - Sinkronisasi waktu nyata **NTP WIB (18:00 - 05:00 WIB)** untuk aktivasi otomatis di malam hari.
-   - Otomasi adaptif berdasarkan pemicu hujan (*rain sensor* ADC < 2000), suhu dingin ($\le 35.0^\circ\text{C}$), dan kelembaban jenuh ($\ge 70\%$).
-3. **Mekanisme Perlindungan Keselamatan Berlapis (*Multi-Tier Safety Interlock*)**:
-   - *Batas Kritis Lockout*: Pemutusan daya mutlak (*force cutoff*) seketika jika suhu ruang mencapai $\ge 50.0^\circ\text{C}$ demi mencegah kerusakan termal pada benih hanjeli.
-   - *Histeresis Pemulihan*: Pemanas hanya diizinkan aktif kembali setelah suhu turun $\le 48.0^\circ\text{C}$.
-   - *Fail-Safe Sensor Disconnect*: Jika sensor DHT22 gagal dibaca sebanyak 3 siklus berturut-turut, pemanas langsung dipadamkan seketika.
-4. **Prediksi Waktu Selesai Berbasis Kinetika Lapisan Tipis (*Predictive ETA Engine*)**:
-   - Algoritma analitik yang memodelkan laju difusi air biji berpadu dengan intensitas radiasi surya matahari lokal.
+1. **Struktur Biji yang Padat dan Berkadar Air Awal Tinggi**:  
+   Biji hanjeli basah hasil panen memiliki kadar air sekitar $24\% - 28\%$. Untuk dapat disimpan aman tanpa risiko pembusukan dan memenuhi standar mutu giling prima (SNI), kadar air harus diturunkan secara bertahap hingga mencapai kadar air kesetimbangan $\le 12\% - 14\%$.
+2. **Ketergantungan Cuaca pada Pengeringan Tradisional (*Sun Drying*)**:  
+   Penjemuran tradisional di lantai terbuka sangat rentan terhadap fluktuasi cuaca, mendung, dan curah hujan tinggi di wilayah pegunungan Sukabumi. Proses penjemuran sering memakan waktu 5 hingga 7 hari, memicu tumbuhnya jamur pembusuk dan racun mikotoksin (*aflatoksin*) yang berbahaya bagi kesehatan manusia.
+3. **Fluktuasi Suhu dan Lonjakan Kelembapan Malam Hari**:  
+   Pada malam hari, kelembapan relatif udara perkebunan dapat melonjak melampaui $85\%$. Kondisi ini memicu fenomena penyerapan uap air kembali (*moisture re-absorption*) oleh biji yang sudah setengah kering, memperpanjang durasi pengeringan dan merusak viabilitas benih.
+4. **Ketiadaan Data Objektif & Kendali Mikroiklim Presisi**:  
+   Petani tidak memiliki alat kendali otomatis untuk menstabilkan suhu ruang pada zona optimal ($40^\circ\text{C} - 50^\circ\text{C}$), membuang udara jenuh, atau mengukur laju susut bobot gabah secara ilmiah.
+
+Untuk mengatasi permasalahan tersebut, dirancang sistem terpadu **Smart Room Dryer Hanjeli** yang memadukan fasilitas rumah pengering polikarbonat, mikrokontroler IoT, sensor lingkungan ganda, pemanas keramik PTC ganda (*Dual Relay PTC Heater*), kipas sirkulasi, serta platform web analitik dengan latensi sub-detik.
+
+---
+
+## 4. RINGKASAN EKSEKUTIF & KARAKTERISTIK INOVASI (NOVELTY)
+
+Program komputer ini memiliki kebaruan teknis distingtif (*novelty*) yang membedakannya secara signifikan dari sistem otomasi pertanian konvensional:
+
+1. **Fleksibilitas Ingesti Telemetri & Dual-Path Endpoint**:
+   - Mendukung transmisi data telemetri melalui broker MQTT (`hanjeli/greenhouse/telemetry`) dengan format paket terstruktur yang memuat identifikasi perangkat dan stempel waktu.
+   - Mendukung jalur transmisi HTTP REST melalui endpoint utama **`POST /api/telemetry`** (yang digunakan langsung pada firmware ESP32) serta alias **`POST /api/telemetry/ingest`** pada backend Laravel.
+   - Pada jalur HTTP REST, identifikasi perangkat diverifikasi secara aman melalui header token autentikasi (`X-Device-Token` atau `X-API-Key`) dengan pencatatan stempel waktu otomatis di sisi server (`recorded_at = Carbon::now()`), memberikan fleksibilitas integrasi tanpa membebani mikrokontroler.
+2. **Arsitektur Pengamanan Termal Berlapis (*Dual-Tier Safety Architecture*)**:
+   - **Tingkat Perangkat Keras (*Hardware / Edge Tier*)**: Mikrokontroler ESP32 memiliki proteksi interlock mandiri (*hard-lockout*) yang secara mutlak memutus arus relai pemanas jika suhu fisik $\ge 50.0^\circ\text{C}$, dan hanya mengizinkan pemulihan aktif jika suhu telah mendingin $\le 48.0^\circ\text{C}$ (histeresis $2.0^\circ\text{C}$). Sistem juga memutus pemanas seketika jika sensor DHT22 mengalami kegagalan pembacaan 3 kali berturut-turut. Logika ini beroperasi independen tanpa ketergantungan koneksi internet.
+   - **Tingkat Server (*Cloud / Backend Tier*)**: Server backend Laravel secara kontinu mengevaluasi nilai telemetri masuk terhadap parameter ambang suhu aman maksimum (`max_safe_temp`) yang dapat dikonfigurasi dinamis oleh Administrator dalam rentang **$50.0^\circ\text{C}$ hingga $55.0^\circ\text{C}$**. Jika ambang batas terlampaui, server secara otomatis mengunci status aktuator (*OVER_TEMPERATURE_LOCKOUT*), menyiarkan event darurat melalui Laravel Reverb WebSocket, dan mendistribusikan notifikasi darurat multi-saluran (WhatsApp, Telegram, Email).
+3. **Pengendalian Cerdas Dual Relay Pemanas Keramik PTC**:
+   - Mengendalikan dua kanal relai terpisah: Saluran 1 (`RELAY_CH1` pada `GPIO 26`) untuk pemanas utama dan Saluran 2 (`RELAY_CH2` pada `GPIO 27`) untuk pemanas bantu/cadangan.
+   - Terintegrasi dengan sinkronisasi waktu nyata **NTP WIB**, di mana pemanas otomatis beroperasi pada malam hari mulai **pukul 18.00 hingga sebelum pukul 05.00 WIB** (pukul 18:00 sampai 04:59 WIB).
+   - Di luar jadwal malam, pemanas otomatis dipicu aktif jika terdeteksi hujan (*rain sensor* ADC < 2000), suhu udara dingin ($\le 35.0^\circ\text{C}$), atau kelembapan udara jenuh ($\ge 70.0\%$).
+4. **Prediksi Waktu Selesai (*Predictive ETA Engine*) pada Batch Aktif**:
+   - Pemodelan kinetika difusi air lapisan tipis (*thin-layer drying*) dipadukan dengan data intensitas radiasi matahari riil yang dihitung secara berkala selama siklus batch berstatus aktif (`ACTIVE`).
 5. **Penilaian Mutu Objektif & Sertifikasi QR Ketertelusuran (*Quality Scoring & Traceability QR*)**:
-   - Penilaian mutu otomatis berbobot (Kadar air $45\%$, Stabilitas suhu $35\%$, Kestabilan RH $20\%$) menghasilkan Grade A, B, atau C.
-   - Penyediaan kode QR unik di setiap batch kemasan yang dapat dipindai oleh konsumen umum untuk memverifikasi asal kebun dan kurva pengeringan (*Farm-to-Table Trust*).
+   - Saat operator menyelesaikan batch pengeringan (*Complete Batch*), sistem mengunci data rekaman dan menghitung skor mutu komposit berbobot:
+     $$\text{Skor Mutu} = (S_{\text{kadar air}} \times 45\%) + (S_{\text{stabilitas suhu}} \times 35\%) + (S_{\text{kestabilan RH}} \times 20\%)$$
+   - Mengklasifikasikan hasil panen secara transparan menjadi **Grade A** (Skor $\ge 85$), **Grade B** (Skor $70 - 84$), atau **Grade C** (Skor $< 70$), serta menerbitkan sertifikat digital dengan kode QR ketertelusuran yang dapat diakses publik.
+6. **Transmisi Tri-Mode Bebas Dependensi Eksternal**:
+   - Mengintegrasikan saluran Wi-Fi (MQTT & WebSockets Reverb :8080), Web Bluetooth API (BLE) untuk konfigurasi lapangan langsung dari peramban, serta pembacaan log diagnostik UART Serial 115200 baud pada stasiun kerja.
 
 ---
 
-## 4. ARSITEKTUR SISTEM & SPESIFIKASI TEKNIS PROGRAM KOMPUTER
+## 5. SPESIFIKASI TEKNIS & ARSITEKTUR PERANGKAT LUNAK
 
-Program komputer ini dirancang dalam model arsitektur 4-lapis (*4-Tier Layered Architecture*):
+Perangkat lunak dibangun dengan spesifikasi teknologi modern dan standar industri:
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│ 1. LAYER PERANGKAT KERAS (HARDWARE & EMBEDDED LAYER)                   │
-│    - ESP32-WROOM-32 (Xtensa Dual-Core 240 MHz, 4MB Flash)              │
-│    - Sensor Suhu & Kelembaban: DHT22 (GPIO 25, 1-Wire)                 │
-│    - Sensor Radiasi Surya: BH1750 (GPIO 21 SDA, GPIO 22 SCL)           │
-│    - Sensor Presipitasi: Rain Drop Sensor (GPIO 34 ADC1)               │
-│    - Display Lokal: LCD 20x4 I2C (GPIO 21 SDA, GPIO 22 SCL, Addr 0x27) │
-│    - Aktuator: Dual Relay PTC Heater (CH1 GPIO 26 & CH2 GPIO 27)       │
-└────────────────────────────────────┬───────────────────────────────────┘
-                                     │ MQTT / HTTP / BLE / Serial
-┌────────────────────────────────────▼───────────────────────────────────┐
-│ 2. LAYER KOMUNIKASI & INGESTI DATA (COMMUNICATION LAYER)               │
-│    - MQTT Broker: HiveMQ / Mosquitto (Port 1883, Topic Telemetry)     │
-│    - Artisan MQTT Worker Daemon: php artisan greenhouse:mqtt-worker    │
-│    - HTTP REST Ingestion: POST /api/telemetry                          │
-│    - Web Bluetooth GATT: Custom Service UUID & Characteristic          │
-│    - Web Serial API: W3C Text Stream 115200 baud                       │
-└────────────────────────────────────┬───────────────────────────────────┘
-                                     │
-┌────────────────────────────────────▼───────────────────────────────────┐
-│ 3. LAYER BACKEND & BASIS DATA (SERVER ENGINE & DATA STORE)             │
-│    - Framework: Laravel 12/13 (PHP 8.3+)                               │
-│    - WebSocket Server: Laravel Reverb (Port 8080, RFC 6455)            │
-│    - Basis Data: MySQL 8.4 / SQLite (Relasional & Time-Series)         │
-│    - Services: AiAssistant, DryingPrediction, QualityScoring,          │
-│      SensorAnomalyDetection, NotificationDispatch (WA, TG, Email)      │
-└────────────────────────────────────┬───────────────────────────────────┘
-                                     │ Reverb WS / HTTPS REST API
-┌────────────────────────────────────▼───────────────────────────────────┐
-│ 4. LAYER ANTARMUKA PENGGUNA (VUE 3.5 SPA & PWA CLIENT)                 │
-│    - Framework UI: Vue.js 3.5 (Composition API, Pinia State)          │
-│    - Kompilasi: Vite 6 / Vite 8, Tailwind CSS v4                       │
-│    - Design System: Zero-Shadow Industrial Minimalist                  │
-│    - Fitur Klien: Live Gauges, Multi-Axis Charts, Actuator Card,      │
-│      PWA Offline-Ready, WebAuthn Passkeys Biometrik, QR Verifier       │
-└────────────────────────────────────────────────────────────────────────┘
-```
+| Komponen Arsitektur | Teknologi / Standar yang Digunakan | Peran Fungsional dalam Sistem |
+| :--- | :--- | :--- |
+| **Backend Framework** | Laravel versi 12/13 (PHP 8.3+) | Routing RESTful API, ORM Eloquent, Job Queue, Scheduler, dan Service Layer |
+| **WebSocket Engine** | Laravel Reverb (Port `8080`, RFC 6455) | Server WebSocket terpasang (*native*) berlatensi sub-detik untuk pembaruan telemetri |
+| **Basis Data** | MySQL 8.4 / SQLite | Penyimpanan data relasional akun, parameter, batch, dan time-series sensor |
+| **Frontend Framework**| Vue.js 3.5 (Composition API & Pinia) | Antarmuka interaktif Single Page Application (SPA) dan Progressive Web App (PWA) |
+| **Build Tool & Styling**| Vite 6 / Vite 8 & Tailwind CSS v4 | Kompilasi modul cepat dan implementasi standar desain industri Zero-Shadow |
+| **Protokol Telemetri** | MQTT (HiveMQ / Mosquitto Port `1883`) | Protokol komunikasi ringan (*pub/sub*) untuk perangkat IoT berdaya rendah |
+| **Embedded Firmware** | Arduino C++ (ESP32 Core) | Logika kontrol sensor, relay, kalkulasi histeresis, dan sinkronisasi waktu NTP |
+| **Peramban Klien** | Google Chrome, Edge, Safari (Chromium) | Mendukung W3C Web Bluetooth API, Web Serial API, dan WebAuthn Passkeys |
 
 ---
 
-## 5. DIAGRAM ALIR SISTEM (FLOWCHART & BLOK DIAGRAM)
+## 6. DESKRIPSI LENGKAP BLOK DIAGRAM ARSITEKTUR SISTEM (GAMBAR 7 DENGAN NOMOR REFERENSI (1)-(14))
 
-### 5.1. Flowchart Pengendalian Pemanas PTC & Safety Cutoff
+Sesuai dengan ketentuan standar dokumen HKI/Paten, blok diagram arsitektur sistem pada **Gambar 7** memuat komponen-komponen perangkat lunak dan perangkat keras IoT yang terhubung secara fungsional menggunakan nomor acuan referensi numerik **(1) sampai (14)**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│             FASILITAS GREENHOUSE PENGERING HANJELI (BAGIAN LAPANGAN)            │
+│                                                                                 │
+│   (2) Sensor Suhu & RH DHT22  ───┐                                              │
+│                                  │ (GPIO 25)                                    │
+│   (3) Sensor Radiasi Surya    ───┼─── (GPIO 21/22) ──► ┌────────────────────┐   │
+│       BH1750 (Lux)               │                     │                    │   │
+│                                  │                     │                    │   │
+│   (4) Sensor Hujan Analog     ───┼─── (GPIO 34 ADC) ─► │ (1) Mikrokontroler │   │
+│                                  │                     │     ESP32 Core     │   │
+│   (5) Penampil Karakter       ◄──┴─── (GPIO 21/22) ─── │                    │   │
+│       Layar LCD 20x4 I2C                               │                    │   │
+│                                                        └─────────┬──────────┘   │
+│                                  ┌───────────────────────────────┤              │
+│   (6) Relai Saluran 1 (PTC 1) ◄──┼── (GPIO 26 Digital Output) ───┤              │
+│                                  │                               │              │
+│   (7) Relai Saluran 2 (PTC 2) ◄──┴── (GPIO 27 Digital Output) ───┘              │
+│                                                                                 │
+│                                  ┌───────────────────────────────┐              │
+│                                  │ (8) Modul Wi-Fi Nirkabel ESP32│              │
+└──────────────────────────────────┴───────────────┬───────────────┴──────────────┘
+                                                   │
+                  ┌────────────────────────────────┴────────────────────────────────┐
+                  │ Transmisi Jaringan Internet (MQTT / HTTP Ingestion)             │
+                  ▼                                                                 ▼
+   ┌──────────────────────────────┐                                ┌──────────────────────────────┐
+   │ (9) Broker Pesan MQTT        │                                │ (11) Server Aplikasi & REST  │
+   │     (HiveMQ Port 1883)       │                                │      API Backend Laravel     │
+   └──────────────┬───────────────┘                                │      - POST /api/telemetry   │
+                  │                                                │      - POST /api/telemetry/  │
+                  ▼                                                │        ingest (Alias)        │
+   ┌──────────────────────────────┐                                └──────────────┬───────────────┘
+   │ (10) Worker Ingesti MQTT     │                                               │
+   │      Daemon (Artisan CLI)    ├───────────────────────────────────────────────┤
+   └──────────────┬───────────────┘                                               │
+                  │                                                               │
+                  ▼                                                               ▼
+   ┌──────────────────────────────┐                                ┌──────────────────────────────┐
+   │ (12) Server WebSocket        │                                │ (13) Basis Data Sistem       │
+   │      Real-Time (Reverb :8080)│                                │      (MySQL 8.4 / SQLite)    │
+   └──────────────┬───────────────┘                                └──────────────┬───────────────┘
+                  │                                                               │
+                  └───────────────────────────────┬───────────────────────────────┘
+                                                  │ Push Real-Time & REST API
+                                                  ▼
+                                   ┌──────────────────────────────┐
+                                   │ (14) Klien Antarmuka Pengguna│
+                                   │      (Vue.js 3.5 SPA & PWA)  │
+                                   └──────────────────────────────┘
+```
+
+### Uraian Nomor Referensi Elemen Gambar 7:
+- **(1) Mikrokontroler ESP32**: Unit pemroses lokal (*edge computing*) berinti ganda (*dual-core Xtensa LX6 240 MHz*) yang mengeksekusi pembacaan sensor dan interlock keselamatan fisik.
+- **(2) Sensor Suhu dan Kelembapan Relatif Digital (DHT22)**: Terhubung ke pin `GPIO 25` untuk mengukur suhu ($^\circ\text{C}$) dan kelembapan (% RH) udara dalam ruang pengering.
+- **(3) Sensor Radiasi Cahaya Surya (BH1750)**: Terhubung ke bus I2C (`GPIO 21 SDA` dan `GPIO 22 SCL`) untuk mengukur intensitas cahaya matahari dalam satuan Lux.
+- **(4) Sensor Presipitasi Hujan**: Terhubung ke pin `GPIO 34 ADC` untuk mendeteksi pembasahan atap ruang pengering (ambang hujan ADC $< 2000$).
+- **(5) Penampil Karakter Layar LCD 20x4 I2C**: Terhubung ke bus I2C (alamat `0x27`) untuk menampilkan diagnostik operasional dan nilai sensor langsung di greenhouse.
+- **(6) Relai Saluran 1 (Pemanas PTC 1)**: Modul saklar digital terhubung ke pin `GPIO 26` untuk memutus atau mengalirkan arus listrik ke elemen pemanas keramik PTC utama.
+- **(7) Relai Saluran 2 (Pemanas PTC 2)**: Modul saklar digital terhubung ke pin `GPIO 27` untuk memutus atau mengalirkan arus listrik ke elemen pemanas keramik PTC bantu/cadangan.
+- **(8) Modul Wi-Fi Nirkabel ESP32**: Perangkat keras transceiver nirkabel terintegrasi 2.4 GHz untuk memancarkan paket data telemetri ke server awan.
+- **(9) Broker Pesan MQTT**: Server perantara pesan *publish/subscribe* (HiveMQ / Mosquitto port 1883) pada topik telemetri dan kendali aktuator.
+- **(10) Worker Ingesti MQTT Daemon**: Proses latar belakang (*Artisan Console Worker*) yang berlangganan (*subscribe*) pada broker MQTT dan memproses pesan masuk.
+- **(11) Server Aplikasi & REST API Backend (Laravel 12/13)**: Mesin pemroses utama yang menyediakan endpoint RESTful API, validasi token keamanan perangkat (`X-Device-Token`), serta pengelolaan logika bisnis pengeringan.
+- **(12) Server WebSocket Real-Time (Laravel Reverb)**: Server perantara WebSocket berbasis protokol RFC 6455 (port 8080) yang menyiarkan paket telemetri ke antarmuka pengguna tanpa membebani basis data.
+- **(13) Basis Data Sistem (MySQL 8.4 / SQLite)**: Media penyimpanan data relasional terstruktur mencakup tabel pengguna, batch pengeringan, pengaturan parameter, serta rekaman deret waktu telemetri.
+- **(14) Klien Antarmuka Pengguna (Vue.js 3.5 SPA & PWA)**: Aplikasi web responsif berbasis peramban (*web browser*) yang menampilkan dasbor instrumen pemantauan, grafik analitik, kartu kendali aktuator, dan verifikasi sertifikat mutu.
+
+---
+
+## 7. DESKRIPSI LENGKAP DIAGRAM ALIR SIKLUS BATCH & AI ETA (GAMBAR 6)
+
+Diagram alir pada **Gambar 6** mendokumentasikan siklus hidup batch pengeringan hanjeli dengan penekanan pada waktu eksekusi prediksi kinetika dan evaluasi kualitas:
 
 ```mermaid
 flowchart TD
-    Start([Mulai Siklus Pengeringan]) --> ReadSensors[ESP32 Membaca DHT22, BH1750, Rain Sensor]
-    ReadSensors --> CheckValid{Pembacaan DHT22 Valid?}
+    subgraph FaseInisiasi ["1. Inisiasi Batch Pengeringan"]
+        A1[Operator Membuka Form /drying/new] --> A2[Input Kode Batch, Varietas, Berat Awal, Kadar Air Awal]
+        A2 --> A3[Klik Tombol Mulai Pengeringan - Start Drying]
+        A3 --> A4[Server Mengunci Status Batch Menjadi ACTIVE & Catat Stempel Waktu started_at]
+    end
+
+    subgraph FaseAktif ["2. Siklus Pengeringan Aktif & Prediksi AI Waktu Nyata"]
+        A4 --> B1[Telemetri Masuk Tiap 3-5 Detik via MQTT / HTTP]
+        B1 --> B2[Update Pengurangan Bobot Gabah & Penurunan Kadar Air]
+        B2 --> B3[Algoritma Predictive ETA Menghitung Sisa Jam Selesai Berbasis Kinetika & Radiasi Surya]
+        B3 --> B4[Visualisasi Estimasi Waktu Selesai Ditampilkan Live di Dasbor /drying/active]
+        B4 --> B5{Operator Perlu Membalik Biji / Inspeksi?}
+        B5 -- Ya --> B6[Klik Tombol Jeda - Pause: Matikan Pemanas & Hentikan Durasi Efektif]
+        B6 --> B7[Pintu Ditutup -> Klik Lanjutkan - Resume]
+        B7 --> B1
+        B5 -- Tidak --> B8{Kadar Air Gabah Telah Mencapai Target <= 12%?}
+        B8 -- Belum --> B1
+    end
+
+    subgraph FasePenyelesaian ["3. Selesai Batch, Penilaian Mutu & Sertifikasi"]
+        B8 -- Ya --> C1[Klik Tombol Selesaikan Batch - Complete]
+        C1 --> C2[Input Berat Akhir Timbangan & Verifikasi Kadar Air Akhir]
+        C2 --> C3[Server Mengunci Status Batch Menjadi COMPLETED & Catat completed_at]
+        C3 --> C4[Evaluasi Algoritma Quality Scoring: Bobot Kadar Air 45%, Suhu 35%, RH 20%]
+        C4 --> C5[Penetapan Grade Mutu Produk: Grade A / Grade B / Grade C]
+        C5 --> C6[Penerbitan Dokumen Laporan Resmi: PDF A4, Excel, CSV]
+        C6 --> C7[Pembuatan Kode QR Ketertelusuran Unik untuk Kemasan Konsumen]
+    end
+```
+
+> **Penegasan Hubungan Fungsional**:  
+> Estimasi sisa waktu pengeringan (*Predictive ETA*) dihitung secara berulang dan dinamis **hanya pada saat batch berstatus AKTIF (`ACTIVE`)**. Sebaliknya, saat batch **DISELESAIKAN (`COMPLETED`)**, sistem tidak lagi menjalankan estimasi waktu, melainkan mengunci rekam jejak, menghitung skor mutu objektif (*Quality Score Grade A/B/C*), serta menghasilkan laporan audit dan kode QR ketertelusuran publik.
+
+---
+
+## 8. DESKRIPSI LENGKAP DIAGRAM ALIR KONTROL SUHU & SAFETY CUTOFF (GAMBAR 5)
+
+Diagram alir pada **Gambar 5** memperlihatkan arsitektur keselamatan termal mikrokontroler dan server:
+
+```mermaid
+flowchart TD
+    Start([Siklus Pengukuran Sensor ESP32]) --> ReadSensors[Membaca DHT22 GPIO 25, BH1750, Rain GPIO 34]
+    ReadSensors --> CheckDHT{Pembacaan DHT22 Berhasil?}
     
-    CheckValid -- Tidak / Gagal 3x --> FailSafe[FAIL-SAFE: Matikan Seluruh Relay Pemanas CH1 & CH2]
-    FailSafe --> SendAlert[Kirim Notifikasi Bahaya ke Web & Server]
+    CheckDHT -- Gagal 3x Berturut-turut --> FailSafe[FAIL-SAFE DARURAT: Matikan Relay CH1 & CH2 Seketika]
+    FailSafe --> TransmitAlert[Kirim Sinyal Peringatan Bahaya ke Server Web]
     
-    CheckValid -- Ya --> CheckTemp{Suhu Ruang >= 50.0°C?}
-    CheckTemp -- Ya --> Lockout[SAFETY LOCKOUT: Matikan Relay CH1 & CH2 Seketika]
-    Lockout --> ExhaustOn[Aktifkan Kipas Pembuang Panas 100%]
+    CheckDHT -- Berhasil --> CheckOverheat{Suhu Ruang >= 50.0°C?}
+    CheckOverheat -- Ya --> Lockout[SAFETY LOCKOUT MUTLAK: Matikan Relay CH1 & CH2]
+    Lockout --> Exhaust100[Paksa Kipas Pembuang Uap / Panas Berputar 100%]
     
-    CheckTemp -- Tidak --> CheckRecovery{Status Sebelumnya Lockout & Suhu > 48.0°C?}
-    CheckRecovery -- Ya --> KeepOff[Pertahankan Pemanas OFF hingga Suhu <= 48.0°C]
+    CheckOverheat -- Tidak --> CheckRecoveryState{Status Sebelumnya Lockout & Suhu > 48.0°C?}
+    CheckRecoveryState -- Ya --> KeepOff[Pertahankan Pemanas OFF Menunggu Suhu Dingin <= 48.0°C]
     
-    CheckRecovery -- Tidak --> CheckMode{Mode Kontrol?}
-    CheckMode -- MANUAL --> ApplyManual[Terapkan Status Sesuai Perintah Operator Web]
+    CheckRecoveryState -- Tidak --> CheckManualMode{Mode Override Manual Operator Aktif?}
+    CheckManualMode -- Ya --> ApplyManualCmd[Terapkan Status Saklar Pemanas Sesuai Perintah Operator Web]
     
-    CheckMode -- OTOMATIS --> CheckNTP{Waktu Nyata WIB 18:00 - 05:00?}
-    CheckNTP -- Ya --> TurnHeatersOn[NTP Malam: Aktifkan Relay Pemanas CH1 & CH2]
+    CheckManualMode -- Tidak / OTOMATIS --> CheckNTP{Waktu Nyata WIB Pukul 18.00 s.d. Sebelum 05.00?}
+    CheckNTP -- Ya --> TurnHeaterOn[NTP Malam Aktif: Nyalakan Relay Pemanas CH1 & CH2]
     
-    CheckNTP -- Tidak --> CheckWeather{Hujan / Suhu <= 35°C / RH >= 70%?}
-    CheckWeather -- Ya --> TurnHeatersOn
-    CheckWeather -- Tidak --> TurnHeatersOff[Siang Cerah: Matikan Pemanas, Andalkan Efek Rumah Kaca]
+    CheckNTP -- Tidak --> CheckClimate{Hujan ADC < 2000 / Suhu <= 35.0°C / RH >= 70%?}
+    CheckClimate -- Ya --> TurnHeaterOn
+    CheckClimate -- Tidak --> TurnHeaterOff[Siang Cerah: Matikan Pemanas, Optimalkan Sinar Surya]
     
-    TurnHeatersOn --> SendTelemetry[Kemas Paket JSON Telemetri]
-    TurnHeatersOff --> SendTelemetry
-    ApplyManual --> SendTelemetry
-    KeepOff --> SendTelemetry
-    ExhaustOn --> SendTelemetry
-    SendAlert --> SendTelemetry
+    TurnHeaterOn --> BuildPayload[Kemas Paket Telemetri JSON]
+    TurnHeaterOff --> BuildPayload
+    ApplyManualCmd --> BuildPayload
+    KeepOff --> BuildPayload
+    Exhaust100 --> BuildPayload
+    TransmitAlert --> BuildPayload
     
-    SendTelemetry --> TransmitData[Kirim via MQTT & HTTP Ingestion & Serial UART]
-    TransmitData --> DelayStep[Tunggu Interval 3-5 Detik]
-    DelayStep --> ReadSensors
+    BuildPayload --> TransmitData[Kirim Telemetri ke Broker MQTT & Endpoint REST /api/telemetry]
+    TransmitData --> ServerEval[Server Laravel Mengevaluasi max_safe_temp 50-55°C]
+    ServerEval --> EndCycle([Selesai Siklus - Ulangi Tiap 3-5 Detik])
 ```
 
 ---
 
-## 6. DESKRIPSI MODUL FUNGSIONAL & FITUR PROGRAM KOMPUTER
+## 9. DESKRIPSI MODUL FUNGSIONAL & FITUR UTAMA APLIKASI
 
-Aplikasi terdiri dari 8 modul utama:
+Perangkat lunak terdiri dari kumpulan modul fungsional yang saling terintegrasi:
 
-### Modul 1: Halaman Publik & Sistem Ketertelusuran (*Traceability QR*)
-- Memberikan akses transparansi bagi masyarakat dan konsumen produk hanjeli.
-- Pengguna dapat memindai QR code pada kemasan beras hanjeli untuk melihat riwayat batch: varietas tanaman, kadar air awal dan akhir, kurva stabilitas suhu, sertifikat kelayakan mutu, serta tanggal panen.
-
-### Modul 2: Autentikasi Pengguna & Keamanan Multi-Faktor (RBAC & Biometrik)
-- Autentikasi aman berbasis Sanctum Bearer Token.
-- Mendukung kredensial biometrik modern **WebAuthn / Passkeys** (Sidik jari, Touch ID, Face ID, Windows Hello) untuk login cepat tanpa kata sandi.
-- Dukungan login cadangan: Google OAuth 2.0 dan One-Time Password (OTP) via Email.
-
-### Modul 3: Dasbor Analitik & Pemantauan Waktu Nyata (*Real-Time Dashboard*)
-- *Radial Gauges*: Indikator suhu internal (°C), suhu eksternal (°C), kelembaban relatif (% RH), intensitas radiasi matahari (Lux / $W/m^2$), dan kadar air biji (%).
-- *Unified Interactive Charts*: Visualisasi multi-sumbu interaktif (*Temperature, Humidity, Moisture, Solar Radiation*) dengan selector rentang waktu (1 Jam, 6 Jam, 24 Jam, 7 Hari), *zoom & pan*, serta ringkasan metrik statistik dinamis.
-- *Status Jaringan Terpadu*: Indikator status koneksi MQTT Daemon, Reverb WebSockets, BLE, dan USB Serial fallback.
-
-### Modul 4: Manajemen Siklus Batch Pengeringan & AI ETA Kinetika
-- Alur lengkap siklus: Pembuatan Batch Baru (`/drying/new`), Pengeringan Aktif (`/drying/active`), Jeda (*Pause*), Lanjutkan (*Resume*), dan Selesai (*Complete*).
-- Menghitung laju susut bobot gabah (kg) dan persentase kadar air menuju target $12.0\%$.
-- Algoritma *Predictive ETA* memperkirakan jam penyelesaian pengeringan berdasarkan tren difusi massa air dan radiasi surya.
-
-### Modul 5: Kartu Kendali Aktuator Cerdas (*Actuator Control Card*)
-- Pengalihan mode operasional fleksibel antara **OTOMATIS** dan **MANUAL**.
-- Kontrol independen untuk:
-  - Pemanas Keramik PTC Saluran 1 (`RELAY_CH1` di `GPIO 26`).
-  - Pemanas Keramik PTC Saluran 2 (`RELAY_CH2` di `GPIO 27`).
-  - Saklar Master Pemanas Cadangan (*Auxiliary Heater*).
-  - Kipas Pembuang Lembab (*Exhaust Fan*) dengan slider kecepatan PWM ($0\% - 100\%$).
-  - Kipas Udara Segar (*Intake Fan*) dan Kipas Sirkulasi (*Circulation Fan*).
-- Tombol *Emergency Cut-Off* untuk memadamkan seluruh pemanas seketika.
-
-### Modul 6: Pusat Manajemen Armada IoT 7 Sub-Modul Admin (`/admin/devices`)
-1. **Security**: Manajemen token `X-Device-Token`, kunci HMAC SHA-256, dan ping node.
-2. **OTA (Over-The-Air)**: Flashing pembaruan firmware mikrokontroler jarak jauh via Wi-Fi.
-3. **Releases**: Katalog penyimpanan file biner rilis firmware `.bin` dengan verifikasi checksum.
-4. **Sensors**: Diagnostik latensi, heartbeat, dan packet drop rate setiap sensor.
-5. **Actuators**: Panel uji coba fisik saklar relay langsung dari web.
-6. **Catalog**: Lembar spesifikasi teknis pinout GPIO dan rentang akurasi sensor.
-7. **Arduino**: Penampil kode sumber firmware produksi (`esp32_smart_dryer_hardware.ino`) dengan tombol salin dan unduh.
-
-### Modul 7: Algoritma Penilaian Mutu & Ekspor Laporan Resmi
-- Persamaan komposit berbobot:
-  $$\text{Skor Mutu} = (S_{\text{kadar air}} \times 45\%) + (S_{\text{stabilitas suhu}} \times 35\%) + (S_{\text{kestabilan RH}} \times 20\%)$$
-- Klasifikasi mutu otomatis:
-  - **Grade A** (Skor $\ge 85$): Mutu benih premium dan beras konsumsi vakum.
-  - **Grade B** (Skor $70 - 84$): Standar konsumsi pangan lokal dan tepung.
-  - **Grade C** (Skor $< 70$): Perlu pengeringan ulang.
-- Ekspor laporan audit resmi dalam format **PDF berstandar A4**, **Microsoft Excel (.xlsx)**, dan **CSV**.
-
-### Modul 8: Transmisi Tri-Mode (Wi-Fi, Web Bluetooth BLE, Web Serial USB)
-- Pengguna dapat memilih saluran komunikasi terbaik sesuai kondisi infrastruktur lapangan tanpa memerlukan instalasi aplikasi pihak ketiga.
+1. **Modul Autentikasi Pengguna & Keamanan Multi-Faktor**:
+   - Memvalidasi kredensial pengguna berbasis token Sanctum.
+   - Mendukung autentikasi biometrik W3C **WebAuthn / Passkeys** (sidik jari, pengenalan wajah Face ID, Windows Hello).
+   - Pengendalian hak akses berbasis peran (*Role-Based Access Control*): Hak akses Administrator untuk manajemen sistem dan Operator untuk aktivitas pengeringan.
+2. **Modul Pemantauan Telemetri Real-Time**:
+   - Mengonsumsi data telemetri secara instan tanpa membebani browser melalui langganan kanal WebSocket Laravel Reverb (`greenhouse.telemetry`).
+   - Menyajikan metrik iklim mikro internal dan eksternal, indeks intensitas radiasi matahari ($W/m^2$ dan Lux), kadar air gabah, serta bobot susut terukur.
+3. **Modul Kendali Aktuator Cerdas**:
+   - Menyediakan tombol pemutus darurat (*Emergency Cut-Off*) yang mematikan seluruh saluran pemanas seketika.
+   - Menyediakan saklar independen untuk Saluran 1 (`GPIO 26`) dan Saluran 2 (`GPIO 27`), serta saklar gabungan (*Master Aux Heater*).
+4. **Modul Pusat Kendali Armada IoT 7 Sub-Modul Admin (`/admin/devices`)**:
+   - Mengelola keamanan token perangkat (`security`), memicu pembaruan program jarak jauh (`ota`), mengarsipkan file biner rilis firmware (`releases`), memantau latensi dan *packet drop* sensor (`sensors`), menguji saklar relai fisik (`actuators`), menampilkan katalog pinout (`catalog`), dan menyediakan penampil kode sumber mikrokontroler (`arduino`).
+5. **Modul Verifikasi Ketertelusuran Publik (*Farm-to-Table Traceability*)**:
+   - Endpoint publik `/verify/:batchCode` yang dapat diakses oleh konsumen akhir melalui pemindaian kode QR pada kemasan produk tanpa perlu melakukan login akun.
 
 ---
 
-## 7. INOVASI LOGIKA KONTROL DUAL-CHANNEL & SAFETY INTERLOCK
+## 10. PENGGALAN KODE SUMBER PROGRAM KOMPUTER (SOURCE CODE SAMPLES)
 
-Logika kontrol pemanas keramik PTC dirancang khusus untuk mematuhi standar keselamatan termal pengeringan benih:
+Sebagai pemenuhan persyaratan substantif pendaftaran Hak Cipta Program Komputer pada DJKI Kemenkumham RI, berikut dilampirkan penggalan kode sumber asli sistem:
 
-```
-                              [SUHU RUANG RUANG PENGERING]
-                                            │
-               ┌────────────────────────────┴────────────────────────────┐
-               ▼                                                         ▼
-         [Suhu >= 50.0°C]                                          [Suhu <= 48.0°C]
-               │                                                         │
-               ▼                                                         ▼
-    ┌──────────────────────┐                                   ┌──────────────────────┐
-    │    SAFETY LOCKOUT    │                                   │    RECOVERY STATE    │
-    │  Relay CH1 = OFF     │                                   │ Izin Pemanas Aktif   │
-    │  Relay CH2 = OFF     │                                   │ Kembali Dipulihkan   │
-    │  Exhaust Fan = 100%  │                                   └──────────┬───────────┘
-    └──────────────────────┘                                              │
-                                                                          ▼
-                                                                ┌───────────────────┐
-                                                                │  JADWAL & IKLIM   │
-                                                                │  - NTP 18:00-05:00│
-                                                                │  - Hujan (ADC<2000│
-                                                                │  - Suhu <= 35.0°C │
-                                                                │  - RH >= 70.0%    │
-                                                                └───────────────────┘
-```
-
----
-
-## 8. PENGGALAN KODE SUMBER PROGRAM KOMPUTER (SOURCE CODE SAMPLES)
-
-Sebagai syarat pendaftaran hak cipta program komputer pada DJKI Kemenkumham, berikut dilampirkan penggalan representatif kode sumber program:
-
-### 8.1. Firmware Mikrokontroler ESP32 — Kontrol Pemanas Dual-Channel & Safety Interlock
+### 10.1. Firmware Mikrokontroler ESP32 — Logika Pemanas Dual-Channel & Safety Interlock
 *Berkas: `docs/esp32_smart_dryer_hardware/esp32_smart_dryer_hardware.ino`*
 
 ```cpp
 #define RELAY_CH1     26     // Relay Channel 1: Heater Utama
 #define RELAY_CH2     27     // Relay Channel 2: Heater Bantu / Cadangan
-#define DHTPIN        25     // Sensor Suhu & Kelembaban DHT22
+#define DHTPIN        25     // Sensor Suhu & Kelembapan DHT22
 #define RAIN_PIN      34     // Sensor Hujan Analog ADC
 #define STATUS_LED    2      // Indikator Konektivitas
 
-// Aturan Histeresis Suhu SNI
-const float TEMP_CRITICAL_CUTOFF = 50.0; // Suhu bahaya: Pemanas diputus paksa
-const float TEMP_RECOVERY_ON     = 48.0; // Suhu aman: Pemanas diizinkan aktif kembali
+// Aturan Histeresis Suhu Standar Keselamatan Fisik
+const float MAX_TEMP_C     = 50.0; // Batas Suhu Kritis (Heater Wajib OFF / Lockout)
+const float RESTART_TEMP_C = 48.0; // Suhu Pemulihan (Heater Boleh Aktif Kembali)
 
 void updateHeaterLogic(float temp, float hum, bool isRaining, int currentHour) {
-    // 1. Safety Lockout Mutlak jika Suhu >= 50.0°C
-    if (temp >= TEMP_CRITICAL_CUTOFF) {
+    // 1. Safety Lockout Mutlak jika Suhu Fisik >= 50.0°C
+    if (temp >= MAX_TEMP_C) {
         lockoutTriggered = true;
         setDualHeaters(false, false);
         heaterReason = "Safety Lockout: Overheat >= 50C";
@@ -295,7 +334,7 @@ void updateHeaterLogic(float temp, float hum, bool isRaining, int currentHour) {
 
     // 2. Pemulihan dari Lockout hanya jika suhu sudah mendingin <= 48.0°C
     if (lockoutTriggered) {
-        if (temp <= TEMP_RECOVERY_ON) {
+        if (temp <= RESTART_TEMP_C) {
             lockoutTriggered = false;
         } else {
             setDualHeaters(false, false);
@@ -304,13 +343,13 @@ void updateHeaterLogic(float temp, float hum, bool isRaining, int currentHour) {
         }
     }
 
-    // 3. Mode Manual Override jika diatur oleh Operator Web
+    // 3. Mode Manual Override jika diatur secara eksplisit oleh Operator Web
     if (manualOverrideActive) {
         setDualHeaters(manualCh1State, manualCh2State);
         return;
     }
 
-    // 4. Jadwal Otomatis Malam NTP WIB (18:00 - 05:00 WIB)
+    // 4. Jadwal Otomatis Malam NTP WIB (Mulai pukul 18.00 hingga sebelum 05.00 WIB)
     bool isNightSchedule = (currentHour >= 18 || currentHour < 5);
     bool climateDemand   = isRaining || (temp <= 35.0) || (hum >= 70.0);
 
@@ -324,128 +363,115 @@ void updateHeaterLogic(float temp, float hum, bool isRaining, int currentHour) {
 }
 ```
 
-### 8.2. Ingestion Controller & Real-Time Broadcast (Backend Laravel)
+### 10.2. Pengendali Ingesti Telemetri & Evaluasi Batas Aman (Backend Laravel)
 *Berkas: `app/Http/Controllers/Api/TelemetryController.php`*
 
 ```php
-public function store(Request $request): JsonResponse
+public function ingest(Request $request, \App\Services\MqttService $mqttService): JsonResponse
 {
-    $validated = $request->validate([
-        'temperature'     => 'required|numeric',
-        'humidity'        => 'required|numeric',
-        'lux'             => 'nullable|numeric',
-        'is_raining'      => 'nullable|boolean',
-        'heater_on'       => 'nullable|boolean',
-        'heaterCh1Status' => 'nullable|boolean',
-        'heaterCh2Status' => 'nullable|boolean',
-    ]);
+    // 1. Otentikasi Perangkat Hardware melalui Header Token
+    $token = $request->header('X-Device-Token') 
+        ?? $request->header('X-Device-Key')
+        ?? $request->header('X-API-Key')
+        ?? $request->input('device_token')
+        ?? $request->input('api_key');
 
-    $activeBatch = Batch::where('status', 'ACTIVE')->latest()->first();
+    $validDevice = \App\Models\Device::where('device_token', $token)
+        ->where('is_active', true)
+        ->first();
 
-    $telemetry = Telemetry::create([
-        'batch_id'          => $activeBatch?->id,
-        'temp_internal'     => $validated['temperature'],
-        'humidity_internal' => $validated['humidity'],
-        'solar_radiation'   => $validated['lux'] ?? 0,
-        'heater_status'     => $validated['heater_on'] ?? false,
-        'heater_ch1_status' => $validated['heaterCh1Status'] ?? false,
-        'heater_ch2_status' => $validated['heaterCh2Status'] ?? false,
-        'is_raining'        => $validated['is_raining'] ?? false,
-        'recorded_at'       => now(),
-    ]);
+    // 2. Normalisasi Data Sensor Masuk (tempInternal dan humidityInternal)
+    $tempInternal = $request->input('tempInternal', $request->input('temp_internal', $request->input('temperature')));
+    $humidityInternal = $request->input('humidityInternal', $request->input('humidity_internal', $request->input('humidity')));
 
-    // Siarkan secara langsung ke antarmuka operator melalui Laravel Reverb WebSocket
-    broadcast(new TelemetryUpdated($telemetry))->toOthers();
+    if ($tempInternal === null || $humidityInternal === null) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Suhu internal dan kelembapan internal wajib disertakan.',
+        ], 422);
+    }
+
+    // 3. Evaluasi Logika Pemanas & Jadwal Malam NTP WIB (18.00 hingga sebelum 05.00 WIB)
+    $currentHourWib = \Carbon\Carbon::now('Asia/Jakarta')->hour;
+    $isNightSchedule = ($currentHourWib >= 18 || $currentHourWib < 5);
+    $isHeaterOn = $request->boolean('heaterStatus', ($isNightSchedule || (float)$tempInternal <= 35.0));
+
+    $payload = [
+        'deviceId'         => $request->input('deviceId', $validDevice?->code ?? 'ESP32-HANJELI-01'),
+        'tempInternal'     => (float) $tempInternal,
+        'humidityInternal' => (float) $humidityInternal,
+        'heaterStatus'     => $isHeaterOn,
+        'heaterCh1Status'  => $request->boolean('heaterCh1Status', $isHeaterOn),
+        'heaterCh2Status'  => $request->boolean('heaterCh2Status', $isHeaterOn),
+        'isRaining'        => $request->boolean('is_raining', false),
+    ];
+
+    // Proses data dan evaluasi batas suhu kritis server (max_safe_temp)
+    $telemetry = $mqttService->processTelemetryPayload($payload);
 
     return response()->json([
-        'success'   => true,
-        'message'   => 'Telemetry processed & broadcasted successfully',
-        'actuators' => ActuatorState::latest()->first()
-    ]);
+        'success'    => true,
+        'id'         => $telemetry->id,
+        'deviceId'   => $payload['deviceId'],
+        'recordedAt' => now()->toIso8601String(),
+        'actuators'  => \App\Models\ActuatorState::first()
+    ], 201);
 }
 ```
 
-### 8.3. Komponen Antarmuka Pengendali Aktuator Ganda (Frontend Vue 3.5)
-*Berkas: `resources/js/components/ActuatorControlCard.vue`*
-
-```vue
-<template>
-  <div class="actuator-card rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-    <div class="flex items-center justify-between border-b pb-4">
-      <h3 class="font-bold text-zinc-900 dark:text-white">Panel Kendali Aktuator Cerdas</h3>
-      <button @click="toggleMode" :class="isManual ? 'bg-amber-500' : 'bg-emerald-600'" class="px-3 py-1 text-xs font-semibold text-white rounded-lg">
-        {{ isManual ? 'MODE MANUAL' : 'MODE OTOMATIS' }}
-      </button>
-    </div>
-
-    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Pemanas Saluran 1 -->
-      <div class="p-4 rounded-xl border flex items-center justify-between">
-        <div>
-          <span class="text-sm font-semibold">Pemanas PTC Saluran 1 (GPIO 26)</span>
-          <p class="text-xs text-zinc-500">Elemen Pemanas Utama</p>
-        </div>
-        <input type="checkbox" v-model="heaterCh1" :disabled="!isManual || isOverheat" @change="submitActuatorChange" />
-      </div>
-
-      <!-- Pemanas Saluran 2 -->
-      <div class="p-4 rounded-xl border flex items-center justify-between">
-        <div>
-          <span class="text-sm font-semibold">Pemanas PTC Saluran 2 (GPIO 27)</span>
-          <p class="text-xs text-zinc-500">Elemen Pemanas Bantu</p>
-        </div>
-        <input type="checkbox" v-model="heaterCh2" :disabled="!isManual || isOverheat" @change="submitActuatorChange" />
-      </div>
-    </div>
-  </div>
-</template>
-```
-
 ---
 
-## 9. DESKRIPSI ANTARMUKA PENGGUNA (USER INTERFACE SPECIFICATION)
+## 11. KLAIM INOVASI PATEN SEDERHANA & HAK CIPTA (KLAIM 1 S.D. 8)
 
-Antarmuka perangkat lunak mengusung konsep desain industri **Zero-Shadow Minimalist** yang ramah terhadap pembacaan di lapangan (*high contrast, outdoor readable*):
+Berikut adalah butir-butir rumusan klaim invensi ciptaan:
 
-1. **Skema Warna Fungsional**:
-   - Hijau Alam / Zamrud (`#0D631B` / `#059669`): Merepresentasikan status normal, energi ramah lingkungan, dan komoditas pertanian.
-   - Oranye / Amber (`#D97706`): Merepresentasikan pemanasan aktif dan peringatan transisi.
-   - Merah Crimson (`#DC2626`): Merepresentasikan status bahaya, safety lockout cutoff, dan peringatan overheat.
-   - Slate / Zinc (`#09090B` / `#F4F4F5`): Latar belakang berkontras tinggi untuk mode terang dan mode gelap.
-2. **Tipografi Modern**: Memanfaatkan rupa huruf *Plus Jakarta Sans* untuk keterbacaan metrik data numerik yang tajam.
-3. **PWA Standalone Mode**: Aplikasi dapat di-install pada smartphone Android/iOS atau desktop, memungkinkan operasional layaknya aplikasi native.
-
----
-
-## 10. KLAIM INOVASI & POTENSI PATEN SEDERHANA
-
-Jika ciptaan ini diajukan ke dalam program **Paten Sederhana / Paten Invensi**, berikut adalah butir klaim invensi yang diajukan:
-
-### Klaim 1 (Klaim Sistem / Alat):
+### Klaim 1:
 Suatu sistem cerdas pemantauan dan pengeringan biji hanjeli pascapanen berbasis rumah pengering pintar (*smart greenhouse dryer*), yang terdiri dari:
-- Ruang pengering beratap tembus pandang penangkap radiasi surya;
-- Sensor lingkungan ganda meliputi sensor suhu dan kelembaban udara digital (DHT22), sensor intensitas cahaya (BH1750), dan sensor hujan analog;
-- Unit pemanas keramik PTC yang dikendalikan melalui relai ganda (*Dual Relay CH1 dan CH2*);
-- Mikrokontroler terprogram yang mengintegrasikan pengatur waktu nyata (NTP) dan algoritma histeresis keselamatan;
-- Server web analitik yang terhubung secara sub-detik melalui protokol MQTT dan WebSocket dua arah.
+- sebuah ruang pengering beratap polikarbonat tembus pandang penangkap radiasi surya;
+- sekumpulan sensor lingkungan yang mencakup sensor suhu dan kelembapan udara digital internal (DHT22), sensor radiasi intensitas cahaya matahari (BH1750), dan sensor presipitasi air hujan analog;
+- unit pemanas keramik PTC yang dikendalikan melalui sepasang saklar relai fisik (*Dual Relay Saluran 1 dan Saluran 2*);
+- sebuah mikrokontroler (*edge device*) terprogram yang mengintegrasikan pengatur waktu nyata (*Real-Time NTP*) dan logika keselamatan termal; serta
+- sebuah server backend web yang terhubung secara sub-detik melalui protokol pesan MQTT dan server WebSocket dua arah (*Laravel Reverb*).
 
-### Klaim 2 (Klaim Metode & Algoritma):
-Suatu metode pengeringan biji hanjeli cerdas berbasis mikrokontroler dan cloud, dicirikan oleh langkah-langkah:
-1. Membaca data parameter iklim mikro ruang secara periodik;
-2. Memverifikasi validitas data sensor dan memicu tindakan *fail-safe* jika pembacaan gagal sebanyak 3 kali berturut-turut;
-3. Mengaktifkan saklar relai pemanas saluran 1 dan saluran 2 secara otomatis pada rentang waktu malam hari (pukul 18:00 hingga sebelum 05:00 WIB) atau saat terdeteksi presipitasi hujan;
-4. Memutus arus relai pemanas secara mutlak seketika saat suhu ruang mencapai batas kritis $\ge 50.0^\circ\text{C}$;
-5. Mengunci status mati pemanas dan baru mengizinkan pemulihan aktif setelah suhu mendingin hingga $\le 48.0^\circ\text{C}$;
-6. Menghitung estimasi waktu penyelesaian pengeringan (*ETA*) dan skor mutu produk (*Quality Score Grade A/B/C*) secara otomatis.
+### Klaim 2:
+Sistem menurut klaim 1, di mana pengiriman paket data telemetri sensor dari mikrokontroler ke server backend dapat dilakukan secara fleksibel melalui dua saluran alternatif:
+- saluran pertama melalui protokol broker MQTT yang memuat identifikasi perangkat dan stempel waktu di dalam struktur muatan JSON; atau
+- saluran kedua melalui protokol HTTP REST pada endpoint **`POST /api/telemetry`** atau alias **`POST /api/telemetry/ingest`**, di mana identifikasi perangkat divalidasi melalui token keamanan pada tajuk permintaan (*header request*) dan stempel waktu dicatat secara otomatis di sisi server saat paket diterima.
+
+### Klaim 3:
+Sistem menurut klaim 1, di mana unit pemanas keramik PTC dikendalikan melalui relai saluran 1 (`GPIO 26`) sebagai pemanas utama dan relai saluran 2 (`GPIO 27`) sebagai pemanas bantu/cadangan, yang dapat diaktifkan secara mandiri maupun serentak melalui tombol kendali terpadu pada antarmuka web.
+
+### Klaim 4:
+Sistem menurut klaim 3, di mana relai pemanas saluran 1 dan relai pemanas saluran 2 diaktifkan secara otomatis pada siklus malam hari mulai **pukul 18.00 hingga sebelum pukul 05.00 WIB**, atau di luar jadwal tersebut saat terdeteksi presipitasi hujan, suhu ruang dingin $\le 35.0^\circ\text{C}$, atau kelembapan udara jenuh $\ge 70.0\%$.
+
+### Klaim 5:
+Sistem menurut klaim 1, di mana mekanisme keselamatan termal beroperasi secara berlapis (*dual-tier safety architecture*), yang meliputi:
+- pengaman tingkat mikrokontroler dengan batas putus mutlak (*hard-lockout*) jika suhu fisik $\ge 50.0^\circ\text{C}$ dan histeresis pemulihan aktif kembali jika suhu mendingin $\le 48.0^\circ\text{C}$; serta
+- pengaman tingkat server backend yang memantau batas suhu aman maksimum (`max_safe_temp`) yang dapat dikonfigurasi dinamis oleh administrator dalam rentang **$50.0^\circ\text{C}$ hingga $55.0^\circ\text{C}$** untuk mengunci status aktuator dan memancarkan notifikasi peringatan darurat multi-saluran.
+
+### Klaim 6:
+Sistem menurut klaim 1, di mana mikrokontroler terhubung ke stasiun kerja untuk pemantauan log diagnostik satu arah melalui komunikasi kabel serial UART 115200 baud, sementara seluruh perintah kendali aktuator dua arah diterima mikrokontroler melalui saluran jaringan MQTT dan respons transaksi HTTP.
+
+### Klaim 7:
+Suatu metode pemantauan dan pengendalian pengeringan biji hanjeli berbasis sistem cerdas mikrokontroler dan server, dicirikan oleh tahapan langkah:
+1. membaca data parameter iklim mikro ruang pengering secara berkala;
+2. memverifikasi integritas data sensor dan mengeksekusi prosedur *fail-safe* jika pembacaan sensor suhu mengalami kegagalan berturut-turut;
+3. saat batch pengeringan berstatus aktif (`ACTIVE`), menghitung estimasi sisa waktu pengeringan (*Predictive ETA*) secara dinamis dan berkala berdasarkan laju difusi air lapisan tipis dan intensitas radiasi matahari;
+4. mengendalikan relai pemanas saluran 1 dan saluran 2 secara otomatis pada malam hari mulai pukul 18.00 hingga sebelum pukul 05.00 WIB atau saat cuaca hujan dan dingin;
+5. memutus arus relai pemanas secara mutlak seketika saat suhu ruang mencapai batas kritis mikrokontroler $50.0^\circ\text{C}$ atau batas toleransi aman server $50.0^\circ\text{C} - 55.0^\circ\text{C}$; serta
+6. saat batch pengeringan diselesaikan oleh operator (`COMPLETED`), menghentikan penghitungan estimasi waktu, mengunci rekam jejak akhir, dan menghitung skor mutu komposit berbobot (*Quality Score*) untuk menghasilkan klasifikasi mutu Grade A, Grade B, atau Grade C serta menerbitkan kode verifikasi ketertelusuran QR publik.
+
+### Klaim 8:
+Metode menurut klaim 7, yang menyiarkan setiap perubahan telemetri dan status relai secara instan ke peramban pengguna dengan latensi sub-detik melalui server WebSocket terpasang *Laravel Reverb*.
 
 ---
 
-## 11. SURAT PERNYATAAN KEASLIAN & PENGALIHAN HAK CIPTA
+## 12. SURAT PERNYATAAN KEASLIAN & PENGALIHAN HAK CIPTA
 
-Dengan ini dinyatakan bahwa:
-1. Karya ciptaan program komputer berjudul **"Sistem Cerdas Otomasi dan Pemantauan Pengeringan Biji Hanjeli Berbasis Agro-Industrial IoT, WebSockets Real-Time, dan Web Bluetooth (BLE)"** adalah karya asli yang dirancang dan dibangun oleh tim pengembang CoE STAS-RG bersama mitra Desa Wisata Hanjeli.
-2. Program komputer ini tidak meniru atau melanggar hak cipta milik pihak lain secara melawan hukum.
-3. Dokumen ini disiapkan secara resmi sebagai lampiran syarat substantif pendaftaran Hak Cipta Program Komputer pada **Direktorat Jenderal Kekayaan Intelektual (DJKI) Kementerian Hukum dan Hak Asasi Manusia Republik Indonesia**.
+Dengan ini dinyatakan dengan sebenar-benarnya bahwa:
+1. Karya ciptaan program komputer dan inovasi sistem cerdas berjudul **"Sistem Cerdas Otomasi dan Pemantauan Pengeringan Biji Hanjeli Berbasis Agro-Industrial IoT, WebSockets Real-Time, dan Web Bluetooth (BLE)"** adalah karya orisinal yang dirancang, diimplementasikan, dan diuji secara langsung oleh tim peneliti Center of Excellence STAS-RG bersama mitra pengelola Desa Wisata Hanjeli Waluran, Sukabumi.
+2. Ciptaan ini bebas dari unsur penjiplakan (*plagiarisme*) dan tidak melanggar hak kekayaan intelektual milik pihak lain mana pun.
+3. Dokumen deskripsi teknis ini disusun untuk dijadikan rujukan resmi permohonan pendaftaran **Hak Cipta Program Komputer** dan **Paten Sederhana** pada Direktorat Jenderal Kekayaan Intelektual (DJKI) Kementerian Hukum dan Hak Asasi Manusia Republik Indonesia.
 
 ---
-*Dokumen ini diterbitkan secara sah oleh Tim Pengembang CoE STAS-RG.*
+*Ditetapkan dan disahkan secara resmi oleh Tim Pengembang CoE STAS-RG.*

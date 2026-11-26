@@ -81,7 +81,7 @@ Aplikasi ini hadir sebagai solusi holistik dengan mengintegrasikan:
 
 ### ⚙️ 2. Smart Climate Automation & Manual Overrides
 - **Multi-Fan Control**: Kendali terpisah untuk *Exhaust Fan*, *Intake Fan*, dan *Circulation Fan* dengan dukungan tingkat kecepatan variabel (PWM 0-100%).
-- **Auxiliary Heater Automation**: Pemanas cadangan otomatis aktif saat malam hari (jadwal NTP 18:00 - 05:00 WIB) atau kondisi cuaca hujan/dingin ($\le 35^\circ\text{C}$ / RH $\ge 70\%$) dengan kendali ganda Dual Relay (Saluran 1 GPIO 26 & Saluran 2 GPIO 27) serta proteksi *safety interlock cutoff* seketika jika suhu $\ge 50.0^\circ\text{C}$ (recovery $\le 48.0^\circ\text{C}$).
+- **Auxiliary Heater Automation**: Pemanas cadangan otomatis aktif saat malam hari (jadwal NTP pukul 18:00 hingga sebelum 05:00 WIB) atau kondisi cuaca hujan/dingin ($\le 35^\circ\text{C}$ / RH $\ge 70\%$) dengan kendali ganda Dual Relay (Saluran 1 GPIO 26 & Saluran 2 GPIO 27) serta proteksi *safety interlock cutoff* seketika jika suhu $\ge 50.0^\circ\text{C}$ (recovery $\le 48.0^\circ\text{C}$).
 - **Dual Mode Operation**: Pengalihan fleksibel antara mode **OTOMATIS** (berbasis *threshold rules*) dan mode **MANUAL** (kendali langsung oleh operator).
 
 ### 🌾 3. Manajemen Siklus Batch Pengeringan & Kinetika ETA
@@ -543,7 +543,7 @@ Firmware ESP32 lengkap tersedia di folder [`docs/esp32_smart_dryer_hardware/`](d
 | :--- | :--- | :--- |
 | `GET` | `/api/telemetry/current` | Mengambil data telemetri sensor detik ini |
 | `GET` | `/api/telemetry/history` | Mengambil riwayat telemetri time-series berfilter rentang waktu |
-| `POST` | `/api/telemetry/ingest` | Endpoint HTTP Ingestion data sensor dari ESP32 |
+| `POST` | `/api/telemetry` | Ingestion data telemetri sensor dari ESP32 (Didukung alias: `/api/telemetry/ingest`) |
 | `POST` | `/api/telemetry/downsample` | (Admin) Menjalankan peringkasan data telemetri historis |
 | `GET` | `/api/telemetry/storage-stats` | (Admin) Statistik utilisasi database telemetri |
 | `GET` | `/api/actuators/status` | Mengambil status aktif dan kecepatan kipas/heater |

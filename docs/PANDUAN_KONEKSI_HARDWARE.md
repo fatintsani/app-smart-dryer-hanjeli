@@ -286,7 +286,7 @@ void setup() {
 // 7. LOOP UTAMA
 // ==============================================================================
 void loop() {
-  // Pertahankan koneksi Wi-Fi dan MQTT jika memungkinkan
+  // 1. Pertahankan koneksi Wi-Fi dan MQTT
   if (WiFi.status() == WL_CONNECTED) {
     if (!mqttClient.connected()) {
       reconnectMQTT();
@@ -295,34 +295,12 @@ void loop() {
     }
   }
 
-  // Baca perintah balik dari Web Serial API jika dicolok kabel USB ke laptop
-  if (Serial.available()) {
-    String serialInput = Serial.readStringUntil('\n');
-    serialInput.trim();
-    if (serialInput.length() > 0 && serialInput.startsWith("{")) {
-      StaticJsonDocument<256> sDoc;
-      if (!deserializeJson(sDoc, serialInput)) {
-        if (sDoc.containsKey("target")) {
-          String target = sDoc["target"].as<String>();
-          bool state = sDoc["state"].as<bool>();
-          if (target == "HEATER_CH1" || target == "HEATER_1") {
-            stateHeaterCh1 = state;
-            stateAuxHeater = stateHeaterCh1 || stateHeaterCh2;
-          } else if (target == "HEATER_CH2" || target == "HEATER_2") {
-            stateHeaterCh2 = state;
-            stateAuxHeater = stateHeaterCh1 || stateHeaterCh2;
-          } else if (target == "AUX_HEATER") {
-            stateAuxHeater = state;
-            stateHeaterCh1 = state;
-            stateHeaterCh2 = state;
-          }
-          applyRelays();
-        }
-      }
-    }
-  }
+  // 2. Transmisi dan Diagnostik Serial:
+  // Port Serial UART (115200 baud) digunakan untuk memancarkan streaming log 
+  // diagnostik dan telemetri ke Serial Monitor / Web Serial API di workstation.
+  // Perintah kontrol aktuator dua arah diterima secara aman melalui MQTT dan HTTP.
 
-  // Pengiriman Telemetri Terjadwal (Tiap 3 Detik)
+  // 3. Pengiriman Telemetri Terjadwal (Tiap 3 Detik)
   unsigned long currentMillis = millis();
   if (currentMillis - lastSendMillis >= SEND_INTERVAL) {
     lastSendMillis = currentMillis;
